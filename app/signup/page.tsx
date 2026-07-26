@@ -33,23 +33,29 @@ export default function SignupPage() {
 
     const supabase = createClient();
 
-    const { error: signupError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: name },
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
+    try {
+      const { error: signupError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { full_name: name },
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
 
-    if (signupError) {
-      setError(signupError.message);
+      if (signupError) {
+        setError(signupError.message);
+        setLoading(false);
+        return;
+      }
+
+      setMessage(t.signup.checkEmail || 'Check your email for the confirmation link!');
+    } catch (err: any) {
+      console.error('[Signup] Unexpected error:', err);
+      setError(err?.message || 'An unexpected error occurred. Check console for details.');
+    } finally {
       setLoading(false);
-      return;
     }
-
-    setMessage(t.signup.checkEmail || 'Check your email for the confirmation link!');
-    setLoading(false);
   };
 
   const handleGoogleSignup = async () => {

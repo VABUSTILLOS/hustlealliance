@@ -1,4 +1,4 @@
-import { createBrowserClient } from '@supabase/ssr';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 
 const VALID_URL_REGEX = /^https?:\/\/.+/;
 
@@ -11,16 +11,17 @@ export function createClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL || SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || SUPABASE_ANON_KEY;
 
-  if (typeof window !== 'undefined') {
-    console.log('[Supabase] Using URL:', url.substring(0, 50));
-  }
-
   if (!url || !key || !VALID_URL_REGEX.test(url)) {
     console.error('[Supabase] Invalid configuration. URL:', url);
-    return createBrowserClient('https://placeholder.supabase.co', 'placeholder-key');
+    return createSupabaseClient('https://placeholder.supabase.co', 'placeholder-key');
   }
 
-  return createBrowserClient(url.trim(), key.trim());
+  return createSupabaseClient(url.trim(), key.trim(), {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+    },
+  });
 }
 
 /** Check whether Supabase is configured with real credentials. */

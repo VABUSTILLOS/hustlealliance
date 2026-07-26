@@ -30,19 +30,25 @@ export default function LoginPage() {
 
     const supabase = createClient();
 
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    if (signInError) {
-      setError(signInError.message);
+      if (signInError) {
+        setError(signInError.message);
+        setLoading(false);
+        return;
+      }
+
+      router.push('/dashboard');
+      router.refresh();
+    } catch (err: any) {
+      console.error('[Login] Unexpected error:', err);
+      setError(err?.message || 'An unexpected error occurred. Check console for details.');
       setLoading(false);
-      return;
     }
-
-    router.push('/dashboard');
-    router.refresh();
   };
 
   const handleGoogleSignIn = async () => {
