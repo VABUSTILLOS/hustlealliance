@@ -2,13 +2,17 @@
 
 import { motion } from 'framer-motion';
 import { useStore } from '@/lib/store/useStore';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { badges as allBadges } from '@/lib/data/gamification';
 import BadgeUnlock from './BadgeUnlock';
+import { useToast } from './ToastProvider';
 
 export default function GamificationWidget() {
   const { gamification, checkDailyLogin, getNextBadge, clearLatestBadge } = useStore();
   const [xpAnimate, setXpAnimate] = useState(false);
+  const { addToast } = useToast();
+  const prevStreak = useRef(gamification.streak);
+  const prevBadgeCount = useRef(gamification.earnedBadges.length);
 
   useEffect(() => {
     checkDailyLogin();
@@ -21,6 +25,35 @@ export default function GamificationWidget() {
   const latestBadge = gamification.latestUnlockedBadge
     ? allBadges.find(b => b.id === gamification.latestUnlockedBadge)
     : null;
+
+  // Toast for streak increase
+  useEffect(() => {
+    if (streak > prevStreak.current && prevStreak.current > 0) {
+      addToast({
+        message: `${streak}-day streak! Keep the fire burning!`,
+        icon: '🔥',
+        type: 'streak',
+      });
+    }
+    prevStreak.current = streak;
+  }, [streak, addToast]);
+
+  // Toast for badge unlock
+  useEffect(() => {
+    if (badgeCount > prevBadgeCount.current) {
+      const newBadgeId = gamification.earnedBadges[badgeCount - 1];
+      const newBadge = allBadges.find(b => b.id === newBadgeId);
+      if (newBadge) {
+        addToast({
+          message: `Badge unlocked: ${newBadge.name}! ${newBadge.icon}`,
+          icon: newBadge.icon,
+          type: 'success',
+          duration: 5000,
+        });
+      }
+    }
+    prevBadgeCount.current = badgeCount;
+  }, [badgeCount, addToast, gamification.earnedBadges]);
 
   // Animate XP counter
   useEffect(() => {

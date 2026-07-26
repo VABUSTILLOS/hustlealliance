@@ -21,7 +21,7 @@ export const upcomingEvents: CommunityEvent[] = [
     time: '11:00 AM PT',
     host: {
       name: 'Marcus Chen',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=96&h=96&fit=crop&crop=face',
+      avatar: 'https://api.dicebear.com/9.x/initials/svg?seed=Marcus+Chen&backgroundColor=059669',
     },
     attendees: 87,
   },
@@ -33,7 +33,7 @@ export const upcomingEvents: CommunityEvent[] = [
     time: '2:00 PM PT',
     host: {
       name: 'Priya Patel',
-      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=96&h=96&fit=crop&crop=face',
+      avatar: 'https://api.dicebear.com/9.x/initials/svg?seed=Priya+Patel&backgroundColor=db2777',
     },
     attendees: 134,
   },
@@ -45,7 +45,7 @@ export const upcomingEvents: CommunityEvent[] = [
     time: '10:00 AM PT',
     host: {
       name: 'Devon Mitchell',
-      avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=96&h=96&fit=crop&crop=face',
+      avatar: 'https://api.dicebear.com/9.x/initials/svg?seed=Devon+Mitchell&backgroundColor=0891b2',
     },
     attendees: 56,
     space: 'saas-founders',

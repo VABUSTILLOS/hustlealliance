@@ -5,6 +5,7 @@ import Pillars from './components/Pillars';
 import MemberSpotlight from './components/sections/MemberSpotlight';
 import ResourceLibrary from './components/sections/ResourceLibrary';
 import Pricing from './components/sections/Pricing';
+import WallOfLove from './components/sections/WallOfLove';
 import FooterCTA from './components/sections/FooterCTA';
 
 export default function Home() {
@@ -17,6 +18,7 @@ export default function Home() {
       <MemberSpotlight />
       <ResourceLibrary />
       <Pricing />
+      <WallOfLove />
       <FooterCTA />
     </div>
   );

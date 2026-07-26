@@ -144,7 +144,7 @@ export default function LearningCatalogPage() {
                     </div>
 
                     {/* Content */}
-                    <div className="p-5 flex flex-col flex-1">
+                    <div className="p-5 flex flex-col flex-1 translate-x-0 group-hover:translate-x-0.5 transition-transform duration-300">
                       <p className="font-mono text-[10px] uppercase tracking-wider text-accent mb-2">
                         {lp.category} • {lp.duration}
                       </p>
@@ -155,10 +155,19 @@ export default function LearningCatalogPage() {
                       {/* Preview button */}
                       <button
                         onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPreviewPath(lp.slug); }}
-                        className="mt-3 inline-flex items-center gap-1.5 text-xs font-mono text-accent hover:text-accent-glow transition-colors"
+                        className="mt-3 inline-flex items-center gap-1.5 text-xs font-mono text-accent hover:text-accent-glow transition-colors group-hover:gap-2 group-hover:translate-x-0.5 transition-all"
                       >
                         <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
-                        {t.gamification.previewFor}
+                        <span>{t.gamification.previewFor}</span>
+                        <motion.svg
+                          className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.5"
+                        >
+                          <polyline points="9 18 15 12 9 6" />
+                        </motion.svg>
                       </button>
                     </div>
                   </div>
