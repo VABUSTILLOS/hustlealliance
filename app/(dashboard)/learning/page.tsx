@@ -7,6 +7,7 @@ import clsx from 'clsx';
 import { learningPaths, categories as allCats, type Category } from '@/lib/data/learning-paths';
 import { useStore } from '@/lib/store/useStore';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import PreviewModal from '@/app/components/PreviewModal';
 
 const difficultyColors: Record<string, string> = {
   Beginner: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
@@ -17,9 +18,12 @@ const difficultyColors: Record<string, string> = {
 export default function LearningCatalogPage() {
   const [activeCategory, setActiveCategory] = useState<Category | 'All'>('All');
   const [myPathsOnly, setMyPathsOnly] = useState(false);
+  const [previewPath, setPreviewPath] = useState<string | null>(null);
   const progress = useStore((s) => s.progress);
   const getPathProgress = useStore((s) => s.getPathProgress);
   const { t } = useTranslation();
+
+  const previewData = previewPath ? learningPaths.find(p => p.slug === previewPath) : undefined;
 
   const filtered = learningPaths.filter((lp) => {
     if (activeCategory !== 'All' && lp.category !== activeCategory) return false;
@@ -148,6 +152,14 @@ export default function LearningCatalogPage() {
                         {lp.title}
                       </h3>
                       <p className="text-muted text-sm flex-1">{lp.tagline}</p>
+                      {/* Preview button */}
+                      <button
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPreviewPath(lp.slug); }}
+                        className="mt-3 inline-flex items-center gap-1.5 text-xs font-mono text-accent hover:text-accent-glow transition-colors"
+                      >
+                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+                        {t.gamification.previewFor}
+                      </button>
                     </div>
                   </div>
                 </Link>
@@ -166,6 +178,16 @@ export default function LearningCatalogPage() {
         >
           {t.learning.noResults}
         </motion.p>
+      )}
+
+      {/* Preview Modal */}
+      {previewData && (
+        <PreviewModal
+          isOpen={!!previewPath}
+          onClose={() => setPreviewPath(null)}
+          title={previewData.title}
+          insights={previewData.keyInsights}
+        />
       )}
     </div>
   );

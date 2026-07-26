@@ -1,5 +1,13 @@
+import type { KeyInsight } from './gamification';
+
 export type Difficulty = 'Beginner' | 'Intermediate' | 'Advanced';
 export type Category = 'Fundraising' | 'Marketing' | 'Product' | 'Leadership';
+
+export interface LessonInsight {
+  icon: string;
+  title: string;
+  insight: string;
+}
 
 export interface Lesson {
   slug: string;
@@ -8,6 +16,7 @@ export interface Lesson {
   videoUrl: string;
   content: string;
   locked?: boolean;
+  insights?: LessonInsight[];
 }
 
 export interface Module {
@@ -24,6 +33,8 @@ export interface LearningPath {
   category: Category;
   difficulty: Difficulty;
   duration: string;
+  totalMinutes: number;
+  studentCount: number;
   thumbnail: string;
   author: {
     name: string;
@@ -33,6 +44,9 @@ export interface LearningPath {
   };
   modules: Module[];
   resources: { label: string; url: string }[];
+  keyInsights: KeyInsight[];
+  totalLessons: number;
+  communitySpaceSlug?: string;
 }
 
 export const learningPaths: LearningPath[] = [
@@ -45,6 +59,10 @@ export const learningPaths: LearningPath[] = [
     category: 'Fundraising',
     difficulty: 'Beginner',
     duration: '4 weeks',
+    totalMinutes: 210,
+    studentCount: 842,
+    totalLessons: 10,
+    communitySpaceSlug: 'fundraising-hub',
     thumbnail:
       'https://images.unsplash.com/photo-1553484771-371e845efba1?w=800&h=500&fit=crop',
     author: {
@@ -54,6 +72,13 @@ export const learningPaths: LearningPath[] = [
         'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=96&h=96&fit=crop&crop=face',
       bio: 'Former founder turned investor. Led seed rounds for 40+ startups totaling $120M+.',
     },
+    keyInsights: [
+      { icon: '💡', title: 'Investors bet on stories', insight: 'Your narrative matters more than your numbers in the first meeting. Nail your origin story.' },
+      { icon: '🎯', title: 'Target the right VCs', insight: 'Not all money is good money. Research which funds invest in your stage, sector, and geography.' },
+      { icon: '⏱️', title: 'Run a tight process', insight: 'Stack meetings within 2 weeks. Create FOMO with a clear deadline. Let investors compete.' },
+      { icon: '📊', title: 'Know your numbers cold', insight: 'CAC, LTV, burn rate, runway — be ready to answer any metric question without hesitation.' },
+      { icon: '🤝', title: 'Warm intros win', insight: 'Cold emails have a 1% hit rate. Warm introductions from portfolio founders get 80%+ response rates.' },
+    ],
     modules: [
       {
         id: 'm1',
@@ -64,6 +89,11 @@ export const learningPaths: LearningPath[] = [
             title: 'Introduction to Fundraising',
             duration: '12 min',
             videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+            insights: [
+              { icon: '💡', title: 'Money follows milestones', insight: 'Raise when you have momentum, not when you\'re desperate. Align each round with clear business achievements.' },
+              { icon: '🎯', title: 'Stage matters', insight: 'Pre-seed is about the team. Seed is about early traction. Series A is about scalable unit economics.' },
+              { icon: '🤝', title: 'Build relationships early', insight: 'Start talking to investors 6 months before you need to raise. Coffee meetings now = term sheets later.' },
+            ],
             content: `## Why fundraising matters
 
 Fundraising is not just about money — it's about finding partners who believe in your vision.
@@ -210,6 +240,10 @@ Valuation, liquidation preference, anti-dilution, board seats — know what matt
     category: 'Marketing',
     difficulty: 'Intermediate',
     duration: '6 weeks',
+    totalMinutes: 288,
+    studentCount: 623,
+    totalLessons: 12,
+    communitySpaceSlug: 'growth-hacking',
     thumbnail:
       'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=500&fit=crop',
     author: {
@@ -219,6 +253,13 @@ Valuation, liquidation preference, anti-dilution, board seats — know what matt
         'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=96&h=96&fit=crop&crop=face',
       bio: 'Scaled 3 startups from 0 to 100K+ users. Specializes in organic growth and community-led acquisition.',
     },
+    keyInsights: [
+      { icon: '🚀', title: 'Growth is systematic', insight: 'Sustainable growth comes from process, not hacks. Build repeatable acquisition loops.' },
+      { icon: '📈', title: 'Find your North Star', insight: 'Identify the one metric that best captures your core value delivery. Everything flows from it.' },
+      { icon: '✍️', title: 'Content compounds', insight: 'One great blog post can drive traffic for years. Build a content engine that scales.' },
+      { icon: '🔍', title: 'SEO for bootstrappers', insight: 'You don\'t need a budget to rank. Target long-tail keywords your competitors ignore.' },
+      { icon: '👥', title: 'Community is your moat', insight: 'Turn early users into evangelists. Word-of-mouth beats paid ads 10-to-1 on ROI.' },
+    ],
     modules: [
       {
         id: 'm1',
@@ -316,6 +357,10 @@ Turn customers into evangelists.`,
     category: 'Product',
     difficulty: 'Advanced',
     duration: '5 weeks',
+    totalMinutes: 254,
+    studentCount: 495,
+    totalLessons: 8,
+    communitySpaceSlug: 'ai-ml-builders',
     thumbnail:
       'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&h=500&fit=crop',
     author: {
@@ -325,6 +370,13 @@ Turn customers into evangelists.`,
         'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=96&h=96&fit=crop&crop=face',
       bio: 'Built and sold two PLG companies. Advises YC startups on product-led strategy.',
     },
+    keyInsights: [
+      { icon: '🔄', title: 'Your product IS your sales team', insight: 'When users can try before they buy, adoption skyrockets. Design for self-serve discovery.' },
+      { icon: '✨', title: 'The "Aha" moment is everything', insight: 'Map the shortest path from signup to the moment users first experience your core value.' },
+      { icon: '🎨', title: 'Onboarding is your conversion funnel', insight: 'Progressive disclosure beats feature dumps. Show only what users need at each step.' },
+      { icon: '🦠', title: 'Virality by design', insight: 'Build sharing mechanisms directly into the product experience — not bolted on as an afterthought.' },
+      { icon: '💰', title: 'Freemium that converts', insight: 'Give enough value for free to build habit, then charge for power, team, and enterprise features.' },
+    ],
     modules: [
       {
         id: 'm1',
@@ -411,6 +463,142 @@ Find the pricing sweet spot that maximizes conversion.`,
     resources: [
       { label: 'PLG Scorecard Template', url: '#' },
       { label: 'Onboarding Audit Checklist', url: '#' },
+    ],
+  },
+  {
+    slug: 'leadership-foundations',
+    title: 'Leadership Foundations',
+    tagline: 'Lead your startup with confidence',
+    description:
+      'Transition from builder to leader. Master the art of hiring, managing, and scaling a team while maintaining your startup culture and velocity.',
+    category: 'Leadership',
+    difficulty: 'Intermediate',
+    duration: '5 weeks',
+    totalMinutes: 240,
+    studentCount: 521,
+    totalLessons: 9,
+    communitySpaceSlug: 'leader-circle',
+    thumbnail:
+      'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=800&h=500&fit=crop',
+    author: {
+      name: 'Sarah Okonkwo',
+      role: 'CEO @ TalentBridge',
+      avatar:
+        'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=96&h=96&fit=crop&crop=face',
+      bio: 'Scaled engineering teams at Google, Stripe, and two YC startups. Author of "The Founder\'s Guide to Leadership."',
+    },
+    keyInsights: [
+      { icon: '🧭', title: 'Culture is strategy', insight: 'The team you build IS the company you build. Hire for values first, skills second.' },
+      { icon: '🎙️', title: 'Communication scales everything', insight: 'Over-communicate by 10x. Your team can\'t read your mind, especially as you grow past 20 people.' },
+      { icon: '🔄', title: 'Feedback is a gift', insight: 'Build a culture of radical candor. The most successful founders give and receive feedback daily.' },
+      { icon: '⚡', title: 'Delegate or die', insight: 'Your job as CEO is to work yourself out of every job. Empower your team to make decisions without you.' },
+      { icon: '🌱', title: 'Grow yourself first', insight: 'Your startup can only grow as fast as you do. Invest in coaching, therapy, and peer groups.' },
+    ],
+    modules: [
+      {
+        id: 'm1',
+        title: 'The Founder-to-Leader Transition',
+        lessons: [
+          {
+            slug: 'from-builder-to-leader',
+            title: 'From Builder to Leader',
+            duration: '15 min',
+            videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+            content: `## The hardest transition in startups
+Going from doing everything yourself to leading others who do it for you is the make-or-break moment for founders.
+### Key shifts:
+- From maker to multiplier
+- From individual to team output
+- From tactics to strategy`,
+          },
+          {
+            slug: 'defining-your-culture',
+            title: 'Defining Your Startup Culture',
+            duration: '18 min',
+            videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+            content: `## Culture happens with or without you
+If you don't intentionally shape it, it shapes itself — and usually not how you'd want.
+### Culture frameworks:
+1. Define 3-5 core values that are actually enforceable
+2. Create rituals that reinforce those values
+3. Hire and fire based on cultural alignment`,
+          },
+          {
+            slug: 'self-awareness',
+            title: 'Leadership Self-Awareness',
+            duration: '14 min',
+            videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+            content: `## Know yourself to lead others
+The best leaders are relentlessly self-aware. They know their strengths, blind spots, and emotional triggers.`,
+          },
+        ],
+      },
+      {
+        id: 'm2',
+        title: 'Hiring & Team Building',
+        lessons: [
+          {
+            slug: 'hiring-your-first-10',
+            title: 'Hiring Your First 10 Employees',
+            duration: '22 min',
+            videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+            content: `## Your first hires define your company
+Each of your first 10 hires brings 10% of your culture. Choose wrong and recovery is expensive.`,
+          },
+          {
+            slug: 'interviewing-like-a-pro',
+            title: 'Interviewing Like a Pro',
+            duration: '20 min',
+            videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+            content: `## Structured interviews reduce bias
+Create a consistent interview process with clear scorecards. Focus on demonstrated ability over pedigree.`,
+          },
+          {
+            slug: 'compensation-and-equity',
+            title: 'Compensation & Equity',
+            duration: '18 min',
+            videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+            content: `## Pay fairly, incentivize smartly
+Understand market comp, equity vesting schedules, and how to use both to attract and retain top talent.`,
+          },
+        ],
+      },
+      {
+        id: 'm3',
+        title: 'Managing & Scaling Teams',
+        lessons: [
+          {
+            slug: 'one-on-ones',
+            title: 'Mastering the 1:1',
+            duration: '16 min',
+            videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+            content: `## The most powerful 30 minutes of your week
+A great 1:1 is not a status update. It's a coaching session, a trust builder, and your early warning system.`,
+          },
+          {
+            slug: 'performance-reviews',
+            title: 'Performance Reviews That Work',
+            duration: '20 min',
+            videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+            content: `## Reviews shouldn't be a surprise
+Build a continuous feedback culture so the annual review is just a summary of conversations you've already had.`,
+          },
+          {
+            slug: 'scaling-beyond-50',
+            title: 'Scaling Beyond 50 People',
+            duration: '24 min',
+            videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+            content: `## The rules change at every order of magnitude
+What works at 10 breaks at 50. What works at 50 breaks at 200. Learn to evolve your leadership style.`,
+            locked: true,
+          },
+        ],
+      },
+    ],
+    resources: [
+      { label: 'Culture Deck Template', url: '#' },
+      { label: 'Hiring Scorecard Template', url: '#' },
+      { label: '1:1 Meeting Agenda', url: '#' },
     ],
   },
 ];

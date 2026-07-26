@@ -2,14 +2,16 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
 import { useStore } from '@/lib/store/useStore';
 import { upcomingEvents } from '@/lib/data/events';
 import { learningPaths } from '@/lib/data/learning-paths';
 import { spaces as allSpaces } from '@/lib/data/spaces';
+import { friendsActivity } from '@/lib/data/gamification';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
 // ── Circular Progress ────────────────────────────────────────────────────
-function CircularProgress({ pct, size = 96, stroke = 6 }: { pct: number; size?: number; stroke?: number }) {
+function CircularProgress({ pct, size = 96, stroke = 6, glow = true }: { pct: number; size?: number; stroke?: number; glow?: boolean }) {
   const r = (size - stroke) / 2;
   const circ = 2 * Math.PI * r;
   const offset = circ - (pct / 100) * circ;
@@ -18,7 +20,7 @@ function CircularProgress({ pct, size = 96, stroke = 6 }: { pct: number; size?: 
       <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="currentColor"
         className="text-surface-light" strokeWidth={stroke} />
       <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="currentColor"
-        className="text-accent drop-shadow-[0_0_10px_rgba(255,59,48,0.5)]"
+        className={glow ? 'text-accent drop-shadow-[0_0_10px_rgba(255,59,48,0.5)]' : 'text-accent'}
         strokeWidth={stroke} strokeLinecap="round"
         strokeDasharray={circ} strokeDashoffset={offset}
         style={{ transition: 'stroke-dashoffset 0.8s ease' }} />
@@ -29,9 +31,9 @@ function CircularProgress({ pct, size = 96, stroke = 6 }: { pct: number; size?: 
 // ── Widget wrapper ───────────────────────────────────────────────────────
 function Widget({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`bg-surface border border-surface-light rounded-2xl p-6 ${className}`}>
+    <motion.div className={`bg-surface border border-surface-light rounded-2xl p-6 ${className}`}>
       {children}
-    </div>
+    </motion.div>
   );
 }
 
@@ -46,28 +48,105 @@ const fadeUp = {
 
 // ── Main Dashboard ───────────────────────────────────────────────────────
 export default function DashboardPage() {
+  const { t } = useTranslation();
   const user = useStore((s) => s.currentUser);
   const progress = useStore((s) => s.progress);
   const posts = useStore((s) => s.posts);
   const joinedSpaces = useStore((s) => s.joinedSpaces);
   const getPathProgress = useStore((s) => s.getPathProgress);
-  const { t } = useTranslation();
+  const gamification = useStore((s) => s.gamification);
+  const checkDailyLogin = useStore((s) => s.checkDailyLogin);
+  const getNextBadge = useStore((s) => s.getNextBadge);
+
+  useEffect(() => { checkDailyLogin(); }, []);
 
   const enrolledPath = learningPaths.find((lp) => progress[lp.slug]);
   const enrolledProgress = enrolledPath
-    ? getPathProgress(
-        enrolledPath.slug,
-        enrolledPath.modules.reduce((sum, m) => sum + m.lessons.length, 0)
-      )
+    ? getPathProgress(enrolledPath.slug, enrolledPath.totalLessons)
     : 0;
 
   const latestPosts = posts.slice(0, 3);
-
   const mySpaces = allSpaces.filter((s) => joinedSpaces.includes(s.slug));
+
+  // Daily gem: pick a random first insight from a random path
+  const [dailyGem] = useState(() => {
+    const randomPath = learningPaths[Math.floor(Math.random() * learningPaths.length)];
+    if (randomPath.keyInsights.length > 0) {
+      return { path: randomPath, insight: randomPath.keyInsights[0] };
+    }
+    return { path: learningPaths[0], insight: learningPaths[0].keyInsights[0] };
+  });
+
+  const nextBadge = getNextBadge();
+  const badgeProgress = nextBadge?.progress ?? 0;
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-8 max-w-7xl mx-auto">
       <motion.div variants={stagger} initial="initial" animate="animate" className="space-y-6">
+
+        {/* ── Gamification Row: Streak + XP + Badge Progress ─── */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {/* Streak */}
+          <motion.div variants={fadeUp}>
+            <Widget className="!p-4 text-center">
+              <motion.span
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 0.8, repeat: Infinity, repeatDelay: 2 }}
+                className="text-2xl block mb-1"
+              >🔥</motion.span>
+              <p className="text-foreground font-display text-xl leading-none">{gamification.streak}</p>
+              <p className="text-foreground-muted text-[10px] uppercase tracking-wider mt-1">
+                {t.dashboard.dailyStreak.replace('{streak}', String(gamification.streak))}
+              </p>
+            </Widget>
+          </motion.div>
+
+          {/* XP */}
+          <motion.div variants={fadeUp}>
+            <Widget className="!p-4 text-center">
+              <span className="text-2xl block mb-1">⚡</span>
+              <p className="text-foreground font-display text-xl leading-none">{gamification.xp}</p>
+              <p className="text-foreground-muted text-[10px] uppercase tracking-wider mt-1">{t.dashboard.yourXP}</p>
+            </Widget>
+          </motion.div>
+
+          {/* Badges */}
+          <motion.div variants={fadeUp}>
+            <Widget className="!p-4 text-center">
+              <span className="text-2xl block mb-1">🏅</span>
+              <p className="text-foreground font-display text-xl leading-none">{gamification.earnedBadges.length}</p>
+              <p className="text-foreground-muted text-[10px] uppercase tracking-wider mt-1">Badges</p>
+            </Widget>
+          </motion.div>
+
+          {/* Next Badge */}
+          <motion.div variants={fadeUp}>
+            <Widget className="!p-4 text-center">
+              {nextBadge ? (
+                <>
+                  <span className="text-2xl block mb-1">{nextBadge.badge.icon}</span>
+                  <div className="w-full h-1.5 bg-surface-light rounded-full mt-1 mb-1 overflow-hidden">
+                    <motion.div
+                      className="h-full bg-accent rounded-full"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${badgeProgress}%` }}
+                      transition={{ duration: 1, ease: 'easeOut' }}
+                    />
+                  </div>
+                  <p className="text-foreground-muted text-[10px] uppercase tracking-wider mt-1 leading-tight">
+                    {nextBadge.badge.name}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <span className="text-2xl block mb-1">👑</span>
+                  <p className="text-foreground-muted text-[10px] uppercase tracking-wider mt-1">All badges earned!</p>
+                </>
+              )}
+            </Widget>
+          </motion.div>
+        </div>
+
         {/* ── Welcome Banner ─────────────────── */}
         <motion.div variants={fadeUp}>
           <Widget className="relative overflow-hidden">
@@ -76,10 +155,10 @@ export default function DashboardPage() {
               <img src={user.avatar} alt={user.name}
                 className="w-16 h-16 rounded-full border-2 border-white/10 object-cover shrink-0" />
               <div className="flex-1 min-w-0">
-                <h1 className="font-display text-2xl sm:text-3xl text-foreground uppercase leading-none mb-1">
+                <h1 className="font-display text-2xl sm:text-3xl text-white uppercase leading-none mb-1">
                   {t.dashboard.welcomeBack} {user.name.split(' ')[0]} 👋
                 </h1>
-                <p className="text-muted font-body text-sm">
+                <p className="text-foreground-dim font-body text-sm">
                   {enrolledPath
                     ? t.dashboard.continueJourney.replace('{title}', enrolledPath.title).replace('{pct}', String(enrolledProgress))
                     : t.dashboard.readyToStart}
@@ -100,26 +179,26 @@ export default function DashboardPage() {
           </Widget>
         </motion.div>
 
-        {/* ── Row: Learning Progress + Feed ─── */}
+        {/* ── Row: Learning Progress + Daily Gem ─── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Learning Progress */}
           <motion.div variants={fadeUp} className="lg:col-span-1">
             <Widget className="h-full flex flex-col items-center text-center">
-              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted mb-4">
+              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-foreground-muted mb-4">
                 {t.dashboard.yourLearning}
               </p>
               {enrolledPath ? (
                 <>
                   <div className="relative mb-4">
                     <CircularProgress pct={enrolledProgress} size={120} stroke={8} />
-                    <span className="absolute inset-0 flex items-center justify-center font-display text-2xl text-white">
+                    <span className="absolute inset-0 flex items-center justify-center font-display text-2xl text-foreground">
                       {enrolledProgress}%
                     </span>
                   </div>
                   <h3 className="font-heading font-bold text-foreground text-lg mb-1">
                     {enrolledPath.title}
                   </h3>
-                  <p className="text-muted text-sm mb-5">
+                  <p className="text-foreground-dim text-sm mb-5">
                     {enrolledProgress === 100 ? t.dashboard.completed : t.dashboard.completePct.replace('{pct}', String(enrolledProgress))}
                   </p>
                   <Link
@@ -131,7 +210,7 @@ export default function DashboardPage() {
                 </>
               ) : (
                 <div className="py-8">
-                  <p className="text-muted text-sm mb-4">{t.dashboard.noActivePaths}</p>
+                  <p className="text-foreground-dim text-sm mb-4">{t.dashboard.noActivePaths}</p>
                   <Link
                     href="/learning"
                     className="inline-flex items-center gap-2 px-5 py-2.5 bg-accent text-white font-heading font-bold text-sm rounded-xl hover:bg-accent-glow transition-colors"
@@ -143,41 +222,54 @@ export default function DashboardPage() {
             </Widget>
           </motion.div>
 
-          {/* Community Feed Preview */}
-          <motion.div variants={fadeUp} className="lg:col-span-2">
-            <Widget>
-              <div className="flex items-center justify-between mb-5">
-                <h2 className="font-heading font-bold text-foreground text-lg">{t.dashboard.communityFeed}</h2>
-                <Link href="/community" className="text-accent font-mono text-xs hover:underline">
-                  {t.dashboard.viewAll}
-                </Link>
+          {/* Daily Gem + Friends Activity */}
+          <motion.div variants={fadeUp} className="lg:col-span-2 space-y-6">
+            {/* Today's 5-Minute Gem */}
+            <Widget className="relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-accent/10 blur-3xl rounded-full pointer-events-none" />
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-xl">💎</span>
+                <h2 className="font-heading font-bold text-foreground text-lg">{t.dashboard.todayGem}</h2>
               </div>
-              <div className="space-y-4">
-                {latestPosts.map((post) => (
-                  <div
-                    key={post.id}
-                    className="flex gap-3 pb-4 border-b border-surface-light last:border-0 last:pb-0"
-                  >
-                    <img src={post.author.avatar} alt={post.author.name}
-                      className="w-8 h-8 rounded-full border border-white/10 object-cover shrink-0 mt-0.5" />
+              <div className="flex items-start gap-4 p-4 rounded-xl bg-white/5 border border-white/10">
+                <span className="text-3xl flex-shrink-0">{dailyGem.insight?.icon}</span>
+                <div className="min-w-0">
+                  <p className="text-foreground-muted text-xs uppercase tracking-wider mb-1">{dailyGem.path.title}</p>
+                  <h3 className="font-semibold text-foreground text-sm mb-1">{dailyGem.insight?.title}</h3>
+                  <p className="text-foreground-dim text-sm leading-relaxed">{dailyGem.insight?.insight}</p>
+                </div>
+              </div>
+              <Link
+                href={`/learning/${dailyGem.path.slug}`}
+                className="inline-flex items-center gap-1.5 mt-4 text-accent text-sm font-medium hover:underline"
+              >
+                {t.dashboard.startReading}
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </Link>
+            </Widget>
+
+            {/* Friends' Activity */}
+            <Widget>
+              <h2 className="font-heading font-bold text-foreground text-lg mb-4">{t.dashboard.friendsActivity}</h2>
+              <div className="space-y-3">
+                {friendsActivity.slice(0, 4).map((fa) => (
+                  <div key={fa.id} className="flex items-center gap-3">
+                    <img src={fa.avatar} alt={fa.name}
+                      className="w-8 h-8 rounded-full border border-white/10 object-cover shrink-0" />
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-heading font-bold text-foreground text-sm">{post.author.name}</span>
-                        <span className="text-muted text-xs font-mono">{post.timestamp}</span>
-                      </div>
-                      <p className="text-foreground-muted text-sm line-clamp-2">{post.text}</p>
-                      <div className="flex items-center gap-4 mt-2">
-                        <span className="flex items-center gap-1 text-muted text-xs">
-                          <svg className={`w-3.5 h-3.5 ${post.liked ? 'text-accent' : ''}`} viewBox="0 0 24 24" fill={post.liked ? 'currentColor' : 'none'}
-                            stroke="currentColor" strokeWidth="2">
-                            <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
-                          </svg>
-                          {post.likes}
+                      <p className="text-foreground text-sm">
+                        <span className="font-semibold">{fa.name}</span>{' '}
+                        <span className="text-foreground-dim">
+                          {fa.action === 'completed_lesson' && `${t.dashboard.completedPath} `}
+                          {fa.action === 'completed_path' && `${t.dashboard.completedPath} `}
+                          {fa.action === 'earned_badge' && `${t.dashboard.earnedBadge} `}
+                          {fa.action === 'started_path' && `${t.dashboard.startedPath} `}
                         </span>
-                        <span className="text-muted text-xs">
-                          {post.comments.length} {post.comments.length === 1 ? t.dashboard.comment : t.dashboard.comments}
-                        </span>
-                      </div>
+                        <span className="text-accent font-medium">{fa.target}</span>
+                      </p>
+                      <span className="text-foreground-muted text-xs">{fa.timestamp}</span>
                     </div>
                   </div>
                 ))}
@@ -185,6 +277,48 @@ export default function DashboardPage() {
             </Widget>
           </motion.div>
         </div>
+
+        {/* ── Row: Community Feed ─── */}
+        <motion.div variants={fadeUp}>
+          <Widget>
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="font-heading font-bold text-foreground text-lg">{t.dashboard.communityFeed}</h2>
+              <Link href="/community" className="text-accent font-mono text-xs hover:underline">
+                {t.dashboard.viewAll}
+              </Link>
+            </div>
+            <div className="space-y-4">
+              {latestPosts.map((post) => (
+                <div
+                  key={post.id}
+                  className="flex gap-3 pb-4 border-b border-surface-light last:border-0 last:pb-0"
+                >
+                  <img src={post.author.avatar} alt={post.author.name}
+                    className="w-8 h-8 rounded-full border border-white/10 object-cover shrink-0 mt-0.5" />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-heading font-bold text-foreground text-sm">{post.author.name}</span>
+                      <span className="text-foreground-muted text-xs font-mono">{post.timestamp}</span>
+                    </div>
+                    <p className="text-foreground-dim text-sm line-clamp-2">{post.text}</p>
+                    <div className="flex items-center gap-4 mt-2">
+                      <span className="flex items-center gap-1 text-foreground-muted text-xs">
+                        <svg className={`w-3.5 h-3.5 ${post.liked ? 'text-accent' : ''}`} viewBox="0 0 24 24" fill={post.liked ? 'currentColor' : 'none'}
+                          stroke="currentColor" strokeWidth="2">
+                          <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
+                        </svg>
+                        {post.likes}
+                      </span>
+                      <span className="text-foreground-muted text-xs">
+                        {post.comments.length} {post.comments.length === 1 ? t.dashboard.comment : t.dashboard.comments}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Widget>
+        </motion.div>
 
         {/* ── Row: My Spaces + Events ────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -207,7 +341,7 @@ export default function DashboardPage() {
                     >
                       <div className="flex -space-x-2">
                         {[1, 2, 3].map((i) => (
-                          <div key={i} className="w-6 h-6 rounded-full bg-surface border-2 border-surface-light flex items-center justify-center text-[8px] font-mono text-muted">
+                          <div key={i} className="w-6 h-6 rounded-full bg-surface border-2 border-surface-light flex items-center justify-center text-[8px] font-mono text-foreground-muted">
                             {space.name.charAt(0)}
                           </div>
                         ))}
@@ -215,13 +349,16 @@ export default function DashboardPage() {
                       <span className="text-foreground text-sm font-medium group-hover:text-accent transition-colors">
                         {space.name}
                       </span>
-                      <span className="text-muted text-xs font-mono">{space.memberCount}</span>
+                      <span className="text-foreground-muted text-xs font-mono">{space.memberCount}</span>
                     </Link>
                   ))}
                 </div>
               ) : (
-                <p className="text-muted text-sm">{t.dashboard.joinSpacePrompt}</p>
+                <p className="text-foreground-dim text-sm">{t.dashboard.joinSpacePrompt}</p>
               )}
+              <Link href="/leaderboard" className="inline-flex items-center gap-1.5 mt-4 text-accent text-xs font-medium hover:underline">
+                {t.dashboard.leaderboard} 🏆
+              </Link>
             </Widget>
           </motion.div>
 
@@ -238,7 +375,7 @@ export default function DashboardPage() {
                     </div>
                     <div className="min-w-0">
                       <h3 className="font-heading font-bold text-foreground text-sm mb-0.5">{event.title}</h3>
-                      <p className="text-muted text-xs font-mono">{event.time} • {event.attendees} {t.dashboard.attending}</p>
+                      <p className="text-foreground-muted text-xs font-mono">{event.time} • {event.attendees} {t.dashboard.attending}</p>
                     </div>
                   </div>
                 ))}

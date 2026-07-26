@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import clsx from 'clsx';
 import { learningPaths, type Lesson } from '@/lib/data/learning-paths';
+import { feedPosts } from '@/lib/data/community';
 import { useStore } from '@/lib/store/useStore';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
@@ -18,6 +19,11 @@ export default function LessonPlayerPage({
   const path = learningPaths.find((lp) => lp.slug === slug);
   const completeLesson = useStore((s) => s.completeLesson);
   const isLessonComplete = useStore((s) => s.isLessonComplete);
+  const hasCheered = useStore((s) => s.hasCheered);
+  const toggleCheer = useStore((s) => s.toggleCheer);
+  const addPost = useStore((s) => s.addPost);
+  const currentUser = useStore((s) => s.currentUser);
+  const posts = useStore((s) => s.posts);
 
   // Flatten all lessons
   const allLessons: { lesson: Lesson; moduleIdx: number; lessonIdx: number }[] = [];
@@ -33,14 +39,43 @@ export default function LessonPlayerPage({
   const next = currentIdx < allLessons.length - 1 ? allLessons[currentIdx + 1] : null;
 
   const [showCelebration, setShowCelebration] = useState(false);
+  const [activeTab, setActiveTab] = useState<'content' | 'discuss'>('content');
   const completed = current ? isLessonComplete(slug, current.lesson.slug) : false;
+  const cheered = current ? hasCheered(slug, current.lesson.slug) : false;
+
+  const discussPosts = posts.filter(
+    (p) => p.space === path?.communitySpaceSlug || !p.space
+  ).slice(0, 4);
 
   const handleComplete = () => {
     if (current && !completed) {
       completeLesson(slug, current.lesson.slug);
       setShowCelebration(true);
-      setTimeout(() => setShowCelebration(false), 2500);
+      setTimeout(() => setShowCelebration(false), 3000);
     }
+  };
+
+  const handleCheer = () => {
+    if (current) toggleCheer(slug, current.lesson.slug);
+  };
+
+  const handleShareWin = () => {
+    if (!current) return;
+    addPost({
+      id: `post-${Date.now()}`,
+      author: {
+        name: currentUser.name,
+        avatar: currentUser.avatar,
+        username: currentUser.username,
+      },
+      text: `🎉 ${t.gamification.sharedWin} "${current.lesson.title}" ${t.gamification.from} "${path?.title}"!`,
+      timestamp: 'Just now',
+      likes: 0,
+      liked: false,
+      comments: [],
+      space: path?.communitySpaceSlug,
+      image: undefined,
+    });
   };
 
   if (!path || !current) {
@@ -131,11 +166,113 @@ export default function LessonPlayerPage({
             )}
           </div>
 
-          {/* Content */}
-          <div className="bg-surface border border-surface-light rounded-2xl p-6 lg:p-8">
-            <div className="prose prose-invert max-w-none text-foreground-muted text-sm leading-relaxed whitespace-pre-wrap">
-              {current.lesson.content}
+          {/* Content + Tab Bar */}
+          <div className="bg-surface border border-surface-light rounded-2xl overflow-hidden">
+            {/* Tab Bar */}
+            <div className="flex border-b border-surface-light">
+              {(['content', 'discuss'] as const).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={clsx(
+                    'flex-1 py-3 text-sm font-heading font-bold transition-colors',
+                    activeTab === tab
+                      ? 'text-accent border-b-2 border-accent'
+                      : 'text-foreground-dim hover:text-foreground'
+                  )}
+                >
+                  {tab === 'content' ? current.lesson.title : t.gamification.discussTab}
+                </button>
+              ))}
             </div>
+
+            {activeTab === 'content' ? (
+              <>
+                <div className="p-6 lg:p-8">
+                  <div className="prose prose-invert max-w-none text-foreground-muted text-sm leading-relaxed whitespace-pre-wrap">
+                    {current.lesson.content}
+                  </div>
+                </div>
+
+                {/* Bite-sized Insight Cards */}
+                {current.lesson.insights && current.lesson.insights.length > 0 && (
+                  <div className="px-6 pb-6">
+                    <p className="text-foreground-muted text-xs uppercase tracking-wider mb-3 font-mono">Key Insights</p>
+                    <div className="flex gap-3 overflow-x-auto pb-2 -mx-6 px-6 scrollbar-thin">
+                      {current.lesson.insights.map((insight, i) => (
+                        <motion.div
+                          key={i}
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: i * 0.1 }}
+                          className="flex-shrink-0 w-56 p-4 rounded-xl bg-white/5 border border-white/10
+                            hover:border-accent/20 transition-colors"
+                        >
+                          <span className="text-2xl block mb-2">{insight.icon}</span>
+                          <h4 className="font-semibold text-foreground text-sm mb-1">{insight.title}</h4>
+                          <p className="text-foreground-dim text-xs leading-relaxed">{insight.insight}</p>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Cheer & Share */}
+                <div className="flex items-center gap-3 px-6 pb-6 border-t border-surface-light pt-4">
+                  <button
+                    onClick={handleCheer}
+                    className={clsx(
+                      'inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-heading font-bold transition-all',
+                      cheered
+                        ? 'bg-amber-500/10 border border-amber-500/30 text-amber-400'
+                        : 'bg-white/5 border border-white/10 text-foreground-dim hover:text-amber-400 hover:border-amber-500/30'
+                    )}
+                  >
+                    <motion.span
+                      animate={cheered ? { scale: [1, 1.3, 1] } : {}}
+                      transition={{ duration: 0.3 }}
+                    >
+                      👏
+                    </motion.span>
+                    {cheered ? t.gamification.cheers + '!' : t.gamification.cheerThis}
+                  </button>
+                  {completed && (
+                    <button
+                      onClick={handleShareWin}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-heading font-bold
+                        bg-accent/10 border border-accent/30 text-accent hover:bg-accent/20 transition-all"
+                    >
+                      📢 {t.gamification.shareWin}
+                    </button>
+                  )}
+                </div>
+              </>
+            ) : (
+              /* Discuss Tab */
+              <div className="p-6">
+                {discussPosts.length > 0 ? (
+                  <div className="space-y-4">
+                    {discussPosts.map((post) => (
+                      <div key={post.id} className="flex gap-3 pb-4 border-b border-surface-light last:border-0 last:pb-0">
+                        <img src={post.author.avatar} alt={post.author.name}
+                          className="w-8 h-8 rounded-full border border-white/10 shrink-0 object-cover" />
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-foreground text-sm font-semibold">{post.author.name}</span>
+                            <span className="text-foreground-dim text-xs">{post.timestamp}</span>
+                          </div>
+                          <p className="text-foreground-dim text-sm">{post.text}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-foreground-dim text-sm text-center py-8">
+                    No discussions yet. Be the first to share your thoughts!
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Nav */}
@@ -201,18 +338,36 @@ export default function LessonPlayerPage({
         </div>
       </div>
 
-      {/* Celebration overlay */}
+      {/* Celebration overlay with confetti */}
       {showCelebration && (
         <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-none"
         >
+          {/* Confetti particles */}
+          {[...Array(20)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute text-xl pointer-events-none"
+              initial={{ x: '50%', y: '50%', opacity: 0, scale: 0 }}
+              animate={{
+                x: `${30 + Math.random() * 40}%`,
+                y: `${20 + Math.random() * 60}%`,
+                opacity: [0, 1, 0],
+                scale: [0, 1.5, 0],
+                rotate: Math.random() * 720,
+              }}
+              transition={{ duration: 1.5 + Math.random(), delay: Math.random() * 0.3, ease: 'easeOut' }}
+            >
+              {['🎉', '✨', '🌟', '💫', '🔥', '🏆', '⚡', '💎'][i % 8]}
+            </motion.div>
+          ))}
           <motion.div
-            animate={{ scale: [1, 1.1, 1] }}
-            transition={{ repeat: 3, duration: 0.4 }}
-            className="bg-surface border border-accent/30 rounded-3xl p-10 text-center shadow-[0_0_80px_rgba(255,59,48,0.3)]"
+            animate={{ scale: [1, 1.05, 1] }}
+            transition={{ repeat: 3, duration: 0.5 }}
+            className="bg-surface border-2 border-accent/40 rounded-3xl p-10 text-center shadow-[0_0_80px_rgba(255,59,48,0.3)]"
           >
             <motion.div
               animate={{ rotate: [0, -10, 10, -10, 0] }}
@@ -221,8 +376,9 @@ export default function LessonPlayerPage({
             >
               🎉
             </motion.div>
-            <p className="font-display text-2xl text-foreground uppercase">Lesson Complete!</p>
-            <p className="text-muted text-sm mt-2">Great work. Keep the momentum going.</p>
+            <p className="font-display text-2xl text-foreground uppercase">{t.lesson.completedTitle}</p>
+            <p className="text-foreground-dim text-sm mt-2">{t.lesson.completedSub}</p>
+            <p className="text-accent text-sm font-bold mt-3">+{10} XP earned!</p>
           </motion.div>
         </motion.div>
       )}
