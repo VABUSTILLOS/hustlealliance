@@ -269,11 +269,39 @@ export function deleteNode(
 }
 
 /**
+ * Check if all descendants of a node are done (recursive).
+ */
+export function allDescendantsDone(nodeMap: NodeMap, nodeId: string): boolean {
+  const node = nodeMap[nodeId];
+  if (!node) return true;
+  for (const childId of node.childrenIds) {
+    const child = nodeMap[childId];
+    if (!child) continue;
+    if (!child.isDone) return false;
+    if (!allDescendantsDone(nodeMap, childId)) return false;
+  }
+  return true;
+}
+
+/**
+ * Can a node be checked? True if it has no children OR all descendants are done.
+ */
+export function canCheckNode(nodeMap: NodeMap, nodeId: string): boolean {
+  const node = nodeMap[nodeId];
+  if (!node) return false;
+  if (node.childrenIds.length === 0) return true;
+  return allDescendantsDone(nodeMap, nodeId);
+}
+
+/**
  * toggleDone: Flip isDone on a node.
+ * Prevents checking a parent while any child is still unchecked.
  */
 export function toggleDone(state: PlannerState, nodeId: string): PlannerState {
   const node = state.nodeMap[nodeId];
   if (!node) return state;
+  // Prevent checking if children aren't all done
+  if (!node.isDone && !canCheckNode(state.nodeMap, nodeId)) return state;
   return {
     ...state,
     nodeMap: { ...state.nodeMap, [nodeId]: { ...node, isDone: !node.isDone } },

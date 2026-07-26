@@ -97,6 +97,22 @@ function NodeRow({
 
   const hasChildren = node.childrenIds.length > 0;
 
+  // Recursively check if all descendants are done (for parent checkbox constraint)
+  const allDescendantsDone = useCallback(
+    (nid: string): boolean => {
+      const n = hook.nodeMap[nid];
+      if (!n) return true;
+      for (const cid of n.childrenIds) {
+        const child = hook.nodeMap[cid];
+        if (!child || !child.isDone) return false;
+        if (!allDescendantsDone(cid)) return false;
+      }
+      return true;
+    },
+    [hook.nodeMap],
+  );
+  const canCheck = !hasChildren || allDescendantsDone(nodeId);
+
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
       const input = e.currentTarget;
@@ -214,6 +230,31 @@ function NodeRow({
           {node.isCollapsed ? '▶' : '▼'}
         </button>
 
+        {/* To-do checkbox — toggles done; blocked if children aren't all checked */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            if (canCheck || node.isDone) hook.toggleDone(nodeId);
+          }}
+          disabled={!canCheck && !node.isDone}
+          title={
+            node.isDone
+              ? locale === 'es' ? 'Desmarcar' : 'Uncheck'
+              : !canCheck
+                ? locale === 'es' ? 'Completa los hijos primero' : 'Complete children first'
+                : locale === 'es' ? 'Marcar como hecho' : 'Mark done'
+          }
+          className={`flex-shrink-0 w-4 h-4 rounded-sm mt-[3px] transition-all flex items-center justify-center border ${
+            node.isDone
+              ? 'bg-green-500/30 border-green-500/50'
+              : canCheck
+                ? 'border-zinc-500 group-hover:border-zinc-300 bg-transparent'
+                : 'border-zinc-700 bg-zinc-800/50 cursor-not-allowed opacity-40'
+          }`}
+        >
+          {node.isDone && <span className="text-[8px] text-green-400">✓</span>}
+        </button>
+
         {/* Bullet dot (zoom trigger) */}
         <button
           onClick={(e) => {
@@ -266,11 +307,6 @@ function NodeRow({
             {content.match(/(#[^\s#]+|@[^\s@]+)/g)?.join(' ') ?? ''}
           </span>
         )}
-
-        {/* Done indicator */}
-        <span className="flex-shrink-0 w-6 text-right">
-          {node.isDone && <span className="text-[10px] text-green-500/60">✓</span>}
-        </span>
       </div>
 
       {/* Children */}
@@ -416,6 +452,7 @@ export default function PersonalPlanner({ locale }: { locale: 'en' | 'es' }) {
           </span>
         </div>
         <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] text-zinc-600">
+          <span><kbd className="text-zinc-500 bg-zinc-800 px-1 rounded text-[9px]">☐</kbd> {locale === 'es' ? 'check' : 'check'}</span>
           <span><kbd className="text-zinc-500 bg-zinc-800 px-1 rounded text-[9px]">Enter</kbd> {locale === 'es' ? 'nuevo' : 'new'}</span>
           <span><kbd className="text-zinc-500 bg-zinc-800 px-1 rounded text-[9px]">Shift+Enter</kbd> {locale === 'es' ? 'salto de línea' : 'line break'}</span>
           <span><kbd className="text-zinc-500 bg-zinc-800 px-1 rounded text-[9px]">Tab</kbd> {locale === 'es' ? 'indentar' : 'indent'}</span>
