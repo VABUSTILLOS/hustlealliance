@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import clsx from 'clsx';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 const categories = [
   'All',
@@ -174,7 +175,16 @@ function BookCover({
 }
 
 export default function ResourceLibrary() {
+  const { t } = useTranslation();
   const [activeCategory, setActiveCategory] = useState<Category>('All');
+
+  const categoryLabels: Record<Category, string> = {
+    All: t.resourceLibrary.categories.All,
+    Fundraising: t.resourceLibrary.categories.Fundraising,
+    Marketing: t.resourceLibrary.categories.Marketing,
+    Product: t.resourceLibrary.categories.Product,
+    Growth: t.resourceLibrary.categories.Growth,
+  };
 
   const filtered =
     activeCategory === 'All'
@@ -193,10 +203,10 @@ export default function ResourceLibrary() {
           className="text-center mb-16"
         >
           <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent mb-4">
-            Members-Only Library
+            {t.resourceLibrary.tag}
           </p>
           <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl text-white leading-none uppercase max-w-3xl mx-auto">
-            The playbooks nobody hands you
+            {t.resourceLibrary.headline}
           </h2>
         </motion.div>
 
@@ -220,7 +230,7 @@ export default function ResourceLibrary() {
                   transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                 />
               )}
-              <span className="relative z-10">{cat}</span>
+              <span className="relative z-10">{categoryLabels[cat]}</span>
             </button>
           ))}
         </div>
@@ -263,7 +273,7 @@ export default function ResourceLibrary() {
                             : 'text-accent bg-accent/10 border-accent/20'
                         )}
                       >
-                        {resource.tier === 'free' ? 'Free' : 'Pro'}
+                        {resource.tier === 'free' ? t.resourceLibrary.free : t.resourceLibrary.pro}
                       </span>
                       <span className="text-[9px] font-mono uppercase tracking-wider text-white/20">
                         {resource.category}

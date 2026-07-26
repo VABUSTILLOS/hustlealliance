@@ -2,6 +2,7 @@ import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import Pillars from './components/Pillars';
 import MemberSpotlight from './components/sections/MemberSpotlight';
+import ResourceLibrary from './components/sections/ResourceLibrary';
 import Pricing from './components/sections/Pricing';
 import FooterCTA from './components/sections/FooterCTA';
 
@@ -12,6 +13,7 @@ export default function Home() {
       <Hero />
       <Pillars />
       <MemberSpotlight />
+      <ResourceLibrary />
       <Pricing />
       <FooterCTA />
     </div>

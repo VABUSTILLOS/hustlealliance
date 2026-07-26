@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 const members = [
   {
@@ -123,6 +124,8 @@ const MemberCard = ({
 );
 
 export default function MemberSpotlight() {
+  const { t } = useTranslation();
+
   return (
     <section className="relative py-24 lg:py-32 px-4 bg-black">
       <div className="max-w-6xl mx-auto">
@@ -135,12 +138,12 @@ export default function MemberSpotlight() {
           className="text-center mb-20"
         >
           <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent mb-4">
-            The Directory
+            {t.spotlight.tag}
           </p>
           <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl text-white leading-none uppercase">
-            Real founders.
+            {t.spotlight.line1}
             <br />
-            Real builds.
+            {t.spotlight.line2}
           </h2>
         </motion.div>
 
@@ -163,7 +166,7 @@ export default function MemberSpotlight() {
             href="#members"
             className="font-mono text-xs uppercase tracking-[0.15em] text-accent hover:text-accent-glow transition-colors inline-flex items-center gap-2"
           >
-            View all 2,400+ members
+            {t.spotlight.viewAll}
             <span className="text-lg leading-none">&rarr;</span>
           </a>
         </motion.div>

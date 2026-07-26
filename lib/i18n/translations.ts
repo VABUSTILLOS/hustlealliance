@@ -43,7 +43,9 @@ const t = {
     },
     spotlight: {
       tag: 'The Directory',
-      headline: 'Real founders. Real builds.',
+      line1: 'Real founders.',
+      line2: 'Real builds.',
+      viewAll: 'View all 2,400+ members',
       niche: {
         saas: 'SaaS',
         ai: 'AI',
@@ -128,6 +130,13 @@ const t = {
       headline: 'The playbooks nobody hands you',
       pro: 'PRO',
       free: 'Free',
+      categories: {
+        All: 'All',
+        Fundraising: 'Fundraising',
+        Marketing: 'Marketing',
+        Product: 'Product',
+        Growth: 'Growth',
+      },
     },
     footer: {
       headline: 'Stop hustling alone.',
@@ -322,7 +331,9 @@ const t = {
     },
     spotlight: {
       tag: 'El Directorio',
-      headline: 'Founders reales. Proyectos reales.',
+      line1: 'Founders reales.',
+      line2: 'Proyectos reales.',
+      viewAll: 'Ver todos los 2,400+ miembros',
       niche: {
         saas: 'SaaS',
         ai: 'IA',
@@ -407,6 +418,13 @@ const t = {
       headline: 'Los playbooks que nadie te comparte',
       pro: 'PRO',
       free: 'Gratis',
+      categories: {
+        All: 'Todos',
+        Fundraising: 'Recaudación',
+        Marketing: 'Marketing',
+        Product: 'Producto',
+        Growth: 'Crecimiento',
+      },
     },
     footer: {
       headline: 'Deja de emprender solo.',
