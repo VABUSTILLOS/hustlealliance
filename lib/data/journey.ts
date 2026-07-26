@@ -2,7 +2,7 @@
 // Each level contains tasks with varying types: text_input, file_upload, checkbox
 
 import { journeyLevelsEs, journeyTasksEs } from './journey-es';
-import { buildAdvancedLevels } from './journey-levels-100';
+import { buildAdvancedLevels, localizeLevelTasks } from './journey-levels-100';
 
 /** Set to true to bypass progression locks for development/testing */
 export const DEV_MODE = true;
@@ -991,11 +991,13 @@ export function getLocalizedJourneyLevels(locale: 'en' | 'es'): JourneyLevel[] {
     subtitle: journeyLevelsEs[level.id]?.subtitle ?? level.subtitle,
     description: journeyLevelsEs[level.id]?.description ?? level.description,
     badgeName: journeyLevelsEs[level.id]?.badgeName ?? level.badgeName,
-    tasks: level.tasks.map((task) => ({
-      ...task,
-      title: journeyTasksEs[task.id]?.title ?? task.title,
-      description: journeyTasksEs[task.id]?.description ?? task.description,
-      hint: journeyTasksEs[task.id]?.hint ?? task.hint,
-    })),
+    tasks: level.phase != null
+      ? localizeLevelTasks(level.id, level.phase - 1, level.title, 'es')
+      : level.tasks.map((task) => ({
+          ...task,
+          title: journeyTasksEs[task.id]?.title ?? task.title,
+          description: journeyTasksEs[task.id]?.description ?? task.description,
+          hint: journeyTasksEs[task.id]?.hint ?? task.hint,
+        })),
   }));
 }
