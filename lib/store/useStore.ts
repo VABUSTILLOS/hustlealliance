@@ -112,11 +112,7 @@ export const useStore = create<AppState>()(
       isAuthenticated: true,
 
       signOut: async () => {
-        const { createClient, isSupabaseConfigured } = await import('@/lib/supabase/client');
-        if (isSupabaseConfigured()) {
-          const supabase = createClient();
-          await supabase.auth.signOut();
-        }
+        localStorage.removeItem('sb-yftgdtdvmvvqyzcdntge-auth-token');
         set({ isAuthenticated: false, currentUser: null });
       },
 

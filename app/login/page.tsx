@@ -7,7 +7,6 @@ import { useRouter } from 'next/navigation';
 import AnimatedBackground from '../components/AnimatedBackground';
 import GlassCard from '../components/GlassCard';
 import { useTranslation } from '@/lib/i18n/useTranslation';
-import { createClient } from '@/lib/supabase/client';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -22,44 +21,47 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
 
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      setError('Auth service not configured. Please check Vercel environment variables.');
-      setLoading(false);
-      return;
-    }
-
-    const supabase = createClient();
-
     try {
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      const res = await fetch('https://yftgdtdvmvvqyzcdntge.supabase.co/auth/v1/token?grant_type=password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': 'sb_publishable_sY8NIgcLzNcLUGx2Swl9BA_yqf9NIc8',
+        },
+        body: JSON.stringify({ email, password }),
       });
 
-      if (signInError) {
-        setError(signInError.message);
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error_description || data.msg || 'Login failed');
         setLoading(false);
         return;
+      }
+
+      // Store session tokens
+      if (data.access_token) {
+        localStorage.setItem('sb-yftgdtdvmvvqyzcdntge-auth-token', JSON.stringify({
+          access_token: data.access_token,
+          refresh_token: data.refresh_token,
+          expires_at: Date.now() + (data.expires_in || 3600) * 1000,
+        }));
+        // Sync auth state
+        const { useStore } = await import('@/lib/store/useStore');
+        useStore.setState({ isAuthenticated: true });
       }
 
       router.push('/dashboard');
       router.refresh();
     } catch (err: any) {
-      console.error('[Login] Unexpected error:', err);
-      setError(err?.message || 'An unexpected error occurred. Check console for details.');
+      console.error('[Login] Error:', err);
+      setError(err?.message || 'An unexpected error occurred.');
       setLoading(false);
     }
   };
 
   const handleGoogleSignIn = async () => {
-    const supabase = createClient();
-    const { error: oauthError } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-    if (oauthError) setError(oauthError.message);
+    window.location.href = 'https://yftgdtdvmvvqyzcdntge.supabase.co/auth/v1/authorize?provider=google&redirect_to=https://www.hustlealliance.com/auth/callback';
   };
 
   return (

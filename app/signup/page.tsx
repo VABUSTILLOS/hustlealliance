@@ -3,11 +3,9 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import AnimatedBackground from '../components/AnimatedBackground';
 import GlassCard from '../components/GlassCard';
 import { useTranslation } from '@/lib/i18n/useTranslation';
-import { createClient } from '@/lib/supabase/client';
 
 export default function SignupPage() {
   const [name, setName] = useState('');
@@ -17,7 +15,6 @@ export default function SignupPage() {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const { t } = useTranslation();
-  const router = useRouter();
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,48 +22,39 @@ export default function SignupPage() {
     setMessage('');
     setLoading(true);
 
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      setError('Auth service not configured. Please check Vercel environment variables.');
-      setLoading(false);
-      return;
-    }
-
-    const supabase = createClient();
-
     try {
-      const { error: signupError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { full_name: name },
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+      const res = await fetch('https://yftgdtdvmvvqyzcdntge.supabase.co/auth/v1/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': 'sb_publishable_sY8NIgcLzNcLUGx2Swl9BA_yqf9NIc8',
         },
+        body: JSON.stringify({
+          email,
+          password,
+          data: { full_name: name },
+          email_confirm: true,
+        }),
       });
 
-      if (signupError) {
-        setError(signupError.message);
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.msg || data.message || 'Signup failed');
         setLoading(false);
         return;
       }
 
       setMessage(t.signup.checkEmail || 'Check your email for the confirmation link!');
     } catch (err: any) {
-      console.error('[Signup] Unexpected error:', err);
-      setError(err?.message || 'An unexpected error occurred. Check console for details.');
+      console.error('[Signup] Error:', err);
+      setError(err?.message || 'An unexpected error occurred.');
     } finally {
       setLoading(false);
     }
   };
 
   const handleGoogleSignup = async () => {
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-    if (error) setError(error.message);
+    window.location.href = 'https://yftgdtdvmvvqyzcdntge.supabase.co/auth/v1/authorize?provider=google&redirect_to=https://www.hustlealliance.com/auth/callback';
   };
 
   return (
