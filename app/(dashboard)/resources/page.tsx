@@ -11,9 +11,20 @@ import {
   getAllTags,
   getRelatedResources,
   resourceTypeLabels,
+  journeyPhaseLabels,
   type ResourceType,
   type Resource,
 } from '@/lib/data/resources';
+
+const typeIcons: Record<string, string> = {
+  spreadsheet: '📊',
+  pdf: '📄',
+  ebook: '📚',
+  guide: '📖',
+  template: '📋',
+  infographic: '🎨',
+  cheatsheet: '📝',
+};
 
 export default function ResourcesPage() {
   const { t } = useTranslation();
@@ -24,6 +35,7 @@ export default function ResourcesPage() {
   const [activeType, setActiveType] = useState<ResourceType | 'all'>('all');
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [showSaved, setShowSaved] = useState(false);
+  const [activePhase, setActivePhase] = useState<number | null>(null);
 
   const allTags = useMemo(() => getAllTags(), []);
 
@@ -45,10 +57,14 @@ export default function ResourcesPage() {
       result = result.filter((r) => r.tags.includes(activeTag));
     }
 
-    return result;
-  }, [searchQuery, activeType, activeTag, showSaved, bookmarks]);
+    if (activePhase !== null) {
+      result = result.filter((r) => r.journeyPhase === activePhase);
+    }
 
-  const types: (ResourceType | 'all')[] = ['all', 'pdf', 'guide', 'template', 'spreadsheet', 'ebook'];
+    return result;
+  }, [searchQuery, activeType, activeTag, showSaved, bookmarks, activePhase]);
+
+  const types: (ResourceType | 'all')[] = ['all', 'guide', 'template', 'spreadsheet', 'ebook', 'infographic', 'cheatsheet'];
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6">
@@ -113,6 +129,20 @@ export default function ResourcesPage() {
             <span>{showSaved ? '📌' : '📁'}</span>
             {t.resources.filterSaved}
           </button>
+
+          <div className="w-px h-6 bg-surface-light mx-1" />
+
+          {/* Phase filter */}
+          <select
+            value={activePhase ?? ''}
+            onChange={(e) => setActivePhase(e.target.value ? Number(e.target.value) : null)}
+            className="px-3 py-2 rounded-lg text-sm font-medium bg-surface border border-surface-light text-foreground focus:outline-none focus:border-accent/50 transition-all cursor-pointer"
+          >
+            <option value="">All Phases</option>
+            {Object.entries(journeyPhaseLabels).map(([phase, label]) => (
+              <option key={phase} value={phase}>{label}</option>
+            ))}
+          </select>
         </div>
 
         {/* Tag pills */}
@@ -193,7 +223,7 @@ function ResourceCard({
             style={{ background: resource.thumbnail }}
           >
             <span className="text-4xl opacity-60">
-              {resource.type === 'spreadsheet' ? '📊' : resource.type === 'pdf' ? '📄' : resource.type === 'ebook' ? '📚' : resource.type === 'guide' ? '📖' : '📋'}
+              {typeIcons[resource.type] || '📄'}
             </span>
             {/* Type badge */}
             <span className="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-black/30 backdrop-blur-sm text-white text-[10px] font-bold uppercase tracking-wider">
@@ -296,7 +326,7 @@ function ResourceModal({
           style={{ background: resource.thumbnail }}
         >
           <span className="text-5xl opacity-60">
-            {resource.type === 'spreadsheet' ? '📊' : resource.type === 'pdf' ? '📄' : resource.type === 'ebook' ? '📚' : resource.type === 'guide' ? '📖' : '📋'}
+            {typeIcons[resource.type] || '📄'}
           </span>
           <button
             onClick={onClose}
