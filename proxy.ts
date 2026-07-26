@@ -7,7 +7,7 @@ function isConfigured(): boolean {
   return !!(url && key && !url.includes('your-project-id') && key !== 'placeholder-anon-key');
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // If Supabase isn't configured yet, don't enforce auth — let everything through.
   // This prevents build failures and allows testing without Supabase set up.
   if (!isConfigured()) {
