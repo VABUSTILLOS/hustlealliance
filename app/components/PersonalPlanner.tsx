@@ -239,6 +239,12 @@ function NodeRow({
           onKeyDown={handleKeyDown}
           onFocus={() => hook.focusNode(nodeId)}
           onMouseDown={(e) => e.stopPropagation()}
+          onMouseUp={(e) => {
+            // Place cursor at end so user can immediately Shift+Enter for line break
+            const ta = e.currentTarget;
+            const len = ta.value.length;
+            ta.setSelectionRange(len, len);
+          }}
           placeholder={
             depth === 0
               ? locale === 'es'
