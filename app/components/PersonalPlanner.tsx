@@ -70,25 +70,35 @@ function NodeRow({
   hook: ReturnType<typeof useWorkflowy>;
   locale: 'en' | 'es';
 }) {
-  const inputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const node = hook.nodeMap[nodeId];
   const isFocused = hook.focusState.focusedId === nodeId;
 
   // Auto-focus when this node becomes focused
   useEffect(() => {
-    if (isFocused && inputRef.current) {
-      inputRef.current.focus();
-      const len = inputRef.current.value.length;
-      inputRef.current.setSelectionRange(len, len);
+    if (isFocused && textareaRef.current) {
+      const ta = textareaRef.current;
+      ta.focus();
+      const len = ta.value.length;
+      ta.setSelectionRange(len, len);
     }
   }, [isFocused]);
+
+  // Auto-resize textarea height to fit content
+  useEffect(() => {
+    const ta = textareaRef.current;
+    if (ta) {
+      ta.style.height = 'auto';
+      ta.style.height = ta.scrollHeight + 'px';
+    }
+  }, [node?.content]);
 
   if (!node) return null;
 
   const hasChildren = node.childrenIds.length > 0;
 
   const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLInputElement>) => {
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
       const input = e.currentTarget;
       const cursorAtStart = input.selectionStart === 0;
       const cursorAtEnd = input.selectionStart === input.value.length;
@@ -101,14 +111,12 @@ function NodeRow({
         return;
       }
 
-      // Shift+Enter → add child
+      // Shift+Enter → let textarea insert newline naturally (no-op here)
       if (e.key === 'Enter' && e.shiftKey) {
-        e.preventDefault();
-        hook.addChild(nodeId);
-        return;
+        return; // default behavior: textarea inserts \n
       }
 
-      // Enter → new sibling
+      // Enter → new sibling (suppress textarea newline)
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         hook.addSibling(nodeId);
@@ -189,10 +197,15 @@ function NodeRow({
   return (
     <div className={`${depth > 0 ? `border-l-2 ${borderColor} ml-2 pl-3` : ''}`}>
       <div
-        className={`group flex items-start gap-1.5 py-0.5 rounded-r-lg transition-colors cursor-text ${
+        className={`group flex items-start gap-1.5 py-0.5 rounded-r-lg transition-colors cursor-pointer ${
           isFocused ? 'bg-zinc-800/80' : 'hover:bg-zinc-800/30'
         }`}
-        onClick={() => hook.focusNode(nodeId)}
+        onClick={(e) => {
+          // Only zoom if click wasn't on the textarea itself
+          if (e.target !== textareaRef.current) {
+            hook.zoomIn(nodeId);
+          }
+        }}
       >
         {/* Collapse/expand toggle */}
         <button
@@ -223,22 +236,23 @@ function NodeRow({
           {node.isDone && <span className="text-[8px] text-green-400">✓</span>}
         </button>
 
-        {/* Text input */}
-        <input
-          ref={inputRef}
-          type="text"
+        {/* Textarea (multiline, bold) */}
+        <textarea
+          ref={textareaRef}
           value={content}
           onChange={(e) => hook.updateContent(nodeId, e.target.value)}
           onKeyDown={handleKeyDown}
           onFocus={() => hook.focusNode(nodeId)}
+          onClick={(e) => e.stopPropagation()}
           placeholder={
             depth === 0
               ? locale === 'es'
-                ? 'Escribe algo... (Enter = nuevo, Tab = indentar)'
-                : 'Type something... (Enter = new, Tab = indent)'
+                ? 'Escribe algo...'
+                : 'Type something...'
               : ''
           }
-          className={`flex-1 bg-transparent text-sm outline-none border-none py-[2px] min-w-0 ${
+          rows={1}
+          className={`flex-1 bg-transparent text-sm outline-none border-none py-[2px] min-w-0 resize-none overflow-hidden font-semibold ${
             node.isDone ? 'text-zinc-600 line-through' : 'text-zinc-200'
           } placeholder:text-zinc-600`}
         />
@@ -252,7 +266,7 @@ function NodeRow({
 
         {/* Done indicator */}
         <span className="flex-shrink-0 w-6 text-right">
-          {node.isDone && <span className="text-[10px] text-green-500/60">done</span>}
+          {node.isDone && <span className="text-[10px] text-green-500/60">✓</span>}
         </span>
       </div>
 
@@ -377,16 +391,24 @@ export default function PersonalPlanner({ locale }: { locale: 'en' | 'es' }) {
         )}
       </div>
 
-      {/* Footer */}
-      <div className="flex items-center justify-between mt-3 pt-3 border-t border-zinc-800/50">
-        <span className="text-[10px] text-zinc-600">
-          {nodeCount} {locale === 'es' ? 'nodos' : 'nodes'}
-        </span>
-        <span className="text-[10px] text-zinc-500 hidden sm:block">
-          {locale === 'es'
-            ? 'Enter: nuevo | Tab: indentar | Ctrl+Enter: ✓'
-            : 'Enter: new | Tab: indent | Ctrl+Enter: ✓'}
-        </span>
+      {/* Footer — keyboard shortcut legend */}
+      <div className="mt-3 pt-3 border-t border-zinc-800/50">
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-[10px] text-zinc-600">
+            {nodeCount} {locale === 'es' ? 'nodos' : 'nodes'}
+          </span>
+          <span className="text-[10px] text-zinc-500">
+            {locale === 'es' ? 'Clic en ítem o • para enfocar' : 'Click item or • to zoom'}
+          </span>
+        </div>
+        <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] text-zinc-600">
+          <span><kbd className="text-zinc-500 bg-zinc-800 px-1 rounded text-[9px]">Enter</kbd> {locale === 'es' ? 'nuevo' : 'new'}</span>
+          <span><kbd className="text-zinc-500 bg-zinc-800 px-1 rounded text-[9px]">Shift+Enter</kbd> {locale === 'es' ? 'salto de línea' : 'line break'}</span>
+          <span><kbd className="text-zinc-500 bg-zinc-800 px-1 rounded text-[9px]">Tab</kbd> {locale === 'es' ? 'indentar' : 'indent'}</span>
+          <span><kbd className="text-zinc-500 bg-zinc-800 px-1 rounded text-[9px]">Shift+Tab</kbd> {locale === 'es' ? 'salir' : 'outdent'}</span>
+          <span><kbd className="text-zinc-500 bg-zinc-800 px-1 rounded text-[9px]">Ctrl+Enter</kbd> ✓</span>
+          <span><kbd className="text-zinc-500 bg-zinc-800 px-1 rounded text-[9px]">⌫</kbd> {locale === 'es' ? 'borrar' : 'delete'}</span>
+        </div>
       </div>
     </motion.div>
   );
