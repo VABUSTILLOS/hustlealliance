@@ -201,7 +201,6 @@ function NodeRow({
           isFocused ? 'bg-zinc-800/80' : 'hover:bg-zinc-800/30'
         }`}
         onClick={() => hook.zoomIn(nodeId)}
-        onDoubleClick={() => hook.focusNode(nodeId)}
       >
         {/* Collapse/expand toggle */}
         <button
@@ -232,14 +231,13 @@ function NodeRow({
           {node.isDone && <span className="text-[8px] text-green-400">✓</span>}
         </button>
 
-        {/* Textarea (multiline, bold) — readOnly except when focused for editing */}
+        {/* Textarea (multiline, bold) — pointer-events-none when not focused so clicks zoom */}
         <textarea
           ref={textareaRef}
           value={content}
           onChange={(e) => hook.updateContent(nodeId, e.target.value)}
           onKeyDown={handleKeyDown}
           onFocus={() => hook.focusNode(nodeId)}
-          readOnly={!isFocused}
           placeholder={
             depth === 0
               ? locale === 'es'
@@ -250,7 +248,7 @@ function NodeRow({
           rows={1}
           className={`flex-1 bg-transparent text-sm outline-none border-none py-[2px] min-w-0 resize-none overflow-hidden font-semibold ${
             node.isDone ? 'text-zinc-600 line-through' : 'text-zinc-200'
-          } placeholder:text-zinc-600`}
+          } placeholder:text-zinc-600 ${!isFocused ? 'pointer-events-none' : ''}`}
         />
 
         {/* Tag preview (visible when not focused) */}
@@ -264,6 +262,20 @@ function NodeRow({
         <span className="flex-shrink-0 w-6 text-right">
           {node.isDone && <span className="text-[10px] text-green-500/60">✓</span>}
         </span>
+
+        {/* Edit button (focuses node for keyboard editing) */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            hook.focusNode(nodeId);
+          }}
+          className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-zinc-600 hover:text-zinc-300"
+          title={locale === 'es' ? 'Editar' : 'Edit'}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+          </svg>
+        </button>
       </div>
 
       {/* Children */}
@@ -332,12 +344,23 @@ export default function PersonalPlanner({ locale }: { locale: 'en' | 'es' }) {
       {/* Breadcrumb (when zoomed) */}
       <Breadcrumb breadcrumb={breadcrumb} onZoomOut={zoomOut} locale={locale} />
 
-      {/* Zoomed header: shows the zoomed-in node's content */}
+      {/* Zoomed header: editable title of the zoomed-in node */}
       {focusState.activeRootId && state.nodeMap[focusState.activeRootId] && (
         <div className="flex items-center gap-2 mb-3 px-2 py-1.5 rounded-lg bg-orange-500/5 border border-orange-500/15">
-          <span className="text-sm font-medium text-orange-300 truncate">
-            {state.nodeMap[focusState.activeRootId].content || (locale === 'es' ? '(sin título)' : '(untitled)')}
-          </span>
+          <button
+            onClick={() => zoomOut(null)}
+            className="text-zinc-500 hover:text-zinc-200 transition-colors flex-shrink-0"
+            title={locale === 'es' ? 'Volver' : 'Go back'}
+          >
+            ←
+          </button>
+          <input
+            type="text"
+            value={state.nodeMap[focusState.activeRootId].content}
+            onChange={(e) => hook.updateContent(focusState.activeRootId!, e.target.value)}
+            className="flex-1 bg-transparent text-sm font-semibold text-orange-300 outline-none border-none min-w-0"
+            placeholder={locale === 'es' ? '(sin título)' : '(untitled)'}
+          />
           <span className="text-[10px] text-orange-500/60 flex-shrink-0">
             {state.nodeMap[focusState.activeRootId].childrenIds.length} {locale === 'es' ? 'ítems' : 'items'}
           </span>
@@ -394,7 +417,7 @@ export default function PersonalPlanner({ locale }: { locale: 'en' | 'es' }) {
             {nodeCount} {locale === 'es' ? 'nodos' : 'nodes'}
           </span>
           <span className="text-[10px] text-zinc-500">
-            {locale === 'es' ? 'Clic = enfocar | Doble clic = editar' : 'Click = zoom | Double-click = edit'}
+            {locale === 'es' ? 'Clic = enfocar | ✎ = editar' : 'Click = zoom | ✎ = edit'}
           </span>
         </div>
         <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] text-zinc-600">
