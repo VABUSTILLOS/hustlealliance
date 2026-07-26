@@ -127,16 +127,9 @@ function NodeRow({
         return;
       }
 
-      // Shift+Enter → let textarea insert newline naturally (no-op here)
-      if (e.key === 'Enter' && e.shiftKey) {
+      // Shift+Enter or Enter → let textarea insert newline naturally (notepad feel)
+      if (e.key === 'Enter' && !isMod) {
         return; // default behavior: textarea inserts \n
-      }
-
-      // Enter → new sibling (suppress textarea newline)
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        hook.addSibling(nodeId);
-        return;
       }
 
       // Tab → indent
@@ -273,6 +266,18 @@ function NodeRow({
           ) : (
             <span className="w-1.5 h-1.5 rounded-full bg-white/80" />
           )}
+        </button>
+
+        {/* + icon — add sibling (replaces Enter key) */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            hook.addSibling(nodeId);
+          }}
+          className="flex-shrink-0 w-4 h-4 rounded-sm mt-[3px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-zinc-500 hover:text-zinc-200 hover:bg-zinc-700/50"
+          title={locale === 'es' ? 'Nuevo ítem' : 'New item'}
+        >
+          <span className="text-[12px] leading-none">+</span>
         </button>
 
         {/* Textarea (multiline, bold) — onMouseDown stops propagation so click focuses without zooming */}
@@ -453,8 +458,8 @@ export default function PersonalPlanner({ locale }: { locale: 'en' | 'es' }) {
         </div>
         <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] text-zinc-600">
           <span><kbd className="text-zinc-500 bg-zinc-800 px-1 rounded text-[9px]">☐</kbd> {locale === 'es' ? 'check' : 'check'}</span>
-          <span><kbd className="text-zinc-500 bg-zinc-800 px-1 rounded text-[9px]">Enter</kbd> {locale === 'es' ? 'nuevo' : 'new'}</span>
-          <span><kbd className="text-zinc-500 bg-zinc-800 px-1 rounded text-[9px]">Shift+Enter</kbd> {locale === 'es' ? 'salto de línea' : 'line break'}</span>
+          <span><kbd className="text-zinc-500 bg-zinc-800 px-1 rounded text-[9px]">+</kbd> {locale === 'es' ? 'nuevo' : 'new'}</span>
+          <span><kbd className="text-zinc-500 bg-zinc-800 px-1 rounded text-[9px]">Enter</kbd> {locale === 'es' ? 'salto de línea' : 'line break'}</span>
           <span><kbd className="text-zinc-500 bg-zinc-800 px-1 rounded text-[9px]">Tab</kbd> {locale === 'es' ? 'indentar' : 'indent'}</span>
           <span><kbd className="text-zinc-500 bg-zinc-800 px-1 rounded text-[9px]">Shift+Tab</kbd> {locale === 'es' ? 'salir' : 'outdent'}</span>
           <span><kbd className="text-zinc-500 bg-zinc-800 px-1 rounded text-[9px]">Ctrl+Enter</kbd> ✓</span>
