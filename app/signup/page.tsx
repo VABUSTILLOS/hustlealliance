@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import AnimatedBackground from '../components/AnimatedBackground';
 import GlassCard from '../components/GlassCard';
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -15,6 +16,7 @@ export default function SignupPage() {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const { t } = useTranslation();
+  const router = useRouter();
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,7 +35,6 @@ export default function SignupPage() {
           email,
           password,
           data: { full_name: name },
-          email_confirm: true,
         }),
       });
 
@@ -44,11 +45,23 @@ export default function SignupPage() {
         return;
       }
 
-      setMessage(t.signup.checkEmail || 'Check your email for the confirmation link!');
+      // Auto-login: save tokens and redirect
+      const data = await res.json();
+      if (data.access_token) {
+        localStorage.setItem('sb-yftgdtdvmvvqyzcdntge-auth-token', JSON.stringify({
+          access_token: data.access_token,
+          refresh_token: data.refresh_token,
+          expires_at: Date.now() + (data.expires_in || 3600) * 1000,
+        }));
+        const { useStore } = await import('@/lib/store/useStore');
+        useStore.setState({ isAuthenticated: true });
+      }
+
+      router.push('/dashboard');
+      router.refresh();
     } catch (err: any) {
       console.error('[Signup] Error:', err);
       setError(err?.message || 'An unexpected error occurred.');
-    } finally {
       setLoading(false);
     }
   };
