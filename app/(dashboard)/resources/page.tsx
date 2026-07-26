@@ -312,7 +312,12 @@ function ResourceModal({
 
   const handleDownload = () => {
     const url = '/api/download/' + resource.id + '?lang=' + locale;
-    window.open(url, '_blank');
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = '';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
     addToast({ message: locale === 'es' ? 'Descarga iniciada' : 'Download started', type: 'success' });
   };
 
