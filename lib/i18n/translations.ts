@@ -384,6 +384,9 @@ const t = {
       nextLevel: 'Next Level →',
       backToLevelOverview: 'Back to Level Overview',
       keepBuilding: 'Keep building!',
+      phase: 'Phase',
+      previous: 'Prev',
+      next: 'Next',
     },
     resources: {
       title: 'Resource Library',
@@ -790,6 +793,9 @@ const t = {
       nextLevel: 'Siguiente Nivel →',
       backToLevelOverview: 'Volver al Resumen del Nivel',
       keepBuilding: '¡Sigue construyendo!',
+      phase: 'Fase',
+      previous: 'Ant',
+      next: 'Sig',
     },
     resources: {
       title: 'Biblioteca de Recursos',

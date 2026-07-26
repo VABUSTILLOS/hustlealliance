@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { useStore } from '@/lib/store/useStore';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { getLocalizedJourneyLevels } from '@/lib/data/journey';
+import { DEV_MODE } from '@/lib/data/journey';
 import { useToast } from '@/app/components/ToastProvider';
 import { useState, useRef, useCallback, useMemo } from 'react';
 
@@ -54,7 +55,7 @@ export default function TaskDetailPage() {
   const taskIndex = level.tasks.findIndex((t) => t.id === taskId);
   const prevTasksDone = taskIndex === 0 ||
     level.tasks.slice(0, taskIndex).every((t) => isTaskComplete(levelId, t.id));
-  const taskLocked = !prevTasksDone && !alreadyCompleted;
+  const taskLocked = !DEV_MODE && !prevTasksDone && !alreadyCompleted;
 
   const handleSubmit = async () => {
     if (isSubmitting) return;

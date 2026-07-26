@@ -2,6 +2,13 @@
 // Each level contains tasks with varying types: text_input, file_upload, checkbox
 
 import { journeyLevelsEs, journeyTasksEs } from './journey-es';
+import { buildAdvancedLevels } from './journey-levels-100';
+
+/** Set to true to bypass progression locks for development/testing */
+export const DEV_MODE = true;
+
+/** Items per page for the journey pagination */
+export const LEVELS_PER_PAGE = 10;
 
 export type TaskType = 'text_input' | 'file_upload' | 'checkbox';
 
@@ -17,6 +24,8 @@ export interface JourneyTask {
 
 export interface JourneyLevel {
   id: number;
+  phase?: number;
+  phaseName?: string;
   title: string;
   subtitle: string;
   description: string;
@@ -576,10 +585,32 @@ export const journeyLevels: JourneyLevel[] = [
   },
 ];
 
+// --- Combined array (existing 10 + 100 advanced) ---
+
+/** All levels in order: existing 10 (IDs 1-10) + 100 advanced (IDs 11-110) */
+export const allJourneyLevels: JourneyLevel[] = [
+  ...journeyLevels,
+  ...buildAdvancedLevels(),
+];
+
+/** Total number of levels */
+export const TOTAL_LEVELS = allJourneyLevels.length;
+
+/** Calculate total pages based on LEVELS_PER_PAGE */
+export function getTotalPages(): number {
+  return Math.ceil(TOTAL_LEVELS / LEVELS_PER_PAGE);
+}
+
+/** Get levels for a specific page (1-indexed) */
+export function getLevelsForPage(page: number): JourneyLevel[] {
+  const start = (page - 1) * LEVELS_PER_PAGE;
+  return allJourneyLevels.slice(start, start + LEVELS_PER_PAGE);
+}
+
 // --- Helper functions ---
 
 export function getLevelById(id: number): JourneyLevel | undefined {
-  return journeyLevels.find((l) => l.id === id);
+  return allJourneyLevels.find((l) => l.id === id);
 }
 
 export function getTaskById(levelId: number, taskId: string): JourneyTask | undefined {
@@ -593,8 +624,9 @@ export function getTotalXPForLevel(level: JourneyLevel): number {
 
 // Localization helper
 export function getLocalizedJourneyLevels(locale: 'en' | 'es'): JourneyLevel[] {
-  if (locale === 'en') return journeyLevels;
-  return journeyLevels.map((level) => ({
+  const baseLevels = allJourneyLevels;
+  if (locale === 'en') return baseLevels;
+  return baseLevels.map((level) => ({
     ...level,
     title: journeyLevelsEs[level.id]?.title ?? level.title,
     subtitle: journeyLevelsEs[level.id]?.subtitle ?? level.subtitle,

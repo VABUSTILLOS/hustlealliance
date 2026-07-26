@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { useStore } from '@/lib/store/useStore';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { getLocalizedJourneyLevels } from '@/lib/data/journey';
+import { DEV_MODE } from '@/lib/data/journey';
 import { useState, useEffect, useMemo } from 'react';
 
 export default function LevelDetailPage() {
@@ -48,7 +49,7 @@ export default function LevelDetailPage() {
 
   // Check if previous level must be completed
   const levelIndex = levels.findIndex((l) => l.id === levelId);
-  const isLocked = levelIndex > 0 && !isLevelComplete(levels[levelIndex - 1].id);
+  const isLocked = !DEV_MODE && levelIndex > 0 && !isLevelComplete(levels[levelIndex - 1].id);
 
   const completedCount = level.tasks.filter((task) => isTaskComplete(levelId, task.id)).length;
   const totalTasks = level.tasks.length;
