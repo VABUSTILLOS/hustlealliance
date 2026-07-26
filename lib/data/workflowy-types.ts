@@ -15,6 +15,7 @@ export type NodeMap = Record<string, PlannerNode>;
 export interface PlannerState {
   nodeMap: NodeMap;
   rootOrder: string[]; // top-level node IDs in display order
+  _locale?: 'en' | 'es'; // tracks which language the template was generated with
 }
 
 export interface FocusState {
@@ -360,28 +361,44 @@ export function createTemplateTree(locale: 'en' | 'es'): PlannerState {
   const morning = createNode(null);
   morning.content = isEs ? '☀️ Rutina de mañana' : '☀️ Morning routine';
   const m1 = createNode(morning.id);
+  m1.content = isEs ? '15,000 - 20,000 pasos (mañana y tarde)' : '15,000 - 20,000 steps (morning & evening)';
   const m2 = createNode(morning.id);
-  morning.childrenIds = [m1.id, m2.id];
+  m2.content = isEs ? 'Smoothie: plátano, fresa, mango congelado, cacao natural' : 'Smoothie: banana, strawberry, frozen mango, natural cacao';
+  const m3 = createNode(morning.id);
+  m3.content = isEs ? 'Respiración Wim Hof (3 rondas) + ducha fría 2 min' : 'Wim Hof breathing (3 rounds) + 2-min cold shower';
+  const m4 = createNode(morning.id);
+  m4.content = isEs ? 'Luz solar natural 10-15 min (primeros 30 min al despertar)' : 'Natural sunlight 10-15 min (within 30 min of waking)';
+  morning.childrenIds = [m1.id, m2.id, m3.id, m4.id];
 
   const priorities = createNode(null);
   priorities.content = isEs ? '🎯 Prioridades de hoy' : "🎯 Today's priorities";
   const p1 = createNode(priorities.id);
+  p1.content = isEs ? '30 min de coding agéntico (Cursor, Ollama)' : '30 min agentic coding (Cursor, Ollama)';
   const p2 = createNode(priorities.id);
+  p2.content = isEs ? 'Revisar cash flow, portafolio GBM y rendimientos digitales' : 'Review cash flow, GBM portfolio & digital yields';
   const p3 = createNode(priorities.id);
-  priorities.childrenIds = [p1.id, p2.id, p3.id];
+  p3.content = isEs ? '1 hora de conexión sin distracciones con Marisol' : '1 hour undistracted connection time with Marisol';
+  const p4 = createNode(priorities.id);
+  p4.content = isEs ? 'Ventana de alimentación estricta de 10 horas' : 'Strict 10-hour eating window';
+  priorities.childrenIds = [p1.id, p2.id, p3.id, p4.id];
 
   const gratitude = createNode(null);
   gratitude.content = isEs ? '🙏 Agradezco' : '🙏 Grateful for';
   const g1 = createNode(gratitude.id);
+  g1.content = isEs ? 'Escribe algo que agradezcas hoy...' : 'Write something you\'re grateful for today...';
   const g2 = createNode(gratitude.id);
+  g2.content = isEs ? 'Escribe otra cosa...' : 'Write another one...';
   gratitude.childrenIds = [g1.id, g2.id];
 
   const learnings = createNode(null);
   learnings.content = isEs ? '💡 Aprendizajes del día' : '💡 Daily learnings';
   const l1 = createNode(learnings.id);
-  learnings.childrenIds = [l1.id];
+  l1.content = isEs ? '¿Qué aprendiste hoy?' : 'What did you learn today?';
+  const l2 = createNode(learnings.id);
+  l2.content = isEs ? '¿Qué harías diferente mañana?' : 'What would you do differently tomorrow?';
+  learnings.childrenIds = [l1.id, l2.id];
 
-  const allNodes = [morning, m1, m2, priorities, p1, p2, p3, gratitude, g1, g2, learnings, l1];
+  const allNodes = [morning, m1, m2, m3, m4, priorities, p1, p2, p3, p4, gratitude, g1, g2, learnings, l1, l2];
   const nodeMap: NodeMap = {};
   for (const n of allNodes) {
     nodeMap[n.id] = n;

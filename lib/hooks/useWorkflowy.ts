@@ -46,13 +46,18 @@ export function useWorkflowy(locale: 'en' | 'es') {
   const today = todayKey();
   const [focusState, setFocusState] = useState<FocusState>({ focusedId: null, activeRootId: null });
 
-  // Initialize today's state from template if empty
+  // Initialize today's state from template if empty OR if locale changed
   const state: PlannerState = useMemo(() => {
     const existing = store[today];
-    if (existing && existing.rootOrder && existing.rootOrder.length > 0) return existing;
+    const localeChanged = existing && existing._locale && existing._locale !== locale;
 
-    // Migrate from old format or create fresh
-    const fresh = createTemplateTree(locale);
+    // Return existing data as-is if it's valid and locale matches
+    if (existing && existing.rootOrder && existing.rootOrder.length > 0 && !localeChanged) {
+      return existing;
+    }
+
+    // Generate fresh template in current locale
+    const fresh = { ...createTemplateTree(locale), _locale: locale };
     // Persist immediately
     setTimeout(() => setStore((prev) => ({ ...prev, [today]: fresh })), 0);
     return fresh;
@@ -62,9 +67,13 @@ export function useWorkflowy(locale: 'en' | 'es') {
 
   const commit = useCallback(
     (newState: PlannerState) => {
+      // Preserve _locale if not set by the operation
+      if (!newState._locale) {
+        newState = { ...newState, _locale: state._locale ?? locale };
+      }
       setStore((prev) => ({ ...prev, [today]: newState }));
     },
-    [today, setStore],
+    [today, setStore, state._locale, locale],
   );
 
   // ── Operations ─────────────────────────────────────────────────────
