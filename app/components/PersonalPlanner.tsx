@@ -200,12 +200,8 @@ function NodeRow({
         className={`group flex items-start gap-1.5 py-0.5 rounded-r-lg transition-colors cursor-pointer ${
           isFocused ? 'bg-zinc-800/80' : 'hover:bg-zinc-800/30'
         }`}
-        onClick={(e) => {
-          // Only zoom if click wasn't on the textarea itself
-          if (e.target !== textareaRef.current) {
-            hook.zoomIn(nodeId);
-          }
-        }}
+        onClick={() => hook.zoomIn(nodeId)}
+        onDoubleClick={() => hook.focusNode(nodeId)}
       >
         {/* Collapse/expand toggle */}
         <button
@@ -236,14 +232,14 @@ function NodeRow({
           {node.isDone && <span className="text-[8px] text-green-400">✓</span>}
         </button>
 
-        {/* Textarea (multiline, bold) */}
+        {/* Textarea (multiline, bold) — readOnly except when focused for editing */}
         <textarea
           ref={textareaRef}
           value={content}
           onChange={(e) => hook.updateContent(nodeId, e.target.value)}
           onKeyDown={handleKeyDown}
           onFocus={() => hook.focusNode(nodeId)}
-          onClick={(e) => e.stopPropagation()}
+          readOnly={!isFocused}
           placeholder={
             depth === 0
               ? locale === 'es'
@@ -398,7 +394,7 @@ export default function PersonalPlanner({ locale }: { locale: 'en' | 'es' }) {
             {nodeCount} {locale === 'es' ? 'nodos' : 'nodes'}
           </span>
           <span className="text-[10px] text-zinc-500">
-            {locale === 'es' ? 'Clic en ítem o • para enfocar' : 'Click item or • to zoom'}
+            {locale === 'es' ? 'Clic = enfocar | Doble clic = editar' : 'Click = zoom | Double-click = edit'}
           </span>
         </div>
         <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] text-zinc-600">
