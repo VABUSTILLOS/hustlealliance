@@ -197,10 +197,9 @@ function NodeRow({
   return (
     <div className={`${depth > 0 ? `border-l-2 ${borderColor} ml-2 pl-3` : ''}`}>
       <div
-        className={`group flex items-start gap-1.5 py-0.5 rounded-r-lg transition-colors cursor-pointer ${
+        className={`group flex items-start gap-1.5 py-0.5 rounded-r-lg transition-colors cursor-text ${
           isFocused ? 'bg-zinc-800/80' : 'hover:bg-zinc-800/30'
         }`}
-        onClick={() => hook.zoomIn(nodeId)}
       >
         {/* Collapse/expand toggle */}
         <button
@@ -238,7 +237,6 @@ function NodeRow({
           onChange={(e) => hook.updateContent(nodeId, e.target.value)}
           onKeyDown={handleKeyDown}
           onFocus={() => hook.focusNode(nodeId)}
-          onMouseDown={(e) => e.stopPropagation()}
           onMouseUp={(e) => {
             // Place cursor at end so user can immediately Shift+Enter for line break
             const ta = e.currentTarget;
@@ -424,7 +422,7 @@ export default function PersonalPlanner({ locale }: { locale: 'en' | 'es' }) {
             {nodeCount} {locale === 'es' ? 'nodos' : 'nodes'}
           </span>
           <span className="text-[10px] text-zinc-500">
-            {locale === 'es' ? 'Clic = enfocar | ✎ = editar' : 'Click = zoom | ✎ = edit'}
+            {locale === 'es' ? '• = enfocar | ✎ = editar' : '• = zoom | ✎ = edit'}
           </span>
         </div>
         <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] text-zinc-600">
