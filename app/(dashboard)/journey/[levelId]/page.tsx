@@ -47,9 +47,10 @@ export default function LevelDetailPage() {
     );
   }
 
-  // Check if previous level must be completed
-  const levelIndex = levels.findIndex((l) => l.id === levelId);
-  const isLocked = !DEV_MODE && levelIndex > 0 && !isLevelComplete(levels[levelIndex - 1].id);
+  // TODO: Re-enable level locking later — disabled for now
+  // const levelIndex = levels.findIndex((l) => l.id === levelId);
+  // const isLocked = !DEV_MODE && levelIndex > 0 && !isLevelComplete(levels[levelIndex - 1].id);
+  const isLocked = false;
 
   const completedCount = level.tasks.filter((task) => isTaskComplete(levelId, task.id)).length;
   const totalTasks = level.tasks.length;
@@ -158,8 +159,9 @@ export default function LevelDetailPage() {
           {level.tasks.map((task, index) => {
             const completed = isTaskComplete(levelId, task.id);
             // Check if previous tasks are done (for locking)
-            const prevTasksDone = index === 0 || level.tasks.slice(0, index).every((t) => isTaskComplete(levelId, t.id));
-            const taskLocked = !prevTasksDone && !completed;
+            // TODO: Re-enable task locking later — disabled for now
+            // const prevTasksDone = index === 0 || level.tasks.slice(0, index).every((t) => isTaskComplete(levelId, t.id));
+            const taskLocked = false;
 
             return (
               <motion.div

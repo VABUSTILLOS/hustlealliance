@@ -51,11 +51,12 @@ export default function TaskDetailPage() {
     );
   }
 
-  // Check if previous tasks in this level are done
+  // TODO: Re-enable task locking later — disabled for now
+  // const prevTasksDone = taskIndex === 0 ||
+  //   level.tasks.slice(0, taskIndex).every((t) => isTaskComplete(levelId, t.id));
+  // const taskLocked = !DEV_MODE && !prevTasksDone && !alreadyCompleted;
+  const taskLocked = false;
   const taskIndex = level.tasks.findIndex((t) => t.id === taskId);
-  const prevTasksDone = taskIndex === 0 ||
-    level.tasks.slice(0, taskIndex).every((t) => isTaskComplete(levelId, t.id));
-  const taskLocked = !DEV_MODE && !prevTasksDone && !alreadyCompleted;
 
   const handleSubmit = async () => {
     if (isSubmitting) return;
