@@ -47,7 +47,7 @@ async function fetchUser(accessToken: string): Promise<{ email: string; name?: s
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [ready, setReady] = useState(false);
+  const [ready, setReady] = useState(typeof window !== 'undefined');
 
   useEffect(() => {
     async function initAuth() {
@@ -115,8 +115,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     initAuth();
   }, []);
-
-  if (!ready) return null;
 
   return <>{children}</>;
 }

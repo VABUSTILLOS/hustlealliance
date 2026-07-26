@@ -1,7 +1,3 @@
-'use client';
-
-import { motion } from 'framer-motion';
-
 export default function DashboardLoading() {
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-16 max-w-3xl mx-auto space-y-8 animate-pulse">
