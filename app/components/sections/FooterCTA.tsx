@@ -80,7 +80,7 @@ export default function FooterCTA() {
           transition={{ duration: 0.6 }}
           className="text-center mb-20"
         >
-          <h2 className="text-4xl sm:text-5xl md:text-6xl font-heading font-extrabold text-white mb-8">
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-heading font-extrabold text-foreground mb-8">
             {t.footer.headline}
           </h2>
           <NeonButton variant="primary" href="/login" className="text-lg !py-4 !px-10 animate-pulse-glow">

@@ -73,7 +73,7 @@ export default function Hero() {
           {/* Headline */}
           <motion.h1
             variants={item}
-            className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl text-white leading-[0.9] mb-6 uppercase"
+            className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl text-foreground leading-[0.9] mb-6 uppercase"
           >
             {t.hero.line1}
             <br />
@@ -111,7 +111,7 @@ export default function Hero() {
         >
           {stats.map((stat) => (
             <div key={stat.label} className="flex flex-col">
-              <span className="font-display text-4xl sm:text-5xl text-white tabular-nums leading-none">
+              <span className="font-display text-4xl sm:text-5xl text-foreground tabular-nums leading-none">
                 <AnimatedCounter end={stat.value} suffix={stat.suffix} />
               </span>
               <span className="font-mono text-xs uppercase tracking-widest text-muted mt-2">

@@ -86,7 +86,7 @@ export default function Pricing() {
           <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent mb-4">
             {t.pricing.tag}
           </p>
-          <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl text-white leading-none uppercase">
+          <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl text-foreground leading-none uppercase">
             {t.pricing.headline}
           </h2>
         </motion.div>
@@ -118,7 +118,7 @@ export default function Pricing() {
                 )}
 
                 {/* Tier name */}
-                <h3 className="font-heading text-xl font-bold text-white mb-1">
+                <h3 className="font-heading text-xl font-bold text-foreground mb-1">
                   {tier.name}
                 </h3>
                 <p className="text-muted font-body text-sm mb-8">
@@ -130,7 +130,7 @@ export default function Pricing() {
                   <span
                     className={clsx(
                       'font-display text-5xl sm:text-6xl leading-none',
-                      tier.popular ? 'text-accent' : 'text-white'
+                      tier.popular ? 'text-accent' : 'text-foreground'
                     )}
                   >
                     ${tier.price}
@@ -157,7 +157,7 @@ export default function Pricing() {
                     'w-full py-3 rounded-xl font-heading font-bold text-sm uppercase tracking-wider transition-all duration-300 inline-block text-center',
                     tier.variant === 'solid'
                       ? 'bg-accent text-white hover:bg-accent-glow shadow-[0_0_30px_rgba(255,59,48,0.25)] hover:shadow-[0_0_50px_rgba(255,59,48,0.4)] hover:scale-[1.02]'
-                      : 'border border-white/15 text-white hover:border-accent/50 hover:text-accent hover:bg-accent/5'
+                      : 'border border-white/15 text-foreground hover:border-accent/50 hover:text-accent hover:bg-accent/5'
                   )}
                 >
                   {tier.cta}
@@ -188,7 +188,7 @@ export default function Pricing() {
                 className="relative bg-surface border border-surface-light rounded-2xl p-6 border-l-[3px] border-l-accent"
               >
                 {/* Quote */}
-                <p className="text-white/80 font-body text-sm leading-relaxed italic mb-5">
+                <p className="text-foreground-muted font-body text-sm leading-relaxed italic mb-5">
                   &ldquo;{t.quote}&rdquo;
                 </p>
 
@@ -206,7 +206,7 @@ export default function Pricing() {
                     loading="lazy"
                   />
                   <div>
-                    <p className="text-white font-heading font-bold text-sm">
+                    <p className="text-foreground font-heading font-bold text-sm">
                       {t.name}
                     </p>
                     <p className="text-muted font-body text-xs">{t.role}</p>

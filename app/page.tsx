@@ -8,7 +8,7 @@ import FooterCTA from './components/sections/FooterCTA';
 
 export default function Home() {
   return (
-    <div className="scroll-smooth bg-deep text-white font-body">
+    <div className="    scroll-smooth bg-deep text-foreground font-body">
       <Navbar />
       <Hero />
       <Pillars />

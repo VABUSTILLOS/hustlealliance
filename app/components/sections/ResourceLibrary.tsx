@@ -205,7 +205,7 @@ export default function ResourceLibrary() {
           <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent mb-4">
             {t.resourceLibrary.tag}
           </p>
-          <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl text-white leading-none uppercase max-w-3xl mx-auto">
+          <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl text-foreground leading-none uppercase max-w-3xl mx-auto">
             {t.resourceLibrary.headline}
           </h2>
         </motion.div>
@@ -219,8 +219,8 @@ export default function ResourceLibrary() {
               className={clsx(
                 'relative px-4 py-2 rounded-full text-xs font-mono uppercase tracking-wider transition-all duration-300',
                 activeCategory === cat
-                  ? 'text-white bg-accent/20 border border-accent/40'
-                  : 'text-muted border border-white/10 hover:text-white hover:border-white/20'
+                  ? 'text-foreground bg-accent/20 border border-accent/40'
+                  : 'text-muted border border-white/10 hover:text-foreground hover:border-white/20'
               )}
             >
               {activeCategory === cat && (
@@ -279,7 +279,7 @@ export default function ResourceLibrary() {
                         {resource.category}
                       </span>
                     </div>
-                    <h3 className="font-heading text-sm font-bold text-white leading-tight group-hover:text-accent transition-colors">
+                    <h3 className="font-heading text-sm font-bold text-foreground leading-tight group-hover:text-accent transition-colors">
                       {resource.title}
                     </h3>
                     <p className="text-muted font-body text-xs mt-1.5 leading-relaxed line-clamp-2">

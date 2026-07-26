@@ -131,7 +131,7 @@ export default function Pillars() {
           <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent mb-4">
             {t.pillars.tag}
           </p>
-          <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl text-white leading-none uppercase">
+          <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl text-foreground leading-none uppercase">
             {t.pillars.headline}
           </h2>
         </motion.div>
@@ -150,7 +150,7 @@ export default function Pillars() {
                 <div className="mb-8">
                   <DeviceMockup type={feature.device} t={t} />
                 </div>
-                <h3 className="font-heading text-xl font-bold text-white mb-3 pb-3 relative inline-block">
+                <h3 className="font-heading text-xl font-bold text-foreground mb-3 pb-3 relative inline-block">
                   {feature.title}
                   <span className="absolute bottom-0 left-0 w-8 h-[3px] bg-accent rounded-full transition-all duration-300 group-hover:w-full" />
                 </h3>

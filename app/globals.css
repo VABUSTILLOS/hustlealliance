@@ -38,6 +38,8 @@
 @theme inline {
   --color-background: var(--color-bg);
   --color-foreground: var(--color-foreground);
+  --color-accent: var(--color-accent);
+  --color-muted: var(--color-muted);
   --font-sans: var(--font-inter);
   --font-mono: var(--font-mono);
 }

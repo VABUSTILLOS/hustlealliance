@@ -140,7 +140,7 @@ export default function MemberSpotlight() {
           <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent mb-4">
             {t.spotlight.tag}
           </p>
-          <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl text-white leading-none uppercase">
+          <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl text-foreground leading-none uppercase">
             {t.spotlight.line1}
             <br />
             {t.spotlight.line2}

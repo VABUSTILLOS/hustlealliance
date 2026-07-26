@@ -29,7 +29,7 @@ export default function NeonButton({
     'bg-accent hover:bg-accent-glow hover:scale-105';
 
   const secondary =
-    'bg-transparent border border-accent text-accent hover:text-white hover:bg-accent/10';
+    'bg-transparent border border-accent text-accent hover:text-foreground hover:bg-accent/10';
 
   const breathing =
     'before:absolute before:inset-0 before:rounded-lg before:transition-all before:duration-500';
