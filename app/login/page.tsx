@@ -28,25 +28,29 @@ export default function LoginPage() {
           'Content-Type': 'application/json',
           'apikey': 'sb_publishable_sY8NIgcLzNcLUGx2Swl9BA_yqf9NIc8',
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          password,
+          gotrue_meta_security: {},
+        }),
       });
 
       const data = await res.json();
+      console.log('[Login] Response:', { ok: res.ok, status: res.status, data });
 
       if (!res.ok) {
-        setError(data.error_description || data.msg || 'Login failed');
+        const msg = data.error_description || data.msg || data.error || 'Login failed';
+        setError(msg);
         setLoading(false);
         return;
       }
 
-      // Store session tokens
       if (data.access_token) {
         localStorage.setItem('sb-yftgdtdvmvvqyzcdntge-auth-token', JSON.stringify({
           access_token: data.access_token,
           refresh_token: data.refresh_token,
           expires_at: Date.now() + (data.expires_in || 3600) * 1000,
         }));
-        // Sync auth state
         const { useStore } = await import('@/lib/store/useStore');
         useStore.setState({ isAuthenticated: true });
       }
