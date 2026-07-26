@@ -1,11 +1,12 @@
 'use client';
 
+// ── Planner Page — standalone Workflowy-style outliner ─────────────────
+
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useCurrentUser, getFirstName } from '@/lib/hooks/useCurrentUser';
 import { useTranslation } from '@/lib/i18n/useTranslation';
-import HabitTracker from '@/app/components/HabitTracker';
-import WeeklyStreak from '@/app/components/WeeklyStreak';
+import PersonalPlanner from '@/app/components/PersonalPlanner';
 
 // ── Animation variants ─────────────────────────────────────────────────────
 
@@ -22,16 +23,16 @@ const item = {
 // ── Bilingual quotes ────────────────────────────────────────────────────────
 
 const QUOTES = [
-  { en: '"The best way to predict the future is to create it."', es: '"La mejor forma de predecir el futuro es crearlo."', author: 'Peter Drucker' },
-  { en: '"You do not rise to the level of your goals. You fall to the level of your systems."', es: '"No subes al nivel de tus metas. Caes al nivel de tus sistemas."', author: 'James Clear' },
-  { en: '"The difference between a successful person and others is not a lack of strength, not a lack of knowledge, but rather a lack of will."', es: '"La diferencia entre una persona exitosa y los demás no es falta de fuerza, ni de conocimiento, sino falta de voluntad."', author: 'Vince Lombardi' },
-  { en: '"First, sell something. Everything else is a distraction."', es: '"Primero, vende algo. Todo lo demás es distracción."', author: 'The Real World' },
-  { en: '"No one cares. Work harder."', es: '"A nadie le importa. Trabaja más duro."', author: 'Unknown' },
+  { en: '"Plans are worthless, but planning is everything."', es: '"Los planes no valen nada, pero planear lo es todo."', author: 'Dwight D. Eisenhower' },
+  { en: '"What gets measured gets managed."', es: '"Lo que se mide, se gestiona."', author: 'Peter Drucker' },
+  { en: '"An hour of planning can save you 10 hours of doing."', es: '"Una hora de planificación te ahorra 10 horas de ejecución."', author: 'Dale Carnegie' },
+  { en: '"The secret of getting ahead is getting started."', es: '"El secreto para avanzar es empezar."', author: 'Mark Twain' },
+  { en: '"Either you run the day or the day runs you."', es: '"O tú manejas el día o el día te maneja a ti."', author: 'Jim Rohn' },
 ];
 
 // ── Page ───────────────────────────────────────────────────────────────────
 
-export default function FounderSurvivalPage() {
+export default function PlannerPage() {
   const user = useCurrentUser();
   const { locale } = useTranslation();
   const firstName = getFirstName(user?.name);
@@ -39,25 +40,25 @@ export default function FounderSurvivalPage() {
   const quote = useMemo(() => QUOTES[Math.floor(Math.random() * QUOTES.length)], []);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-5 sm:space-y-6">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-5 sm:space-y-6">
       {/* ── Hero Header ──────────────────────────────────────────────── */}
       <motion.div variants={container} initial="hidden" animate="show" className="space-y-4">
         <motion.div variants={item} className="flex items-center gap-3">
-          <span className="text-2xl sm:text-3xl">🛡️</span>
+          <span className="text-2xl sm:text-3xl">📝</span>
           <div>
             <h1 className="text-xl sm:text-2xl md:text-3xl font-heading font-bold text-foreground">
               {locale === 'es'
                 ? firstName
-                  ? `Hábitos de ${firstName}`
-                  : 'Hábitos'
+                  ? `Planificador de ${firstName}`
+                  : 'Planificador'
                 : firstName
-                  ? `${firstName}'s Habits`
-                  : 'Habits'}
+                  ? `${firstName}'s Planner`
+                  : 'Planner'}
             </h1>
             <p className="text-xs sm:text-sm text-muted">
               {locale === 'es'
-                ? 'Construye el cuerpo, la mente y la cuenta bancaria que resisten todo.'
-                : 'Build the body, mind, and bank account that can withstand anything.'}
+                ? 'Organiza tus ideas con viñetas infinitas. Enter para nuevo, Tab para indentar.'
+                : 'Organize your thoughts with infinite bullets. Enter for new, Tab to indent.'}
             </p>
           </div>
         </motion.div>
@@ -74,19 +75,17 @@ export default function FounderSurvivalPage() {
         </motion.blockquote>
       </motion.div>
 
-      {/* ── Weekly Streak — full width top ────────────────────────────── */}
-      <WeeklyStreak locale={locale} />
-
-      {/* ── Daily Protocol + Choose Habits — full width ────────────── */}
+      {/* ── Planner — full width ────────────────────────────────────── */}
       <motion.section
         variants={item}
         initial="hidden"
         animate="show"
+        className="min-h-[500px]"
       >
-        <HabitTracker locale={locale} />
+        <PersonalPlanner locale={locale} />
       </motion.section>
 
-      {/* ── Footer philosophy ─────────────────────────────────────────── */}
+      {/* ── Footer ──────────────────────────────────────────────────── */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -95,9 +94,8 @@ export default function FounderSurvivalPage() {
       >
         <p className="text-xs text-muted/60 px-2">
           {locale === 'es'
-            ? '"Una mente calmada, un cuerpo en forma y una casa llena de amor. Estas cosas no se compran — se ganan."'
-            : '"A calm mind, a fit body, and a house full of love. These things cannot be bought — they must be earned."'}
-          <span className="block mt-1 text-accent/60 font-heading font-bold">— Naval Ravikant</span>
+            ? '💡 Tip: Usa #etiquetas para categorizar y @persona para asignar. Haz clic en el bullet para enfocar.'
+            : '💡 Tip: Use #tags to categorize and @person to assign. Click the bullet to zoom in.'}
         </p>
       </motion.div>
     </div>

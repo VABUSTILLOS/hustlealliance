@@ -23,7 +23,8 @@ export default function Navbar() {
     { href: '/learning', label: t.nav.learning },
     { href: '/journey', label: t.nav.journey },
     { href: '/resources', label: t.nav.resources },
-    { href: '/founder-survival', label: t.nav.founderSurvival },
+    { href: '/founder-survival', label: t.nav.habits },
+    { href: '/planner', label: t.nav.planner },
     { href: '/community', label: t.nav.community },
     { href: '/spaces', label: t.nav.spaces },
   ];
