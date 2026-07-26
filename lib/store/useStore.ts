@@ -102,6 +102,14 @@ interface AppState {
   resourceBookmarks: string[];
   toggleBookmark: (resourceId: string) => void;
   isBookmarked: (resourceId: string) => boolean;
+
+  // Resource consumption tracking
+  resourceConsumption: Record<string, { scrollPosition?: number; sectionIndex?: number; lastAccessed?: string; completed?: boolean }>;
+  audioProgress: Record<string, { timestamp: number; duration: number; lastPlayed?: string }>;
+  saveResourceProgress: (resourceId: string, progress: { scrollPosition?: number; sectionIndex?: number; completed?: boolean }) => void;
+  getResourceProgress: (resourceId: string) => { scrollPosition?: number; sectionIndex?: number; completed?: boolean } | null;
+  saveAudioProgress: (resourceId: string, timestamp: number) => void;
+  getAudioProgress: (resourceId: string) => number;
 }
 
 const todayStr = () => new Date().toISOString().split('T')[0];
@@ -363,6 +371,8 @@ export const useStore = create<AppState>()(
 
       // Resources
       resourceBookmarks: [],
+      resourceConsumption: {},
+      audioProgress: {},
 
       addXP: (amount) => {
         set((state) => {
@@ -559,6 +569,42 @@ export const useStore = create<AppState>()(
       isBookmarked: (resourceId) => {
         return get().resourceBookmarks.includes(resourceId);
       },
+
+      // Resource consumption tracking
+      saveResourceProgress: (resourceId, progress) => {
+        set((state) => ({
+          resourceConsumption: {
+            ...state.resourceConsumption,
+            [resourceId]: {
+              ...state.resourceConsumption[resourceId],
+              ...progress,
+              lastAccessed: new Date().toISOString(),
+            },
+          },
+        }));
+      },
+
+      getResourceProgress: (resourceId) => {
+        return get().resourceConsumption[resourceId] ?? null;
+      },
+
+      saveAudioProgress: (resourceId, timestamp) => {
+        set((state) => ({
+          audioProgress: {
+            ...state.audioProgress,
+            [resourceId]: {
+              ...state.audioProgress[resourceId],
+              timestamp,
+              duration: state.audioProgress[resourceId]?.duration ?? 0,
+              lastPlayed: new Date().toISOString(),
+            },
+          },
+        }));
+      },
+
+      getAudioProgress: (resourceId) => {
+        return get().audioProgress[resourceId]?.timestamp ?? 0;
+      },
     }),
     {
       name: 'hustle-alliance-storage',
@@ -569,6 +615,8 @@ export const useStore = create<AppState>()(
         joinedSpaces: state.joinedSpaces,
         journeyProgress: state.journeyProgress,
         resourceBookmarks: state.resourceBookmarks,
+        resourceConsumption: state.resourceConsumption,
+        audioProgress: state.audioProgress,
       }),
     }
   )

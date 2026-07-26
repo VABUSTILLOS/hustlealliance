@@ -14,6 +14,11 @@ const GamificationWidgetLazy = dynamic(
   { ssr: false }
 );
 
+const GlobalAudioPlayerLazy = dynamic(
+  () => import('@/app/components/ResourceViewer/GlobalAudioPlayer').then((m) => ({ default: m.GlobalAudioPlayer })),
+  { ssr: false }
+);
+
 // ── Subtle page transition wrapper ──
 function PageTransition({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -143,6 +148,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         </PageTransition>
         {/* Floating gamification widget — lazy loaded */}
         <GamificationWidgetLazy />
+        {/* Global audio player — persists across navigation */}
+        <GlobalAudioPlayerLazy />
       </main>
 
       {/* ── Mobile Bottom Tab Bar ───────────── */}

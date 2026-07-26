@@ -4,18 +4,17 @@ import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '@/lib/store/useStore';
 import { useTranslation } from '@/lib/i18n/useTranslation';
-import { useToast } from '@/app/components/ToastProvider';
 import {
   resources,
   searchResources,
   getAllTags,
-  getRelatedResources,
   resourceTypeLabels,
   journeyPhaseLabels,
   getResourceLocale,
   type ResourceType,
   type Resource,
 } from '@/lib/data/resources';
+import { ResourceViewer } from '@/app/components/ResourceViewer';
 
 const typeIcons: Record<string, string> = {
   spreadsheet: '📊',
@@ -208,7 +207,7 @@ function ResourceCard({
   t: any;
 }) {
   const toggleBookmark = useStore((s) => s.toggleBookmark);
-  const [showModal, setShowModal] = useState(false);
+  const [showViewer, setShowViewer] = useState(false);
 
   const { title, description } = getResourceLocale(resource, locale);
 
@@ -220,7 +219,7 @@ function ResourceCard({
         exit={{ opacity: 0, scale: 0.95 }}
         transition={{ delay: index * 0.05 }}
         className="group cursor-pointer"
-        onClick={() => setShowModal(true)}
+        onClick={() => setShowViewer(true)}
       >
         <div className="rounded-2xl bg-surface border border-surface-light overflow-hidden transition-all duration-300 hover:border-accent/30 hover:shadow-[0_0_30px_rgba(255,59,48,0.08)]">
           {/* Thumbnail */}
@@ -273,163 +272,17 @@ function ResourceCard({
         </div>
       </motion.div>
 
-      {/* Detail Modal */}
+      {/* Resource Viewer */}
       <AnimatePresence>
-        {showModal && (
-          <ResourceModal
+        {showViewer && (
+          <ResourceViewer
             resource={resource}
-            isBookmarked={isBookmarked}
             locale={locale}
-            t={t}
-            onClose={() => setShowModal(false)}
+            onClose={() => setShowViewer(false)}
           />
         )}
       </AnimatePresence>
     </>
-  );
-}
-
-function ResourceModal({
-  resource,
-  isBookmarked,
-  locale,
-  t,
-  onClose,
-}: {
-  resource: Resource;
-  isBookmarked: boolean;
-  locale: 'en' | 'es';
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  t: any;
-  onClose: () => void;
-}) {
-  const toggleBookmark = useStore((s) => s.toggleBookmark);
-  const { addToast } = useToast();
-
-  const { title, description } = getResourceLocale(resource, locale);
-
-  const related = useMemo(() => getRelatedResources(resource.id), [resource.id]);
-
-  const handleDownload = () => {
-    const url = '/api/download/' + resource.id + '?lang=' + locale;
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = '';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    addToast({ message: locale === 'es' ? 'Descarga iniciada' : 'Download started', type: 'success' });
-  };
-
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.9, y: 20 }}
-        transition={{ type: 'spring', damping: 25 }}
-        className="bg-surface border border-surface-light rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto"
-        onClick={(e: React.MouseEvent) => e.stopPropagation()}
-      >
-        {/* Thumbnail */}
-        <div
-          className="h-48 relative flex items-center justify-center rounded-t-2xl"
-          style={{ background: resource.thumbnail }}
-        >
-          <span className="text-5xl opacity-60">
-            {typeIcons[resource.type] || '📄'}
-          </span>
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/60 transition-all"
-          >
-            ✕
-          </button>
-        </div>
-
-        <div className="p-6 space-y-4">
-          {/* Type badge + title */}
-          <div className="space-y-2">
-            <span className="px-2.5 py-1 rounded-lg bg-accent/10 border border-accent/20 text-accent text-[10px] font-bold uppercase tracking-wider">
-              {resourceTypeLabels[resource.type]}
-            </span>
-            <h2 className="text-xl font-heading font-bold text-foreground">{title}</h2>
-          </div>
-
-          <p className="text-muted text-sm leading-relaxed">{description}</p>
-
-          {/* File details */}
-          <div className="flex items-center gap-4 text-sm text-muted">
-            <span>{resource.fileSize}</span>
-            <span>{resource.format}</span>
-            <span>{resource.downloads.toLocaleString()} {t.resources.downloads}</span>
-          </div>
-
-          {/* Tags */}
-          <div className="flex items-center gap-2 flex-wrap">
-            {resource.tags.map((tag) => (
-              <span key={tag} className="text-xs px-2 py-1 rounded bg-surface-light text-muted">#{tag}</span>
-            ))}
-          </div>
-
-          {/* Actions */}
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleDownload}
-              className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-accent text-white font-heading font-bold rounded-xl hover:bg-accent-glow transition-all shadow-[0_0_20px_rgba(255,59,48,0.3)]"
-              style={{ animation: 'cta-pulse 2s infinite' }}
-            >
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
-              </svg>
-              {t.resources.download}
-            </button>
-            <button
-              onClick={() => toggleBookmark(resource.id)}
-              className={`flex items-center gap-2 px-4 py-3 rounded-xl border font-heading font-bold text-sm transition-all
-                ${isBookmarked
-                  ? 'bg-accent/10 border-accent/30 text-accent'
-                  : 'border-surface-light text-muted hover:text-foreground hover:border-foreground-dim/30'
-                }`}
-            >
-              {isBookmarked ? '📌' : '🔖'}
-              {isBookmarked ? t.resources.bookmarked : t.resources.bookmark}
-            </button>
-          </div>
-
-          {/* Related resources */}
-          {related.length > 0 && (
-            <div className="pt-4 border-t border-surface-light space-y-3">
-              <h3 className="text-sm font-heading font-bold text-foreground">{t.resources.relatedResources}</h3>
-              <div className="space-y-2">
-                {related.map((r: Resource) => (
-                  <div
-                    key={r.id}
-                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-surface-light/50 transition-colors cursor-pointer"
-                    onClick={(e) => { e.stopPropagation(); /* navigate */ }}
-                  >
-                    <div
-                      className="w-10 h-10 rounded-lg shrink-0 flex items-center justify-center text-sm"
-                      style={{ background: r.thumbnail }}
-                    />
-                    <div className="min-w-0">
-                      <p className="text-foreground text-xs font-medium truncate">{r.title}</p>
-                      <p className="text-muted text-[10px]">{r.format} · {r.fileSize}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </motion.div>
-    </motion.div>
   );
 }
 
