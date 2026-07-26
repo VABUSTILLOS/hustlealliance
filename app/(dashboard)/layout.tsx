@@ -4,11 +4,18 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import clsx from 'clsx';
+import { Suspense } from 'react';
+import DashboardLoading from './loading';
 import { useStore } from '@/lib/store/useStore';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { useTheme } from '@/lib/theme/useTheme';
-import { useCurrentUser, getFirstName } from '@/lib/hooks/useCurrentUser';
-import GamificationWidget from '@/app/components/GamificationWidget';
+import { useCurrentUser } from '@/lib/hooks/useCurrentUser';
+import dynamic from 'next/dynamic';
+
+const GamificationWidgetLazy = dynamic(
+  () => import('@/app/components/GamificationWidget'),
+  { ssr: false }
+);
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -69,6 +76,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Link
               key={link.href}
               href={link.href}
+              prefetch={true}
               className={clsx(
                 'flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200',
                 isActive(link.href)
@@ -113,19 +121,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* ── Main content ────────────────────── */}
       <main className="lg:ml-64 pb-20 lg:pb-0">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={pathname}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.2 }}
-          >
-            {children}
-          </motion.div>
-        </AnimatePresence>
-        {/* Floating gamification widget */}
-        <GamificationWidget />
+        <Suspense fallback={<DashboardLoading />}>
+          <AnimatePresence mode="sync">
+            <motion.div
+              key={pathname}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.15 }}
+            >
+              {children}
+            </motion.div>
+          </AnimatePresence>
+        </Suspense>
+        {/* Floating gamification widget — lazy loaded */}
+        <GamificationWidgetLazy />
       </main>
 
       {/* ── Mobile Bottom Tab Bar ───────────── */}
@@ -137,6 +147,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Link
                 key={link.href}
                 href={link.href}
+                prefetch={true}
                 className={clsx(
                   'flex flex-col items-center gap-1 px-3 py-1.5 rounded-lg text-[10px] font-medium transition-colors',
                   active ? 'text-accent' : 'text-muted'
