@@ -231,13 +231,14 @@ function NodeRow({
           {node.isDone && <span className="text-[8px] text-green-400">✓</span>}
         </button>
 
-        {/* Textarea (multiline, bold) — pointer-events-none when not focused so clicks zoom */}
+        {/* Textarea (multiline, bold) — onMouseDown stops propagation so click focuses without zooming */}
         <textarea
           ref={textareaRef}
           value={content}
           onChange={(e) => hook.updateContent(nodeId, e.target.value)}
           onKeyDown={handleKeyDown}
           onFocus={() => hook.focusNode(nodeId)}
+          onMouseDown={(e) => e.stopPropagation()}
           placeholder={
             depth === 0
               ? locale === 'es'
@@ -248,7 +249,7 @@ function NodeRow({
           rows={1}
           className={`flex-1 bg-transparent text-sm outline-none border-none py-[2px] min-w-0 resize-none overflow-hidden font-semibold ${
             node.isDone ? 'text-zinc-600 line-through' : 'text-zinc-200'
-          } placeholder:text-zinc-600 ${!isFocused ? 'pointer-events-none' : ''}`}
+          } placeholder:text-zinc-600`}
         />
 
         {/* Tag preview (visible when not focused) */}
@@ -269,7 +270,7 @@ function NodeRow({
             e.stopPropagation();
             hook.focusNode(nodeId);
           }}
-          className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-zinc-600 hover:text-zinc-300"
+          className="flex-shrink-0 text-zinc-600 hover:text-zinc-300 transition-colors"
           title={locale === 'es' ? 'Editar' : 'Edit'}
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
