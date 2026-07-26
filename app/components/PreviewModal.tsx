@@ -1,16 +1,18 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
 import type { KeyInsight } from '@/lib/data/gamification';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   title: string;
+  slug: string;
   insights: KeyInsight[];
 }
 
-export default function PreviewModal({ isOpen, onClose, title, insights }: Props) {
+export default function PreviewModal({ isOpen, onClose, title, slug, insights }: Props) {
   return (
     <AnimatePresence>
       {isOpen && (
@@ -87,22 +89,27 @@ export default function PreviewModal({ isOpen, onClose, title, insights }: Props
               <p className="text-foreground-dim text-sm text-center mb-3">
                 The first lesson is <strong className="text-foreground">free</strong> — no signup needed.
               </p>
-              <div className="flex items-center gap-2 text-accent text-sm justify-center">
+              <Link
+                href={`/preview/${slug}`}
+                onClick={onClose}
+                className="flex items-center gap-2 text-accent text-sm justify-center hover:underline"
+              >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <polyline points="9 18 15 12 9 6" />
                 </svg>
                 <span className="font-medium">Start the free preview now</span>
-              </div>
+              </Link>
             </div>
 
             {/* CTA */}
-            <button
+            <Link
+              href={`/preview/${slug}`}
               onClick={onClose}
-              className="w-full py-3 rounded-xl bg-accent text-white font-semibold
+              className="block w-full py-3 rounded-xl bg-accent text-white font-semibold text-center
                 hover:shadow-lg hover:shadow-accent/30 transition-all active:scale-[0.98]"
             >
-              Start Path to Unlock All
-            </button>
+              Start Free Lesson →
+            </Link>
           </motion.div>
         </motion.div>
       )}

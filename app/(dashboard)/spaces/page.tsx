@@ -13,6 +13,8 @@ export default function SpacesPage() {
   const toggleJoinSpace = useStore((s) => s.toggleJoinSpace);
   const isSpaceJoined = useStore((s) => s.isSpaceJoined);
 
+  const hasJoinedAny = joinedSpaces.length > 0;
+
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-8 max-w-7xl mx-auto">
       <motion.div
@@ -25,6 +27,24 @@ export default function SpacesPage() {
           {t.spaces.headline}
         </h1>
       </motion.div>
+
+      {/* Empty state — no spaces joined */}
+      {!hasJoinedAny && (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8 p-6 rounded-2xl bg-[var(--color-surface)] border border-[var(--color-accent)]/20 text-center"
+        >
+          <div className="text-5xl mb-3">👥</div>
+          <h2 className="font-display text-xl text-[var(--color-foreground)] uppercase mb-2">
+            Find your crew
+          </h2>
+          <p className="text-[var(--color-foreground-muted)] text-sm max-w-md mx-auto">
+            Spaces are where founders like you connect by industry, stage, or identity.
+            Join a few to see posts from people who get what you&apos;re building.
+          </p>
+        </motion.div>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
         {spaces.map((space, i) => {

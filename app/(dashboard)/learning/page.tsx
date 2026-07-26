@@ -186,6 +186,7 @@ export default function LearningCatalogPage() {
           isOpen={!!previewPath}
           onClose={() => setPreviewPath(null)}
           title={previewData.title}
+          slug={previewPath || ''}
           insights={previewData.keyInsights}
         />
       )}

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Bebas_Neue, JetBrains_Mono } from "next/font/google";
 import { Providers } from "./providers";
 import ToggleBar from "./components/ToggleBar";
+import CursorGlow from "./components/CursorGlow";
 import "./globals.css";
 
 const inter = Inter({
@@ -38,6 +39,7 @@ export default function RootLayout({
       <body className="min-h-screen bg-[var(--color-bg)]">
         <Providers>
           <div className="bg-[var(--color-bg)] text-[var(--color-foreground)] min-h-screen font-body">
+            <CursorGlow />
             <ToggleBar />
             {children}
           </div>

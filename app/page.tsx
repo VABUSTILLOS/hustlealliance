@@ -1,5 +1,6 @@
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
+import QuickPreviewCTA from './components/sections/QuickPreviewCTA';
 import Pillars from './components/Pillars';
 import MemberSpotlight from './components/sections/MemberSpotlight';
 import ResourceLibrary from './components/sections/ResourceLibrary';
@@ -11,6 +12,7 @@ export default function Home() {
     <div className="    scroll-smooth bg-deep text-foreground font-body">
       <Navbar />
       <Hero />
+      <QuickPreviewCTA />
       <Pillars />
       <MemberSpotlight />
       <ResourceLibrary />

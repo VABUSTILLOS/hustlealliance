@@ -80,6 +80,27 @@ export default function DashboardPage() {
   const nextBadge = getNextBadge();
   const badgeProgress = nextBadge?.progress ?? 0;
 
+  // Onboarding checklist
+  const [onboardingDismissed, setOnboardingDismissed] = useState(false);
+  const onboardingSteps = [
+    {
+      label: 'Complete your profile',
+      done: Boolean(user.name && user.bio),
+      href: `/member/${user.username}`,
+    },
+    {
+      label: 'Start your first path',
+      done: Boolean(enrolledPath),
+      href: '/learning',
+    },
+    {
+      label: 'Join a space',
+      done: joinedSpaces.length > 0,
+      href: '/spaces',
+    },
+  ];
+  const onboardingComplete = onboardingSteps.every((s) => s.done);
+
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-8 max-w-7xl mx-auto">
       <motion.div variants={stagger} initial="initial" animate="animate" className="space-y-6">
@@ -178,6 +199,68 @@ export default function DashboardPage() {
             </div>
           </Widget>
         </motion.div>
+
+        {/* ── Onboarding Checklist ─────── */}
+        {!onboardingComplete && !onboardingDismissed && (
+          <motion.div variants={fadeUp}>
+            <Widget className="relative overflow-hidden border-accent/20">
+              <div className="absolute inset-0 bg-gradient-to-r from-accent/[0.03] via-transparent to-transparent pointer-events-none" />
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h2 className="font-display text-lg text-foreground uppercase tracking-wide">
+                    Getting Started
+                  </h2>
+                  <p className="text-foreground-dim text-xs mt-0.5">
+                    {onboardingSteps.filter((s) => s.done).length}/{onboardingSteps.length} complete
+                  </p>
+                </div>
+                <button
+                  onClick={() => setOnboardingDismissed(true)}
+                  className="text-foreground-muted hover:text-foreground transition-colors p-1"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M18 6L6 18M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <div className="space-y-2">
+                {onboardingSteps.map((step, i) => (
+                  <Link
+                    key={i}
+                    href={step.href}
+                    className={`flex items-center gap-3 p-3 rounded-xl transition-all ${
+                      step.done
+                        ? 'bg-emerald-500/[0.06] border border-emerald-500/20'
+                        : 'bg-white/[0.03] border border-white/[0.06] hover:border-accent/30 hover:bg-white/[0.05]'
+                    }`}
+                  >
+                    <span
+                      className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-xs ${
+                        step.done
+                          ? 'bg-emerald-500/20 text-emerald-400'
+                          : 'bg-accent/10 text-accent'
+                      }`}
+                    >
+                      {step.done ? '✓' : i + 1}
+                    </span>
+                    <span
+                      className={`text-sm flex-1 ${
+                        step.done ? 'text-foreground-dim line-through' : 'text-foreground font-medium'
+                      }`}
+                    >
+                      {step.label}
+                    </span>
+                    {!step.done && (
+                      <svg className="w-4 h-4 text-foreground-dim shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
+                    )}
+                  </Link>
+                ))}
+              </div>
+            </Widget>
+          </motion.div>
+        )}
 
         {/* ── Row: Learning Progress + Daily Gem ─── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
