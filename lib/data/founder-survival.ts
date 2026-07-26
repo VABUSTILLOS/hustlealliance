@@ -1,364 +1,379 @@
 // ── Founder Survival Dashboard — Types & Mock Data ──────────────────────
+// Bilingual: English (title, description) + Spanish (titleEs, descriptionEs)
 
-/** A single daily habit that can be checked off */
+export type HabitCategory = 'movement' | 'nutrition' | 'tech' | 'relationships' | 'finance' | 'recovery' | 'longevity';
+export type AtomicLaw = 'make-it-obvious' | 'make-it-attractive' | 'make-it-easy' | 'make-it-satisfying';
+
+/** A habit that can be added to the daily protocol */
 export interface DailyHabit {
   id: string;
   icon: string;
   title: string;
+  titleEs: string;
   description: string;
-  /** Which Atomic Habits law this primarily satisfies */
-  atomicLaw: 'make-it-obvious' | 'make-it-attractive' | 'make-it-easy' | 'make-it-satisfying';
-  category: 'movement' | 'nutrition' | 'tech' | 'relationships' | 'finance' | 'recovery' | 'longevity';
+  descriptionEs: string;
+  atomicLaw: AtomicLaw;
+  category: HabitCategory;
+  /** Whether this is a core habit (always shown) or from the Choose Habits pool */
+  isCore: boolean;
 }
 
-/** A quest in the survival guide */
-export interface SurvivalQuest {
-  id: number;
-  category: 'A' | 'B' | 'C';
-  title: string;
-  description: string;
-  /** Gray-hat = ethically ambiguous / aggressive tactics */
-  isGrayHat: boolean;
-  /** Completion status: locked, available, completed */
-  status: 'locked' | 'available' | 'completed';
+/** A habit in the Choose Habits pool (formerly Survival Quests) */
+export interface ChooseHabit {
+  id: string;
   icon: string;
+  title: string;
+  titleEs: string;
+  description: string;
+  descriptionEs: string;
+  category: 'A' | 'B' | 'C';
+  isGrayHat: boolean;
 }
 
-// ── DAILY HABITS ─────────────────────────────────────────────────────────
+// ── CORE DAILY HABITS (always in protocol) ────────────────────────────
 
-export const dailyHabits: DailyHabit[] = [
+export const coreHabits: DailyHabit[] = [
   {
-    id: 'steps',
-    icon: '👟',
+    id: 'steps', icon: '👟',
     title: '15K–20K Steps',
+    titleEs: '15K–20K Pasos',
     description: 'Split into one morning block (7.5K) and one evening block (7.5K). Walk outdoors for sunlight exposure.',
-    atomicLaw: 'make-it-easy',
-    category: 'movement',
+    descriptionEs: 'Dividir en un bloque matutino (7.5K) y uno vespertino (7.5K). Caminar al aire libre para exposición solar.',
+    atomicLaw: 'make-it-easy', category: 'movement', isCore: true,
   },
   {
-    id: 'smoothie',
-    icon: '🥤',
+    id: 'smoothie', icon: '🥤',
     title: 'Whole-Food Smoothie',
+    titleEs: 'Smoothie de Alimentos Enteros',
     description: 'Banana, strawberry, frozen mango, unsweetened natural cacao. No powders, no added sugars.',
-    atomicLaw: 'make-it-obvious',
-    category: 'nutrition',
+    descriptionEs: 'Plátano, fresa, mango congelado, cacao natural sin azúcar. Sin polvos, sin azúcares añadidos.',
+    atomicLaw: 'make-it-obvious', category: 'nutrition', isCore: true,
   },
   {
-    id: 'ai-workflow',
-    icon: '🤖',
+    id: 'ai-workflow', icon: '🤖',
     title: '30min Agéntic Coding',
+    titleEs: '30min de Código Agéntico',
     description: 'Deploy local AI workflows using Cursor + Ollama. Ship at least one automation or improvement.',
-    atomicLaw: 'make-it-attractive',
-    category: 'tech',
+    descriptionEs: 'Desplegar flujos de IA local con Cursor + Ollama. Lanzar al menos una automatización o mejora.',
+    atomicLaw: 'make-it-attractive', category: 'tech', isCore: true,
   },
   {
-    id: 'connection',
-    icon: '💜',
+    id: 'connection', icon: '💜',
     title: '1hr Phone-Free Connection',
+    titleEs: '1hr de Conexión sin Teléfono',
     description: 'Strictly undistracted, phone-in-another-room connection time with Marisol.',
-    atomicLaw: 'make-it-satisfying',
-    category: 'relationships',
+    descriptionEs: 'Tiempo de conexión estrictamente sin distracciones, teléfono en otra habitación, con Marisol.',
+    atomicLaw: 'make-it-satisfying', category: 'relationships', isCore: true,
   },
   {
-    id: 'cash-flow',
-    icon: '💰',
+    id: 'cash-flow', icon: '💰',
     title: 'Daily Cash Flow Review',
+    titleEs: 'Revisión Diaria de Flujo de Caja',
     description: 'Review liquid cash flow, GBM portfolio balance, and digital bank yield rates (Nu, Klar, Mercado Pago).',
-    atomicLaw: 'make-it-obvious',
-    category: 'finance',
+    descriptionEs: 'Revisar flujo de caja líquido, saldo del portafolio GBM y tasas de rendimiento de bancos digitales (Nu, Klar, Mercado Pago).',
+    atomicLaw: 'make-it-obvious', category: 'finance', isCore: true,
   },
   {
-    id: 'wim-hof',
-    icon: '❄️',
+    id: 'wim-hof', icon: '❄️',
     title: 'Wim Hof + Cold Shower',
+    titleEs: 'Wim Hof + Ducha Fría',
     description: '3 rounds of holotropic breathing followed by a 2-minute cold shower. Builds stress resilience.',
-    atomicLaw: 'make-it-easy',
-    category: 'recovery',
+    descriptionEs: '3 rondas de respiración holotrópica seguidas de 2 minutos de ducha fría. Construye resiliencia al estrés.',
+    atomicLaw: 'make-it-easy', category: 'recovery', isCore: true,
   },
   {
-    id: 'eating-window',
-    icon: '⏰',
+    id: 'eating-window', icon: '⏰',
     title: '10-Hour Eating Window',
+    titleEs: 'Ventana de Alimentación de 10hrs',
     description: 'Strict intermittent fasting window. First meal no earlier than 10am, last meal no later than 8pm.',
-    atomicLaw: 'make-it-obvious',
-    category: 'nutrition',
+    descriptionEs: 'Ventana estricta de ayuno intermitente. Primera comida no antes de las 10am, última no después de las 8pm.',
+    atomicLaw: 'make-it-obvious', category: 'nutrition', isCore: true,
   },
   {
-    id: 'sunlight',
-    icon: '☀️',
+    id: 'sunlight', icon: '☀️',
     title: 'Morning Sunlight (10–15min)',
+    titleEs: 'Luz Solar Matutina (10–15min)',
     description: 'View natural sunlight outdoors within 30 minutes of waking. Sets circadian rhythm. No sunglasses.',
-    atomicLaw: 'make-it-obvious',
-    category: 'longevity',
+    descriptionEs: 'Ver luz solar natural al aire libre dentro de los 30 minutos de despertar. Establece el ritmo circadiano. Sin gafas de sol.',
+    atomicLaw: 'make-it-obvious', category: 'longevity', isCore: true,
   },
 ];
 
-// ── SURVIVAL QUESTS ──────────────────────────────────────────────────────
+// ── ALL HABITS (core + choose pool) for easy lookup ──────────────────
 
-export const survivalQuests: SurvivalQuest[] = [
-  // ═══════════ CATEGORY A: Street-Smart Agency Survival ═══════════
+export const allHabits: DailyHabit[] = [...coreHabits];
+
+// ── CHOOSE HABITS POOL (formerly Survival Quests) ────────────────────
+
+export const chooseHabits: ChooseHabit[] = [
+  // ═══════════ CATEGORY A: SUPERVIVENCIA DE AGENCIA ═══════════
   {
-    id: 1,
-    category: 'A',
+    id: 'sat-defense', icon: '🛡️',
     title: 'SAT Defense Shield',
-    description:
-      'Learn the 12 essential tax deductions for digital agencies in Mexico. Register under the correct régimen fiscal (RIF or RESICO). Set up automated factura generation for every client payment. Know exactly what the SAT can and cannot audit.',
-    isGrayHat: false,
-    status: 'available',
-    icon: '🛡️',
+    titleEs: 'Escudo de Defensa SAT',
+    description: 'Learn the 12 essential tax deductions for digital agencies in Mexico. Register under the correct régimen fiscal (RIF or RESICO). Set up automated factura generation for every client payment.',
+    descriptionEs: 'Aprende las 12 deducciones fiscales esenciales para agencias digitales en México. Regístrate bajo el régimen fiscal correcto (RIF o RESICO). Configura la generación automática de facturas por cada pago de cliente.',
+    category: 'A', isGrayHat: false,
   },
   {
-    id: 2,
-    category: 'A',
+    id: 'imss-trap', icon: '🏥',
     title: 'The IMSS Trap',
-    description:
-      'Fair, legal registration for yourself and every agency employee. Avoid the "esquema mixto" (mixed scheme) trap that underreports salaries. Understand voluntary continuation and modalidad 40 for retirement maximization.',
-    isGrayHat: false,
-    status: 'available',
-    icon: '🏥',
+    titleEs: 'La Trampa del IMSS',
+    description: 'Fair, legal registration for yourself and every agency employee. Avoid the "esquema mixto" trap that underreports salaries. Understand voluntary continuation and modalidad 40 for retirement maximization.',
+    descriptionEs: 'Registro justo y legal para ti y cada empleado de la agencia. Evita la trampa del "esquema mixto" que subreporta salarios. Entiende la continuación voluntaria y modalidad 40 para maximizar tu retiro.',
+    category: 'A', isGrayHat: false,
   },
   {
-    id: 3,
-    category: 'A',
+    id: 'retainer-contracts', icon: '📜',
     title: 'Retainer Fortress Contracts',
-    description:
-      'Structure retainer contracts with scope-of-work annexes, hard deliverables, kill fees, and mandatory renewal windows. Include IP ownership transfer clauses that activate ONLY on final payment.',
-    isGrayHat: false,
-    status: 'available',
-    icon: '📜',
+    titleEs: 'Contratos Blindados de Retainer',
+    description: 'Structure retainer contracts with scope-of-work annexes, hard deliverables, kill fees, and mandatory renewal windows. IP transfer on final payment only.',
+    descriptionEs: 'Estructura contratos de retainer con anexos de alcance, entregables duros, honorarios de cancelación y ventanas de renovación obligatorias. Transferencia de IP solo al pago final.',
+    category: 'A', isGrayHat: false,
   },
   {
-    id: 4,
-    category: 'A',
+    id: 'agentic-workflow', icon: '⚡',
     title: 'The Agéntic Workflow',
-    description:
-      'Wire up n8n with local open-source models (Llama 3, Mistral) via Ollama. Automate lead enrichment, proposal drafting, and client reporting. Zero API costs, zero data leaks.',
-    isGrayHat: false,
-    status: 'available',
-    icon: '⚡',
+    titleEs: 'El Flujo Agéntico',
+    description: 'Wire up n8n with local open-source models (Llama 3, Mistral) via Ollama. Automate lead enrichment, proposal drafting, and client reporting. Zero API costs, zero data leaks.',
+    descriptionEs: 'Conecta n8n con modelos open-source locales (Llama 3, Mistral) vía Ollama. Automatiza enriquecimiento de leads, redacción de propuestas y reportes de clientes. Cero costos de API, cero fugas de datos.',
+    category: 'A', isGrayHat: false,
   },
   {
-    id: 5,
-    category: 'A',
+    id: 'comfyui-rig', icon: '🖥️',
     title: 'Local AI: ComfyUI Rig',
-    description:
-      'Configure ComfyUI to run on an Acer Predator or Redmagic rig without thermal throttling. Use custom fan curves, undervolting via MSI Afterburner, and --lowvram flags for stable diffusion workflows.',
-    isGrayHat: false,
-    status: 'available',
-    icon: '🖥️',
+    titleEs: 'IA Local: Rig ComfyUI',
+    description: 'Configure ComfyUI to run on an Acer Predator or Redmagic rig without thermal throttling. Custom fan curves, undervolting, --lowvram flags for stable diffusion workflows.',
+    descriptionEs: 'Configura ComfyUI para correr en un Acer Predator o rig Redmagic sin thermal throttling. Curvas de ventilador personalizadas, undervolting, flags --lowvram para flujos de stable diffusion.',
+    category: 'A', isGrayHat: false,
   },
   {
-    id: 6,
-    category: 'A',
+    id: 'crisis-protocol', icon: '🩸',
     title: 'Eating Glass: Crisis Protocol',
-    description:
-      'When a client site gets hacked or a Meta ad account gets banned: (1) Do not panic, (2) Do not blame the team, (3) Execute the pre-written incident response checklist, (4) Communicate to client within 15 minutes with a clear timeline.',
-    isGrayHat: false,
-    status: 'available',
-    icon: '🩸',
+    titleEs: 'Comiendo Vidrio: Protocolo de Crisis',
+    description: 'When a client site gets hacked or Meta ad account banned: (1) Do not panic, (2) Do not blame team, (3) Execute pre-written incident checklist, (4) Communicate to client within 15min with clear timeline.',
+    descriptionEs: 'Cuando hackeen un sitio o baneen una cuenta de Meta: (1) No entrar en pánico, (2) No culpar al equipo, (3) Ejecutar checklist pre-escrito, (4) Comunicar al cliente en 15min con cronograma claro.',
+    category: 'A', isGrayHat: false,
   },
   {
-    id: 7,
-    category: 'A',
+    id: 'time-vampire', icon: '🧛',
     title: 'Time-Vampire Detection',
-    description:
-      'Spot a time-vampire client in 5 minutes flat. They: ask for discounts before seeing deliverables, send messages at 11pm expecting instant replies, and "just have one more small change." Price them out deliberately — double your rate.',
-    isGrayHat: false,
-    status: 'available',
-    icon: '🧛',
+    titleEs: 'Detección de Vampiros de Tiempo',
+    description: 'Spot a time-vampire client in 5 minutes. They ask for discounts before deliverables, message at 11pm, and "just have one more small change." Price them out deliberately — double your rate.',
+    descriptionEs: 'Detecta un cliente vampiro en 5 minutos. Piden descuentos antes de ver entregables, mandan mensajes a las 11pm y "solo un pequeño cambio más." Sácalos deliberadamente — duplica tu tarifa.',
+    category: 'A', isGrayHat: false,
   },
   {
-    id: 8,
-    category: 'A',
+    id: 'domain-hijacking', icon: '🏴‍☠️',
     title: 'Expired Domain Hijacking',
-    description:
-      'Identify high-authority expired domains (DA 40+) in your client niches. Purchase them, rebuild with relevant content, and 301-redirect the link juice to client SEO projects. Monitor with Ahrefs/Semrush.',
-    isGrayHat: true,
-    status: 'available',
-    icon: '🏴‍☠️',
+    titleEs: 'Secuestro de Dominios Expirados',
+    description: 'Identify high-authority expired domains (DA 40+) in client niches. Purchase, rebuild with relevant content, 301-redirect link juice to client SEO. Monitor with Ahrefs/Semrush.',
+    descriptionEs: 'Identifica dominios expirados de alta autoridad (DA 40+) en nichos de clientes. Compra, reconstruye con contenido relevante, redirige link juice al SEO del cliente con 301. Monitorea con Ahrefs/Semrush.',
+    category: 'A', isGrayHat: true,
   },
   {
-    id: 9,
-    category: 'A',
+    id: 'weaponized-scope', icon: '⚔️',
     title: 'Weaponized Scope Creep',
-    description:
-      'When a bad client pushes beyond the contracted scope, do NOT push back. Let them breach. Document every request. After 3 breaches, invoke the contract termination clause and keep the deposit. This is legal — read your contract.',
-    isGrayHat: true,
-    status: 'available',
-    icon: '⚔️',
+    titleEs: 'Expansión de Alcance como Arma',
+    description: 'When a bad client pushes beyond scope, do NOT push back. Let them breach. Document every request. After 3 breaches, invoke termination clause and keep deposit. This is legal — read your contract.',
+    descriptionEs: 'Cuando un mal cliente empuja más allá del alcance, NO resistas. Déjalos violar el contrato. Documenta cada solicitud. Después de 3 violaciones, invoca la cláusula de terminación y quédate con el anticipo. Es legal — lee tu contrato.',
+    category: 'A', isGrayHat: true,
   },
 
-  // ═══════════ CATEGORY B: Financial Resilience ═══════════
+  // ═══════════ CATEGORY B: RESILIENCIA FINANCIERA ═══════════
   {
-    id: 10,
-    category: 'B',
+    id: 'bs-audit', icon: '🔴',
     title: 'BS Spending Audit (Hammer Style)',
-    description:
-      'Print 3 months of bank statements. Highlight every delivery app charge, taquito run, and subscription you forgot about in red. Calculate the monthly bleed. Redirect that exact amount into an investment account.',
-    isGrayHat: false,
-    status: 'available',
-    icon: '🔴',
+    titleEs: 'Auditoría de Gastos Basura (Estilo Hammer)',
+    description: 'Print 3 months of bank statements. Highlight every delivery app charge, taquito run, and forgotten subscription in red. Calculate the monthly bleed. Redirect that amount into investments.',
+    descriptionEs: 'Imprime 3 meses de estados de cuenta. Subraya cada cargo de app de delivery, taquito y suscripción olvidada en rojo. Calcula la sangría mensual. Redirige esa cantidad exacta a inversiones.',
+    category: 'B', isGrayHat: false,
   },
   {
-    id: 11,
-    category: 'B',
+    id: 'debt-eradication', icon: '💀',
     title: 'High-Interest Debt Eradication',
-    description:
-      'Liquidate underperforming assets (stocks, crypto bags, collectibles). Kill every peso of credit card debt carrying >30% APR. Escape the Buró de Crédito death spiral. Zero consumer debt is the foundation.',
-    isGrayHat: false,
-    status: 'available',
-    icon: '💀',
+    titleEs: 'Erradicación de Deuda de Alto Interés',
+    description: 'Liquidate underperforming assets. Kill every peso of credit card debt >30% APR. Escape Buró de Crédito death spiral. Zero consumer debt is the foundation.',
+    descriptionEs: 'Liquida activos de bajo rendimiento. Elimina cada peso de deuda de tarjeta con >30% de interés. Escapa de la espiral mortal del Buró de Crédito. Cero deuda de consumo es la base.',
+    category: 'B', isGrayHat: false,
   },
   {
-    id: 12,
-    category: 'B',
+    id: 'firewall-fund', icon: '🧱',
     title: 'Fully-Funded Firewall',
-    description:
-      'Ladder 6 months of bare-bones living expenses across Nu, Klar, and Mercado Pago earning daily yield. Do not invest a single peso beyond this until the firewall is complete. This is your "f--k you" fund.',
-    isGrayHat: false,
-    status: 'available',
-    icon: '🧱',
+    titleEs: 'Firewall Completamente Fondecido',
+    description: 'Ladder 6 months of bare-bones living expenses across Nu, Klar, and Mercado Pago earning daily yield. Do not invest beyond this until complete. This is your "f--k you" fund.',
+    descriptionEs: 'Escalera 6 meses de gastos básicos en Nu, Klar y Mercado Pago generando rendimiento diario. No inviertas más allá hasta completarlo. Este es tu fondo "vete a la chingada".',
+    category: 'B', isGrayHat: false,
   },
   {
-    id: 13,
-    category: 'B',
+    id: 'sandwich-gen', icon: '🥪',
     title: 'Sandwich Generation Reality Check',
-    description:
-      'Sit down with your parents. Trace their Afore balance, IMSS weeks contributed, and pension eligibility. Know their health status and expected care needs. Plan NOW — before cognitive or physical decline makes it impossible.',
-    isGrayHat: false,
-    status: 'available',
-    icon: '🥪',
+    titleEs: 'Chequeo de Realidad Generación Sandwich',
+    description: 'Sit with your parents. Trace their Afore balance, IMSS weeks, and pension eligibility. Know their health and care needs. Plan NOW — before decline makes it impossible.',
+    descriptionEs: 'Siéntate con tus papás. Rastrea su saldo de Afore, semanas cotizadas en IMSS y elegibilidad de pensión. Conoce su estado de salud y necesidades de cuidado. Planea AHORA — antes de que el deterioro lo haga imposible.',
+    category: 'B', isGrayHat: false,
   },
   {
-    id: 14,
-    category: 'B',
+    id: 'family-loan-firewall', icon: '🚫',
     title: 'Family Loan Firewall Scripts',
-    description:
-      'Memorize these exact scripts for saying "no" to family money requests: "I\'m not in a position to help with that right now, but I can help you review your budget." / "My money is tied up in investments I can\'t touch." No guilt.',
-    isGrayHat: false,
-    status: 'available',
-    icon: '🚫',
+    titleEs: 'Guiones Firewall para Préstamos Familiares',
+    description: 'Exact scripts for saying "no" to family money requests: "I\'m not in a position to help right now, but I can help review your budget." / "My money is tied up in investments." No guilt.',
+    descriptionEs: 'Guiones exactos para decir "no" a pedidos de dinero familiar: "No estoy en posición de ayudar ahora, pero puedo ayudarte a revisar tu presupuesto." / "Mi dinero está atado en inversiones." Sin culpa.',
+    category: 'B', isGrayHat: false,
   },
   {
-    id: 15,
-    category: 'B',
+    id: 'infonavit-hack', icon: '🏠',
     title: 'Hacking Infonavit & Mortgages',
-    description:
-      'Understand Infonavit co-financing, Cofinavit, and how to use your subcuenta de vivienda as a down payment. Calculate total cost of ownership including predial, maintenance, and opportunity cost of the down payment.',
-    isGrayHat: false,
-    status: 'available',
-    icon: '🏠',
+    titleEs: 'Hackeando Infonavit e Hipotecas',
+    description: 'Understand Infonavit co-financing, Cofinavit, and using your subcuenta de vivienda as down payment. Calculate TCO: predial, maintenance, and opportunity cost of down payment.',
+    descriptionEs: 'Entiende el cofinanciamiento Infonavit, Cofinavit y cómo usar tu subcuenta de vivienda como enganche. Calcula costo total: predial, mantenimiento y costo de oportunidad del enganche.',
+    category: 'B', isGrayHat: false,
   },
   {
-    id: 16,
-    category: 'B',
+    id: 'annual-engine', icon: '📈',
     title: 'The 15% Annual Engine',
-    description:
-      'Rebalance your GBM portfolio across ETFs (VOO, QQQ, EEM), FIBRAs, and Cetes. Target: 15% annual return with a Sharpe ratio above 1.2. Rebalance quarterly. Track every peso. Compound interest is the 8th wonder.',
-    isGrayHat: false,
-    status: 'available',
-    icon: '📈',
+    titleEs: 'El Motor del 15% Anual',
+    description: 'Rebalance GBM portfolio across ETFs (VOO, QQQ, EEM), FIBRAs, and Cetes. Target 15% annual return, Sharpe >1.2. Rebalance quarterly. Compound interest is the 8th wonder.',
+    descriptionEs: 'Rebalancea portafolio GBM entre ETFs (VOO, QQQ, EEM), FIBRAs y Cetes. Objetivo: 15% de retorno anual, Sharpe >1.2. Rebalancea trimestralmente. El interés compuesto es la 8va maravilla.',
+    category: 'B', isGrayHat: false,
   },
   {
-    id: 17,
-    category: 'B',
+    id: 'ev-strategy', icon: '🚗',
     title: 'The EV Cash Strategy',
-    description:
-      'Calculate Mexican tax deductions for EVs: IVA accreditable, ISR deduction up to 175K MXN daily, no tenencia in most states. Run TCO for a Zeekr 8x vs financing a combustion car. Avoid crippling auto-loan interest.',
-    isGrayHat: false,
-    status: 'available',
-    icon: '🚗',
+    titleEs: 'La Estrategia de Efectivo EV',
+    description: 'Calculate Mexican EV tax deductions: IVA accreditable, ISR deduction up to 175K MXN, no tenencia in most states. Run TCO for Zeekr 8x vs combustion car financing.',
+    descriptionEs: 'Calcula deducciones fiscales mexicanas para EVs: IVA acreditable, deducción de ISR hasta 175K MXN, sin tenencia en la mayoría de estados. Calcula TCO para Zeekr 8x vs financiamiento de auto de combustión.',
+    category: 'B', isGrayHat: false,
   },
 
-  // ═══════════ CATEGORY C: The Founder Blueprint (Biohacking) ═══════════
+  // ═══════════ CATEGORY C: BLUEPRINT DEL FUNDADOR (BIOHACKING) ═══════════
   {
-    id: 18,
-    category: 'C',
+    id: 'hof-baseline', icon: '🧊',
     title: 'The Hof Baseline',
-    description:
-      'Master 3 rounds of Wim Hof breathing (30 deep breaths + exhale hold). Follow immediately with 3 straight minutes of cold exposure. Track your breath-hold time weekly. The cold is your teacher — it never lies.',
-    isGrayHat: false,
-    status: 'available',
-    icon: '🧊',
+    titleEs: 'La Línea Base Hof',
+    description: 'Master 3 rounds of Wim Hof breathing (30 deep breaths + exhale hold). Follow with 3 minutes of cold exposure. Track breath-hold time weekly. The cold is your teacher — it never lies.',
+    descriptionEs: 'Domina 3 rondas de respiración Wim Hof (30 respiraciones profundas + retención en exhalación). Sigue con 3 minutos de exposición al frío. Registra tu tiempo de retención. El frío es tu maestro — nunca miente.',
+    category: 'C', isGrayHat: false,
   },
   {
-    id: 19,
-    category: 'C',
+    id: 'hadzovic-meals', icon: '🍱',
     title: 'The Hadzovic Discipline',
-    description:
-      'Pre-plan 100% of weekly meals. Every calorie has a purpose — function or aesthetics. Zero unplanned calories. Meal prep Sunday. Track macros: 1.8g protein/kg bodyweight, 0.8g fat/kg, rest from complex carbs.',
-    isGrayHat: false,
-    status: 'available',
-    icon: '🍱',
+    titleEs: 'La Disciplina Hadzovic',
+    description: 'Pre-plan 100% of weekly meals. Every calorie has purpose — function or aesthetics. Zero unplanned calories. Meal prep Sunday. Track macros: 1.8g protein/kg, 0.8g fat/kg, rest complex carbs.',
+    descriptionEs: 'Pre-planea el 100% de las comidas semanales. Cada caloría tiene propósito — función o estética. Cero calorías no planeadas. Meal prep domingo. Registra macros: 1.8g proteína/kg, 0.8g grasa/kg, resto carbohidratos complejos.',
+    category: 'C', isGrayHat: false,
   },
   {
-    id: 20,
-    category: 'C',
+    id: 'hypertrophy', icon: '🏋️',
     title: 'Hypertrophy & Structural Armor',
-    description:
-      'Commit to a bodybuilding resistance split (Push/Pull/Legs x2 per week). Build structural armor against desk posture: rear delts, rhomboids, glutes, core. Sitting is the new smoking — compensate aggressively.',
-    isGrayHat: false,
-    status: 'available',
-    icon: '🏋️',
+    titleEs: 'Hipertrofia y Armadura Estructural',
+    description: 'Bodybuilding resistance split (Push/Pull/Legs x2/week). Build structural armor against desk posture: rear delts, rhomboids, glutes, core. Sitting is the new smoking — compensate aggressively.',
+    descriptionEs: 'Rutina de resistencia de fisicoculturismo (Empuje/Jalón/Pierna x2/semana). Construye armadura estructural contra la postura de escritorio: deltoides posteriores, romboides, glúteos, core. Sentarse es el nuevo fumar.',
+    category: 'C', isGrayHat: false,
   },
   {
-    id: 21,
-    category: 'C',
-    title: 'Cortisol Management: Two-Block Protocol',
-    description:
-      'Map optimal 15-minute and 30-minute walking routes near your workspace. When stress spikes (client emergency, deadline pressure), execute a Two-Block Step Protocol immediately. Walk, breathe, return. No phone.',
-    isGrayHat: false,
-    status: 'available',
-    icon: '🚶',
+    id: 'cortisol', icon: '🚶',
+    title: 'Cortisol: Two-Block Protocol',
+    titleEs: 'Cortisol: Protocolo Dos Cuadras',
+    description: 'Map 15min and 30min walking routes near your workspace. When stress spikes (client emergency, deadline), execute Two-Block Step Protocol. Walk, breathe, return. No phone.',
+    descriptionEs: 'Mapea rutas de caminata de 15min y 30min cerca de tu espacio de trabajo. Cuando el estrés suba (emergencia de cliente, deadline), ejecuta el Protocolo de Dos Cuadras. Camina, respira, regresa. Sin teléfono.',
+    category: 'C', isGrayHat: false,
   },
   {
-    id: 22,
-    category: 'C',
+    id: 'sleep', icon: '🌙',
     title: 'Sleep: The Ultimate Metric',
-    description:
-      'Defend the 8-hour unnegotiable sleep window. Cool room (65-68°F / 18-20°C), pitch black, no screens 90min before bed. Track with Oura or Apple Watch. If sleep slips, everything else crumbles. Sleep is non-negotiable.',
-    isGrayHat: false,
-    status: 'available',
-    icon: '🌙',
+    titleEs: 'Dormir: La Métrica Definitiva',
+    description: 'Defend the 8-hour unnegotiable sleep window. Cool room (18-20°C), pitch black, no screens 90min before bed. Track with Oura or Apple Watch. Sleep is non-negotiable.',
+    descriptionEs: 'Defiende la ventana innegociable de 8 horas de sueño. Habitación fresca (18-20°C), oscuridad total, sin pantallas 90min antes de dormir. Monitorea con Oura o Apple Watch. Dormir no es negociable.',
+    category: 'C', isGrayHat: false,
   },
   {
-    id: 23,
-    category: 'C',
+    id: 'decathlon', icon: '🏆',
     title: "Attia's Centenarian Decathlon",
-    description:
-      'Define the 10 physical tasks you want to perform at 100 years old. Examples: carry groceries up 3 flights of stairs, pick up a grandchild from the floor, hike 5km. Reverse-engineer your training to build that capacity NOW.',
-    isGrayHat: false,
-    status: 'available',
-    icon: '🏆',
+    titleEs: 'El Decatlón Centenario de Attia',
+    description: 'Define 10 physical tasks you want to do at 100 years old: carry groceries up stairs, pick up a grandchild, hike 5km. Reverse-engineer your training to build that capacity NOW.',
+    descriptionEs: 'Define 10 tareas físicas que quieres hacer a los 100 años: cargar despensa subiendo escaleras, levantar a un nieto del piso, caminar 5km. Haz ingeniería inversa de tu entrenamiento para construir esa capacidad AHORA.',
+    category: 'C', isGrayHat: false,
   },
   {
-    id: 24,
-    category: 'C',
+    id: 'zone2', icon: '🫁',
     title: 'The Zone 2 Base',
-    description:
-      'Commit to 3–4 hours of steady-state Zone 2 cardio per week. Conversational pace, nasal breathing only. Builds mitochondrial density, improves insulin sensitivity, and extends healthspan. Rucking, incline walking, cycling.',
-    isGrayHat: false,
-    status: 'available',
-    icon: '🫁',
+    titleEs: 'La Base de Zona 2',
+    description: 'Commit to 3–4 hours of steady-state Zone 2 cardio per week. Conversational pace, nasal breathing. Builds mitochondrial density and insulin sensitivity. Rucking, incline walking, cycling.',
+    descriptionEs: 'Comprométete a 3–4 horas de cardio constante en Zona 2 por semana. Ritmo conversacional, respiración nasal. Construye densidad mitocondrial y sensibilidad a la insulina. Rucking, caminata inclinada, ciclismo.',
+    category: 'C', isGrayHat: false,
   },
   {
-    id: 25,
-    category: 'C',
+    id: 'vo2max', icon: '💨',
     title: 'The VO₂ Max Peak',
-    description:
-      'Execute one 30-minute maximum heart rate session per week. 4×4 intervals (4min at 90-95% max HR, 4min recovery, repeat 4x). VO₂ max is the single best predictor of all-cause mortality. Defend it like your life depends on it.',
-    isGrayHat: false,
-    status: 'available',
-    icon: '💨',
+    titleEs: 'El Pico de VO₂ Max',
+    description: 'One 30-minute max heart rate session per week. 4×4 intervals (4min at 90-95% max HR, 4min recovery ×4). VO₂ max is the #1 predictor of all-cause mortality. Defend it.',
+    descriptionEs: 'Una sesión de 30 minutos a frecuencia cardíaca máxima por semana. Intervalos 4×4 (4min al 90-95% FC máx, 4min recuperación ×4). VO₂ max es el predictor #1 de mortalidad por todas las causas. Defiéndelo.',
+    category: 'C', isGrayHat: false,
   },
   {
-    id: 26,
-    category: 'C',
+    id: 'nsdr', icon: '🧘',
     title: 'NSDR: Dopamine Recharge',
-    description:
-      'Replace the afternoon caffeine crash with a 20-minute Yoga Nidra / NSDR protocol. Huberman Lab research confirms: NSDR replenishes dopamine reserves and accelerates motor skill learning. YouTube: "Yoga Nidra 20 min".',
-    isGrayHat: false,
-    status: 'available',
-    icon: '🧘',
+    titleEs: 'NSDR: Recarga de Dopamina',
+    description: 'Replace afternoon caffeine crash with 20-minute Yoga Nidra / NSDR. Replenishes dopamine reserves and accelerates motor skill learning. YouTube: "Yoga Nidra 20 min".',
+    descriptionEs: 'Reemplaza la caída de cafeína de la tarde con 20 minutos de Yoga Nidra / NSDR. Repone reservas de dopamina y acelera el aprendizaje motor. YouTube: "Yoga Nidra 20 min".',
+    category: 'C', isGrayHat: false,
   },
 ];
+
+// ── Category labels (bilingual) ──────────────────────────────────────
+
+export const categoryLabels: Record<string, { en: string; es: string; icon: string }> = {
+  A: { en: 'Agency Survival', es: 'Supervivencia de Agencia', icon: '🏴‍☠️' },
+  B: { en: 'Financial Resilience', es: 'Resiliencia Financiera', icon: '💰' },
+  C: { en: 'Founder Blueprint', es: 'Blueprint del Fundador', icon: '🧬' },
+};
+
+// ── Atomic Laws labels (bilingual) ───────────────────────────────────
+
+export const atomicLawLabels: Record<AtomicLaw, { en: string; es: string; color: string }> = {
+  'make-it-obvious': { en: 'Make it Obvious', es: 'Hazlo Obvio', color: 'bg-blue-400/10 text-blue-400 border-blue-400/20' },
+  'make-it-attractive': { en: 'Make it Attractive', es: 'Hazlo Atractivo', color: 'bg-purple-400/10 text-purple-400 border-purple-400/20' },
+  'make-it-easy': { en: 'Make it Easy', es: 'Hazlo Fácil', color: 'bg-green-400/10 text-green-400 border-green-400/20' },
+  'make-it-satisfying': { en: 'Make it Satisfying', es: 'Hazlo Satisfactorio', color: 'bg-yellow-400/10 text-yellow-400 border-yellow-400/20' },
+};
+
+// ── All available habits combined (core + pool) ──────────────────────
+
+/** All habits the user can choose from (core + choose pool) */
+export function getAvailableHabits(): DailyHabit[] {
+  // Convert chooseHabits to DailyHabit shape for the picker
+  const poolHabits: DailyHabit[] = chooseHabits.map((ch) => ({
+    id: ch.id,
+    icon: ch.icon,
+    title: ch.title,
+    titleEs: ch.titleEs,
+    description: ch.description,
+    descriptionEs: ch.descriptionEs,
+    atomicLaw: 'make-it-obvious' as AtomicLaw,
+    category: (ch.category === 'A' ? 'finance' : ch.category === 'B' ? 'finance' : 'longevity') as HabitCategory,
+    isCore: false,
+  }));
+  return [...coreHabits, ...poolHabits];
+}
+
+// ── Day-of-week helpers ──────────────────────────────────────────────
+
+export const DAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
+export type DayKey = (typeof DAY_KEYS)[number];
+
+export const DAY_LABELS: Record<DayKey, { en: string; es: string }> = {
+  mon: { en: 'Mon', es: 'Lun' },
+  tue: { en: 'Tue', es: 'Mar' },
+  wed: { en: 'Wed', es: 'Mié' },
+  thu: { en: 'Thu', es: 'Jue' },
+  fri: { en: 'Fri', es: 'Vie' },
+  sat: { en: 'Sat', es: 'Sáb' },
+  sun: { en: 'Sun', es: 'Dom' },
+};
+
+/** Get today's DayKey */
+export function getTodayKey(): DayKey {
+  const map: Record<number, DayKey> = { 0: 'sun', 1: 'mon', 2: 'tue', 3: 'wed', 4: 'thu', 5: 'fri', 6: 'sat' };
+  return map[new Date().getDay()];
+}

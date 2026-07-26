@@ -1,260 +1,413 @@
 'use client';
 
+// ── Daily Protocol + Choose Habits ────────────────────────────────────
+// Shows selected habits (core + chosen from pool) as a daily checklist.
+// "Choose Habits" panel opens a drawer where the user picks from the pool.
+
+import { useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocalStorage } from '@/lib/hooks/useLocalStorage';
-import { dailyHabits, type DailyHabit } from '@/lib/data/founder-survival';
-import { useMemo, useCallback } from 'react';
+import {
+  coreHabits,
+  chooseHabits,
+  atomicLawLabels,
+  getTodayKey,
+  type DailyHabit,
+  type AtomicLaw,
+} from '@/lib/data/founder-survival';
 
-// ── Types ──────────────────────────────────────────────────────────────────
+// ── Types ────────────────────────────────────────────────────────────
 
 interface HabitState {
   [habitId: string]: {
     completed: boolean;
-    completedAt?: string; // ISO date string
+    completedAt: string | null; // ISO date
   };
 }
 
-// ── Atomic Habits law badge ────────────────────────────────────────────────
-
-const lawLabels: Record<DailyHabit['atomicLaw'], { label: string; color: string }> = {
-  'make-it-obvious': { label: 'Make it Obvious', color: 'bg-blue-400/10 text-blue-400 border-blue-400/20' },
-  'make-it-attractive': { label: 'Make it Attractive', color: 'bg-purple-400/10 text-purple-400 border-purple-400/20' },
-  'make-it-easy': { label: 'Make it Easy', color: 'bg-green-400/10 text-green-400 border-green-400/20' },
-  'make-it-satisfying': { label: 'Make it Satisfying', color: 'bg-yellow-400/10 text-yellow-400 border-yellow-400/20' },
-};
-
-// ── Helper: check if two dates are the same calendar day ───────────────────
-
-function isToday(dateStr: string): boolean {
-  const d = new Date(dateStr);
-  const today = new Date();
-  return d.toDateString() === today.toDateString();
+interface CompletionParticle {
+  id: number;
+  x: number;
+  y: number;
+  color: string;
 }
 
-// ── Component ──────────────────────────────────────────────────────────────
+// ── Celebration Particles ────────────────────────────────────────────
 
-export default function HabitTracker() {
-  const [habitState, setHabitState] = useLocalStorage<HabitState>(
-    'hustle_habits',
-    {}
+const PARTY_COLORS = ['#f97316', '#fbbf24', '#a855f7', '#22c55e', '#3b82f6', '#ec4899'];
+
+function CelebrationParticles({
+  onDone,
+}: {
+  onDone: () => void;
+}) {
+  const particles: CompletionParticle[] = useMemo(
+    () =>
+      Array.from({ length: 18 }, (_, i) => ({
+        id: i,
+        x: (Math.random() - 0.5) * 240,
+        y: (Math.random() - 0.5) * 240 - 40,
+        color: PARTY_COLORS[i % PARTY_COLORS.length],
+      })),
+    [],
   );
-
-  // Calculate today's completion count
-  const todayCount = useMemo(() => {
-    return dailyHabits.filter((h) => {
-      const s = habitState[h.id];
-      return s?.completed && s.completedAt && isToday(s.completedAt);
-    }).length;
-  }, [habitState]);
-
-  const totalHabits = dailyHabits.length;
-  const percent = Math.round((todayCount / totalHabits) * 100);
-
-  /**
-   * Toggle a habit. Uses functional update to avoid stale state.
-   * On check → "Make it Satisfying" (Law 4): animated celebration.
-   * On uncheck → removes today's completion.
-   */
-  const toggleHabit = useCallback(
-    (habitId: string) => {
-      setHabitState((prev) => {
-        const current = prev[habitId];
-        const now = new Date().toISOString();
-
-        if (current?.completed && current.completedAt && isToday(current.completedAt)) {
-          // Uncheck: remove today's completion
-          const { [habitId]: _, ...rest } = prev;
-          return rest;
-        }
-
-        // Check: mark complete with timestamp
-        return {
-          ...prev,
-          [habitId]: { completed: true, completedAt: now },
-        };
-      });
-    },
-    [setHabitState]
-  );
-
-  const isHabitDoneToday = (habitId: string): boolean => {
-    const s = habitState[habitId];
-    return !!(s?.completed && s.completedAt && isToday(s.completedAt));
-  };
 
   return (
-    <div className="space-y-5">
-      {/* ── Header with progress ring ─────────────────────────────────── */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-heading font-bold text-foreground">
-            Daily Protocol
-          </h2>
-          <p className="text-sm text-muted">
-            {todayCount === totalHabits
-              ? 'All protocols executed. You are unstoppable today. 🔥'
-              : `${todayCount}/${totalHabits} habits locked in`}
+    <AnimatePresence onExitComplete={onDone}>
+      <motion.div
+        className="absolute inset-0 pointer-events-none z-10"
+        initial={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        {particles.map((p) => (
+          <motion.div
+            key={p.id}
+            className="absolute w-2 h-2 rounded-full"
+            style={{
+              left: '50%',
+              top: '50%',
+              backgroundColor: p.color,
+            }}
+            initial={{ x: 0, y: 0, scale: 1, opacity: 1 }}
+            animate={{ x: p.x, y: p.y, scale: 0, opacity: 0 }}
+            transition={{ duration: 0.7 + Math.random() * 0.5, ease: 'easeOut' as const }}
+          />
+        ))}
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
+// ── Habit card ───────────────────────────────────────────────────────
+
+function HabitCard({
+  habit,
+  completed,
+  onToggle,
+  locale,
+  showParticles,
+  onParticlesDone,
+}: {
+  habit: DailyHabit;
+  completed: boolean;
+  onToggle: () => void;
+  locale: 'en' | 'es';
+  showParticles: boolean;
+  onParticlesDone: () => void;
+}) {
+  const law = atomicLawLabels[habit.atomicLaw];
+  const title = locale === 'es' ? habit.titleEs : habit.title;
+  const desc = locale === 'es' ? habit.descriptionEs : habit.description;
+
+  return (
+    <motion.button
+      onClick={onToggle}
+      className={`relative w-full text-left p-3 sm:p-4 rounded-xl border transition-all duration-200 overflow-hidden
+        ${completed
+          ? 'bg-green-950/20 border-green-500/30 shadow-[0_0_12px_rgba(34,197,94,0.1)]'
+          : 'bg-zinc-900/40 border-zinc-700/40 hover:border-zinc-600 hover:bg-zinc-900/60'
+        }`}
+      whileTap={{ scale: 0.98 }}
+      layout
+    >
+      {/* Particles */}
+      {showParticles && <CelebrationParticles onDone={onParticlesDone} />}
+
+      <div className="flex items-start gap-3 relative z-[1]">
+        {/* Checkbox */}
+        <motion.div
+          className={`mt-0.5 w-5 h-5 rounded-md flex-shrink-0 flex items-center justify-center border-2 transition-colors
+            ${completed
+              ? 'bg-green-500 border-green-500'
+              : 'border-zinc-600 group-hover:border-zinc-500'
+            }`}
+          animate={completed ? { scale: [1, 1.3, 1] } : {}}
+          transition={{ duration: 0.3 }}
+        >
+          {completed && (
+            <motion.span
+              className="text-white text-xs font-bold"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.1, type: 'spring', stiffness: 400 }}
+            >
+              ✓
+            </motion.span>
+          )}
+        </motion.div>
+
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className={`text-sm font-semibold ${completed ? 'text-green-400 line-through opacity-70' : 'text-zinc-200'}`}>
+              {habit.icon} {title}
+            </span>
+            {/* Atomic law badge */}
+            <span className={`text-[10px] px-1.5 py-0.5 rounded-full border ${law.color}`}>
+              {locale === 'es' ? law.es : law.en}
+            </span>
+            {/* Core badge */}
+            {habit.isCore && (
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-orange-400/10 text-orange-400 border border-orange-400/20">
+                {locale === 'es' ? 'Núcleo' : 'Core'}
+              </span>
+            )}
+          </div>
+          <p className={`text-xs mt-1 leading-relaxed ${completed ? 'text-zinc-600' : 'text-zinc-500'}`}>
+            {desc}
           </p>
         </div>
+      </div>
+    </motion.button>
+  );
+}
 
-        {/* Circular progress */}
-        <div className="relative w-16 h-16 shrink-0">
-          <svg className="w-16 h-16 -rotate-90" viewBox="0 0 64 64">
-            <circle
-              cx="32" cy="32" r="28"
-              fill="none"
-              stroke="currentColor"
-              className="text-surface-light"
-              strokeWidth="5"
-            />
-            <motion.circle
-              cx="32" cy="32" r="28"
-              fill="none"
-              stroke="currentColor"
-              className="text-accent"
-              strokeWidth="5"
-              strokeLinecap="round"
-              strokeDasharray={2 * Math.PI * 28}
-              initial={{ strokeDashoffset: 2 * Math.PI * 28 }}
-              animate={{
-                strokeDashoffset: 2 * Math.PI * 28 * (1 - percent / 100),
-              }}
-              transition={{ duration: 0.8, ease: 'easeOut' }}
-              style={{
-                filter: percent > 0 ? 'drop-shadow(0 0 6px rgba(255,59,48,0.5))' : 'none',
-              }}
-            />
-          </svg>
-          <span className="absolute inset-0 flex items-center justify-center text-sm font-bold text-foreground">
-            {percent}%
-          </span>
+// ── Choose Habit pool card ───────────────────────────────────────────
+
+function ChooseHabitCard({
+  habit,
+  isSelected,
+  onToggle,
+  locale,
+}: {
+  habit: DailyHabit;
+  isSelected: boolean;
+  onToggle: () => void;
+  locale: 'en' | 'es';
+}) {
+  const title = locale === 'es' ? habit.titleEs : habit.title;
+  const desc = locale === 'es' ? habit.descriptionEs : habit.description;
+
+  return (
+    <motion.button
+      onClick={onToggle}
+      className={`w-full text-left p-3 rounded-xl border transition-all duration-200
+        ${isSelected
+          ? 'bg-orange-950/20 border-orange-500/40 shadow-[0_0_8px_rgba(249,115,22,0.15)]'
+          : 'bg-zinc-900/40 border-zinc-700/40 hover:border-zinc-600'
+        }`}
+      whileTap={{ scale: 0.98 }}
+    >
+      <div className="flex items-start gap-2.5">
+        <span className="text-lg flex-shrink-0">{habit.icon}</span>
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <span className={`text-sm font-semibold ${isSelected ? 'text-orange-300' : 'text-zinc-300'}`}>
+              {title}
+            </span>
+            {isSelected && (
+              <motion.span
+                className="text-[10px] px-1.5 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+              >
+                {locale === 'es' ? 'Agregado' : 'Added'}
+              </motion.span>
+            )}
+          </div>
+          <p className="text-xs text-zinc-500 mt-0.5 line-clamp-2">{desc}</p>
+        </div>
+        {/* Plus/minus indicator */}
+        <div
+          className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold transition-colors
+            ${isSelected ? 'bg-orange-500 text-white' : 'bg-zinc-700 text-zinc-400'}`}
+        >
+          {isSelected ? '−' : '+'}
         </div>
       </div>
+    </motion.button>
+  );
+}
 
-      {/* ── Habit list ────────────────────────────────────────────────── */}
-      <div className="space-y-2">
-        {dailyHabits.map((habit, index) => {
-          const done = isHabitDoneToday(habit.id);
-          const law = lawLabels[habit.atomicLaw];
+// ── Main Component ───────────────────────────────────────────────────
 
-          return (
-            <motion.button
-              key={habit.id}
-              onClick={() => toggleHabit(habit.id)}
-              initial={{ opacity: 0, x: -12 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.05, duration: 0.3 }}
-              className={`w-full text-left flex items-start gap-3 p-3.5 rounded-xl border transition-all duration-200 group
-                ${done
-                  ? 'bg-green-400/5 border-green-400/20 hover:border-green-400/40'
-                  : 'bg-surface/40 border-surface-light hover:border-accent/30 hover:bg-accent/5'
-                }`}
-            >
-              {/* Checkbox with satisfying animation */}
-              <div className="relative shrink-0 mt-0.5">
-                <motion.div
-                  className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-colors
-                    ${done
-                      ? 'bg-accent border-accent'
-                      : 'border-surface-light group-hover:border-accent/50'
-                    }`}
-                  whileTap={{ scale: 0.85 }}
-                  animate={done ? { scale: [1, 1.2, 1] } : { scale: 1 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <AnimatePresence>
-                    {done && (
-                      <motion.svg
-                        initial={{ scale: 0, rotate: -45 }}
-                        animate={{ scale: 1, rotate: 0 }}
-                        exit={{ scale: 0 }}
-                        className="w-3.5 h-3.5 text-white"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="3"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <polyline points="20 6 9 17 4 12" />
-                      </motion.svg>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
+export default function HabitTracker({ locale }: { locale: 'en' | 'es' }) {
+  const [habitState, setHabitState] = useLocalStorage<HabitState>('hustle_habits', {});
+  const [selectedHabitIds, setSelectedHabitIds] = useLocalStorage<string[]>('hustle_selected_habits', []);
+  const [showPool, setShowPool] = useState(false);
+  const [particleHabitId, setParticleHabitId] = useState<string | null>(null);
+  const todayKey = getTodayKey();
 
-                {/* Celebration particles on check */}
-                <AnimatePresence>
-                  {done && (
-                    <>
-                      {[...Array(6)].map((_, i) => (
-                        <motion.div
-                          key={i}
-                          className="absolute top-1/2 left-1/2 w-1 h-1 rounded-full bg-accent"
-                          initial={{ opacity: 1, x: 0, y: 0, scale: 1 }}
-                          animate={{
-                            opacity: 0,
-                            x: Math.cos((i / 6) * Math.PI * 2) * 18,
-                            y: Math.sin((i / 6) * Math.PI * 2) * 18,
-                            scale: 0,
-                          }}
-                          exit={{ opacity: 0 }}
-                          transition={{ duration: 0.5, delay: 0.1 }}
-                        />
-                      ))}
-                    </>
-                  )}
-                </AnimatePresence>
-              </div>
+  // ── Build pool habits as DailyHabit ────────────────────────────────
+  const poolHabits: DailyHabit[] = useMemo(
+    () =>
+      chooseHabits.map((ch) => ({
+        id: ch.id,
+        icon: ch.icon,
+        title: ch.title,
+        titleEs: ch.titleEs,
+        description: ch.description,
+        descriptionEs: ch.descriptionEs,
+        atomicLaw: 'make-it-obvious' as AtomicLaw,
+        category: (ch.category === 'A' ? 'tech' : ch.category === 'B' ? 'finance' : 'longevity') as DailyHabit['category'],
+        isCore: false,
+      })),
+    [],
+  );
 
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-lg">{habit.icon}</span>
-                  <span
-                    className={`text-sm font-heading font-bold transition-colors
-                      ${done ? 'text-foreground/60 line-through decoration-accent/50' : 'text-foreground'}`}
-                  >
-                    {habit.title}
-                  </span>
-                  {/* Atomic Habits law badge */}
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full border font-medium ${law.color}`}>
-                    {law.label}
-                  </span>
-                </div>
-                <p className={`text-xs mt-0.5 transition-colors ${done ? 'text-muted/50' : 'text-muted'}`}>
-                  {habit.description}
-                </p>
-              </div>
-            </motion.button>
-          );
-        })}
+  // ── Active habits: core + selected from pool ───────────────────────
+  const activeHabits: DailyHabit[] = useMemo(() => {
+    const chosen = poolHabits.filter((h) => selectedHabitIds.includes(h.id));
+    return [...coreHabits, ...chosen];
+  }, [poolHabits, selectedHabitIds]);
+
+  // ── Toggle habit completion ────────────────────────────────────────
+  const toggleHabit = useCallback(
+    (habitId: string) => {
+      const today = new Date().toISOString().slice(0, 10);
+      setHabitState((prev) => {
+        const current = prev[habitId];
+        const isToday = current?.completedAt?.slice(0, 10) === today;
+        return {
+          ...prev,
+          [habitId]: {
+            completed: !isToday,
+            completedAt: !isToday ? new Date().toISOString() : null,
+          },
+        };
+      });
+      if (!habitState[habitId]?.completed || habitState[habitId]?.completedAt?.slice(0, 10) !== today) {
+        setParticleHabitId(habitId);
+      }
+      // Also mark streak for today
+      const streaksRaw = localStorage.getItem('hustle_streaks');
+      const streaks = streaksRaw ? JSON.parse(streaksRaw) : {};
+      streaks[today] = true;
+      localStorage.setItem('hustle_streaks', JSON.stringify(streaks));
+    },
+    [habitState, setHabitState],
+  );
+
+  // ── Toggle habit selection from pool ───────────────────────────────
+  const toggleHabitSelection = useCallback(
+    (habitId: string) => {
+      setSelectedHabitIds((prev) =>
+        prev.includes(habitId) ? prev.filter((id) => id !== habitId) : [...prev, habitId],
+      );
+    },
+    [setSelectedHabitIds],
+  );
+
+  // ── Completed count ────────────────────────────────────────────────
+  const completedCount = activeHabits.filter((h) => {
+    const s = habitState[h.id];
+    return s?.completed && s?.completedAt?.slice(0, 10) === new Date().toISOString().slice(0, 10);
+  }).length;
+
+  const progressPercent = activeHabits.length > 0 ? Math.round((completedCount / activeHabits.length) * 100) : 0;
+
+  return (
+    <motion.div
+      className="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-4 sm:p-5"
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: 0.05 }}
+    >
+      {/* ── Header ─────────────────────────────────────────────────── */}
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h3 className="text-sm font-semibold text-zinc-100">
+            {locale === 'es' ? 'Protocolo Diario' : 'Daily Protocol'}
+          </h3>
+          <div className="flex items-center gap-2 mt-1">
+            {/* Progress bar */}
+            <div className="w-24 sm:w-32 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+              <motion.div
+                className="h-full bg-gradient-to-r from-orange-500 to-orange-400 rounded-full"
+                animate={{ width: `${progressPercent}%` }}
+                transition={{ duration: 0.5, ease: 'easeOut' as const }}
+              />
+            </div>
+            <span className="text-[10px] text-zinc-500">
+              {completedCount}/{activeHabits.length} {locale === 'es' ? 'completados' : 'done'}
+            </span>
+          </div>
+        </div>
+        {/* Toggle pool button */}
+        <button
+          onClick={() => setShowPool((p) => !p)}
+          className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-all
+            ${showPool
+              ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
+              : 'bg-zinc-800 text-zinc-400 hover:text-zinc-200 border border-zinc-700 hover:border-zinc-600'
+            }`}
+        >
+          {locale === 'es' ? 'Elige Hábitos' : 'Choose Habits'} {showPool ? '−' : '+'}
+        </button>
       </div>
 
-      {/* ── Footer: progress bar ──────────────────────────────────────── */}
-      <div className="space-y-1.5">
-        <div className="h-1.5 bg-surface-light rounded-full overflow-hidden">
+      {/* ── Choose Habits Pool ─────────────────────────────────────── */}
+      <AnimatePresence>
+        {showPool && (
           <motion.div
-            className="h-full bg-accent rounded-full"
-            initial={{ width: 0 }}
-            animate={{ width: `${percent}%` }}
-            transition={{ duration: 0.6, ease: 'easeOut' }}
-            style={{
-              boxShadow: percent > 0 ? '0 0 8px rgba(255,59,48,0.4)' : 'none',
-            }}
-          />
-        </div>
-        <p className="text-[11px] text-muted text-right">
-          {percent === 100
-            ? '🏆 Perfect day. Identity cemented.'
-            : percent >= 75
-              ? '⚡ Nearly there. Finish strong.'
-              : percent >= 50
-                ? '🔋 Halfway. Momentum building.'
-                : percent > 0
-                  ? '🌱 Day started. Stack the next habit.'
-                  : '💤 No habits yet. Start with the easiest one — cue → craving → response → reward.'}
-        </p>
+            className="mb-4 border border-zinc-700/50 rounded-xl p-3 sm:p-4 bg-zinc-950/40"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <p className="text-xs text-zinc-500 mb-3">
+              {locale === 'es'
+                ? 'Selecciona hábitos para agregar a tu Protocolo Diario:'
+                : 'Select habits to add to your Daily Protocol:'}
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[300px] overflow-y-auto pr-1">
+              {poolHabits.map((habit) => (
+                <ChooseHabitCard
+                  key={habit.id}
+                  habit={habit}
+                  isSelected={selectedHabitIds.includes(habit.id)}
+                  onToggle={() => toggleHabitSelection(habit.id)}
+                  locale={locale}
+                />
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Active Habits Checklist ────────────────────────────────── */}
+      <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
+        {activeHabits.length === 0 ? (
+          <p className="text-center text-sm text-zinc-600 py-6">
+            {locale === 'es'
+              ? 'Agrega hábitos desde "Elige Hábitos" para empezar tu protocolo.'
+              : 'Add habits from "Choose Habits" to start your protocol.'}
+          </p>
+        ) : (
+          activeHabits.map((habit) => {
+            const s = habitState[habit.id];
+            const isCompleted =
+              s?.completed && s?.completedAt?.slice(0, 10) === new Date().toISOString().slice(0, 10);
+
+            return (
+              <HabitCard
+                key={habit.id}
+                habit={habit}
+                completed={isCompleted}
+                onToggle={() => toggleHabit(habit.id)}
+                locale={locale}
+                showParticles={particleHabitId === habit.id}
+                onParticlesDone={() => setParticleHabitId(null)}
+              />
+            );
+          })
+        )}
       </div>
-    </div>
+
+      {/* ── Empty state for completion ─────────────────────────────── */}
+      {activeHabits.length > 0 && completedCount === activeHabits.length && (
+        <motion.div
+          className="mt-4 p-3 rounded-xl bg-gradient-to-r from-green-950/30 to-emerald-950/20 border border-green-500/20 text-center"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+        >
+          <p className="text-sm font-semibold text-green-400">
+            🏆 {locale === 'es' ? '¡Todo completado! Eres imparable.' : 'All done! You\'re unstoppable.'}
+          </p>
+        </motion.div>
+      )}
+    </motion.div>
   );
 }
