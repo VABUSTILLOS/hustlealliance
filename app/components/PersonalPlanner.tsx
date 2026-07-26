@@ -223,11 +223,15 @@ function NodeRow({
           className={`flex-shrink-0 w-4 h-4 rounded-full mt-[3px] transition-all flex items-center justify-center ${
             node.isDone
               ? 'bg-green-500/30 border border-green-500/50'
-              : 'border border-zinc-600 group-hover:border-zinc-400'
+              : 'bg-zinc-700 border border-zinc-500 group-hover:border-zinc-300'
           }`}
           title={locale === 'es' ? 'Enfocar' : 'Zoom in'}
         >
-          {node.isDone && <span className="text-[8px] text-green-400">✓</span>}
+          {node.isDone ? (
+            <span className="text-[8px] text-green-400">✓</span>
+          ) : (
+            <span className="w-1.5 h-1.5 rounded-full bg-white/80" />
+          )}
         </button>
 
         {/* Textarea (multiline, bold) — onMouseDown stops propagation so click focuses without zooming */}
@@ -267,20 +271,6 @@ function NodeRow({
         <span className="flex-shrink-0 w-6 text-right">
           {node.isDone && <span className="text-[10px] text-green-500/60">✓</span>}
         </span>
-
-        {/* Edit button (focuses node for keyboard editing) */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            hook.focusNode(nodeId);
-          }}
-          className="flex-shrink-0 text-zinc-600 hover:text-zinc-300 transition-colors"
-          title={locale === 'es' ? 'Editar' : 'Edit'}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
-          </svg>
-        </button>
       </div>
 
       {/* Children */}
@@ -422,7 +412,7 @@ export default function PersonalPlanner({ locale }: { locale: 'en' | 'es' }) {
             {nodeCount} {locale === 'es' ? 'nodos' : 'nodes'}
           </span>
           <span className="text-[10px] text-zinc-500">
-            {locale === 'es' ? '• = enfocar | ✎ = editar' : '• = zoom | ✎ = edit'}
+            {locale === 'es' ? '• = enfocar | Clic texto = editar' : '• = zoom | Click text = edit'}
           </span>
         </div>
         <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] text-zinc-600">
