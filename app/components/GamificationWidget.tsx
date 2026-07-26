@@ -73,48 +73,48 @@ export default function GamificationWidget() {
         {/* Glow background */}
         <div className="absolute inset-0 rounded-2xl bg-accent/20 blur-xl" />
 
-        <div className="relative flex items-center gap-3 px-4 py-3 rounded-2xl
+        <div className="relative flex items-center gap-1.5 md:gap-3 px-2 md:px-4 py-1.5 md:py-3 rounded-xl md:rounded-2xl
           bg-surface/90 backdrop-blur-md border border-white/10
           shadow-lg shadow-black/20">
           {/* Streak */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1 md:gap-1.5">
             <motion.span
               animate={{ scale: [1, 1.3, 1] }}
               transition={{ duration: 0.6, repeat: Infinity, repeatDelay: 2 }}
-              className="text-lg"
+              className="text-base md:text-lg"
             >
               🔥
             </motion.span>
-            <span className="text-foreground font-bold text-sm">{streak}</span>
+            <span className="text-foreground font-bold text-xs md:text-sm">{streak}</span>
           </div>
 
-          <div className="w-px h-5 bg-white/10" />
+          <div className="w-px h-4 md:h-5 bg-white/10" />
 
           {/* XP */}
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0.5 md:gap-1">
             <motion.span
               animate={xpAnimate ? { scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] } : {}}
-              className="text-lg"
+              className="text-base md:text-lg"
             >
               ⚡
             </motion.span>
-            <span className="text-foreground font-bold text-sm">{xp} XP</span>
+            <span className="text-foreground font-bold text-xs md:text-sm">{xp} XP</span>
           </div>
 
-          <div className="w-px h-5 bg-white/10" />
+          <div className="w-px h-4 md:h-5 bg-white/10" />
 
           {/* Badges */}
-          <div className="flex items-center gap-1">
-            <span className="text-lg">🏅</span>
-            <span className="text-foreground font-bold text-sm">{badgeCount}</span>
+          <div className="flex items-center gap-0.5 md:gap-1">
+            <span className="text-base md:text-lg">🏅</span>
+            <span className="text-foreground font-bold text-xs md:text-sm">{badgeCount}</span>
           </div>
 
-          {/* Next badge progress bar */}
+          {/* Next badge progress bar - desktop only */}
           {nextBadge && (
             <>
-              <div className="w-px h-5 bg-white/10" />
+              <div className="hidden md:block w-px h-5 bg-white/10" />
 
-              <div className="flex flex-col items-center min-w-[50px]">
+              <div className="hidden md:flex flex-col items-center min-w-[50px]">
                 <div className="flex items-center gap-1">
                   <span className="text-xs">{nextBadge.badge.icon}</span>
                   <span className="text-[10px] text-foreground-muted truncate max-w-[60px]">
