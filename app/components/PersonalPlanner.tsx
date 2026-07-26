@@ -322,17 +322,36 @@ export default function PersonalPlanner({ locale }: { locale: 'en' | 'es' }) {
       {/* Breadcrumb (when zoomed) */}
       <Breadcrumb breadcrumb={breadcrumb} onZoomOut={zoomOut} locale={locale} />
 
-      {/* Quick actions (hidden when zoomed) */}
-      {!focusState.activeRootId && (
-        <div className="flex gap-1.5 mb-3 flex-wrap">
+      {/* Zoomed header: shows the zoomed-in node's content */}
+      {focusState.activeRootId && state.nodeMap[focusState.activeRootId] && (
+        <div className="flex items-center gap-2 mb-3 px-2 py-1.5 rounded-lg bg-orange-500/5 border border-orange-500/15">
+          <span className="text-sm font-medium text-orange-300 truncate">
+            {state.nodeMap[focusState.activeRootId].content || (locale === 'es' ? '(sin título)' : '(untitled)')}
+          </span>
+          <span className="text-[10px] text-orange-500/60 flex-shrink-0">
+            {state.nodeMap[focusState.activeRootId].childrenIds.length} {locale === 'es' ? 'ítems' : 'items'}
+          </span>
+        </div>
+      )}
+
+      {/* Quick actions */}
+      <div className="flex gap-1.5 mb-3 flex-wrap">
+        {focusState.activeRootId ? (
+          <button
+            onClick={() => hook.addChild(focusState.activeRootId!)}
+            className="text-[10px] sm:text-xs px-2 py-1 rounded-lg bg-orange-500/10 text-orange-400 border border-orange-500/20 hover:bg-orange-500/20 transition-colors font-medium"
+          >
+            + {locale === 'es' ? 'Nuevo Ítem' : 'New Item'}
+          </button>
+        ) : (
           <button
             onClick={addRootNode}
             className="text-[10px] sm:text-xs px-2 py-1 rounded-lg bg-orange-500/10 text-orange-400 border border-orange-500/20 hover:bg-orange-500/20 transition-colors font-medium"
           >
             + {locale === 'es' ? 'Nuevo Ítem' : 'New Item'}
           </button>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Node tree */}
       <div className="flex-1 overflow-y-auto -mx-1 px-1 min-h-[300px]">
