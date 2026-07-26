@@ -6,6 +6,7 @@ import Link from 'next/link';
 import clsx from 'clsx';
 import { learningPaths, categories as allCats, type Category } from '@/lib/data/learning-paths';
 import { useStore } from '@/lib/store/useStore';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 const difficultyColors: Record<string, string> = {
   Beginner: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
@@ -18,6 +19,7 @@ export default function LearningCatalogPage() {
   const [myPathsOnly, setMyPathsOnly] = useState(false);
   const progress = useStore((s) => s.progress);
   const getPathProgress = useStore((s) => s.getPathProgress);
+  const { t } = useTranslation();
 
   const filtered = learningPaths.filter((lp) => {
     if (activeCategory !== 'All' && lp.category !== activeCategory) return false;
@@ -34,10 +36,10 @@ export default function LearningCatalogPage() {
         className="mb-10"
       >
         <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent mb-3">
-          Learning Paths
+          {t.learning.tag}
         </p>
         <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl text-white uppercase leading-none">
-          Master the craft of building
+          {t.learning.headline}
         </h1>
       </motion.div>
 
@@ -62,7 +64,7 @@ export default function LearningCatalogPage() {
                   transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                 />
               )}
-              <span className="relative z-10">{cat}</span>
+              <span className="relative z-10">{cat === 'All' ? t.learning.all : cat}</span>
             </button>
           ))}
         </div>
@@ -75,7 +77,7 @@ export default function LearningCatalogPage() {
               : 'text-muted border-white/10 hover:text-white hover:border-white/20'
           )}
         >
-          {myPathsOnly ? '✓ My Paths' : 'My Paths'}
+          {myPathsOnly ? t.learning.myPathsActive : t.learning.myPaths}
         </button>
       </div>
 
@@ -117,7 +119,7 @@ export default function LearningCatalogPage() {
                           difficultyColors[lp.difficulty]
                         )}
                       >
-                        {lp.difficulty}
+                        {t.learning.difficulty[lp.difficulty as keyof typeof t.learning.difficulty]}
                       </span>
                       {/* Progress indicator */}
                       {enrolled && (
@@ -162,7 +164,7 @@ export default function LearningCatalogPage() {
           animate={{ opacity: 1 }}
           className="text-center text-muted py-16"
         >
-          No paths found. Try a different filter.
+          {t.learning.noResults}
         </motion.p>
       )}
     </div>

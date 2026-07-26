@@ -3,8 +3,10 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import AnimatedBackground from './components/AnimatedBackground';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 export default function NotFound() {
+  const { t } = useTranslation();
   return (
     <div className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden">
       <AnimatedBackground />
@@ -113,7 +115,7 @@ export default function NotFound() {
           transition={{ delay: 0.3, duration: 0.6 }}
           className="text-8xl sm:text-9xl font-heading font-extrabold text-white/5 select-none mb-2"
         >
-          404
+          {t.notFound.code}
         </motion.p>
 
         {/* Message */}
@@ -123,7 +125,7 @@ export default function NotFound() {
           transition={{ delay: 0.5, duration: 0.6 }}
           className="gradient-text text-3xl sm:text-4xl font-heading font-bold mb-3"
         >
-          You&apos;ve drifted too far.
+          {t.notFound.title}
         </motion.h1>
 
         <motion.p
@@ -132,7 +134,7 @@ export default function NotFound() {
           transition={{ delay: 0.7, duration: 0.6 }}
           className="text-white/50 font-body text-sm mb-8"
         >
-          The page you&apos;re looking for is lost in deep space.
+          {t.notFound.subtitle}
         </motion.p>
 
         {/* Return button */}
@@ -149,7 +151,7 @@ export default function NotFound() {
               <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
               <polyline points="9 22 9 12 15 12 15 22" />
             </svg>
-            Return to Base
+            {t.notFound.return}
           </Link>
         </motion.div>
       </div>

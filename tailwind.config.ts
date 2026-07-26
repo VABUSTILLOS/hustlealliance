@@ -11,20 +11,21 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // New Foundr-inspired palette
-        black: '#000000',
-        surface: '#0A0A0A',
-        'surface-light': '#1C1C1E',
-        muted: '#8A8A8A',
-        accent: '#FF3B30',
-        'accent-glow': '#FF6B35',
+        // CSS-variable-driven palette for dark/light mode
+        black: 'var(--color-bg)',
+        surface: 'var(--color-surface)',
+        'surface-light': 'var(--color-surface-light)',
+        muted: 'var(--color-muted)',
+        white: 'var(--color-foreground)',
+        accent: 'var(--color-accent)',
+        'accent-glow': 'var(--color-accent-glow)',
 
         // Legacy mappings for backward compatibility
-        deep: '#000000',
-        deeper: '#0A0A0A',
-        violet: '#FF3B30',
-        magenta: '#FF6B35',
-        cyan: '#FF3B30',
+        deep: 'var(--color-bg)',
+        deeper: 'var(--color-surface)',
+        violet: 'var(--color-accent)',
+        magenta: 'var(--color-accent-glow)',
+        cyan: 'var(--color-accent)',
       },
       animation: {
         float: 'float 6s infinite ease-in-out',

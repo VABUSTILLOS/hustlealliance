@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import clsx from 'clsx';
 import { useStore } from '@/lib/store/useStore';
+import { useTranslation } from '@/lib/i18n/useTranslation';
+import { useTheme } from '@/lib/theme/useTheme';
 
 const sidebarLinks = [
   {
@@ -72,13 +74,37 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const user = useStore((s) => s.currentUser);
+  const { t, locale, setLocale } = useTranslation();
+  const { theme, toggleTheme } = useTheme();
+
+  const sidebarLinks = [
+    { label: t.nav.dashboard, href: '/dashboard', icon: (
+      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></svg>
+    )},
+    { label: t.nav.learning, href: '/learning', icon: (
+      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" /><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" /></svg>
+    )},
+    { label: t.nav.community, href: '/community', icon: (
+      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87" /><path d="M16 3.13a4 4 0 010 7.75" /></svg>
+    )},
+    { label: t.nav.spaces, href: '/spaces', icon: (
+      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" /><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" /></svg>
+    )},
+  ];
+
+  const mobileLinks = [
+    ...sidebarLinks,
+    { label: 'Profile', href: '/member/alexk', icon: (
+      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 4-7 8-7s8 3 8 7" /></svg>
+    )},
+  ];
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/');
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-[var(--color-bg)]">
       {/* ── Desktop Sidebar ────────────────── */}
-      <aside className="hidden lg:flex fixed left-0 top-0 bottom-0 w-64 bg-surface border-r border-surface-light flex-col z-40">
+      <aside className="hidden lg:flex fixed left-0 top-0 bottom-0 w-64 bg-[var(--color-surface)] border-r border-[var(--color-border-subtle)] flex-col z-40">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3 px-6 py-6 border-b border-surface-light">
           <div className="w-9 h-9 rounded-lg bg-accent flex items-center justify-center font-display text-white text-sm">

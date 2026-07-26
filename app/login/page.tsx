@@ -5,10 +5,12 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import AnimatedBackground from '../components/AnimatedBackground';
 import GlassCard from '../components/GlassCard';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const { t } = useTranslation();
 
   return (
     <div className="relative min-h-screen flex items-center justify-center px-4">
@@ -24,10 +26,10 @@ export default function LoginPage() {
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="gradient-text text-2xl sm:text-3xl font-heading font-bold mb-2">
-              Welcome Back
+              {t.login.welcome}
             </h1>
             <p className="text-white/50 font-body text-sm">
-              Sign in to your Hustle Alliance account
+              {t.login.subtitle}
             </p>
           </div>
 
@@ -39,14 +41,14 @@ export default function LoginPage() {
                 htmlFor="email"
                 className="block text-sm font-medium text-white/70 mb-1.5"
               >
-                Email
+                {t.login.email}
               </label>
               <input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
+                placeholder={t.login.emailPlaceholder}
                 className="w-full px-4 py-3 bg-deeper border border-violet/20 rounded-lg text-white placeholder:text-white/30 font-body text-sm outline-none transition-all duration-300 focus:border-violet focus:shadow-[0_0_15px_rgba(180,76,240,0.3)]"
               />
             </div>
@@ -57,14 +59,14 @@ export default function LoginPage() {
                 htmlFor="password"
                 className="block text-sm font-medium text-white/70 mb-1.5"
               >
-                Password
+                {t.login.password}
               </label>
               <input
                 id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
+                placeholder={t.login.passwordPlaceholder}
                 className="w-full px-4 py-3 bg-deeper border border-violet/20 rounded-lg text-white placeholder:text-white/30 font-body text-sm outline-none transition-all duration-300 focus:border-violet focus:shadow-[0_0_15px_rgba(180,76,240,0.3)]"
               />
             </div>
@@ -75,7 +77,7 @@ export default function LoginPage() {
                 href="#"
                 className="text-xs text-violet/70 hover:text-violet transition-colors"
               >
-                Forgot password?
+                {t.login.forgotPassword}
               </a>
             </div>
 
@@ -84,14 +86,14 @@ export default function LoginPage() {
               type="submit"
               className="w-full py-3 bg-gradient-to-r from-violet to-magenta rounded-lg text-white font-heading font-bold text-sm hover:scale-[1.02] transition-transform duration-200 shadow-[0_0_25px_rgba(180,76,240,0.3)]"
             >
-              Sign In
+              {t.login.signIn}
             </button>
           </form>
 
           {/* Divider */}
           <div className="flex items-center gap-3 my-6">
             <div className="flex-1 h-px bg-white/10" />
-            <span className="text-xs text-white/30 font-body">or</span>
+            <span className="text-xs text-white/30 font-body">{t.login.or}</span>
             <div className="flex-1 h-px bg-white/10" />
           </div>
 
@@ -115,17 +117,17 @@ export default function LoginPage() {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
             </svg>
-            Sign in with Google
+            {t.login.signInGoogle}
           </button>
 
           {/* Sign Up link */}
           <p className="text-center text-white/40 font-body text-sm mt-8">
-            Don&apos;t have an account?{' '}
+            {t.login.noAccount}{' '}
             <Link
               href="/signup"
               className="text-violet hover:text-cyan transition-colors font-medium"
             >
-              Sign Up
+              {t.login.signUp}
             </Link>
           </p>
         </GlassCard>

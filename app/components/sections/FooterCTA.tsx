@@ -2,13 +2,7 @@
 
 import { motion } from 'framer-motion';
 import NeonButton from '../NeonButton';
-
-const footerLinks = [
-  { href: '#about', label: 'About' },
-  { href: '#contact', label: 'Contact' },
-  { href: '#terms', label: 'Terms' },
-  { href: '#privacy', label: 'Privacy' },
-];
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 const socials = [
   {
@@ -50,6 +44,15 @@ const socials = [
 ];
 
 export default function FooterCTA() {
+  const { t } = useTranslation();
+
+  const footerLinks = [
+    { href: '#about', label: t.footer.about },
+    { href: '#contact', label: t.footer.contact },
+    { href: '#terms', label: t.footer.terms },
+    { href: '#privacy', label: t.footer.privacy },
+  ];
+
   return (
     <footer className="relative overflow-hidden">
       {/* Animated mesh gradient background */}
@@ -78,10 +81,10 @@ export default function FooterCTA() {
           className="text-center mb-20"
         >
           <h2 className="text-4xl sm:text-5xl md:text-6xl font-heading font-extrabold text-white mb-8">
-            Stop hustling alone.
+            {t.footer.headline}
           </h2>
           <NeonButton variant="primary" href="/login" className="text-lg !py-4 !px-10">
-            Get Started
+            {t.footer.cta}
             <svg className="w-5 h-5 ml-2 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="7" y1="17" x2="17" y2="7" /><polyline points="7 7 17 7 17 17" /></svg>
           </NeonButton>
         </motion.div>
@@ -127,8 +130,7 @@ export default function FooterCTA() {
 
         {/* Copyright */}
         <p className="text-center text-white/30 font-body text-xs mt-10">
-          &copy; {new Date().getFullYear()} Hustle Alliance. All rights
-          reserved.
+          {t.footer.copyright.replace('{year}', String(new Date().getFullYear()))}
         </p>
       </div>
     </footer>

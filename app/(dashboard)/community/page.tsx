@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import clsx from 'clsx';
 import { useStore } from '@/lib/store/useStore';
 import { spaces as allSpaces } from '@/lib/data/spaces';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { FeedPost, Comment } from '@/lib/data/community';
 
 type SortMode = 'latest' | 'popular' | 'my-spaces';
@@ -25,6 +26,7 @@ export default function CommunityPage() {
   const [commentTexts, setCommentTexts] = useState<Record<string, string>>({});
   const [visibleCount, setVisibleCount] = useState(5);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { t } = useTranslation();
 
   // Sort posts
   const sorted = [...posts].sort((a, b) => {
@@ -97,9 +99,9 @@ export default function CommunityPage() {
         animate={{ opacity: 1, y: 0 }}
         className="mb-8"
       >
-        <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent mb-3">Community</p>
+        <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent mb-3">{t.community.tag}</p>
         <h1 className="font-display text-3xl sm:text-4xl text-white uppercase leading-none">
-          The Feed
+          {t.community.headline}
         </h1>
       </motion.div>
 
@@ -116,7 +118,7 @@ export default function CommunityPage() {
             <textarea
               value={newPostText}
               onChange={(e) => setNewPostText(e.target.value)}
-              placeholder="Share something with the community..."
+              placeholder={t.community.createPost}
               rows={3}
               className="w-full bg-transparent text-white placeholder:text-muted text-sm resize-none outline-none"
             />
@@ -147,7 +149,7 @@ export default function CommunityPage() {
                   onChange={(e) => setNewPostSpace(e.target.value)}
                   className="bg-surface-light border border-white/10 rounded-lg text-muted text-xs px-2 py-1.5 outline-none"
                 >
-                  <option value="">Public</option>
+                  <option value="">{t.community.public}</option>
                   {allSpaces.filter((s) => joinedSpaces.includes(s.slug)).map((s) => (
                     <option key={s.slug} value={s.slug}>{s.name}</option>
                   ))}
@@ -163,7 +165,7 @@ export default function CommunityPage() {
                     : 'bg-surface-light text-muted cursor-not-allowed'
                 )}
               >
-                Post
+                {t.community.post}
               </button>
             </div>
           </div>
@@ -183,7 +185,7 @@ export default function CommunityPage() {
                 : 'text-muted border border-white/10 hover:text-white'
             )}
           >
-            {mode === 'my-spaces' ? 'My Spaces' : mode}
+            {mode === 'latest' ? t.community.sortLatest : mode === 'popular' ? t.community.sortPopular : t.community.sortMySpaces}
           </button>
         ))}
       </div>
@@ -271,14 +273,14 @@ export default function CommunityPage() {
                               value={commentTexts[post.id] || ''}
                               onChange={(e) => setCommentTexts((prev) => ({ ...prev, [post.id]: e.target.value }))}
                               onKeyDown={(e) => e.key === 'Enter' && handleAddComment(post.id)}
-                              placeholder="Write a comment..."
+                              placeholder={t.community.writeComment}
                               className="flex-1 bg-surface-light rounded-xl px-3 py-1.5 text-white text-xs outline-none placeholder:text-muted"
                             />
                             <button
                               onClick={() => handleAddComment(post.id)}
                               className="text-accent font-mono text-xs font-bold hover:text-accent-glow"
                             >
-                              Post
+                              {t.community.submit}
                             </button>
                           </div>
                         </div>
@@ -299,7 +301,7 @@ export default function CommunityPage() {
             onClick={() => setVisibleCount((c) => c + 5)}
             className="px-6 py-2 bg-surface border border-surface-light rounded-xl text-muted font-mono text-sm hover:border-accent/30 hover:text-accent transition-all"
           >
-            Load more posts
+            {t.community.loadMore}
           </button>
         </motion.div>
       )}

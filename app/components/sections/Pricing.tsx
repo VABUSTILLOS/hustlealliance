@@ -3,86 +3,7 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import clsx from 'clsx';
-
-// ── Tier definitions ────────────────────────────────────────────────────
-const tiers = [
-  {
-    name: 'Starter',
-    price: '19',
-    period: '/mo',
-    description: 'For solo founders getting their first customers.',
-    features: [
-      'Community access',
-      'Resource library',
-      'Monthly masterminds',
-      'Personal landing page',
-      'Basic analytics',
-    ],
-    cta: 'Get Started',
-    variant: 'outline' as const,
-  },
-  {
-    name: 'Builder',
-    price: '49',
-    period: '/mo',
-    description: 'For founders ready to scale their venture.',
-    features: [
-      'Everything in Starter',
-      'Custom domain & branding',
-      'Priority support',
-      'Weekly masterminds',
-      'Advanced analytics',
-      'Member directory listing',
-      'Exclusive partner deals',
-    ],
-    cta: 'Join as Builder',
-    variant: 'solid' as const,
-    popular: true,
-  },
-  {
-    name: 'Alliance',
-    price: '99',
-    period: '/mo',
-    description: 'The ultimate membership for serious builders.',
-    features: [
-      'Everything in Builder',
-      'Dedicated account manager',
-      'Daily masterminds',
-      'White-label website',
-      'API access',
-      'Co-marketing opps',
-      'Early feature access',
-      'VIP event invitations',
-    ],
-    cta: 'Go Alliance',
-    variant: 'outline' as const,
-  },
-];
-
-// ── Testimonial data ────────────────────────────────────────────────────
-const testimonials = [
-  {
-    quote:
-      'This community changed everything. I found my co-founder here within two weeks of joining.',
-    name: 'Sarah K.',
-    role: 'Founder @ Nexus AI',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=96&h=96&fit=crop&crop=face',
-  },
-  {
-    quote:
-      'The guides alone are worth 10x the membership. The pre-seed deck template got us our first check.',
-    name: 'Devon M.',
-    role: 'CTO @ Flux Studio',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=96&h=96&fit=crop&crop=face',
-  },
-  {
-    quote:
-      'I went from zero to $10K MRR in six months. The peer accountability is unreal.',
-    name: 'Marcus T.',
-    role: 'Founder @ Droplet SaaS',
-    avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=96&h=96&fit=crop&crop=face',
-  },
-];
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 // ── Star rating component ───────────────────────────────────────────────
 function Stars() {
@@ -113,6 +34,44 @@ function Checkmark() {
 
 // ── Main component ──────────────────────────────────────────────────────
 export default function Pricing() {
+  const { t } = useTranslation();
+
+  const tiers = [
+    {
+      name: t.pricing.starter.name,
+      price: t.pricing.starter.price,
+      period: t.pricing.starter.period,
+      description: t.pricing.starter.desc,
+      features: [...t.pricing.starter.features],
+      cta: t.pricing.starter.cta,
+      variant: 'outline' as const,
+    },
+    {
+      name: t.pricing.builder.name,
+      price: t.pricing.builder.price,
+      period: t.pricing.builder.period,
+      description: t.pricing.builder.desc,
+      features: [...t.pricing.builder.features],
+      cta: t.pricing.builder.cta,
+      variant: 'solid' as const,
+      popular: true,
+    },
+    {
+      name: t.pricing.alliance.name,
+      price: t.pricing.alliance.price,
+      period: t.pricing.alliance.period,
+      description: t.pricing.alliance.desc,
+      features: [...t.pricing.alliance.features],
+      cta: t.pricing.alliance.cta,
+      variant: 'outline' as const,
+    },
+  ];
+
+  const testimonials = [
+    { quote: t.pricing.testimonials.t1.quote, name: t.pricing.testimonials.t1.name, role: t.pricing.testimonials.t1.role, avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=96&h=96&fit=crop&crop=face' },
+    { quote: t.pricing.testimonials.t2.quote, name: t.pricing.testimonials.t2.name, role: t.pricing.testimonials.t2.role, avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=96&h=96&fit=crop&crop=face' },
+    { quote: t.pricing.testimonials.t3.quote, name: t.pricing.testimonials.t3.name, role: t.pricing.testimonials.t3.role, avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=96&h=96&fit=crop&crop=face' },
+  ];
   return (
     <section className="relative py-24 lg:py-32 px-4 bg-black">
       <div className="max-w-6xl mx-auto">
@@ -125,10 +84,10 @@ export default function Pricing() {
           className="text-center mb-20"
         >
           <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent mb-4">
-            Membership
+            {t.pricing.tag}
           </p>
           <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl text-white leading-none uppercase">
-            Choose your tier
+            {t.pricing.headline}
           </h2>
         </motion.div>
 
@@ -154,7 +113,7 @@ export default function Pricing() {
                 {/* Popular badge */}
                 {tier.popular && (
                   <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-accent text-white text-[10px] font-mono font-bold uppercase tracking-wider px-4 py-1 rounded-full">
-                    Popular
+                    {t.pricing.popular}
                   </div>
                 )}
 
@@ -216,7 +175,7 @@ export default function Pricing() {
           transition={{ duration: 0.5, delay: 0.3 }}
         >
           <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent text-center mb-4">
-            What founders say
+            {t.pricing.testimonials.tag}
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {testimonials.map((t, i) => (

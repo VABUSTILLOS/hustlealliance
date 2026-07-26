@@ -6,6 +6,7 @@ import Link from 'next/link';
 import clsx from 'clsx';
 import { spaces } from '@/lib/data/spaces';
 import { useStore } from '@/lib/store/useStore';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 export default function SpaceDetailPage({
   params,
@@ -13,6 +14,7 @@ export default function SpaceDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = use(params);
+  const { t } = useTranslation();
   const space = spaces.find((s) => s.slug === slug);
   const posts = useStore((s) => s.posts);
   const toggleLike = useStore((s) => s.toggleLike);
@@ -24,8 +26,8 @@ export default function SpaceDetailPage({
   if (!space) {
     return (
       <div className="px-8 py-20 text-center">
-        <h1 className="font-display text-3xl text-white mb-4">Space not found</h1>
-        <Link href="/spaces" className="text-accent font-mono text-sm hover:underline">← Back to Spaces</Link>
+        <h1 className="font-display text-3xl text-white mb-4">{t.spaces.notFound}</h1>
+        <Link href="/spaces" className="text-accent font-mono text-sm hover:underline">← {t.spaces.backToSpaces}</Link>
       </div>
     );
   }
@@ -38,7 +40,7 @@ export default function SpaceDetailPage({
       {/* Back */}
       <Link href="/spaces" className="inline-flex items-center gap-1 text-muted font-mono text-xs hover:text-accent mb-6 transition-colors">
         <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6" /></svg>
-        All Spaces
+        {t.spaces.allSpaces}
       </Link>
 
       {/* Hero */}
@@ -54,7 +56,7 @@ export default function SpaceDetailPage({
             {space.name}
           </h1>
           <div className="flex items-center gap-3">
-            <span className="text-muted text-sm">{space.memberCount} members</span>
+            <span className="text-muted text-sm">{space.memberCount} {t.spaces.members}</span>
             <button
               onClick={() => toggleJoinSpace(slug)}
               className={clsx(
@@ -64,7 +66,7 @@ export default function SpaceDetailPage({
                   : 'bg-accent text-white hover:bg-accent-glow'
               )}
             >
-              {joined ? 'Joined ✓' : 'Join Space'}
+              {joined ? t.spaces.joined + ' ✓' : t.spaces.join + ' ' + t.spaces.tag}
             </button>
           </div>
         </div>
@@ -73,9 +75,9 @@ export default function SpaceDetailPage({
       <p className="text-white/60 text-sm mb-8">{space.description}</p>
 
       {/* Feed */}
-      <h2 className="font-heading font-bold text-white text-lg mb-4">Posts</h2>
+      <h2 className="font-heading font-bold text-white text-lg mb-4">{t.spaces.posts}</h2>
       {spacePosts.length === 0 ? (
-        <p className="text-muted text-sm py-8 text-center">No posts in this space yet. Be the first!</p>
+        <p className="text-muted text-sm py-8 text-center">{t.spaces.noPosts}</p>
       ) : (
         <div className="space-y-4">
           {spacePosts.map((post) => (

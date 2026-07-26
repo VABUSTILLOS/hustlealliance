@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Bebas_Neue, JetBrains_Mono } from "next/font/google";
+import { Providers } from "./providers";
 import "./globals.css";
 
 const inter = Inter({
@@ -33,10 +34,12 @@ export default function RootLayout({
       lang="en"
       className={`${inter.variable} ${bebasNeue.variable} ${jetbrainsMono.variable} scroll-smooth antialiased`}
     >
-      <body className="min-h-screen bg-black">
-        <div className="bg-black text-white min-h-screen font-body">
-          {children}
-        </div>
+      <body className="min-h-screen bg-[var(--color-bg)]">
+        <Providers>
+          <div className="bg-[var(--color-bg)] text-[var(--color-foreground)] min-h-screen font-body">
+            {children}
+          </div>
+        </Providers>
       </body>
     </html>
   );

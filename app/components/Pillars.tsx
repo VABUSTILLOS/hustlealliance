@@ -1,29 +1,9 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
-const features = [
-  {
-    title: 'Community',
-    description:
-      'Real-time founder chats, mastermind groups, and a network that actually responds.',
-    device: 'phone',
-  },
-  {
-    title: 'Your Own Website',
-    description:
-      'Custom domain, professional branding, and a landing page that converts — zero code required.',
-    device: 'laptop',
-  },
-  {
-    title: 'Guides & Resources',
-    description:
-      '180+ playbooks, templates, and tools built by founders who\'ve been in the trenches.',
-    device: 'tablet',
-  },
-];
-
-function DeviceMockup({ type }: { type: string }) {
+function DeviceMockup({ type, t }: { type: string; t: any }) {
   switch (type) {
     case 'phone':
       return (
@@ -38,18 +18,18 @@ function DeviceMockup({ type }: { type: string }) {
               <div className="flex gap-2">
                 <div className="w-6 h-6 rounded-full bg-accent/30 flex-shrink-0" />
                 <div className="bg-white/5 rounded-2xl rounded-tl-sm px-3 py-2 text-[10px] text-white/60 w-3/4">
-                  Anyone else launching this month? 🚀
+                  {t.pillars.chat1}
                 </div>
               </div>
               <div className="flex gap-2 justify-end">
                 <div className="bg-accent/20 rounded-2xl rounded-tr-sm px-3 py-2 text-[10px] text-white/80 w-2/3">
-                  Yep! B2B SaaS, you?
+                  {t.pillars.chat2}
                 </div>
               </div>
               <div className="flex gap-2">
                 <div className="w-6 h-6 rounded-full bg-accent-glow/30 flex-shrink-0" />
                 <div className="bg-white/5 rounded-2xl rounded-tl-sm px-3 py-2 text-[10px] text-white/60 w-3/4">
-                  Marketplace for creators 🔥
+                  {t.pillars.chat3}
                 </div>
               </div>
             </div>
@@ -66,7 +46,7 @@ function DeviceMockup({ type }: { type: string }) {
               <div className="w-2.5 h-2.5 rounded-full bg-accent/40" />
               <div className="w-2.5 h-2.5 rounded-full bg-accent/20" />
               <div className="ml-4 flex-1 h-4 bg-white/5 rounded-full px-3 flex items-center">
-                <span className="text-[8px] text-white/30">yourstartup.com</span>
+                <span className="text-[8px] text-white/30">{t.pillars.siteUrl}</span>
               </div>
             </div>
             <div className="p-4 space-y-3">
@@ -131,6 +111,13 @@ function DeviceMockup({ type }: { type: string }) {
 }
 
 export default function Pillars() {
+  const { t } = useTranslation();
+
+  const features = [
+    { title: t.pillars.community.title, description: t.pillars.community.desc, device: 'phone' as const },
+    { title: t.pillars.website.title, description: t.pillars.website.desc, device: 'laptop' as const },
+    { title: t.pillars.guides.title, description: t.pillars.guides.desc, device: 'tablet' as const },
+  ];
   return (
     <section className="relative py-24 lg:py-32 px-4 bg-black">
       <div className="max-w-6xl mx-auto">
@@ -142,10 +129,10 @@ export default function Pillars() {
           className="text-center mb-20"
         >
           <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent mb-4">
-            Everything you need
+            {t.pillars.tag}
           </p>
           <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl text-white leading-none uppercase">
-            What you get
+            {t.pillars.headline}
           </h2>
         </motion.div>
 
@@ -161,7 +148,7 @@ export default function Pillars() {
             >
               <div className="bg-surface border border-surface-light rounded-2xl p-6 sm:p-8 transition-all duration-500 hover:-translate-y-2 hover:border-accent/30 hover:shadow-[0_20px_60px_rgba(255,59,48,0.1)]">
                 <div className="mb-8">
-                  <DeviceMockup type={feature.device} />
+                  <DeviceMockup type={feature.device} t={t} />
                 </div>
                 <h3 className="font-heading text-xl font-bold text-white mb-3 pb-3 relative inline-block">
                   {feature.title}

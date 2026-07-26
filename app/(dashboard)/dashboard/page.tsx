@@ -6,6 +6,7 @@ import { useStore } from '@/lib/store/useStore';
 import { upcomingEvents } from '@/lib/data/events';
 import { learningPaths } from '@/lib/data/learning-paths';
 import { spaces as allSpaces } from '@/lib/data/spaces';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 // ── Circular Progress ────────────────────────────────────────────────────
 function CircularProgress({ pct, size = 96, stroke = 6 }: { pct: number; size?: number; stroke?: number }) {
@@ -50,6 +51,7 @@ export default function DashboardPage() {
   const posts = useStore((s) => s.posts);
   const joinedSpaces = useStore((s) => s.joinedSpaces);
   const getPathProgress = useStore((s) => s.getPathProgress);
+  const { t } = useTranslation();
 
   const enrolledPath = learningPaths.find((lp) => progress[lp.slug]);
   const enrolledProgress = enrolledPath
@@ -75,12 +77,12 @@ export default function DashboardPage() {
                 className="w-16 h-16 rounded-full border-2 border-white/10 object-cover shrink-0" />
               <div className="flex-1 min-w-0">
                 <h1 className="font-display text-2xl sm:text-3xl text-white uppercase leading-none mb-1">
-                  Welcome back, {user.name.split(' ')[0]} 👋
+                  {t.dashboard.welcomeBack} {user.name.split(' ')[0]} 👋
                 </h1>
                 <p className="text-muted font-body text-sm">
                   {enrolledPath
-                    ? `Continue your learning journey — "${enrolledPath.title}" is ${enrolledProgress}% complete.`
-                    : 'Ready to start learning? Pick a path below.'}
+                    ? t.dashboard.continueJourney.replace('{title}', enrolledPath.title).replace('{pct}', String(enrolledProgress))
+                    : t.dashboard.readyToStart}
                 </p>
               </div>
               {enrolledPath && (
@@ -88,7 +90,7 @@ export default function DashboardPage() {
                   href={`/learning/${enrolledPath.slug}`}
                   className="shrink-0 inline-flex items-center gap-2 px-4 py-2 bg-accent text-white font-heading font-bold text-sm rounded-xl hover:bg-accent-glow transition-colors"
                 >
-                  Continue
+                  {t.dashboard.continue}
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
                   </svg>
@@ -104,7 +106,7 @@ export default function DashboardPage() {
           <motion.div variants={fadeUp} className="lg:col-span-1">
             <Widget className="h-full flex flex-col items-center text-center">
               <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted mb-4">
-                Your Learning
+                {t.dashboard.yourLearning}
               </p>
               {enrolledPath ? (
                 <>
@@ -118,23 +120,23 @@ export default function DashboardPage() {
                     {enrolledPath.title}
                   </h3>
                   <p className="text-muted text-sm mb-5">
-                    {enrolledProgress === 100 ? 'Completed! 🎉' : `${enrolledProgress}% complete`}
+                    {enrolledProgress === 100 ? t.dashboard.completed : t.dashboard.completePct.replace('{pct}', String(enrolledProgress))}
                   </p>
                   <Link
                     href={`/learning/${enrolledPath.slug}`}
                     className="inline-flex items-center gap-2 px-5 py-2.5 bg-accent/10 border border-accent/30 text-accent font-heading font-bold text-sm rounded-xl hover:bg-accent/20 transition-colors"
                   >
-                    Continue Learning
+                    {t.dashboard.continueLearning}
                   </Link>
                 </>
               ) : (
                 <div className="py-8">
-                  <p className="text-muted text-sm mb-4">No active learning paths yet.</p>
+                  <p className="text-muted text-sm mb-4">{t.dashboard.noActivePaths}</p>
                   <Link
                     href="/learning"
                     className="inline-flex items-center gap-2 px-5 py-2.5 bg-accent text-white font-heading font-bold text-sm rounded-xl hover:bg-accent-glow transition-colors"
                   >
-                    Browse Paths
+                    {t.dashboard.browsePaths}
                   </Link>
                 </div>
               )}
@@ -145,9 +147,9 @@ export default function DashboardPage() {
           <motion.div variants={fadeUp} className="lg:col-span-2">
             <Widget>
               <div className="flex items-center justify-between mb-5">
-                <h2 className="font-heading font-bold text-white text-lg">Community Feed</h2>
+                <h2 className="font-heading font-bold text-white text-lg">{t.dashboard.communityFeed}</h2>
                 <Link href="/community" className="text-accent font-mono text-xs hover:underline">
-                  View all →
+                  {t.dashboard.viewAll}
                 </Link>
               </div>
               <div className="space-y-4">
@@ -173,7 +175,7 @@ export default function DashboardPage() {
                           {post.likes}
                         </span>
                         <span className="text-muted text-xs">
-                          {post.comments.length} {post.comments.length === 1 ? 'comment' : 'comments'}
+                          {post.comments.length} {post.comments.length === 1 ? t.dashboard.comment : t.dashboard.comments}
                         </span>
                       </div>
                     </div>
@@ -190,9 +192,9 @@ export default function DashboardPage() {
           <motion.div variants={fadeUp}>
             <Widget>
               <div className="flex items-center justify-between mb-5">
-                <h2 className="font-heading font-bold text-white text-lg">My Spaces</h2>
+                <h2 className="font-heading font-bold text-white text-lg">{t.dashboard.mySpaces}</h2>
                 <Link href="/spaces" className="text-accent font-mono text-xs hover:underline">
-                  Browse all →
+                  {t.dashboard.browseAll}
                 </Link>
               </div>
               {mySpaces.length > 0 ? (
@@ -218,7 +220,7 @@ export default function DashboardPage() {
                   ))}
                 </div>
               ) : (
-                <p className="text-muted text-sm">Join a space to connect with like-minded founders.</p>
+                <p className="text-muted text-sm">{t.dashboard.joinSpacePrompt}</p>
               )}
             </Widget>
           </motion.div>
@@ -226,7 +228,7 @@ export default function DashboardPage() {
           {/* Upcoming Events */}
           <motion.div variants={fadeUp}>
             <Widget>
-              <h2 className="font-heading font-bold text-white text-lg mb-5">Upcoming Events</h2>
+              <h2 className="font-heading font-bold text-white text-lg mb-5">{t.dashboard.upcomingEvents}</h2>
               <div className="space-y-4">
                 {upcomingEvents.slice(0, 3).map((event) => (
                   <div key={event.id} className="flex gap-4 p-3 rounded-xl bg-surface-light/50 border border-white/5 hover:border-accent/20 transition-colors">
@@ -236,7 +238,7 @@ export default function DashboardPage() {
                     </div>
                     <div className="min-w-0">
                       <h3 className="font-heading font-bold text-white text-sm mb-0.5">{event.title}</h3>
-                      <p className="text-muted text-xs font-mono">{event.time} • {event.attendees} attending</p>
+                      <p className="text-muted text-xs font-mono">{event.time} • {event.attendees} {t.dashboard.attending}</p>
                     </div>
                   </div>
                 ))}

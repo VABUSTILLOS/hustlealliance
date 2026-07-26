@@ -1,33 +1,57 @@
 @import "tailwindcss";
 
 :root {
-  --background: #000000;
-  --foreground: #ffffff;
-  --accent: #FF3B30;
-  --accent-glow: #FF6B35;
+  /* Dark mode (default) */
+  --color-bg: #000000;
+  --color-surface: #0A0A0A;
+  --color-surface-light: #1C1C1E;
+  --color-muted: #8A8A8A;
+  --color-foreground: #ffffff;
+  --color-accent: #FF3B30;
+  --color-accent-glow: #FF6B35;
+  --color-border: #1C1C1E;
+  --color-border-subtle: rgba(255,255,255,0.05);
+  --color-glass-bg: #0A0A0A;
+  --color-glass-border: #1C1C1E;
+}
+
+:root.light {
+  --color-bg: #FAFAFA;
+  --color-surface: #FFFFFF;
+  --color-surface-light: #F0F0F0;
+  --color-muted: #6B7280;
+  --color-foreground: #111111;
+  --color-accent: #DC2626;
+  --color-accent-glow: #EF4444;
+  --color-border: #E5E7EB;
+  --color-border-subtle: rgba(0,0,0,0.06);
+  --color-glass-bg: rgba(255,255,255,0.8);
+  --color-glass-border: rgba(0,0,0,0.08);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: var(--color-bg);
+  --color-foreground: var(--color-foreground);
   --font-sans: var(--font-inter);
   --font-mono: var(--font-mono);
 }
 
 body {
-  background: #000000;
-  color: #ffffff;
+  background: var(--color-bg);
+  color: var(--color-foreground);
   font-family: 'Inter', sans-serif;
   min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Glass card effect — dark surface with subtle border */
+/* Glass card effect */
 .glass-card {
-  background-color: #0A0A0A;
+  background-color: var(--color-glass-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid #1C1C1E;
+  border: 1px solid var(--color-glass-border);
   border-radius: 12px;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 /* Red accent border glow */
@@ -44,6 +68,12 @@ body {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   font-weight: bold;
+}
+
+:root.light .gradient-text {
+  background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
 }
 
 /* Floating animation element */

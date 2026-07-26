@@ -6,6 +6,7 @@ import Link from 'next/link';
 import clsx from 'clsx';
 import { learningPaths } from '@/lib/data/learning-paths';
 import { useStore } from '@/lib/store/useStore';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 export default function LearningPathPage({
   params,
@@ -13,6 +14,7 @@ export default function LearningPathPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = use(params);
+  const { t } = useTranslation();
   const path = learningPaths.find((lp) => lp.slug === slug);
   const progress = useStore((s) => s.progress);
   const getPathProgress = useStore((s) => s.getPathProgress);
@@ -22,8 +24,8 @@ export default function LearningPathPage({
   if (!path) {
     return (
       <div className="px-8 py-20 text-center">
-        <h1 className="font-display text-3xl text-white mb-4">Path not found</h1>
-        <Link href="/learning" className="text-accent font-mono text-sm hover:underline">← Back to Learning</Link>
+        <h1 className="font-display text-3xl text-white mb-4">{t.learningDetail.notFound}</h1>
+        <Link href="/learning" className="text-accent font-mono text-sm hover:underline">← {t.learningDetail.backToLearning}</Link>
       </div>
     );
   }
@@ -45,7 +47,7 @@ export default function LearningPathPage({
         <div className="relative px-4 sm:px-6 lg:px-8 py-12 lg:py-16 max-w-7xl mx-auto">
           <Link href="/learning" className="inline-flex items-center gap-1 text-muted font-mono text-xs hover:text-accent mb-6 transition-colors">
             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6" /></svg>
-            Back to Learning
+            {t.learningDetail.backToLearning}
           </Link>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -63,8 +65,8 @@ export default function LearningPathPage({
               {enrolled && (
                 <div className="mt-6 max-w-md">
                   <div className="flex items-center justify-between text-xs mb-2">
-                    <span className="font-mono text-muted uppercase">Progress</span>
-                    <span className="font-mono text-accent">{completedCount}/{totalLessons} lessons</span>
+                    <span className="font-mono text-muted uppercase">{t.learningDetail.progress}</span>
+                    <span className="font-mono text-accent">{completedCount}/{totalLessons} {t.learningDetail.lessons}</span>
                   </div>
                   <div className="h-2 bg-surface-light rounded-full overflow-hidden">
                     <motion.div
@@ -86,7 +88,7 @@ export default function LearningPathPage({
                 }
                 className="mt-6 inline-flex items-center gap-2 px-6 py-3 bg-accent text-white font-heading font-bold text-sm uppercase tracking-wider rounded-xl hover:bg-accent-glow shadow-[0_0_30px_rgba(255,59,48,0.2)] hover:shadow-[0_0_50px_rgba(255,59,48,0.4)] transition-all"
               >
-                {enrolled ? 'Continue Path' : 'Start Path'}
+                {enrolled ? t.learningDetail.continuePath : t.learningDetail.startPath}
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
                 </svg>
@@ -97,7 +99,7 @@ export default function LearningPathPage({
             <div className="space-y-6">
               {/* Author */}
               <div className="bg-surface border border-surface-light rounded-2xl p-5">
-                <h3 className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted mb-4">Instructor</h3>
+                <h3 className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted mb-4">{t.learningDetail.instructor}</h3>
                 <div className="flex items-center gap-3 mb-3">
                   <img src={path.author.avatar} alt={path.author.name}
                     className="w-12 h-12 rounded-full border-2 border-white/10 object-cover" />
@@ -111,7 +113,7 @@ export default function LearningPathPage({
 
               {/* Resources */}
               <div className="bg-surface border border-surface-light rounded-2xl p-5">
-                <h3 className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted mb-4">Resources</h3>
+                <h3 className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted mb-4">{t.learningDetail.resources}</h3>
                 <ul className="space-y-2">
                   {path.resources.map((r) => (
                     <li key={r.label}>
@@ -133,7 +135,7 @@ export default function LearningPathPage({
 
       {/* Curriculum Accordion */}
       <div className="px-4 sm:px-6 lg:px-8 py-12 max-w-7xl mx-auto">
-        <h2 className="font-heading font-bold text-white text-xl mb-8">Curriculum</h2>
+        <h2 className="font-heading font-bold text-white text-xl mb-8">{t.learningDetail.curriculum}</h2>
         <div className="space-y-3 max-w-3xl">
           {path.modules.map((mod, mi) => {
             const isOpen = expandedModule === mod.id;
@@ -155,7 +157,7 @@ export default function LearningPathPage({
                       {modCompleted ? '✓' : mi + 1}
                     </span>
                     <div>
-                      <p className="font-heading font-bold text-white text-sm">Module {mi + 1}</p>
+                      <p className="font-heading font-bold text-white text-sm">{t.learningDetail.module} {mi + 1}</p>
                       <p className="text-muted text-sm">{mod.title}</p>
                     </div>
                   </div>

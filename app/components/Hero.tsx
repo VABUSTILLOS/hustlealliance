@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { motion, useSpring, useTransform, useInView } from 'framer-motion';
 import NeonButton from './NeonButton';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 function AnimatedCounter({ end, suffix = '' }: { end: number; suffix?: string }) {
   const ref = useRef<HTMLSpanElement>(null);
@@ -45,7 +46,13 @@ const item = {
 };
 
 export default function Hero() {
-  return (
+  const { t } = useTranslation();
+
+  const stats = [
+    { value: 2400, suffix: '+', label: t.hero.founders },
+    { value: 180, suffix: '+', label: t.hero.guides },
+    { value: 40, suffix: 'M+', label: t.hero.raised },
+  ]; return (
     <section className="relative min-h-screen flex flex-col lg:flex-row overflow-hidden">
       {/* Left: Content */}
       <div className="relative z-10 flex flex-col justify-center w-full lg:w-3/5 px-6 sm:px-12 lg:px-16 xl:px-24 py-20 lg:py-0">
@@ -68,9 +75,9 @@ export default function Hero() {
             variants={item}
             className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl text-white leading-[0.9] mb-6 uppercase"
           >
-            Stop hustling
+            {t.hero.line1}
             <br />
-            <span className="text-accent">alone.</span>
+            <span className="text-accent">{t.hero.line2}</span>
           </motion.h1>
 
           {/* Subheadline */}
@@ -78,8 +85,7 @@ export default function Hero() {
             variants={item}
             className="text-muted text-lg sm:text-xl max-w-md mb-10 font-body leading-relaxed"
           >
-            Join 2,400+ founders building together. Community, custom
-            websites, and the playbooks that actually work.
+            {t.hero.subheadline}
           </motion.p>
 
           {/* CTAs */}
@@ -88,10 +94,10 @@ export default function Hero() {
             className="flex flex-col sm:flex-row gap-4"
           >
             <NeonButton variant="primary" href="/login" className="text-base !py-4 !px-10 !text-base">
-              Join the Alliance
+              {t.hero.cta1}
             </NeonButton>
             <NeonButton variant="secondary" href="/spaces" className="text-base !py-4 !px-10">
-              View Member Sites
+              {t.hero.cta2}
             </NeonButton>
           </motion.div>
         </motion.div>

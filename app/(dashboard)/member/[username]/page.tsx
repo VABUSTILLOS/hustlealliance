@@ -7,6 +7,7 @@ import { memberProfiles, currentUser } from '@/lib/data/users';
 import { learningPaths } from '@/lib/data/learning-paths';
 import { spaces as allSpaces } from '@/lib/data/spaces';
 import { useStore } from '@/lib/store/useStore';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 export default function MemberProfilePage({
   params,
@@ -14,6 +15,7 @@ export default function MemberProfilePage({
   params: Promise<{ username: string }>;
 }) {
   const { username } = use(params);
+  const { t } = useTranslation();
   const profile = memberProfiles[username];
   const posts = useStore((s) => s.posts);
   const joinedSpaces = useStore((s) => s.joinedSpaces);
@@ -24,8 +26,8 @@ export default function MemberProfilePage({
   if (!profile) {
     return (
       <div className="px-8 py-20 text-center">
-        <h1 className="font-display text-3xl text-white mb-4">Member not found</h1>
-        <Link href="/dashboard" className="text-accent font-mono text-sm">← Back to Dashboard</Link>
+        <h1 className="font-display text-3xl text-white mb-4">{t.profile.notFound}</h1>
+        <Link href="/dashboard" className="text-accent font-mono text-sm">← {t.profile.backToDashboard}</Link>
       </div>
     );
   }
@@ -70,7 +72,7 @@ export default function MemberProfilePage({
               onClick={() => setShowMessageModal(true)}
               className="shrink-0 px-4 py-2 bg-accent/10 border border-accent/30 text-accent font-heading font-bold text-sm rounded-xl hover:bg-accent/20 transition-colors"
             >
-              Message
+              {t.profile.message}
             </button>
           )}
         </div>
@@ -83,7 +85,7 @@ export default function MemberProfilePage({
         transition={{ delay: 0.1 }}
         className="bg-surface border border-accent/20 rounded-2xl p-6 mb-8 shadow-[0_0_40px_rgba(255,59,48,0.06)]"
       >
-        <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-accent mb-3">Startup Pitch</p>
+        <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-accent mb-3">{t.profile.startupPitch}</p>
         <p className="text-white/80 text-sm leading-relaxed">{profile.startupPitch}</p>
       </motion.div>
 
@@ -91,7 +93,7 @@ export default function MemberProfilePage({
         <div className="lg:col-span-2 space-y-6">
           {/* Activity Feed */}
           <div className="bg-surface border border-surface-light rounded-2xl p-6">
-            <h2 className="font-heading font-bold text-white text-lg mb-5">Recent Activity</h2>
+            <h2 className="font-heading font-bold text-white text-lg mb-5">{t.profile.recentActivity}</h2>
             {memberPosts.length > 0 ? (
               <div className="space-y-4">
                 {memberPosts.slice(0, 5).map((post) => (
@@ -104,14 +106,14 @@ export default function MemberProfilePage({
                     </div>
                     <p className="text-white/70 text-sm">{post.text}</p>
                     <div className="flex items-center gap-4 mt-2">
-                      <span className="text-muted text-xs">{post.likes} likes</span>
-                      <span className="text-muted text-xs">{post.comments.length} comments</span>
+                      <span className="text-muted text-xs">{post.likes} {t.profile.likes}</span>
+                      <span className="text-muted text-xs">{post.comments.length} {t.profile.comments}</span>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-muted text-sm">No posts yet.</p>
+              <p className="text-muted text-sm">{t.profile.noPosts}</p>
             )}
           </div>
         </div>
@@ -119,7 +121,7 @@ export default function MemberProfilePage({
         <div className="space-y-6">
           {/* Achievements */}
           <div className="bg-surface border border-surface-light rounded-2xl p-6">
-            <h2 className="font-heading font-bold text-white text-lg mb-4">Achievements</h2>
+            <h2 className="font-heading font-bold text-white text-lg mb-4">{t.profile.achievements}</h2>
             <div className="grid grid-cols-2 gap-2">
               {profile.achievements.map((a) => (
                 <div key={a.id} className="flex items-center gap-2 p-2 rounded-xl bg-surface-light border border-white/5">
@@ -133,7 +135,7 @@ export default function MemberProfilePage({
           {/* Completed Paths */}
           {completedPaths.length > 0 && (
             <div className="bg-surface border border-surface-light rounded-2xl p-6">
-              <h2 className="font-heading font-bold text-white text-lg mb-4">Completed Paths</h2>
+              <h2 className="font-heading font-bold text-white text-lg mb-4">{t.profile.completedPaths}</h2>
               <div className="space-y-2">
                 {completedPaths.map((lp) => (
                   <Link key={lp.slug} href={`/learning/${lp.slug}`}
@@ -149,7 +151,7 @@ export default function MemberProfilePage({
           {/* Spaces */}
           {memberSpaces.length > 0 && (
             <div className="bg-surface border border-surface-light rounded-2xl p-6">
-              <h2 className="font-heading font-bold text-white text-lg mb-4">Spaces</h2>
+              <h2 className="font-heading font-bold text-white text-lg mb-4">{t.spaces.tag}</h2>
               <div className="flex flex-wrap gap-2">
                 {memberSpaces.map((s) => (
                   <Link key={s.slug} href={`/spaces/${s.slug}`}
@@ -182,7 +184,7 @@ export default function MemberProfilePage({
             >
               <div className="flex items-center gap-3 mb-4">
                 <img src={profile.avatar} alt="" className="w-10 h-10 rounded-full border border-white/10 object-cover" />
-                <h3 className="font-heading font-bold text-white">Message {profile.name}</h3>
+                <h3 className="font-heading font-bold text-white">{t.profile.messageTo} {profile.name}</h3>
               </div>
               {messageSent ? (
                 <motion.div
@@ -191,8 +193,8 @@ export default function MemberProfilePage({
                   className="text-center py-6"
                 >
                   <p className="text-4xl mb-3">✉️</p>
-                  <p className="font-heading font-bold text-white text-lg">Message Sent!</p>
-                  <p className="text-muted text-sm mt-1">{profile.name} will be notified.</p>
+                  <p className="font-heading font-bold text-white text-lg">{t.profile.messageSent}</p>
+                  <p className="text-muted text-sm mt-1">{profile.name} {t.profile.notified}</p>
                 </motion.div>
               ) : (
                 <>
@@ -209,14 +211,14 @@ export default function MemberProfilePage({
                       onClick={() => setShowMessageModal(false)}
                       className="px-4 py-2 text-muted text-sm hover:text-white transition-colors"
                     >
-                      Cancel
+                      {t.profile.cancel}
                     </button>
                     <button
                       onClick={handleSendMessage}
                       disabled={!messageText.trim()}
                       className="px-5 py-2 bg-accent text-white font-heading font-bold text-sm rounded-xl hover:bg-accent-glow disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                     >
-                      Send Message
+                      {t.profile.sendMessage}
                     </button>
                   </div>
                 </>

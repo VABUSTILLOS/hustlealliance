@@ -6,6 +6,7 @@ import Link from 'next/link';
 import clsx from 'clsx';
 import { learningPaths, type Lesson } from '@/lib/data/learning-paths';
 import { useStore } from '@/lib/store/useStore';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 export default function LessonPlayerPage({
   params,
@@ -13,6 +14,7 @@ export default function LessonPlayerPage({
   params: Promise<{ slug: string; lessonSlug: string }>;
 }) {
   const { slug, lessonSlug } = use(params);
+  const { t } = useTranslation();
   const path = learningPaths.find((lp) => lp.slug === slug);
   const completeLesson = useStore((s) => s.completeLesson);
   const isLessonComplete = useStore((s) => s.isLessonComplete);
@@ -44,8 +46,8 @@ export default function LessonPlayerPage({
   if (!path || !current) {
     return (
       <div className="px-8 py-20 text-center">
-        <h1 className="font-display text-3xl text-white mb-4">Lesson not found</h1>
-        <Link href={`/learning/${slug}`} className="text-accent font-mono text-sm">← Back to path</Link>
+        <h1 className="font-display text-3xl text-white mb-4">{t.lesson.notFound}</h1>
+        <Link href={`/learning/${slug}`} className="text-accent font-mono text-sm">← {t.lesson.backToPath}</Link>
       </div>
     );
   }
@@ -62,7 +64,7 @@ export default function LessonPlayerPage({
         className="inline-flex items-center gap-1 text-muted font-mono text-xs hover:text-accent mb-6 transition-colors"
       >
         <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6" /></svg>
-        Back to {path.title}
+        {t.lesson.backTo} {path.title}
       </Link>
 
       {/* Progress bar */}
@@ -88,8 +90,8 @@ export default function LessonPlayerPage({
                 <svg className="w-12 h-12 mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0110 0v4" />
                 </svg>
-                <p className="font-heading font-bold text-lg">This lesson is locked</p>
-                <p className="text-sm">Complete previous lessons to unlock.</p>
+                <p className="font-heading font-bold text-lg">{t.lesson.locked}</p>
+                <p className="text-sm">{t.lesson.lockedHint}</p>
               </div>
             ) : (
               <iframe src={current.lesson.videoUrl} className="w-full h-full" allowFullScreen title={current.lesson.title} />
@@ -120,10 +122,10 @@ export default function LessonPlayerPage({
                     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
-                    Completed
+                    {t.lesson.completed}
                   </>
                 ) : (
-                  'Mark Complete'
+                  t.lesson.markComplete
                 )}
               </button>
             )}
@@ -161,7 +163,7 @@ export default function LessonPlayerPage({
 
         {/* Lesson list sidebar */}
         <div className="space-y-2">
-          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted mb-3 px-1">Lessons</p>
+          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted mb-3 px-1">{t.lesson.lessons}</p>
           {allLessons.map((item, i) => {
             const isActive = item.lesson.slug === lessonSlug;
             const isDone = isLessonComplete(slug, item.lesson.slug);

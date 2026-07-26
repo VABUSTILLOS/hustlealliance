@@ -5,8 +5,10 @@ import Link from 'next/link';
 import clsx from 'clsx';
 import { spaces } from '@/lib/data/spaces';
 import { useStore } from '@/lib/store/useStore';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 export default function SpacesPage() {
+  const { t } = useTranslation();
   const joinedSpaces = useStore((s) => s.joinedSpaces);
   const toggleJoinSpace = useStore((s) => s.toggleJoinSpace);
   const isSpaceJoined = useStore((s) => s.isSpaceJoined);
@@ -18,9 +20,9 @@ export default function SpacesPage() {
         animate={{ opacity: 1, y: 0 }}
         className="mb-10"
       >
-        <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent mb-3">Spaces</p>
+        <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent mb-3">{t.spaces.tag}</p>
         <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl text-white uppercase leading-none">
-          Find your people
+          {t.spaces.headline}
         </h1>
       </motion.div>
 
@@ -54,7 +56,7 @@ export default function SpacesPage() {
                       ))}
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-muted text-xs font-mono">{space.memberCount} members</span>
+                      <span className="text-muted text-xs font-mono">{space.memberCount} {t.spaces.members}</span>
                       <button
                         onClick={(e) => {
                           e.preventDefault();
@@ -68,7 +70,7 @@ export default function SpacesPage() {
                             : 'bg-accent/10 border border-accent/30 text-accent hover:bg-accent/20'
                         )}
                       >
-                        {joined ? 'Joined ✓' : 'Join'}
+                        {joined ? t.spaces.joined + ' ✓' : t.spaces.join}
                       </button>
                     </div>
                   </div>
