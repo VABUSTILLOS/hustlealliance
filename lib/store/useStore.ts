@@ -109,7 +109,7 @@ export const useStore = create<AppState>()(
     (set, get) => ({
       // Auth
       currentUser,
-      isAuthenticated: true,
+      isAuthenticated: false,
 
       signOut: async () => {
         localStorage.removeItem('sb-yftgdtdvmvvqyzcdntge-auth-token');
