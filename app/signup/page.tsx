@@ -25,6 +25,12 @@ export default function SignupPage() {
     setMessage('');
     setLoading(true);
 
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      setError('Auth service not configured. Please check Vercel environment variables.');
+      setLoading(false);
+      return;
+    }
+
     const supabase = createClient();
 
     const { error: signupError } = await supabase.auth.signUp({

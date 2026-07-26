@@ -1,25 +1,22 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
-function isConfigured(): boolean {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  return !!(url && key && !url.includes('your-project-id') && key !== 'placeholder-anon-key');
+const SUPABASE_URL = 'https://yftgdtdvmvvqyzcdntge.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_sY8NIgcLzNcLUGx2Swl9BA_yqf9NIc8';
+
+function getSupabaseConfig() {
+  return {
+    url: process.env.NEXT_PUBLIC_SUPABASE_URL || SUPABASE_URL,
+    key: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || SUPABASE_ANON_KEY,
+  };
 }
 
 export async function proxy(request: NextRequest) {
-  // If Supabase isn't configured yet, don't enforce auth — let everything through.
-  // This prevents build failures and allows testing without Supabase set up.
-  if (!isConfigured()) {
-    return NextResponse.next();
-  }
+  const { url, key } = getSupabaseConfig();
 
   let supabaseResponse = NextResponse.next({ request });
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
+  const supabase = createServerClient(url, key, {
       cookies: {
         getAll() {
           return request.cookies.getAll();
