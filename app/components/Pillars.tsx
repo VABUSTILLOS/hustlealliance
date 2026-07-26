@@ -17,23 +17,23 @@ function DeviceMockup({ type, t }: { type: string; t: any }) {
             <div className="absolute top-14 left-2 right-2 space-y-2.5 px-1">
               <div className="flex gap-2">
                 <div className="w-6 h-6 rounded-full bg-accent/30 flex-shrink-0" />
-                <div className="bg-white/5 rounded-2xl rounded-tl-sm px-3 py-2 text-[10px] text-white/60 w-3/4">
+                <div className="bg-mockup-bg rounded-2xl rounded-tl-sm px-3 py-2 text-[10px] text-foreground-muted w-3/4">
                   {t.pillars.chat1}
                 </div>
               </div>
               <div className="flex gap-2 justify-end">
-                <div className="bg-accent/20 rounded-2xl rounded-tr-sm px-3 py-2 text-[10px] text-white/80 w-2/3">
+                <div className="bg-accent/20 rounded-2xl rounded-tr-sm px-3 py-2 text-[10px] text-foreground-muted w-2/3">
                   {t.pillars.chat2}
                 </div>
               </div>
               <div className="flex gap-2">
                 <div className="w-6 h-6 rounded-full bg-accent-glow/30 flex-shrink-0" />
-                <div className="bg-white/5 rounded-2xl rounded-tl-sm px-3 py-2 text-[10px] text-white/60 w-3/4">
+                <div className="bg-mockup-bg rounded-2xl rounded-tl-sm px-3 py-2 text-[10px] text-foreground-muted w-3/4">
                   {t.pillars.chat3}
                 </div>
               </div>
             </div>
-            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-20 h-1 bg-white/20 rounded-full" />
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-20 h-1 bg-mockup-bg rounded-full" />
           </div>
         </div>
       );
@@ -45,25 +45,25 @@ function DeviceMockup({ type, t }: { type: string; t: any }) {
               <div className="w-2.5 h-2.5 rounded-full bg-accent/60" />
               <div className="w-2.5 h-2.5 rounded-full bg-accent/40" />
               <div className="w-2.5 h-2.5 rounded-full bg-accent/20" />
-              <div className="ml-4 flex-1 h-4 bg-white/5 rounded-full px-3 flex items-center">
-                <span className="text-[8px] text-white/30">{t.pillars.siteUrl}</span>
+              <div className="ml-4 flex-1 h-4 bg-mockup-bg rounded-full px-3 flex items-center">
+                <span className="text-[8px] text-foreground-dim">{t.pillars.siteUrl}</span>
               </div>
             </div>
             <div className="p-4 space-y-3">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-accent/30" />
                 <div>
-                  <div className="h-3 w-20 bg-white/10 rounded mb-1" />
-                  <div className="h-2 w-14 bg-white/5 rounded" />
+                  <div className="h-3 w-20 bg-mockup-bg rounded mb-1" />
+                  <div className="h-2 w-14 bg-mockup-bg rounded" />
                 </div>
               </div>
               <div className="h-20 bg-gradient-to-br from-accent/10 to-accent-glow/5 rounded-lg" />
               <div className="space-y-2">
-                <div className="h-2 w-full bg-white/5 rounded" />
-                <div className="h-2 w-3/4 bg-white/5 rounded" />
+                <div className="h-2 w-full bg-mockup-bg rounded" />
+                <div className="h-2 w-3/4 bg-mockup-bg rounded" />
               </div>
               <div className="flex gap-2">
-                <div className="h-16 flex-1 bg-white/5 rounded-lg" />
+                <div className="h-16 flex-1 bg-mockup-bg rounded-lg" />
                 <div className="h-16 flex-1 bg-accent/10 rounded-lg" />
               </div>
             </div>
@@ -77,10 +77,10 @@ function DeviceMockup({ type, t }: { type: string; t: any }) {
         <div className="relative mx-auto w-48 h-64 sm:w-56 sm:h-72">
           <div className="absolute inset-0 rounded-2xl bg-surface-light border-2 border-white/10 overflow-hidden shadow-2xl">
             <div className="h-6 bg-black/40 border-b border-white/5 flex items-center justify-between px-3">
-              <span className="text-[8px] text-white/30">9:41</span>
+              <span className="text-[8px] text-foreground-dim">9:41</span>
               <div className="flex gap-1">
-                <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
-                <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
+                <div className="w-1.5 h-1.5 rounded-full bg-mockup-bg" />
+                <div className="w-1.5 h-1.5 rounded-full bg-mockup-bg" />
               </div>
             </div>
             <div className="p-4 grid grid-cols-2 gap-3">
@@ -91,7 +91,7 @@ function DeviceMockup({ type, t }: { type: string; t: any }) {
                 >
                   <div className="text-center px-2">
                     <div className="h-1.5 w-12 bg-accent/40 rounded mx-auto mb-1.5" />
-                    <div className="h-1 w-8 bg-white/10 rounded mx-auto" />
+                    <div className="h-1 w-8 bg-mockup-bg rounded mx-auto" />
                   </div>
                 </div>
               ))}

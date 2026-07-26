@@ -127,7 +127,7 @@ function BookCover({
               {title}
             </h4>
             {/* Author line */}
-            <div className="h-1 w-16 bg-white/10 rounded-full mb-2" />
+            <div className="h-1 w-16 bg-mockup-bg rounded-full mb-2" />
             <div className="flex items-center justify-between">
               <span className="text-[9px] font-mono uppercase tracking-wider text-white/30">
                 Hustle Alliance
@@ -275,7 +275,7 @@ export default function ResourceLibrary() {
                       >
                         {resource.tier === 'free' ? t.resourceLibrary.free : t.resourceLibrary.pro}
                       </span>
-                      <span className="text-[9px] font-mono uppercase tracking-wider text-white/20">
+                      <span className="text-[9px] font-mono uppercase tracking-wider text-foreground-dim">
                         {resource.category}
                       </span>
                     </div>

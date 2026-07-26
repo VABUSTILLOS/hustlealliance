@@ -7,6 +7,9 @@
   --color-surface-light: #1C1C1E;
   --color-muted: #8A8A8A;
   --color-foreground: #ffffff;
+  --color-foreground-dim: rgba(255, 255, 255, 0.3);
+  --color-foreground-muted: rgba(255, 255, 255, 0.55);
+  --color-mockup-bg: rgba(255, 255, 255, 0.06);
   --color-accent: #FF3B30;
   --color-accent-glow: #FF6B35;
   --color-border: #1C1C1E;
@@ -21,6 +24,9 @@
   --color-surface-light: #F0F0F0;
   --color-muted: #6B7280;
   --color-foreground: #111111;
+  --color-foreground-dim: rgba(0, 0, 0, 0.35);
+  --color-foreground-muted: rgba(0, 0, 0, 0.55);
+  --color-mockup-bg: rgba(0, 0, 0, 0.06);
   --color-accent: #DC2626;
   --color-accent-glow: #EF4444;
   --color-border: #E5E7EB;

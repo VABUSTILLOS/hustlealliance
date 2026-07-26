@@ -138,7 +138,7 @@ export default function Hero() {
 
         {/* Decorative label */}
         <div className="absolute bottom-8 left-8 z-10">
-          <p className="font-mono text-xs uppercase tracking-[0.2em] text-white/40">
+          <p className="font-mono text-xs uppercase tracking-[0.2em] text-foreground-dim">
             📸 Alliance Summit &rsquo;26
           </p>
         </div>

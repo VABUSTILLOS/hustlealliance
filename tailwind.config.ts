@@ -19,6 +19,9 @@ const config: Config = {
         white: 'var(--color-foreground)',
         accent: 'var(--color-accent)',
         'accent-glow': 'var(--color-accent-glow)',
+        'foreground-dim': 'var(--color-foreground-dim)',
+        'foreground-muted': 'var(--color-foreground-muted)',
+        'mockup-bg': 'var(--color-mockup-bg)',
 
         // Legacy mappings for backward compatibility
         deep: 'var(--color-bg)',

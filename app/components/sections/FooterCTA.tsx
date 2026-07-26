@@ -106,7 +106,7 @@ export default function FooterCTA() {
               <a
                 key={label}
                 href={href}
-                className="text-sm text-white/50 hover:text-violet transition-colors duration-200 font-body"
+                className="text-sm text-foreground-muted hover:text-violet transition-colors duration-200 font-body"
               >
                 {label}
               </a>
@@ -120,7 +120,7 @@ export default function FooterCTA() {
                 key={label}
                 href={href}
                 aria-label={label}
-                className="text-white/40 hover:text-cyan transition-colors duration-200"
+                className="text-foreground-dim hover:text-cyan transition-colors duration-200"
               >
                 {svg}
               </a>
@@ -129,7 +129,7 @@ export default function FooterCTA() {
         </motion.div>
 
         {/* Copyright */}
-        <p className="text-center text-white/30 font-body text-xs mt-10">
+        <p className="text-center text-foreground-dim font-body text-xs mt-10">
           {t.footer.copyright.replace('{year}', String(new Date().getFullYear()))}
         </p>
       </div>
