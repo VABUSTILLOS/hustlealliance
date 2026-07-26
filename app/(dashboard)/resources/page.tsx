@@ -12,6 +12,7 @@ import {
   getRelatedResources,
   resourceTypeLabels,
   journeyPhaseLabels,
+  getResourceLocale,
   type ResourceType,
   type Resource,
 } from '@/lib/data/resources';
@@ -27,7 +28,7 @@ const typeIcons: Record<string, string> = {
 };
 
 export default function ResourcesPage() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const isBookmarked = useStore((s) => s.isBookmarked);
   const bookmarks = useStore((s) => s.resourceBookmarks);
 
@@ -178,6 +179,7 @@ export default function ResourcesPage() {
                 resource={resource}
                 index={index}
                 isBookmarked={isBookmarked(resource.id)}
+                locale={locale}
                 t={t}
               />
             ))}
@@ -195,16 +197,20 @@ function ResourceCard({
   resource,
   index,
   isBookmarked,
+  locale,
   t,
 }: {
   resource: Resource;
   index: number;
   isBookmarked: boolean;
+  locale: 'en' | 'es';
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   t: any;
 }) {
   const toggleBookmark = useStore((s) => s.toggleBookmark);
   const [showModal, setShowModal] = useState(false);
+
+  const { title, description } = getResourceLocale(resource, locale);
 
   return (
     <>
@@ -242,9 +248,9 @@ function ResourceCard({
           {/* Content */}
           <div className="p-4 space-y-2">
             <h3 className="text-foreground font-heading font-bold text-sm line-clamp-2 group-hover:text-accent transition-colors">
-              {resource.title}
+              {title}
             </h3>
-            <p className="text-muted text-xs line-clamp-2">{resource.description}</p>
+            <p className="text-muted text-xs line-clamp-2">{description}</p>
             <div className="flex items-center gap-3 text-[11px] text-muted">
               <span className="flex items-center gap-1">
                 <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -273,6 +279,7 @@ function ResourceCard({
           <ResourceModal
             resource={resource}
             isBookmarked={isBookmarked}
+            locale={locale}
             t={t}
             onClose={() => setShowModal(false)}
           />
@@ -285,11 +292,13 @@ function ResourceCard({
 function ResourceModal({
   resource,
   isBookmarked,
+  locale,
   t,
   onClose,
 }: {
   resource: Resource;
   isBookmarked: boolean;
+  locale: 'en' | 'es';
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   t: any;
   onClose: () => void;
@@ -297,11 +306,14 @@ function ResourceModal({
   const toggleBookmark = useStore((s) => s.toggleBookmark);
   const { addToast } = useToast();
 
+  const { title, description } = getResourceLocale(resource, locale);
+
   const related = useMemo(() => getRelatedResources(resource.id), [resource.id]);
 
   const handleDownload = () => {
-    // Mock download — open to all visitors
-    window.open(resource.downloadUrl, '_blank');
+    const url = '/api/download/' + resource.id + '?lang=' + locale;
+    window.open(url, '_blank');
+    addToast({ message: locale === 'es' ? 'Descarga iniciada' : 'Download started', type: 'success' });
   };
 
   return (
@@ -342,10 +354,10 @@ function ResourceModal({
             <span className="px-2.5 py-1 rounded-lg bg-accent/10 border border-accent/20 text-accent text-[10px] font-bold uppercase tracking-wider">
               {resourceTypeLabels[resource.type]}
             </span>
-            <h2 className="text-xl font-heading font-bold text-foreground">{resource.title}</h2>
+            <h2 className="text-xl font-heading font-bold text-foreground">{title}</h2>
           </div>
 
-          <p className="text-muted text-sm leading-relaxed">{resource.description}</p>
+          <p className="text-muted text-sm leading-relaxed">{description}</p>
 
           {/* File details */}
           <div className="flex items-center gap-4 text-sm text-muted">

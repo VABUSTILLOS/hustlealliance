@@ -6,8 +6,10 @@ export type ResourceType = 'pdf' | 'guide' | 'template' | 'spreadsheet' | 'ebook
 export interface Resource {
   id: string;
   title: string;
+  titleEs?: string;
   type: ResourceType;
   description: string;
+  descriptionEs?: string;
   thumbnail: string; // gradient placeholder
   downloadUrl: string; // mock link
   tags: string[];
@@ -17,6 +19,19 @@ export interface Resource {
   featured?: boolean;
   /** Which journey phase this resource complements (1-10, or 0 for general) */
   journeyPhase?: number;
+}
+
+import { resourceTranslations } from './resource-translations';
+
+/** Get locale-aware title/description for a resource */
+export function getResourceLocale(resource: Resource, locale: 'en' | 'es'): { title: string; description: string } {
+  if (locale === 'es' && resourceTranslations[resource.id]) {
+    return {
+      title: resourceTranslations[resource.id].titleEs,
+      description: resourceTranslations[resource.id].descriptionEs,
+    };
+  }
+  return { title: resource.title, description: resource.description };
 }
 
 export const resources: Resource[] = [
