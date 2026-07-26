@@ -61,8 +61,8 @@ export const coreHabits: DailyHabit[] = [
     id: 'connection', icon: '💜',
     title: '1hr Phone-Free Connection',
     titleEs: '1hr de Conexión sin Teléfono',
-    description: 'Strictly undistracted, phone-in-another-room connection time with Marisol.',
-    descriptionEs: 'Tiempo de conexión estrictamente sin distracciones, teléfono en otra habitación, con Marisol.',
+    description: 'Strictly undistracted, phone-in-another-room connection time with your partner or loved one.',
+    descriptionEs: 'Tiempo de conexión estrictamente sin distracciones, teléfono en otra habitación, con tu pareja o ser querido.',
     atomicLaw: 'make-it-satisfying', category: 'relationships', isCore: true,
   },
   {

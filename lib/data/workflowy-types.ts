@@ -377,7 +377,7 @@ export function createTemplateTree(locale: 'en' | 'es'): PlannerState {
   const p2 = createNode(priorities.id);
   p2.content = isEs ? 'Revisar cash flow, portafolio GBM y rendimientos digitales' : 'Review cash flow, GBM portfolio & digital yields';
   const p3 = createNode(priorities.id);
-  p3.content = isEs ? '1 hora de conexión sin distracciones con Marisol' : '1 hour undistracted connection time with Marisol';
+  p3.content = isEs ? '1 hora de conexión sin distracciones con tu pareja o ser querido' : '1 hour undistracted connection time with your partner or loved one';
   const p4 = createNode(priorities.id);
   p4.content = isEs ? 'Ventana de alimentación estricta de 10 horas' : 'Strict 10-hour eating window';
   priorities.childrenIds = [p1.id, p2.id, p3.id, p4.id];
