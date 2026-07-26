@@ -112,10 +112,11 @@ export const useStore = create<AppState>()(
       isAuthenticated: true,
 
       signOut: async () => {
-        // Dynamic import to avoid SSR issues
-        const { createClient } = await import('@/lib/supabase/client');
-        const supabase = createClient();
-        await supabase.auth.signOut();
+        const { createClient, isSupabaseConfigured } = await import('@/lib/supabase/client');
+        if (isSupabaseConfigured()) {
+          const supabase = createClient();
+          await supabase.auth.signOut();
+        }
         set({ isAuthenticated: false, currentUser: null });
       },
 

@@ -1,7 +1,19 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
+function isConfigured(): boolean {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  return !!(url && key && !url.includes('your-project-id') && key !== 'placeholder-anon-key');
+}
+
 export async function middleware(request: NextRequest) {
+  // If Supabase isn't configured yet, don't enforce auth — let everything through.
+  // This prevents build failures and allows testing without Supabase set up.
+  if (!isConfigured()) {
+    return NextResponse.next();
+  }
+
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -25,8 +37,7 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // Refresh session — important! Don't rely on `getUser` for middleware decisions
-  // (it makes a network call). Use `getSession` instead.
+  // Refresh session
   const { data: { session } } = await supabase.auth.getSession();
 
   const { pathname } = request.nextUrl;
