@@ -175,7 +175,7 @@ export default function JourneyPage() {
             <h2 className="text-xl font-heading font-bold text-foreground">
               {isLevelComplete(currentLevel.id)
                 ? `${t.journey.levelComplete} 🎉`
-                : 'Keep building!'
+                : t.journey.keepBuilding
               }
             </h2>
           </div>
@@ -199,7 +199,7 @@ export default function JourneyPage() {
               className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white font-heading font-bold rounded-xl hover:bg-accent-glow transition-all shadow-[0_0_20px_rgba(255,59,48,0.3)]"
               style={{ animation: 'cta-pulse 2s infinite' }}
             >
-              Next Level →
+              {t.journey.nextLevel}
             </Link>
           )}
         </motion.div>

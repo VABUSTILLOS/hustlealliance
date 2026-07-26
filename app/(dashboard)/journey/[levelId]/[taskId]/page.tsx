@@ -41,8 +41,8 @@ export default function TaskDetailPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-4">
           <span className="text-5xl">🔍</span>
-          <h1 className="text-2xl font-heading font-bold text-foreground">Task not found</h1>
-          <Link href="/journey" className="text-accent hover:underline">Back to Journey</Link>
+          <h1 className="text-2xl font-heading font-bold text-foreground">{t.journey.taskNotFound}</h1>
+          <Link href="/journey" className="text-accent hover:underline">{t.journey.backToJourney}</Link>
         </div>
       </div>
     );
@@ -135,16 +135,16 @@ export default function TaskDetailPage() {
             {t.journey.level} {level.id}
           </span>
           <span className="text-xs font-mono text-muted px-3 py-1 rounded-full bg-surface-light border border-white/5">
-            Task {taskIndex + 1} of {level.tasks.length}
+            {t.journey.taskOf.replace('{current}', String(taskIndex + 1)).replace('{total}', String(level.tasks.length))}
           </span>
           {task.required && (
             <span className="text-[10px] px-2 py-0.5 rounded bg-accent/10 text-accent font-medium">
-              Required
+              {t.journey.required}
             </span>
           )}
           {alreadyCompleted && (
             <span className="text-[10px] px-2 py-0.5 rounded bg-green-400/10 text-green-400 font-medium">
-              ✓ Complete
+              ✓ {t.journey.complete}
             </span>
           )}
         </div>
@@ -189,7 +189,7 @@ export default function TaskDetailPage() {
           {/* Text input */}
           {task.type === 'text_input' && (
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Your Answer</label>
+              <label className="text-sm font-medium text-foreground">{t.journey.yourAnswer}</label>
               <textarea
                 value={textValue}
                 onChange={(e) => setTextValue(e.target.value)}
@@ -234,7 +234,7 @@ export default function TaskDetailPage() {
                     onClick={(e) => { e.stopPropagation(); setUploadedFile(null); setUploadedFileName(''); }}
                     className="text-xs text-red-400 hover:underline"
                   >
-                    Remove
+                    {t.journey.remove}
                   </button>
                 </div>
               ) : (
@@ -250,7 +250,7 @@ export default function TaskDetailPage() {
           {/* Checkbox */}
           {task.type === 'checkbox' && (
             <div className="p-4 rounded-xl bg-surface/50 border border-surface-light text-center">
-              <p className="text-foreground font-medium">Mark this task as done once you have completed it.</p>
+              <p className="text-foreground font-medium">{t.journey.checkboxDesc}</p>
             </div>
           )}
 
@@ -268,7 +268,7 @@ export default function TaskDetailPage() {
             {isSubmitting ? (
               <>
                 <motion.span animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}>⚡</motion.span>
-                Submitting…
+                {t.journey.submitting}
               </>
             ) : (
               <>
@@ -293,7 +293,7 @@ export default function TaskDetailPage() {
               <div className="p-3 rounded-lg bg-surface/50 border border-surface-light">
                 <p className="text-xs text-muted mb-2">{t.journey.previousEvidence}</p>
                 {existingEvidence.startsWith('data:image') ? (
-                  <img src={existingEvidence} alt="Evidence" className="max-h-48 rounded-lg" />
+                  <img src={existingEvidence} alt={t.journey.evidenceSubmitted} className="max-h-48 rounded-lg" />
                 ) : existingEvidence.startsWith('data:') ? (
                   <span className="text-2xl">📄</span>
                 ) : (
@@ -311,7 +311,7 @@ export default function TaskDetailPage() {
               href={`/journey/${levelId}/${level.tasks[taskIndex + 1].id}`}
               className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-accent/10 border border-accent/30 text-accent font-heading font-bold rounded-xl hover:bg-accent/20 transition-all"
             >
-              Next Task →
+              {t.journey.nextTask}
             </Link>
           )}
 
@@ -320,7 +320,7 @@ export default function TaskDetailPage() {
               href={`/journey/${levelId}`}
               className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-accent text-white font-heading font-bold rounded-xl hover:bg-accent-glow transition-all shadow-[0_0_20px_rgba(255,59,48,0.3)]"
             >
-              Back to Level Overview
+              {t.journey.backToLevelOverview}
             </Link>
           )}
         </div>

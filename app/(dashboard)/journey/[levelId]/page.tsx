@@ -37,8 +37,8 @@ export default function LevelDetailPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-4">
           <span className="text-5xl">🧭</span>
-          <h1 className="text-2xl font-heading font-bold text-foreground">Level not found</h1>
-          <Link href="/journey" className="text-accent hover:underline">Back to Journey</Link>
+          <h1 className="text-2xl font-heading font-bold text-foreground">{t.journey.levelNotFound}</h1>
+          <Link href="/journey" className="text-accent hover:underline">{t.journey.backToJourney}</Link>
         </div>
       </div>
     );
@@ -62,7 +62,7 @@ export default function LevelDetailPage() {
         <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M19 12H5M12 19l-7-7 7-7" />
         </svg>
-        Back to Journey
+        {t.journey.backToJourney}
       </Link>
 
       {/* Level celebration */}
@@ -98,7 +98,7 @@ export default function LevelDetailPage() {
           </span>
           {levelComplete && (
             <span className="text-xs font-mono text-green-400 font-bold px-3 py-1 rounded-full bg-green-400/10 border border-green-400/20">
-              ✓ Complete
+              ✓ {t.journey.complete}
             </span>
           )}
         </div>
@@ -146,12 +146,12 @@ export default function LevelDetailPage() {
           <span className="text-4xl block">🔒</span>
           <h3 className="text-lg font-heading font-bold text-foreground">{t.journey.locked}</h3>
           <Link href="/journey" className="text-accent hover:underline text-sm">
-            Back to Journey
+            {t.journey.backToJourney}
           </Link>
         </div>
       ) : (
         <div className="space-y-3">
-          <h2 className="text-lg font-heading font-bold text-foreground">Tasks</h2>
+          <h2 className="text-lg font-heading font-bold text-foreground">{t.journey.tasks}</h2>
           {level.tasks.map((task, index) => {
             const completed = isTaskComplete(levelId, task.id);
             // Check if previous tasks are done (for locking)
@@ -196,7 +196,7 @@ export default function LevelDetailPage() {
                         </h3>
                         {task.required && (
                           <span className="text-[10px] px-1.5 py-0.5 rounded bg-accent/10 text-accent font-medium">
-                            Required
+                            {t.journey.required}
                           </span>
                         )}
                       </div>
