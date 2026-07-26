@@ -1,6 +1,8 @@
 // Journey data: Gamified business to-do list (Level 1-10)
 // Each level contains tasks with varying types: text_input, file_upload, checkbox
 
+import { journeyLevelsEs, journeyTasksEs } from './journey-es';
+
 export type TaskType = 'text_input' | 'file_upload' | 'checkbox';
 
 export interface JourneyTask {
@@ -587,4 +589,22 @@ export function getTaskById(levelId: number, taskId: string): JourneyTask | unde
 
 export function getTotalXPForLevel(level: JourneyLevel): number {
   return level.tasks.reduce((sum, t) => sum + t.points, 0) + level.xpReward;
+}
+
+// Localization helper
+export function getLocalizedJourneyLevels(locale: 'en' | 'es'): JourneyLevel[] {
+  if (locale === 'en') return journeyLevels;
+  return journeyLevels.map((level) => ({
+    ...level,
+    title: journeyLevelsEs[level.id]?.title ?? level.title,
+    subtitle: journeyLevelsEs[level.id]?.subtitle ?? level.subtitle,
+    description: journeyLevelsEs[level.id]?.description ?? level.description,
+    badgeName: journeyLevelsEs[level.id]?.badgeName ?? level.badgeName,
+    tasks: level.tasks.map((task) => ({
+      ...task,
+      title: journeyTasksEs[task.id]?.title ?? task.title,
+      description: journeyTasksEs[task.id]?.description ?? task.description,
+      hint: journeyTasksEs[task.id]?.hint ?? task.hint,
+    })),
+  }));
 }

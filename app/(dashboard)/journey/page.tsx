@@ -4,22 +4,24 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useStore } from '@/lib/store/useStore';
 import { useTranslation } from '@/lib/i18n/useTranslation';
-import { journeyLevels } from '@/lib/data/journey';
+import { getLocalizedJourneyLevels } from '@/lib/data/journey';
 
 export default function JourneyPage() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const journeyProgress = useStore((s) => s.journeyProgress);
   const getLevelProgress = useStore((s) => s.getLevelProgress);
   const isLevelComplete = useStore((s) => s.isLevelComplete);
 
+  const levels = getLocalizedJourneyLevels(locale as 'en' | 'es');
+
   // Find current level: first incomplete, or first locked
   let currentLevelIndex = 0;
-  for (let i = 0; i < journeyLevels.length; i++) {
-    const level = journeyLevels[i];
+  for (let i = 0; i < levels.length; i++) {
+    const level = levels[i];
     const completed = isLevelComplete(level.id);
     if (!completed) {
       // Check if this level is accessible (previous level complete or it's level 1)
-      if (i === 0 || isLevelComplete(journeyLevels[i - 1].id)) {
+      if (i === 0 || isLevelComplete(levels[i - 1].id)) {
         currentLevelIndex = i;
         break;
       }
@@ -32,12 +34,12 @@ export default function JourneyPage() {
   }
 
   // Clamp
-  if (currentLevelIndex >= journeyLevels.length) {
-    currentLevelIndex = journeyLevels.length - 1;
+  if (currentLevelIndex >= levels.length) {
+    currentLevelIndex = levels.length - 1;
   }
 
-  const currentLevel = journeyLevels[currentLevelIndex];
-  const isUnlocked = currentLevelIndex === 0 || isLevelComplete(journeyLevels[currentLevelIndex - 1].id);
+  const currentLevel = levels[currentLevelIndex];
+  const isUnlocked = currentLevelIndex === 0 || isLevelComplete(levels[currentLevelIndex - 1].id);
 
   // Find first incomplete task in current level
   const firstIncompleteTask = currentLevel.tasks.find(
@@ -60,11 +62,11 @@ export default function JourneyPage() {
         <div className="absolute left-[19px] top-0 bottom-0 w-0.5 bg-surface-light hidden md:block" />
 
         <div className="space-y-3">
-          {journeyLevels.map((level, index) => {
+          {levels.map((level, index) => {
             const completed = isLevelComplete(level.id);
             const progress = getLevelProgress(level.id, level.tasks.length);
             const isCurrent = index === currentLevelIndex;
-            const isLocked = index > 0 && !isLevelComplete(journeyLevels[index - 1].id) && !completed;
+            const isLocked = index > 0 && !isLevelComplete(levels[index - 1].id) && !completed;
             const isComingSoon = index >= 10;
 
             return (
@@ -193,9 +195,9 @@ export default function JourneyPage() {
             </Link>
           )}
 
-          {!firstIncompleteTask && currentLevelIndex < journeyLevels.length - 1 && (
+          {!firstIncompleteTask && currentLevelIndex < levels.length - 1 && (
             <Link
-              href={`/journey/${journeyLevels[currentLevelIndex + 1].id}`}
+              href={`/journey/${levels[currentLevelIndex + 1].id}`}
               className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white font-heading font-bold rounded-xl hover:bg-accent-glow transition-all shadow-[0_0_20px_rgba(255,59,48,0.3)]"
               style={{ animation: 'cta-pulse 2s infinite' }}
             >

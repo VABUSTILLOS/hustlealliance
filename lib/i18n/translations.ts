@@ -755,7 +755,7 @@ const t = {
     journey: {
       title: 'Tu Camino Founder',
       subtitle: 'Sube de nivel tu negocio, una tarea a la vez',
-      continueJourney: 'Continuar Camino',
+      continueJourney: 'Continúa tu Camino',
       startJourney: 'Comienza Tu Camino',
       level: 'Nivel',
       xpReward: 'Recompensa XP',

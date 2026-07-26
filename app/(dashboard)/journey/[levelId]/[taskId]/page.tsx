@@ -5,21 +5,23 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useStore } from '@/lib/store/useStore';
 import { useTranslation } from '@/lib/i18n/useTranslation';
-import { getTaskById, getLevelById } from '@/lib/data/journey';
+import { getLocalizedJourneyLevels } from '@/lib/data/journey';
 import { useToast } from '@/app/components/ToastProvider';
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useMemo } from 'react';
 
 export default function TaskDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const { addToast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const levelId = Number(params.levelId);
   const taskId = String(params.taskId);
-  const level = getLevelById(levelId);
-  const task = getTaskById(levelId, taskId);
+
+  const levels = useMemo(() => getLocalizedJourneyLevels(locale as 'en' | 'es'), [locale]);
+  const level = useMemo(() => levels.find((l) => l.id === levelId), [levelId, levels]);
+  const task = useMemo(() => level?.tasks.find((t) => t.id === taskId), [level, taskId]);
 
   const isTaskComplete = useStore((s) => s.isTaskComplete);
   const isLevelComplete = useStore((s) => s.isLevelComplete);

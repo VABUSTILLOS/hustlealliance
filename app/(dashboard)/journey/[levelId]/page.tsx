@@ -5,14 +5,16 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useStore } from '@/lib/store/useStore';
 import { useTranslation } from '@/lib/i18n/useTranslation';
-import { getLevelById, journeyLevels } from '@/lib/data/journey';
-import { useState, useEffect } from 'react';
+import { getLocalizedJourneyLevels } from '@/lib/data/journey';
+import { useState, useEffect, useMemo } from 'react';
 
 export default function LevelDetailPage() {
   const params = useParams();
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const levelId = Number(params.levelId);
-  const level = getLevelById(levelId);
+
+  const levels = useMemo(() => getLocalizedJourneyLevels(locale as 'en' | 'es'), [locale]);
+  const level = useMemo(() => levels.find((l) => l.id === levelId), [levelId, levels]);
 
   const isTaskComplete = useStore((s) => s.isTaskComplete);
   const isLevelComplete = useStore((s) => s.isLevelComplete);
@@ -45,8 +47,8 @@ export default function LevelDetailPage() {
   }
 
   // Check if previous level must be completed
-  const levelIndex = journeyLevels.findIndex((l) => l.id === levelId);
-  const isLocked = levelIndex > 0 && !isLevelComplete(journeyLevels[levelIndex - 1].id);
+  const levelIndex = levels.findIndex((l) => l.id === levelId);
+  const isLocked = levelIndex > 0 && !isLevelComplete(levels[levelIndex - 1].id);
 
   const completedCount = level.tasks.filter((task) => isTaskComplete(levelId, task.id)).length;
   const totalTasks = level.tasks.length;
