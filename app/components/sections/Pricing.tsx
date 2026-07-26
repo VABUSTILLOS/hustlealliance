@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 import clsx from 'clsx';
 
 // ── Tier definitions ────────────────────────────────────────────────────
@@ -191,16 +192,17 @@ export default function Pricing() {
                 </ul>
 
                 {/* CTA */}
-                <button
+                <Link
+                  href="/login"
                   className={clsx(
-                    'w-full py-3 rounded-xl font-heading font-bold text-sm uppercase tracking-wider transition-all duration-300',
+                    'w-full py-3 rounded-xl font-heading font-bold text-sm uppercase tracking-wider transition-all duration-300 inline-block text-center',
                     tier.variant === 'solid'
                       ? 'bg-accent text-white hover:bg-accent-glow shadow-[0_0_30px_rgba(255,59,48,0.25)] hover:shadow-[0_0_50px_rgba(255,59,48,0.4)] hover:scale-[1.02]'
                       : 'border border-white/15 text-white hover:border-accent/50 hover:text-accent hover:bg-accent/5'
                   )}
                 >
                   {tier.cta}
-                </button>
+                </Link>
               </div>
             </motion.div>
           ))}

@@ -2,13 +2,13 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import NeonButton from './NeonButton';
+import Link from 'next/link';
 
 const links = [
-  { href: '#mission', label: 'Mission' },
-  { href: '#members', label: 'Members' },
-  { href: '#resources', label: 'Resources' },
-  { href: '#login', label: 'Login' },
+  { href: '/dashboard', label: 'Dashboard' },
+  { href: '/learning', label: 'Learning' },
+  { href: '/community', label: 'Community' },
+  { href: '/spaces', label: 'Spaces' },
 ];
 
 export default function Navbar() {
@@ -19,24 +19,27 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <a href="#" className="gradient-text text-xl sm:text-2xl font-heading font-bold tracking-tight">
+          <Link href="/" className="gradient-text text-xl sm:text-2xl font-heading font-bold tracking-tight">
             Hustle Alliance
-          </a>
+          </Link>
 
           {/* Desktop Links */}
           <div className="hidden md:flex items-center gap-8">
             {links.map(({ href, label }) => (
-              <a
+              <Link
                 key={label}
                 href={href}
-                className="text-sm font-medium text-white/70 hover:text-violet transition-colors duration-200"
+                className="text-sm font-medium text-white/70 hover:text-accent transition-colors duration-200"
               >
                 {label}
-              </a>
+              </Link>
             ))}
-            <NeonButton variant="primary" className="text-sm !py-2 !px-4">
+            <Link
+              href="/login"
+              className="inline-flex items-center px-4 py-2 bg-accent text-white font-heading font-bold text-sm rounded-xl hover:bg-accent-glow shadow-[0_0_20px_rgba(255,59,48,0.3)] transition-all"
+            >
               Join Alliance
-            </NeonButton>
+            </Link>
           </div>
 
           {/* Mobile Hamburger */}
@@ -47,15 +50,15 @@ export default function Navbar() {
           >
             <motion.span
               animate={open ? { rotate: 45, y: 7 } : { rotate: 0, y: 0 }}
-              className="block w-6 h-0.5 bg-violet rounded"
+              className="block w-6 h-0.5 bg-accent rounded"
             />
             <motion.span
               animate={open ? { opacity: 0 } : { opacity: 1 }}
-              className="block w-6 h-0.5 bg-violet rounded"
+              className="block w-6 h-0.5 bg-accent rounded"
             />
             <motion.span
               animate={open ? { rotate: -45, y: -7 } : { rotate: 0, y: 0 }}
-              className="block w-6 h-0.5 bg-violet rounded"
+              className="block w-6 h-0.5 bg-accent rounded"
             />
           </button>
         </div>
@@ -69,22 +72,26 @@ export default function Navbar() {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3, ease: 'easeInOut' }}
-            className="md:hidden overflow-hidden bg-deeper/95 border-t border-violet/20"
+            className="md:hidden overflow-hidden bg-black/95 border-t border-surface-light"
           >
             <div className="px-4 py-4 space-y-3">
               {links.map(({ href, label }) => (
-                <a
+                <Link
                   key={label}
                   href={href}
                   onClick={() => setOpen(false)}
-                  className="block text-sm font-medium text-white/70 hover:text-violet transition-colors duration-200 py-2"
+                  className="block text-sm font-medium text-white/70 hover:text-accent transition-colors duration-200 py-2"
                 >
                   {label}
-                </a>
+                </Link>
               ))}
-              <NeonButton variant="primary" className="w-full !py-2 !px-4">
+              <Link
+                href="/login"
+                onClick={() => setOpen(false)}
+                className="block w-full text-center px-4 py-2 bg-accent text-white font-heading font-bold text-sm rounded-xl hover:bg-accent-glow transition-all"
+              >
                 Join Alliance
-              </NeonButton>
+              </Link>
             </div>
           </motion.div>
         )}

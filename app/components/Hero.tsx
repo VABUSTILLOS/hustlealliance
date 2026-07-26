@@ -87,10 +87,10 @@ export default function Hero() {
             variants={item}
             className="flex flex-col sm:flex-row gap-4"
           >
-            <NeonButton variant="primary" className="text-base !py-4 !px-10 !text-base">
+            <NeonButton variant="primary" href="/login" className="text-base !py-4 !px-10 !text-base">
               Join the Alliance
             </NeonButton>
-            <NeonButton variant="secondary" className="text-base !py-4 !px-10">
+            <NeonButton variant="secondary" href="/spaces" className="text-base !py-4 !px-10">
               View Member Sites
             </NeonButton>
           </motion.div>
