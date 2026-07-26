@@ -21,6 +21,8 @@ export default function Navbar() {
   const links = [
     { href: '/dashboard', label: t.nav.dashboard },
     { href: '/learning', label: t.nav.learning },
+    { href: '/journey', label: t.nav.journey },
+    { href: '/resources', label: t.nav.resources },
     { href: '/community', label: t.nav.community },
     { href: '/spaces', label: t.nav.spaces },
   ];

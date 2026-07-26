@@ -4,6 +4,7 @@ import { feedPosts as initialPosts, type FeedPost, type Comment } from '@/lib/da
 import { currentUser as fallbackUser } from '@/lib/data/users';
 import { spaces as initialSpaces } from '@/lib/data/spaces';
 import { badges as allBadges, XP_REWARDS, type Badge } from '@/lib/data/gamification';
+import { journeyLevels } from '@/lib/data/journey';
 
 export interface UserInfo {
   id?: string;
@@ -18,6 +19,21 @@ export interface UserProgress {
     completedLessons: string[];
     startedAt: string;
     cheeredLessons: string[];
+  };
+}
+
+export interface JourneyTaskState {
+  completed: boolean;
+  completedAt?: string;
+  evidence?: string; // text answer or base64 data URL
+}
+
+export interface JourneyProgress {
+  [levelId: string]: {
+    tasks: {
+      [taskId: string]: JourneyTaskState;
+    };
+    levelCompletedAt?: string;
   };
 }
 
@@ -73,6 +89,19 @@ interface AppState {
   getPathCompletedBadge: (pathName: string) => Badge | null;
   addStudyGroup: (pathSlug: string) => void;
   isInStudyGroup: (pathSlug: string) => boolean;
+
+  // Journey
+  journeyProgress: JourneyProgress;
+  completeTask: (levelId: number, taskId: string, evidence?: string) => void;
+  isTaskComplete: (levelId: number, taskId: string) => boolean;
+  getLevelProgress: (levelId: number, totalTasks: number) => number;
+  isLevelComplete: (levelId: number) => boolean;
+  getCompletedTasksCount: (levelId: number) => number;
+
+  // Resources
+  resourceBookmarks: string[];
+  toggleBookmark: (resourceId: string) => void;
+  isBookmarked: (resourceId: string) => boolean;
 }
 
 const todayStr = () => new Date().toISOString().split('T')[0];
@@ -329,6 +358,12 @@ export const useStore = create<AppState>()(
         latestUnlockedBadge: null,
       },
 
+      // Journey
+      journeyProgress: {},
+
+      // Resources
+      resourceBookmarks: [],
+
       addXP: (amount) => {
         set((state) => {
           const updated = {
@@ -439,6 +474,91 @@ export const useStore = create<AppState>()(
       isInStudyGroup: (pathSlug) => {
         return get().gamification.studyGroups.includes(pathSlug);
       },
+
+      // Journey actions
+      completeTask: (levelId, taskId, evidence) => {
+        set((state) => {
+          const key = String(levelId);
+          const existing = state.journeyProgress[key];
+          const tasks = existing?.tasks ?? {};
+          if (tasks[taskId]?.completed) return state;
+
+          const newTasks = {
+            ...tasks,
+            [taskId]: { completed: true, completedAt: new Date().toISOString(), evidence },
+          };
+
+          // Award XP
+          const level = journeyLevels.find((l) => l.id === levelId);
+          const task = level?.tasks.find((t: { id: string }) => t.id === taskId);
+          const taskPoints = task?.points ?? 0;
+
+          let updatedGamification = {
+            ...state.gamification,
+            xp: state.gamification.xp + taskPoints,
+            totalLessonsCompleted: state.gamification.totalLessonsCompleted + 1,
+            lastActiveDate: todayStr(),
+          };
+
+          // Check if level is now complete
+          const allTasks = level?.tasks ?? [];
+          const completedCount = Object.values(newTasks).filter((t) => t.completed).length;
+          let levelBonus = 0;
+          if (completedCount === allTasks.length && !existing?.levelCompletedAt) {
+            levelBonus = level?.xpReward ?? 0;
+            updatedGamification.xp += levelBonus;
+          }
+
+          const badgeResult = checkAndUnlockBadges(updatedGamification);
+          updatedGamification.earnedBadges = badgeResult.earnedBadges;
+          if (badgeResult.latestBadge) updatedGamification.latestUnlockedBadge = badgeResult.latestBadge;
+
+          return {
+            journeyProgress: {
+              ...state.journeyProgress,
+              [key]: {
+                tasks: newTasks,
+                levelCompletedAt: completedCount === allTasks.length ? new Date().toISOString() : existing?.levelCompletedAt,
+              },
+            },
+            gamification: updatedGamification,
+          };
+        });
+      },
+
+      isTaskComplete: (levelId, taskId) => {
+        return !!get().journeyProgress[String(levelId)]?.tasks?.[taskId]?.completed;
+      },
+
+      getLevelProgress: (levelId, totalTasks) => {
+        const tasks = get().journeyProgress[String(levelId)]?.tasks ?? {};
+        const completed = Object.values(tasks).filter((t) => t.completed).length;
+        return totalTasks > 0 ? Math.round((completed / totalTasks) * 100) : 0;
+      },
+
+      isLevelComplete: (levelId) => {
+        return !!get().journeyProgress[String(levelId)]?.levelCompletedAt;
+      },
+
+      getCompletedTasksCount: (levelId) => {
+        const tasks = get().journeyProgress[String(levelId)]?.tasks ?? {};
+        return Object.values(tasks).filter((t) => t.completed).length;
+      },
+
+      // Resource bookmark actions
+      toggleBookmark: (resourceId) => {
+        set((state) => {
+          const bookmarks = state.resourceBookmarks;
+          if (bookmarks.includes(resourceId)) {
+            return { resourceBookmarks: bookmarks.filter((id) => id !== resourceId) };
+          }
+          return { resourceBookmarks: [...bookmarks, resourceId] };
+        });
+      },
+
+      isBookmarked: (resourceId) => {
+        return get().resourceBookmarks.includes(resourceId);
+      },
     }),
     {
       name: 'hustle-alliance-storage',
@@ -447,7 +567,8 @@ export const useStore = create<AppState>()(
         progress: state.progress,
         gamification: state.gamification,
         joinedSpaces: state.joinedSpaces,
-        // Don't persist feed posts — they reset on reload
+        journeyProgress: state.journeyProgress,
+        resourceBookmarks: state.resourceBookmarks,
       }),
     }
   )
