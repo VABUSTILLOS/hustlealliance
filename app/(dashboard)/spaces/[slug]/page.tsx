@@ -26,7 +26,7 @@ export default function SpaceDetailPage({
   if (!space) {
     return (
       <div className="px-8 py-20 text-center">
-        <h1 className="font-display text-3xl text-white mb-4">{t.spaces.notFound}</h1>
+        <h1 className="font-display text-3xl text-foreground mb-4">{t.spaces.notFound}</h1>
         <Link href="/spaces" className="text-accent font-mono text-sm hover:underline">← {t.spaces.backToSpaces}</Link>
       </div>
     );
@@ -52,7 +52,7 @@ export default function SpaceDetailPage({
         <img src={space.image} alt={space.name} className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-surface via-surface/50" />
         <div className="absolute bottom-0 left-0 right-0 p-6">
-          <h1 className="font-display text-3xl sm:text-4xl text-white uppercase leading-none mb-2">
+          <h1 className="font-display text-3xl sm:text-4xl text-foreground uppercase leading-none mb-2">
             {space.name}
           </h1>
           <div className="flex items-center gap-3">
@@ -63,7 +63,7 @@ export default function SpaceDetailPage({
                 'px-3 py-1 rounded-lg text-xs font-mono font-bold uppercase transition-all',
                 joined
                   ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'
-                  : 'bg-accent text-white hover:bg-accent-glow'
+                  : 'bg-accent text-foreground hover:bg-accent-glow'
               )}
             >
               {joined ? t.spaces.joined + ' ✓' : t.spaces.join + ' ' + t.spaces.tag}
@@ -72,10 +72,10 @@ export default function SpaceDetailPage({
         </div>
       </motion.div>
 
-      <p className="text-white/60 text-sm mb-8">{space.description}</p>
+      <p className="text-foreground-muted text-sm mb-8">{space.description}</p>
 
       {/* Feed */}
-      <h2 className="font-heading font-bold text-white text-lg mb-4">{t.spaces.posts}</h2>
+      <h2 className="font-heading font-bold text-foreground text-lg mb-4">{t.spaces.posts}</h2>
       {spacePosts.length === 0 ? (
         <p className="text-muted text-sm py-8 text-center">{t.spaces.noPosts}</p>
       ) : (
@@ -90,7 +90,7 @@ export default function SpaceDetailPage({
               <div className="flex items-center gap-3 mb-3">
                 <img src={post.author.avatar} alt="" className="w-10 h-10 rounded-full border border-white/10 object-cover" />
                 <div>
-                  <p className="font-heading font-bold text-white text-sm">{post.author.name}</p>
+                  <p className="font-heading font-bold text-foreground text-sm">{post.author.name}</p>
                   <div className="flex items-center gap-2">
                     <p className="font-mono text-[10px] text-muted">@{post.author.username}</p>
                     <span className="text-muted text-[10px]">•</span>
@@ -98,7 +98,7 @@ export default function SpaceDetailPage({
                   </div>
                 </div>
               </div>
-              <p className="text-white/80 text-sm mb-3">{post.text}</p>
+              <p className="text-foreground-muted text-sm mb-3">{post.text}</p>
               {post.image && (
                 <img src={post.image} alt="" className="w-full rounded-xl mb-3 max-h-80 object-cover" />
               )}

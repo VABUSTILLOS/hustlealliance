@@ -103,17 +103,17 @@ const MemberCard = ({
 
         {/* Info overlay at bottom */}
         <div className="absolute bottom-0 left-0 right-0 p-5">
-          <h3 className="font-heading text-lg font-bold text-white leading-tight">
+          <h3 className="font-heading text-lg font-bold text-foreground leading-tight">
             {name}
           </h3>
-          <p className="font-body text-xs text-white/50 mt-0.5">{role}</p>
-          <div className="flex items-center gap-2 mt-3 pt-3 border-t border-white/10">
+          <p className="font-body text-xs text-foreground-muted mt-0.5">{role}</p>
+          <div className="flex items-center gap-2 mt-3 pt-3 border-t border-foreground-dim">
             <div className="w-6 h-6 rounded-md bg-accent/20 flex items-center justify-center">
               <span className="text-[10px] font-mono font-bold text-accent">
                 {startup.charAt(0)}
               </span>
             </div>
-            <span className="font-mono text-[11px] text-white/60 tracking-wide">
+            <span className="font-mono text-[11px] text-foreground-muted tracking-wide">
               {startup}
             </span>
           </div>

@@ -38,8 +38,21 @@
 @theme inline {
   --color-background: var(--color-bg);
   --color-foreground: var(--color-foreground);
+  --color-black: var(--color-bg);
   --color-accent: var(--color-accent);
+  --color-accent-glow: var(--color-accent-glow);
   --color-muted: var(--color-muted);
+  --color-surface: var(--color-surface);
+  --color-surface-light: var(--color-surface-light);
+  --color-deep: var(--color-bg);
+  --color-deeper: var(--color-surface);
+  --color-violet: var(--color-accent);
+  --color-magenta: var(--color-accent-glow);
+  --color-cyan: var(--color-accent);
+  --color-foreground-dim: var(--color-foreground-dim);
+  --color-foreground-muted: var(--color-foreground-muted);
+  --color-mockup-bg: var(--color-mockup-bg);
+  --color-border-subtle: var(--color-border-subtle);
   --font-sans: var(--font-inter);
   --font-mono: var(--font-mono);
 }

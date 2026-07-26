@@ -28,7 +28,7 @@ export default function LoginPage() {
             <h1 className="gradient-text text-2xl sm:text-3xl font-heading font-bold mb-2">
               {t.login.welcome}
             </h1>
-            <p className="text-white/50 font-body text-sm">
+            <p className="text-foreground-muted font-body text-sm">
               {t.login.subtitle}
             </p>
           </div>
@@ -39,7 +39,7 @@ export default function LoginPage() {
             <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-white/70 mb-1.5"
+                className="block text-sm font-medium text-foreground-muted mb-1.5"
               >
                 {t.login.email}
               </label>
@@ -49,7 +49,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder={t.login.emailPlaceholder}
-                className="w-full px-4 py-3 bg-deeper border border-violet/20 rounded-lg text-white placeholder:text-white/30 font-body text-sm outline-none transition-all duration-300 focus:border-violet focus:shadow-[0_0_15px_rgba(180,76,240,0.3)]"
+                className="w-full px-4 py-3 bg-deeper border border-violet/20 rounded-lg text-foreground placeholder:text-foreground-dim font-body text-sm outline-none transition-all duration-300 focus:border-violet focus:shadow-[0_0_15px_rgba(180,76,240,0.3)]"
               />
             </div>
 
@@ -57,7 +57,7 @@ export default function LoginPage() {
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-white/70 mb-1.5"
+                className="block text-sm font-medium text-foreground-muted mb-1.5"
               >
                 {t.login.password}
               </label>
@@ -67,7 +67,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder={t.login.passwordPlaceholder}
-                className="w-full px-4 py-3 bg-deeper border border-violet/20 rounded-lg text-white placeholder:text-white/30 font-body text-sm outline-none transition-all duration-300 focus:border-violet focus:shadow-[0_0_15px_rgba(180,76,240,0.3)]"
+                className="w-full px-4 py-3 bg-deeper border border-violet/20 rounded-lg text-foreground placeholder:text-foreground-dim font-body text-sm outline-none transition-all duration-300 focus:border-violet focus:shadow-[0_0_15px_rgba(180,76,240,0.3)]"
               />
             </div>
 
@@ -92,13 +92,13 @@ export default function LoginPage() {
 
           {/* Divider */}
           <div className="flex items-center gap-3 my-6">
-            <div className="flex-1 h-px bg-white/10" />
-            <span className="text-xs text-white/30 font-body">{t.login.or}</span>
-            <div className="flex-1 h-px bg-white/10" />
+            <div className="flex-1 h-px bg-foreground-dim" />
+            <span className="text-xs text-foreground-dim font-body">{t.login.or}</span>
+            <div className="flex-1 h-px bg-foreground-dim" />
           </div>
 
           {/* Google Sign In */}
-          <button className="w-full py-3 flex items-center justify-center gap-3 bg-white/5 border border-white/10 rounded-lg text-white font-body text-sm hover:bg-white/10 transition-colors duration-200">
+          <button className="w-full py-3 flex items-center justify-center gap-3 bg-foreground-dim/5 border border-foreground-dim/10 rounded-lg text-foreground font-body text-sm hover:bg-foreground-dim/10 transition-colors duration-200">
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path
                 fill="#4285F4"
@@ -121,7 +121,7 @@ export default function LoginPage() {
           </button>
 
           {/* Sign Up link */}
-          <p className="text-center text-white/40 font-body text-sm mt-8">
+          <p className="text-center text-foreground-dim font-body text-sm mt-8">
             {t.login.noAccount}{' '}
             <Link
               href="/signup"

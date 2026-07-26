@@ -24,7 +24,7 @@ export default function LearningPathPage({
   if (!path) {
     return (
       <div className="px-8 py-20 text-center">
-        <h1 className="font-display text-3xl text-white mb-4">{t.learningDetail.notFound}</h1>
+        <h1 className="font-display text-3xl text-foreground mb-4">{t.learningDetail.notFound}</h1>
         <Link href="/learning" className="text-accent font-mono text-sm hover:underline">← {t.learningDetail.backToLearning}</Link>
       </div>
     );
@@ -55,10 +55,10 @@ export default function LearningPathPage({
               <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent mb-3">
                 {path.category} • {path.difficulty} • {path.duration}
               </p>
-              <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl text-white uppercase leading-none mb-4">
+              <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl text-foreground uppercase leading-none mb-4">
                 {path.title}
               </h1>
-              <p className="text-lg text-white/60 max-w-2xl">{path.tagline}</p>
+              <p className="text-lg text-foreground-muted max-w-2xl">{path.tagline}</p>
               <p className="text-muted mt-4 max-w-2xl">{path.description}</p>
 
               {/* Progress Bar */}
@@ -104,7 +104,7 @@ export default function LearningPathPage({
                   <img src={path.author.avatar} alt={path.author.name}
                     className="w-12 h-12 rounded-full border-2 border-white/10 object-cover" />
                   <div>
-                    <p className="font-heading font-bold text-white text-sm">{path.author.name}</p>
+                    <p className="font-heading font-bold text-foreground text-sm">{path.author.name}</p>
                     <p className="text-muted text-xs">{path.author.role}</p>
                   </div>
                 </div>
@@ -117,7 +117,7 @@ export default function LearningPathPage({
                 <ul className="space-y-2">
                   {path.resources.map((r) => (
                     <li key={r.label}>
-                      <a href={r.url} className="flex items-center gap-2 text-white/70 text-sm hover:text-accent transition-colors">
+                      <a href={r.url} className="flex items-center gap-2 text-foreground-muted text-sm hover:text-accent transition-colors">
                         <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
                           <polyline points="14 2 14 8 20 8" />
@@ -135,7 +135,7 @@ export default function LearningPathPage({
 
       {/* Curriculum Accordion */}
       <div className="px-4 sm:px-6 lg:px-8 py-12 max-w-7xl mx-auto">
-        <h2 className="font-heading font-bold text-white text-xl mb-8">{t.learningDetail.curriculum}</h2>
+        <h2 className="font-heading font-bold text-foreground text-xl mb-8">{t.learningDetail.curriculum}</h2>
         <div className="space-y-3 max-w-3xl">
           {path.modules.map((mod, mi) => {
             const isOpen = expandedModule === mod.id;
@@ -157,7 +157,7 @@ export default function LearningPathPage({
                       {modCompleted ? '✓' : mi + 1}
                     </span>
                     <div>
-                      <p className="font-heading font-bold text-white text-sm">{t.learningDetail.module} {mi + 1}</p>
+                      <p className="font-heading font-bold text-foreground text-sm">{t.learningDetail.module} {mi + 1}</p>
                       <p className="text-muted text-sm">{mod.title}</p>
                     </div>
                   </div>
@@ -205,7 +205,7 @@ export default function LearningPathPage({
                                 </svg>
                               )}
                               <div className="flex-1 min-w-0">
-                                <p className="text-white text-sm">{lesson.title}</p>
+                                <p className="text-foreground text-sm">{lesson.title}</p>
                               </div>
                               <span className="text-muted text-xs font-mono">{lesson.duration}</span>
                             </Link>

@@ -110,7 +110,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="w-9 h-9 rounded-lg bg-accent flex items-center justify-center font-display text-white text-sm">
             HA
           </div>
-          <span className="font-heading font-bold text-white text-sm tracking-wide">
+          <span className="font-heading font-bold text-foreground text-sm tracking-wide">
             Hustle Alliance
           </span>
         </Link>
@@ -125,7 +125,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 'flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200',
                 isActive(link.href)
                   ? 'bg-accent/10 text-accent'
-                  : 'text-muted hover:text-white hover:bg-surface-light'
+                  : 'text-muted hover:text-foreground hover:bg-surface-light'
               )}
             >
               <span className={clsx(isActive(link.href) && 'drop-shadow-[0_0_6px_rgba(255,59,48,0.4)]')}>
@@ -145,7 +145,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               className="w-9 h-9 rounded-full border-2 border-white/10 object-cover"
             />
             <div className="flex-1 min-w-0">
-              <p className="text-white font-heading font-bold text-sm truncate">{user.name}</p>
+              <p className="text-foreground font-heading font-bold text-sm truncate">{user.name}</p>
               <p className="text-muted text-xs font-mono truncate">@{user.username}</p>
             </div>
           </Link>

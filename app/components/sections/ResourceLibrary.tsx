@@ -123,17 +123,17 @@ function BookCover({
               style={{ backgroundColor: accent }}
             />
             {/* Title */}
-            <h4 className="font-heading text-sm font-bold text-white leading-tight flex-1">
+            <h4 className="font-heading text-sm font-bold text-foreground leading-tight flex-1">
               {title}
             </h4>
             {/* Author line */}
             <div className="h-1 w-16 bg-mockup-bg rounded-full mb-2" />
             <div className="flex items-center justify-between">
-              <span className="text-[9px] font-mono uppercase tracking-wider text-white/30">
+              <span className="text-[9px] font-mono uppercase tracking-wider text-foreground-dim">
                 Hustle Alliance
               </span>
-              <div className="w-5 h-5 rounded-full border border-white/10 flex items-center justify-center">
-                <span className="text-[7px] font-mono text-white/40">HA</span>
+              <div className="w-5 h-5 rounded-full border border-foreground-dim flex items-center justify-center">
+                <span className="text-[7px] font-mono text-foreground-dim">HA</span>
               </div>
             </div>
           </div>

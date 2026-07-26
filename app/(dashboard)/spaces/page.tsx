@@ -21,7 +21,7 @@ export default function SpacesPage() {
         className="mb-10"
       >
         <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent mb-3">{t.spaces.tag}</p>
-        <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl text-white uppercase leading-none">
+        <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl text-foreground uppercase leading-none">
           {t.spaces.headline}
         </h1>
       </motion.div>
@@ -44,7 +44,7 @@ export default function SpacesPage() {
                     <div className="absolute inset-0 bg-gradient-to-t from-surface via-transparent" />
                   </div>
                   <div className="p-5">
-                    <h3 className="font-heading font-bold text-white text-lg mb-1 group-hover:text-accent transition-colors">
+                    <h3 className="font-heading font-bold text-foreground text-lg mb-1 group-hover:text-accent transition-colors">
                       {space.name}
                     </h3>
                     <p className="text-muted text-sm mb-4 line-clamp-2">{space.description}</p>

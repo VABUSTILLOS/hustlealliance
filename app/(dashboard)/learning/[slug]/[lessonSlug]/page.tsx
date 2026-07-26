@@ -46,7 +46,7 @@ export default function LessonPlayerPage({
   if (!path || !current) {
     return (
       <div className="px-8 py-20 text-center">
-        <h1 className="font-display text-3xl text-white mb-4">{t.lesson.notFound}</h1>
+        <h1 className="font-display text-3xl text-foreground mb-4">{t.lesson.notFound}</h1>
         <Link href={`/learning/${slug}`} className="text-accent font-mono text-sm">← {t.lesson.backToPath}</Link>
       </div>
     );
@@ -101,7 +101,7 @@ export default function LessonPlayerPage({
           {/* Title & Mark Complete */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="font-display text-2xl sm:text-3xl text-white uppercase leading-none mb-1">
+              <h1 className="font-display text-2xl sm:text-3xl text-foreground uppercase leading-none mb-1">
                 {current.lesson.title}
               </h1>
               <p className="font-mono text-xs text-muted">{current.lesson.duration}</p>
@@ -113,7 +113,7 @@ export default function LessonPlayerPage({
                   'inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-heading font-bold text-sm transition-all',
                   completed
                     ? 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 cursor-default'
-                    : 'bg-accent text-white hover:bg-accent-glow shadow-[0_0_20px_rgba(255,59,48,0.2)]'
+                    : 'bg-accent text-foreground hover:bg-accent-glow shadow-[0_0_20px_rgba(255,59,48,0.2)]'
                 )}
                 disabled={completed}
               >
@@ -133,7 +133,7 @@ export default function LessonPlayerPage({
 
           {/* Content */}
           <div className="bg-surface border border-surface-light rounded-2xl p-6 lg:p-8">
-            <div className="prose prose-invert max-w-none text-white/80 text-sm leading-relaxed whitespace-pre-wrap">
+            <div className="prose prose-invert max-w-none text-foreground-muted text-sm leading-relaxed whitespace-pre-wrap">
               {current.lesson.content}
             </div>
           </div>
@@ -143,7 +143,7 @@ export default function LessonPlayerPage({
             {prev ? (
               <Link
                 href={`/learning/${slug}/${prev.lesson.slug}`}
-                className="flex items-center gap-2 text-muted hover:text-white transition-colors text-sm font-medium"
+                className="flex items-center gap-2 text-muted hover:text-foreground transition-colors text-sm font-medium"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6" /></svg>
                 {prev.lesson.title}
@@ -187,7 +187,7 @@ export default function LessonPlayerPage({
                 )}>
                   {isDone ? '✓' : i + 1}
                 </span>
-                <span className={clsx('truncate', isActive ? 'text-white' : 'text-muted')}>
+                <span className={clsx('truncate', isActive ? 'text-foreground' : 'text-muted')}>
                   {item.lesson.title}
                 </span>
                 {isLocked && (
@@ -221,7 +221,7 @@ export default function LessonPlayerPage({
             >
               🎉
             </motion.div>
-            <p className="font-display text-2xl text-white uppercase">Lesson Complete!</p>
+            <p className="font-display text-2xl text-foreground uppercase">Lesson Complete!</p>
             <p className="text-muted text-sm mt-2">Great work. Keep the momentum going.</p>
           </motion.div>
         </motion.div>

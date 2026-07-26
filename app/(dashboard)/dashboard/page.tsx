@@ -76,7 +76,7 @@ export default function DashboardPage() {
               <img src={user.avatar} alt={user.name}
                 className="w-16 h-16 rounded-full border-2 border-white/10 object-cover shrink-0" />
               <div className="flex-1 min-w-0">
-                <h1 className="font-display text-2xl sm:text-3xl text-white uppercase leading-none mb-1">
+                <h1 className="font-display text-2xl sm:text-3xl text-foreground uppercase leading-none mb-1">
                   {t.dashboard.welcomeBack} {user.name.split(' ')[0]} 👋
                 </h1>
                 <p className="text-muted font-body text-sm">
@@ -116,7 +116,7 @@ export default function DashboardPage() {
                       {enrolledProgress}%
                     </span>
                   </div>
-                  <h3 className="font-heading font-bold text-white text-lg mb-1">
+                  <h3 className="font-heading font-bold text-foreground text-lg mb-1">
                     {enrolledPath.title}
                   </h3>
                   <p className="text-muted text-sm mb-5">
@@ -147,7 +147,7 @@ export default function DashboardPage() {
           <motion.div variants={fadeUp} className="lg:col-span-2">
             <Widget>
               <div className="flex items-center justify-between mb-5">
-                <h2 className="font-heading font-bold text-white text-lg">{t.dashboard.communityFeed}</h2>
+                <h2 className="font-heading font-bold text-foreground text-lg">{t.dashboard.communityFeed}</h2>
                 <Link href="/community" className="text-accent font-mono text-xs hover:underline">
                   {t.dashboard.viewAll}
                 </Link>
@@ -162,10 +162,10 @@ export default function DashboardPage() {
                       className="w-8 h-8 rounded-full border border-white/10 object-cover shrink-0 mt-0.5" />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="font-heading font-bold text-white text-sm">{post.author.name}</span>
+                        <span className="font-heading font-bold text-foreground text-sm">{post.author.name}</span>
                         <span className="text-muted text-xs font-mono">{post.timestamp}</span>
                       </div>
-                      <p className="text-white/70 text-sm line-clamp-2">{post.text}</p>
+                      <p className="text-foreground-muted text-sm line-clamp-2">{post.text}</p>
                       <div className="flex items-center gap-4 mt-2">
                         <span className="flex items-center gap-1 text-muted text-xs">
                           <svg className={`w-3.5 h-3.5 ${post.liked ? 'text-accent' : ''}`} viewBox="0 0 24 24" fill={post.liked ? 'currentColor' : 'none'}
@@ -192,7 +192,7 @@ export default function DashboardPage() {
           <motion.div variants={fadeUp}>
             <Widget>
               <div className="flex items-center justify-between mb-5">
-                <h2 className="font-heading font-bold text-white text-lg">{t.dashboard.mySpaces}</h2>
+                <h2 className="font-heading font-bold text-foreground text-lg">{t.dashboard.mySpaces}</h2>
                 <Link href="/spaces" className="text-accent font-mono text-xs hover:underline">
                   {t.dashboard.browseAll}
                 </Link>
@@ -212,7 +212,7 @@ export default function DashboardPage() {
                           </div>
                         ))}
                       </div>
-                      <span className="text-white text-sm font-medium group-hover:text-accent transition-colors">
+                      <span className="text-foreground text-sm font-medium group-hover:text-accent transition-colors">
                         {space.name}
                       </span>
                       <span className="text-muted text-xs font-mono">{space.memberCount}</span>
@@ -228,7 +228,7 @@ export default function DashboardPage() {
           {/* Upcoming Events */}
           <motion.div variants={fadeUp}>
             <Widget>
-              <h2 className="font-heading font-bold text-white text-lg mb-5">{t.dashboard.upcomingEvents}</h2>
+              <h2 className="font-heading font-bold text-foreground text-lg mb-5">{t.dashboard.upcomingEvents}</h2>
               <div className="space-y-4">
                 {upcomingEvents.slice(0, 3).map((event) => (
                   <div key={event.id} className="flex gap-4 p-3 rounded-xl bg-surface-light/50 border border-white/5 hover:border-accent/20 transition-colors">
@@ -237,7 +237,7 @@ export default function DashboardPage() {
                       <span className="text-accent/60 text-[9px] font-mono uppercase">{event.date.split(' ')[0]}</span>
                     </div>
                     <div className="min-w-0">
-                      <h3 className="font-heading font-bold text-white text-sm mb-0.5">{event.title}</h3>
+                      <h3 className="font-heading font-bold text-foreground text-sm mb-0.5">{event.title}</h3>
                       <p className="text-muted text-xs font-mono">{event.time} • {event.attendees} {t.dashboard.attending}</p>
                     </div>
                   </div>

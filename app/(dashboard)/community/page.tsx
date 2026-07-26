@@ -100,7 +100,7 @@ export default function CommunityPage() {
         className="mb-8"
       >
         <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent mb-3">{t.community.tag}</p>
-        <h1 className="font-display text-3xl sm:text-4xl text-white uppercase leading-none">
+        <h1 className="font-display text-3xl sm:text-4xl text-foreground uppercase leading-none">
           {t.community.headline}
         </h1>
       </motion.div>
@@ -120,7 +120,7 @@ export default function CommunityPage() {
               onChange={(e) => setNewPostText(e.target.value)}
               placeholder={t.community.createPost}
               rows={3}
-              className="w-full bg-transparent text-white placeholder:text-muted text-sm resize-none outline-none"
+              className="w-full bg-transparent text-foreground placeholder:text-muted text-sm resize-none outline-none"
             />
             {previewImage && (
               <div className="relative inline-block">
@@ -137,7 +137,7 @@ export default function CommunityPage() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="p-2 rounded-lg text-muted hover:text-white hover:bg-surface-light transition-colors"
+                  className="p-2 rounded-lg text-muted hover:text-foreground hover:bg-surface-light transition-colors"
                 >
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" />
@@ -181,8 +181,8 @@ export default function CommunityPage() {
             className={clsx(
               'px-3 py-1.5 rounded-full text-xs font-mono uppercase tracking-wider transition-all',
               sort === mode
-                ? 'bg-accent/20 text-white border border-accent/40'
-                : 'text-muted border border-white/10 hover:text-white'
+                ? 'bg-accent/20 text-foreground border border-accent/40'
+                : 'text-muted border border-foreground-dim hover:text-foreground'
             )}
           >
             {mode === 'latest' ? t.community.sortLatest : mode === 'popular' ? t.community.sortPopular : t.community.sortMySpaces}
@@ -207,7 +207,7 @@ export default function CommunityPage() {
                 <div className="flex items-center gap-3 mb-3">
                   <img src={post.author.avatar} alt="" className="w-10 h-10 rounded-full border border-white/10 object-cover" />
                   <div className="flex-1 min-w-0">
-                    <p className="font-heading font-bold text-white text-sm">{post.author.name}</p>
+                    <p className="font-heading font-bold text-foreground text-sm">{post.author.name}</p>
                     <div className="flex items-center gap-2">
                       <p className="font-mono text-[10px] text-muted">@{post.author.username}</p>
                       <span className="text-muted text-[10px]">•</span>
@@ -222,7 +222,7 @@ export default function CommunityPage() {
                 </div>
 
                 {/* Text */}
-                <p className="text-white/80 text-sm mb-3 leading-relaxed">{post.text}</p>
+                <p className="text-foreground-muted text-sm mb-3 leading-relaxed">{post.text}</p>
 
                 {/* Image */}
                 {post.image && (
@@ -238,7 +238,7 @@ export default function CommunityPage() {
                     </svg>
                     <span className={clsx('text-xs font-mono', post.liked ? 'text-accent' : 'text-muted')}>{post.likes}</span>
                   </button>
-                  <button onClick={() => toggleComments(post.id)} className="flex items-center gap-1.5 text-muted hover:text-white transition-colors">
+                  <button onClick={() => toggleComments(post.id)} className="flex items-center gap-1.5 text-muted hover:text-foreground transition-colors">
                     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
                     </svg>
@@ -260,8 +260,8 @@ export default function CommunityPage() {
                           <div key={c.id} className="flex gap-2 ml-4">
                             <img src={c.author.avatar} alt="" className="w-6 h-6 rounded-full border border-white/10 object-cover shrink-0 mt-0.5" />
                             <div className="bg-surface-light rounded-xl px-3 py-2 flex-1">
-                              <p className="font-heading font-bold text-white text-xs">{c.author.name}</p>
-                              <p className="text-white/70 text-xs">{c.text}</p>
+                              <p className="font-heading font-bold text-foreground text-xs">{c.author.name}</p>
+                              <p className="text-foreground-muted text-xs">{c.text}</p>
                             </div>
                           </div>
                         ))}
@@ -274,7 +274,7 @@ export default function CommunityPage() {
                               onChange={(e) => setCommentTexts((prev) => ({ ...prev, [post.id]: e.target.value }))}
                               onKeyDown={(e) => e.key === 'Enter' && handleAddComment(post.id)}
                               placeholder={t.community.writeComment}
-                              className="flex-1 bg-surface-light rounded-xl px-3 py-1.5 text-white text-xs outline-none placeholder:text-muted"
+                              className="flex-1 bg-surface-light rounded-xl px-3 py-1.5 text-foreground text-xs outline-none placeholder:text-muted"
                             />
                             <button
                               onClick={() => handleAddComment(post.id)}

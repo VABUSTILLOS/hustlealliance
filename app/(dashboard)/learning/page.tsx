@@ -38,7 +38,7 @@ export default function LearningCatalogPage() {
         <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent mb-3">
           {t.learning.tag}
         </p>
-        <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl text-white uppercase leading-none">
+        <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl text-foreground uppercase leading-none">
           {t.learning.headline}
         </h1>
       </motion.div>
@@ -53,8 +53,8 @@ export default function LearningCatalogPage() {
               className={clsx(
                 'relative px-4 py-2 rounded-full text-xs font-mono uppercase tracking-wider transition-all duration-300',
                 activeCategory === cat
-                  ? 'text-white bg-accent/20 border border-accent/40'
-                  : 'text-muted border border-white/10 hover:text-white hover:border-white/20'
+                  ? 'text-foreground bg-accent/20 border border-accent/40'
+                  : 'text-muted border border-foreground-dim hover:text-foreground hover:border-foreground-dim'
               )}
             >
               {activeCategory === cat && (
@@ -73,8 +73,8 @@ export default function LearningCatalogPage() {
           className={clsx(
             'px-4 py-2 rounded-full text-xs font-mono uppercase tracking-wider border transition-all',
             myPathsOnly
-              ? 'text-white bg-accent/20 border-accent/40'
-              : 'text-muted border-white/10 hover:text-white hover:border-white/20'
+              ? 'text-foreground bg-accent/20 border-accent/40'
+              : 'text-muted border-foreground-dim hover:text-foreground hover:border-foreground-dim'
           )}
         >
           {myPathsOnly ? t.learning.myPathsActive : t.learning.myPaths}
@@ -144,7 +144,7 @@ export default function LearningCatalogPage() {
                       <p className="font-mono text-[10px] uppercase tracking-wider text-accent mb-2">
                         {lp.category} • {lp.duration}
                       </p>
-                      <h3 className="font-heading font-bold text-white text-lg mb-1.5 group-hover:text-accent transition-colors">
+                      <h3 className="font-heading font-bold text-foreground text-lg mb-1.5 group-hover:text-accent transition-colors">
                         {lp.title}
                       </h3>
                       <p className="text-muted text-sm flex-1">{lp.tagline}</p>
