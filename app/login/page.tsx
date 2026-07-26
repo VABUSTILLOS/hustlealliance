@@ -3,14 +3,52 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import AnimatedBackground from '../components/AnimatedBackground';
 import GlassCard from '../components/GlassCard';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { createClient } from '@/lib/supabase/client';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const { t } = useTranslation();
+  const router = useRouter();
+
+  const handleSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    const supabase = createClient();
+
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (signInError) {
+      setError(signInError.message);
+      setLoading(false);
+      return;
+    }
+
+    router.push('/dashboard');
+    router.refresh();
+  };
+
+  const handleGoogleSignIn = async () => {
+    const supabase = createClient();
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+    if (oauthError) setError(oauthError.message);
+  };
 
   return (
     <div className="relative min-h-screen flex items-center justify-center px-4">
@@ -33,8 +71,15 @@ export default function LoginPage() {
             </p>
           </div>
 
+          {/* Error message */}
+          {error && (
+            <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-body">
+              {error}
+            </div>
+          )}
+
           {/* Form */}
-          <form className="space-y-5">
+          <form onSubmit={handleSignIn} className="space-y-5">
             {/* Email */}
             <div>
               <label
@@ -49,6 +94,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder={t.login.emailPlaceholder}
+                required
                 className="w-full px-4 py-3 bg-deeper border border-violet/20 rounded-lg text-foreground placeholder:text-foreground-dim font-body text-sm outline-none transition-all duration-300 focus:border-violet focus:shadow-[0_0_15px_rgba(180,76,240,0.3)]"
               />
             </div>
@@ -67,26 +113,28 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder={t.login.passwordPlaceholder}
+                required
                 className="w-full px-4 py-3 bg-deeper border border-violet/20 rounded-lg text-foreground placeholder:text-foreground-dim font-body text-sm outline-none transition-all duration-300 focus:border-violet focus:shadow-[0_0_15px_rgba(180,76,240,0.3)]"
               />
             </div>
 
             {/* Forgot password */}
             <div className="text-right">
-              <a
-                href="#"
+              <Link
+                href="/login?reset=true"
                 className="text-xs text-violet/70 hover:text-violet transition-colors"
               >
                 {t.login.forgotPassword}
-              </a>
+              </Link>
             </div>
 
             {/* Sign In button */}
             <button
               type="submit"
-              className="w-full py-3 bg-gradient-to-r from-violet to-magenta rounded-lg text-white font-heading font-bold text-sm hover:scale-[1.02] transition-transform duration-200 shadow-[0_0_25px_rgba(180,76,240,0.3)]"
+              disabled={loading}
+              className="w-full py-3 bg-gradient-to-r from-violet to-magenta rounded-lg text-white font-heading font-bold text-sm hover:scale-[1.02] transition-transform duration-200 shadow-[0_0_25px_rgba(180,76,240,0.3)] disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {t.login.signIn}
+              {loading ? (t.login.loggingIn) : (t.login.signIn)}
             </button>
           </form>
 
@@ -98,7 +146,10 @@ export default function LoginPage() {
           </div>
 
           {/* Google Sign In */}
-          <button className="w-full py-3 flex items-center justify-center gap-3 bg-foreground-dim/5 border border-foreground-dim/10 rounded-lg text-foreground font-body text-sm hover:bg-foreground-dim/10 transition-colors duration-200">
+          <button
+            onClick={handleGoogleSignIn}
+            className="w-full py-3 flex items-center justify-center gap-3 bg-foreground-dim/5 border border-foreground-dim/10 rounded-lg text-foreground font-body text-sm hover:bg-foreground-dim/10 transition-colors duration-200"
+          >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path
                 fill="#4285F4"

@@ -32,7 +32,7 @@ export default function MemberProfilePage({
     );
   }
 
-  const isOwnProfile = profile.username === currentUser.username;
+  const isOwnProfile = profile.username === (currentUser?.username ?? '');
   const memberPosts = posts.filter((p) => p.author.username === profile.username);
   const memberSpaces = allSpaces.filter((s) => joinedSpaces.includes(s.slug));
   const completedPaths = learningPaths.filter((lp) => profile.completedPaths.includes(lp.slug));

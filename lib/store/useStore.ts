@@ -27,8 +27,9 @@ export interface GamificationState {
 
 interface AppState {
   // Auth
-  currentUser: typeof currentUser;
+  currentUser: typeof currentUser | null;
   isAuthenticated: boolean;
+  signOut: () => Promise<void>;
 
   // Progress tracking
   progress: UserProgress;
@@ -109,6 +110,14 @@ export const useStore = create<AppState>()(
       // Auth
       currentUser,
       isAuthenticated: true,
+
+      signOut: async () => {
+        // Dynamic import to avoid SSR issues
+        const { createClient } = await import('@/lib/supabase/client');
+        const supabase = createClient();
+        await supabase.auth.signOut();
+        set({ isAuthenticated: false, currentUser: null });
+      },
 
       // Progress
       progress: {

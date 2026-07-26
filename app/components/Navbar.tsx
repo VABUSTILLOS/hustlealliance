@@ -1,15 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { useTheme } from '@/lib/theme/useTheme';
+import { useStore } from '@/lib/store/useStore';
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const { t, locale, setLocale } = useTranslation();
   const { theme, toggleTheme } = useTheme();
+  const isAuthenticated = useStore((s) => s.isAuthenticated);
+  const router = useRouter();
 
   const links = [
     { href: '/dashboard', label: t.nav.dashboard },
@@ -68,12 +72,21 @@ export default function Navbar() {
               {locale === 'en' ? 'EN' : 'ES'}
             </button>
 
-            <Link
-              href="/login"
-              className="inline-flex items-center px-4 py-2 bg-accent text-white font-heading font-bold text-sm rounded-xl hover:bg-accent-glow shadow-[0_0_20px_rgba(255,59,48,0.3)] transition-all"
-            >
-              {t.nav.joinAlliance}
-            </Link>
+            {isAuthenticated ? (
+              <button
+                onClick={() => useStore.getState().signOut()}
+                className="inline-flex items-center px-4 py-2 border border-foreground-dim/20 text-foreground/70 font-heading font-bold text-sm rounded-xl hover:border-red-400/30 hover:text-red-400 transition-all"
+              >
+                Sign Out
+              </button>
+            ) : (
+              <Link
+                href="/login"
+                className="inline-flex items-center px-4 py-2 bg-accent text-white font-heading font-bold text-sm rounded-xl hover:bg-accent-glow shadow-[0_0_20px_rgba(255,59,48,0.3)] transition-all"
+              >
+                {t.nav.joinAlliance}
+              </Link>
+            )}
           </div>
 
           {/* Mobile Hamburger */}
@@ -141,13 +154,22 @@ export default function Navbar() {
                 </button>
               </div>
 
-              <Link
-                href="/login"
-                onClick={() => setOpen(false)}
-                className="block w-full text-center px-4 py-2 bg-accent text-white font-heading font-bold text-sm rounded-xl hover:bg-accent-glow transition-all"
-              >
-                {t.nav.joinAlliance}
-              </Link>
+              {isAuthenticated ? (
+                <button
+                  onClick={() => { useStore.getState().signOut(); setOpen(false); }}
+                  className="block w-full text-center px-4 py-2 border border-foreground-dim/20 text-foreground/70 font-heading font-bold text-sm rounded-xl hover:border-red-400/30 hover:text-red-400 transition-all"
+                >
+                  Sign Out
+                </button>
+              ) : (
+                <Link
+                  href="/login"
+                  onClick={() => setOpen(false)}
+                  className="block w-full text-center px-4 py-2 bg-accent text-white font-heading font-bold text-sm rounded-xl hover:bg-accent-glow transition-all"
+                >
+                  {t.nav.joinAlliance}
+                </Link>
+              )}
             </div>
           </motion.div>
         )}

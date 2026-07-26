@@ -55,7 +55,7 @@ export default function CommunityPage() {
     if (!newPostText.trim()) return;
     const newPost: FeedPost = {
       id: String(Date.now()),
-      author: { username: user.username, name: user.name, avatar: user.avatar },
+      author: { username: user?.username ?? 'member', name: user?.name ?? 'Member', avatar: user?.avatar ?? 'https://api.dicebear.com/9.x/initials/svg?seed=User' },
       text: newPostText,
       image: previewImage || undefined,
       timestamp: 'Just now',
@@ -84,7 +84,7 @@ export default function CommunityPage() {
     if (!text) return;
     const comment: Comment = {
       id: String(Date.now()),
-      author: { username: user.username, name: user.name, avatar: user.avatar },
+      author: { username: user?.username ?? 'member', name: user?.name ?? 'Member', avatar: user?.avatar ?? 'https://api.dicebear.com/9.x/initials/svg?seed=User' },
       text,
       timestamp: 'Just now',
     };
@@ -114,7 +114,7 @@ export default function CommunityPage() {
         className="bg-surface border border-surface-light rounded-2xl p-5 mb-6"
       >
         <div className="flex gap-3">
-          <img src={user.avatar} alt="" className="w-10 h-10 rounded-full border border-white/10 object-cover shrink-0" />
+          <img src={user?.avatar ?? 'https://api.dicebear.com/9.x/initials/svg?seed=User'} alt="" className="w-10 h-10 rounded-full border border-white/10 object-cover shrink-0" />
           <div className="flex-1 space-y-3">
             <textarea
               value={newPostText}
@@ -268,7 +268,7 @@ export default function CommunityPage() {
                         ))}
                         {/* Add comment */}
                         <div className="flex gap-2 ml-4 pt-1">
-                          <img src={user.avatar} alt="" className="w-6 h-6 rounded-full border border-white/10 object-cover shrink-0" />
+                          <img src={user?.avatar ?? 'https://api.dicebear.com/9.x/initials/svg?seed=User'} alt="" className="w-6 h-6 rounded-full border border-white/10 object-cover shrink-0" />
                           <div className="flex-1 flex gap-2">
                             <input
                               value={commentTexts[post.id] || ''}

@@ -14,7 +14,7 @@ export default function LeaderboardPage() {
 
   const data = period === 'weekly' ? weeklyLeaderboard : monthlyLeaderboard;
 
-  const myRank = data.findIndex((e) => e.username === user.username) + 1;
+  const myRank = data.findIndex((e) => e.username === (user?.username ?? '')) + 1;
   const isTopThree = myRank > 0 && myRank <= 3;
 
   return (
@@ -61,7 +61,7 @@ export default function LeaderboardPage() {
                 w-12 h-12 rounded-full flex items-center justify-center shrink-0
                 ${isTopThree ? 'bg-accent text-white' : 'bg-surface-light text-foreground-dim'}
               `}>
-                <img src={user.avatar} alt={user.name} className="w-12 h-12 rounded-full" />
+                <img src={user?.avatar ?? 'https://api.dicebear.com/9.x/initials/svg?seed=User'} alt={user?.name ?? 'User'} className="w-12 h-12 rounded-full" />
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-foreground-muted text-xs uppercase tracking-wider">{t.leaderboard.myRank}</p>
@@ -105,7 +105,7 @@ export default function LeaderboardPage() {
               transition={{ duration: 0.3 }}
             >
               {data.map((entry, i) => {
-                const isMe = entry.username === user.username;
+                const isMe = entry.username === (user?.username ?? '');
                 const rankColor =
                   entry.rank === 1 ? 'text-yellow-400' :
                   entry.rank === 2 ? 'text-slate-300' :

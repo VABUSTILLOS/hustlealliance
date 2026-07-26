@@ -85,8 +85,8 @@ export default function DashboardPage() {
   const onboardingSteps = [
     {
       label: 'Complete your profile',
-      done: Boolean(user.name && user.bio),
-      href: `/member/${user.username}`,
+      done: Boolean(user?.name && user?.bio),
+      href: `/member/${user?.username ?? 'member'}`,
     },
     {
       label: 'Start your first path',
@@ -173,11 +173,11 @@ export default function DashboardPage() {
           <Widget className="relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-r from-accent/5 via-transparent to-transparent pointer-events-none" />
             <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-5">
-              <img src={user.avatar} alt={user.name}
+              <img src={user?.avatar ?? 'https://api.dicebear.com/9.x/initials/svg?seed=User'} alt={user?.name ?? 'User'}
                 className="w-16 h-16 rounded-full border-2 border-white/10 object-cover shrink-0" />
               <div className="flex-1 min-w-0">
                 <h1 className="font-display text-2xl sm:text-3xl text-white uppercase leading-none mb-1">
-                  {t.dashboard.welcomeBack} {user.name.split(' ')[0]} 👋
+                  {t.dashboard.welcomeBack} {user?.name?.split(' ')[0] ?? 'Founder'} 👋
                 </h1>
                 <p className="text-foreground-dim font-body text-sm">
                   {enrolledPath

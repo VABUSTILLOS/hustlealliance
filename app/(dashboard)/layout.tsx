@@ -140,19 +140,30 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           ))}
         </nav>
 
-        {/* User */}
+        {/* User + Sign Out */}
         <div className="px-6 py-5 border-t border-surface-light">
-          <Link href="/member/alexk" className="flex items-center gap-3 group">
+          <Link href="/member/alexk" className="flex items-center gap-3 group mb-3">
             <img
-              src={user.avatar}
-              alt={user.name}
+              src={user?.avatar ?? 'https://api.dicebear.com/9.x/initials/svg?seed=User'}
+              alt={user?.name ?? 'User'}
               className="w-9 h-9 rounded-full border-2 border-white/10 object-cover"
             />
             <div className="flex-1 min-w-0">
-              <p className="text-foreground font-heading font-bold text-sm truncate">{user.name}</p>
-              <p className="text-muted text-xs font-mono truncate">@{user.username}</p>
+              <p className="text-foreground font-heading font-bold text-sm truncate">{user?.name ?? 'Member'}</p>
+              <p className="text-muted text-xs font-mono truncate">@{user?.username ?? 'user'}</p>
             </div>
           </Link>
+          <button
+            onClick={() => useStore.getState().signOut()}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted hover:text-red-400 hover:bg-red-400/5 transition-all duration-200"
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            Sign Out
+          </button>
         </div>
       </aside>
 

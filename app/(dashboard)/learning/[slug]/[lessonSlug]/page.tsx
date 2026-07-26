@@ -64,9 +64,9 @@ export default function LessonPlayerPage({
     addPost({
       id: `post-${Date.now()}`,
       author: {
-        name: currentUser.name,
-        avatar: currentUser.avatar,
-        username: currentUser.username,
+        name: currentUser?.name ?? 'Member',
+        avatar: currentUser?.avatar ?? 'https://api.dicebear.com/9.x/initials/svg?seed=User',
+        username: currentUser?.username ?? 'member',
       },
       text: `🎉 ${t.gamification.sharedWin} "${current.lesson.title}" ${t.gamification.from} "${path?.title}"!`,
       timestamp: 'Just now',
