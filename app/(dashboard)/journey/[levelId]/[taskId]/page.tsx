@@ -2,12 +2,12 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useStore } from '@/lib/store/useStore';
 import { useTranslation } from '@/lib/i18n/useTranslation';
-import { getTaskById, getLevelById, journeyLevels } from '@/lib/data/journey';
+import { getTaskById, getLevelById } from '@/lib/data/journey';
 import { useToast } from '@/app/components/ToastProvider';
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback } from 'react';
 
 export default function TaskDetailPage() {
   const params = useParams();
@@ -21,7 +21,6 @@ export default function TaskDetailPage() {
   const level = getLevelById(levelId);
   const task = getTaskById(levelId, taskId);
 
-  const isAuthenticated = useStore((s) => s.isAuthenticated);
   const isTaskComplete = useStore((s) => s.isTaskComplete);
   const isLevelComplete = useStore((s) => s.isLevelComplete);
   const completeTask = useStore((s) => s.completeTask);
@@ -47,11 +46,6 @@ export default function TaskDetailPage() {
         </div>
       </div>
     );
-  }
-
-  if (!isAuthenticated) {
-    router.push('/login');
-    return null;
   }
 
   // Check if previous tasks in this level are done

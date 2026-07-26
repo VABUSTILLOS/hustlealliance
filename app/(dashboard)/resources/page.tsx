@@ -17,7 +17,6 @@ import {
 
 export default function ResourcesPage() {
   const { t } = useTranslation();
-  const isAuthenticated = useStore((s) => s.isAuthenticated);
   const isBookmarked = useStore((s) => s.isBookmarked);
   const bookmarks = useStore((s) => s.resourceBookmarks);
 
@@ -149,7 +148,6 @@ export default function ResourcesPage() {
                 resource={resource}
                 index={index}
                 isBookmarked={isBookmarked(resource.id)}
-                isAuthenticated={isAuthenticated}
                 t={t}
               />
             ))}
@@ -167,13 +165,11 @@ function ResourceCard({
   resource,
   index,
   isBookmarked,
-  isAuthenticated,
   t,
 }: {
   resource: Resource;
   index: number;
   isBookmarked: boolean;
-  isAuthenticated: boolean;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   t: any;
 }) {
@@ -247,7 +243,6 @@ function ResourceCard({
           <ResourceModal
             resource={resource}
             isBookmarked={isBookmarked}
-            isAuthenticated={isAuthenticated}
             t={t}
             onClose={() => setShowModal(false)}
           />
@@ -260,13 +255,11 @@ function ResourceCard({
 function ResourceModal({
   resource,
   isBookmarked,
-  isAuthenticated,
   t,
   onClose,
 }: {
   resource: Resource;
   isBookmarked: boolean;
-  isAuthenticated: boolean;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   t: any;
   onClose: () => void;
@@ -277,16 +270,7 @@ function ResourceModal({
   const related = useMemo(() => getRelatedResources(resource.id), [resource.id]);
 
   const handleDownload = () => {
-    if (!isAuthenticated) {
-      addToast({
-        message: t.resources.signInToDownload,
-        icon: '🔒',
-        type: 'info',
-        duration: 4000,
-      });
-      return;
-    }
-    // Mock download
+    // Mock download — open to all visitors
     window.open(resource.downloadUrl, '_blank');
   };
 

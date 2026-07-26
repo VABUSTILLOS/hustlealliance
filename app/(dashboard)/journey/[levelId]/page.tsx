@@ -1,6 +1,6 @@
 'use client';
 
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useStore } from '@/lib/store/useStore';
@@ -10,12 +10,10 @@ import { useState, useEffect } from 'react';
 
 export default function LevelDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const { t } = useTranslation();
   const levelId = Number(params.levelId);
   const level = getLevelById(levelId);
 
-  const isAuthenticated = useStore((s) => s.isAuthenticated);
   const isTaskComplete = useStore((s) => s.isTaskComplete);
   const isLevelComplete = useStore((s) => s.isLevelComplete);
   const journeyProgress = useStore((s) => s.journeyProgress);
@@ -44,12 +42,6 @@ export default function LevelDetailPage() {
         </div>
       </div>
     );
-  }
-
-  // Auth gate
-  if (!isAuthenticated) {
-    router.push('/login');
-    return null;
   }
 
   // Check if previous level must be completed

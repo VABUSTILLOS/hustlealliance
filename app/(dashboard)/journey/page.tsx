@@ -4,13 +4,10 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useStore } from '@/lib/store/useStore';
 import { useTranslation } from '@/lib/i18n/useTranslation';
-import { useCurrentUser } from '@/lib/hooks/useCurrentUser';
 import { journeyLevels } from '@/lib/data/journey';
 
 export default function JourneyPage() {
   const { t } = useTranslation();
-  const user = useCurrentUser();
-  const isAuthenticated = useStore((s) => s.isAuthenticated);
   const journeyProgress = useStore((s) => s.journeyProgress);
   const getLevelProgress = useStore((s) => s.getLevelProgress);
   const isLevelComplete = useStore((s) => s.isLevelComplete);
@@ -46,24 +43,6 @@ export default function JourneyPage() {
   const firstIncompleteTask = currentLevel.tasks.find(
     (task) => !journeyProgress[String(currentLevel.id)]?.tasks?.[task.id]?.completed
   );
-
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center px-4">
-        <div className="text-center space-y-4">
-          <span className="text-5xl">🗺️</span>
-          <h1 className="text-2xl font-heading font-bold text-foreground">{t.journey.title}</h1>
-          <p className="text-muted">Sign in to start your founder journey.</p>
-          <Link
-            href="/login"
-            className="inline-flex items-center px-6 py-3 bg-accent text-white font-heading font-bold rounded-xl hover:bg-accent-glow transition-all"
-          >
-            {t.nav.joinAlliance}
-          </Link>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-8">
