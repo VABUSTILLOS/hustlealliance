@@ -54,6 +54,33 @@ export default function SignupPage() {
           expires_at: Date.now() + (data.expires_in || 3600) * 1000,
         }));
         const { useStore } = await import('@/lib/store/useStore');
+        const { saveUserInfo, getAvatarUrl } = await import('@/lib/hooks/useCurrentUser');
+
+        // Save user info immediately (we have name from signup form)
+        saveUserInfo({
+          email,
+          name: name || email.split('@')[0],
+          avatar: getAvatarUrl(name, email),
+        });
+
+        // Also fetch confirmed user data from Supabase
+        try {
+          const userRes = await fetch('https://yftgdtdvmvvqyzcdntge.supabase.co/auth/v1/user', {
+            headers: {
+              'apikey': 'sb_publishable_sY8NIgcLzNcLUGx2Swl9BA_yqf9NIc8',
+              'Authorization': `Bearer ${data.access_token}`,
+            },
+          });
+          if (userRes.ok) {
+            const userData = await userRes.json();
+            saveUserInfo({
+              email: userData.email || email,
+              name: userData.user_metadata?.full_name || name,
+              avatar: getAvatarUrl(userData.user_metadata?.full_name || name, userData.email),
+            });
+          }
+        } catch { /* non-blocking */ }
+
         useStore.setState({ isAuthenticated: true });
       }
 

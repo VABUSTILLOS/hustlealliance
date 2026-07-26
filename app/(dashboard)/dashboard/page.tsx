@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useStore } from '@/lib/store/useStore';
+import { useCurrentUser, getFirstName, getAvatarUrl } from '@/lib/hooks/useCurrentUser';
 import { upcomingEvents } from '@/lib/data/events';
 import { learningPaths } from '@/lib/data/learning-paths';
 import { spaces as allSpaces } from '@/lib/data/spaces';
@@ -49,7 +50,7 @@ const fadeUp = {
 // ── Main Dashboard ───────────────────────────────────────────────────────
 export default function DashboardPage() {
   const { t } = useTranslation();
-  const user = useStore((s) => s.currentUser);
+  const user = useCurrentUser();
   const progress = useStore((s) => s.progress);
   const posts = useStore((s) => s.posts);
   const joinedSpaces = useStore((s) => s.joinedSpaces);
@@ -85,7 +86,7 @@ export default function DashboardPage() {
   const onboardingSteps = [
     {
       label: 'Complete your profile',
-      done: Boolean(user?.name && user?.bio),
+      done: Boolean(user?.name),
       href: `/member/${user?.username ?? 'member'}`,
     },
     {
@@ -177,7 +178,7 @@ export default function DashboardPage() {
                 className="w-16 h-16 rounded-full border-2 border-white/10 object-cover shrink-0" />
               <div className="flex-1 min-w-0">
                 <h1 className="font-display text-2xl sm:text-3xl text-white uppercase leading-none mb-1">
-                  {t.dashboard.welcomeBack} {user?.name?.split(' ')[0] ?? 'Founder'} 👋
+                  {t.dashboard.welcomeBack} {getFirstName(user?.name)} 👋
                 </h1>
                 <p className="text-foreground-dim font-body text-sm">
                   {enrolledPath

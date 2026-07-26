@@ -4,13 +4,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import { weeklyLeaderboard, monthlyLeaderboard, type LeaderboardEntry } from '@/lib/data/gamification';
 import { useStore } from '@/lib/store/useStore';
+import { useCurrentUser } from '@/lib/hooks/useCurrentUser';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
 export default function LeaderboardPage() {
   const { t } = useTranslation();
   const [period, setPeriod] = useState<'weekly' | 'monthly'>('weekly');
   const gamification = useStore((s) => s.gamification);
-  const user = useStore((s) => s.currentUser);
+  const user = useCurrentUser();
 
   const data = period === 'weekly' ? weeklyLeaderboard : monthlyLeaderboard;
 

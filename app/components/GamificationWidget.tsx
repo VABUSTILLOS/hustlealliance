@@ -66,7 +66,8 @@ export default function GamificationWidget() {
     <motion.div
       initial={{ opacity: 0, y: 20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      className="fixed bottom-6 right-6 z-[150]"
+      className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-[150]"
+      style={{ paddingBottom: typeof window !== 'undefined' ? 'env(safe-area-inset-bottom, 0px)' : undefined }}
     >
       <div className="relative">
         {/* Glow background */}

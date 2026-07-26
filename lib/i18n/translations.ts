@@ -314,6 +314,7 @@ const t = {
       sendMessage: 'Send Message',
       cancel: 'Cancel',
       startupPitch: 'Startup Pitch',
+      editProfile: 'Edit Profile',
     },
     leaderboard: {
       title: 'Leaderboard',
@@ -657,6 +658,7 @@ const t = {
       sendMessage: 'Enviar Mensaje',
       cancel: 'Cancelar',
       startupPitch: 'Pitch de Startup',
+      editProfile: 'Editar Perfil',
     },
     leaderboard: {
       title: 'Clasificación',

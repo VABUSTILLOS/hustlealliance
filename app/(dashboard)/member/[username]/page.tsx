@@ -7,6 +7,7 @@ import { memberProfiles, currentUser } from '@/lib/data/users';
 import { learningPaths } from '@/lib/data/learning-paths';
 import { spaces as allSpaces } from '@/lib/data/spaces';
 import { useStore } from '@/lib/store/useStore';
+import { useCurrentUser } from '@/lib/hooks/useCurrentUser';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
 export default function MemberProfilePage({
@@ -16,6 +17,7 @@ export default function MemberProfilePage({
 }) {
   const { username } = use(params);
   const { t } = useTranslation();
+  const realUser = useCurrentUser();
   const profile = memberProfiles[username];
   const posts = useStore((s) => s.posts);
   const joinedSpaces = useStore((s) => s.joinedSpaces);
@@ -32,7 +34,9 @@ export default function MemberProfilePage({
     );
   }
 
-  const isOwnProfile = profile.username === (currentUser?.username ?? '');
+  const isOwnProfile = realUser
+    ? (profile.username === (realUser.username || realUser.email?.split('@')[0]))
+    : false;
   const memberPosts = posts.filter((p) => p.author.username === profile.username);
   const memberSpaces = allSpaces.filter((s) => joinedSpaces.includes(s.slug));
   const completedPaths = learningPaths.filter((lp) => profile.completedPaths.includes(lp.slug));
@@ -73,6 +77,13 @@ export default function MemberProfilePage({
               className="shrink-0 px-4 py-2 bg-accent/10 border border-accent/30 text-accent font-heading font-bold text-sm rounded-xl hover:bg-accent/20 transition-colors"
             >
               {t.profile.message}
+            </button>
+          )}
+          {isOwnProfile && (
+            <button
+              className="shrink-0 px-4 py-2 bg-accent/10 border border-accent/30 text-accent font-heading font-bold text-sm rounded-xl hover:bg-accent/20 transition-colors"
+            >
+              {t.profile.editProfile || 'Edit Profile'}
             </button>
           )}
         </div>

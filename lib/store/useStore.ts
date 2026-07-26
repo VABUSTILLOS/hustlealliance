@@ -1,9 +1,17 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { feedPosts as initialPosts, type FeedPost, type Comment } from '@/lib/data/community';
-import { currentUser } from '@/lib/data/users';
+import { currentUser as fallbackUser } from '@/lib/data/users';
 import { spaces as initialSpaces } from '@/lib/data/spaces';
 import { badges as allBadges, XP_REWARDS, type Badge } from '@/lib/data/gamification';
+
+export interface UserInfo {
+  id?: string;
+  email?: string;
+  name: string;
+  avatar: string;
+  username?: string;
+}
 
 export interface UserProgress {
   [pathSlug: string]: {
@@ -27,8 +35,9 @@ export interface GamificationState {
 
 interface AppState {
   // Auth
-  currentUser: typeof currentUser | null;
+  currentUser: UserInfo | null;
   isAuthenticated: boolean;
+  setCurrentUser: (user: UserInfo | null) => void;
   signOut: () => Promise<void>;
 
   // Progress tracking
@@ -108,11 +117,14 @@ export const useStore = create<AppState>()(
   persist(
     (set, get) => ({
       // Auth
-      currentUser,
+      currentUser: null as UserInfo | null,
       isAuthenticated: false,
+
+      setCurrentUser: (user) => set({ currentUser: user }),
 
       signOut: async () => {
         localStorage.removeItem('sb-yftgdtdvmvvqyzcdntge-auth-token');
+        localStorage.removeItem('hustle_user_info');
         set({ isAuthenticated: false, currentUser: null });
       },
 
@@ -431,6 +443,7 @@ export const useStore = create<AppState>()(
     {
       name: 'hustle-alliance-storage',
       partialize: (state) => ({
+        currentUser: state.currentUser,
         progress: state.progress,
         gamification: state.gamification,
         joinedSpaces: state.joinedSpaces,

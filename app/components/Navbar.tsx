@@ -7,12 +7,15 @@ import { useRouter } from 'next/navigation';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { useTheme } from '@/lib/theme/useTheme';
 import { useStore } from '@/lib/store/useStore';
+import { useCurrentUser, getFirstName } from '@/lib/hooks/useCurrentUser';
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const { t, locale, setLocale } = useTranslation();
   const { theme, toggleTheme } = useTheme();
   const isAuthenticated = useStore((s) => s.isAuthenticated);
+  const user = useCurrentUser();
   const router = useRouter();
 
   const links = [
@@ -72,13 +75,49 @@ export default function Navbar() {
               {locale === 'en' ? 'EN' : 'ES'}
             </button>
 
-            {isAuthenticated ? (
-              <button
-                onClick={() => useStore.getState().signOut()}
-                className="inline-flex items-center px-4 py-2 border border-foreground-dim/20 text-foreground/70 font-heading font-bold text-sm rounded-xl hover:border-red-400/30 hover:text-red-400 transition-all"
-              >
-                Sign Out
-              </button>
+            {isAuthenticated && user ? (
+              <div className="relative">
+                <button
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-xl hover:bg-surface-light/50 transition-colors"
+                >
+                  <img
+                    src={user.avatar}
+                    alt={user.name}
+                    className="w-8 h-8 rounded-full border-2 border-white/10 object-cover"
+                  />
+                  <span className="text-sm font-medium text-foreground hidden lg:block">
+                    {getFirstName(user.name)}
+                  </span>
+                </button>
+                <AnimatePresence>
+                  {userMenuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute right-0 mt-2 w-56 bg-surface border border-surface-light rounded-xl shadow-xl overflow-hidden z-50"
+                    >
+                      <div className="px-4 py-3 border-b border-surface-light">
+                        <p className="text-foreground font-heading font-bold text-sm truncate">{user.name}</p>
+                        <p className="text-muted text-xs truncate">{user.email}</p>
+                      </div>
+                      <button
+                        onClick={() => { useStore.getState().signOut(); setUserMenuOpen(false); }}
+                        className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-muted hover:text-red-400 hover:bg-red-400/5 transition-colors"
+                      >
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+                          <polyline points="16 17 21 12 16 7" />
+                          <line x1="21" y1="12" x2="9" y2="12" />
+                        </svg>
+                        Sign Out
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             ) : (
               <Link
                 href="/login"
@@ -154,13 +193,22 @@ export default function Navbar() {
                 </button>
               </div>
 
-              {isAuthenticated ? (
-                <button
-                  onClick={() => { useStore.getState().signOut(); setOpen(false); }}
-                  className="block w-full text-center px-4 py-2 border border-foreground-dim/20 text-foreground/70 font-heading font-bold text-sm rounded-xl hover:border-red-400/30 hover:text-red-400 transition-all"
-                >
-                  Sign Out
-                </button>
+              {isAuthenticated && user ? (
+                <>
+                  <div className="flex items-center gap-3 py-2 border-t border-surface-light mt-2 pt-3">
+                    <img src={user.avatar} alt={user.name} className="w-10 h-10 rounded-full border-2 border-white/10 object-cover" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-foreground font-heading font-bold text-sm truncate">{user.name}</p>
+                      <p className="text-muted text-xs truncate">{user.email}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => { useStore.getState().signOut(); setOpen(false); }}
+                    className="block w-full text-center px-4 py-2 border border-foreground-dim/20 text-foreground/70 font-heading font-bold text-sm rounded-xl hover:border-red-400/30 hover:text-red-400 transition-all"
+                  >
+                    Sign Out
+                  </button>
+                </>
               ) : (
                 <Link
                   href="/login"

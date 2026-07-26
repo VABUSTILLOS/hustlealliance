@@ -8,6 +8,7 @@ import clsx from 'clsx';
 import { useStore } from '@/lib/store/useStore';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { useTheme } from '@/lib/theme/useTheme';
+import { useCurrentUser, getFirstName } from '@/lib/hooks/useCurrentUser';
 import GamificationWidget from '@/app/components/GamificationWidget';
 
 const sidebarLinks = [
@@ -74,7 +75,7 @@ const mobileLinks = [
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const user = useStore((s) => s.currentUser);
+  const user = useCurrentUser();
   const { t, locale, setLocale } = useTranslation();
   const { theme, toggleTheme } = useTheme();
 
@@ -98,7 +99,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const mobileLinks = [
     ...sidebarLinks,
-    { label: 'Profile', href: '/member/alexk', icon: (
+    { label: 'Profile', href: user?.username ? `/member/${user.username}` : '/member/alexk', icon: (
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 4-7 8-7s8 3 8 7" /></svg>
     )},
   ];
@@ -142,7 +143,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         {/* User + Sign Out */}
         <div className="px-6 py-5 border-t border-surface-light">
-          <Link href="/member/alexk" className="flex items-center gap-3 group mb-3">
+          <div className="flex items-center gap-3 group mb-3">
             <img
               src={user?.avatar ?? 'https://api.dicebear.com/9.x/initials/svg?seed=User'}
               alt={user?.name ?? 'User'}
@@ -150,9 +151,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             />
             <div className="flex-1 min-w-0">
               <p className="text-foreground font-heading font-bold text-sm truncate">{user?.name ?? 'Member'}</p>
-              <p className="text-muted text-xs font-mono truncate">@{user?.username ?? 'user'}</p>
+              <p className="text-muted text-xs font-mono truncate">{user?.email ?? ''}</p>
             </div>
-          </Link>
+          </div>
           <button
             onClick={() => useStore.getState().signOut()}
             className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted hover:text-red-400 hover:bg-red-400/5 transition-all duration-200"

@@ -7,6 +7,7 @@ import clsx from 'clsx';
 import { learningPaths, type Lesson } from '@/lib/data/learning-paths';
 import { feedPosts } from '@/lib/data/community';
 import { useStore } from '@/lib/store/useStore';
+import { useCurrentUser } from '@/lib/hooks/useCurrentUser';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
 export default function LessonPlayerPage({
@@ -22,7 +23,7 @@ export default function LessonPlayerPage({
   const hasCheered = useStore((s) => s.hasCheered);
   const toggleCheer = useStore((s) => s.toggleCheer);
   const addPost = useStore((s) => s.addPost);
-  const currentUser = useStore((s) => s.currentUser);
+  const user = useCurrentUser();
   const posts = useStore((s) => s.posts);
 
   // Flatten all lessons
@@ -64,9 +65,9 @@ export default function LessonPlayerPage({
     addPost({
       id: `post-${Date.now()}`,
       author: {
-        name: currentUser?.name ?? 'Member',
-        avatar: currentUser?.avatar ?? 'https://api.dicebear.com/9.x/initials/svg?seed=User',
-        username: currentUser?.username ?? 'member',
+        name: user?.name ?? 'Member',
+        avatar: user?.avatar ?? 'https://api.dicebear.com/9.x/initials/svg?seed=User',
+        username: user?.username ?? user?.email?.split('@')[0] ?? 'member',
       },
       text: `🎉 ${t.gamification.sharedWin} "${current.lesson.title}" ${t.gamification.from} "${path?.title}"!`,
       timestamp: 'Just now',
