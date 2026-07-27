@@ -33,7 +33,7 @@ export default function AdminPage() {
 
   if (loading) {
     return (
-      <div className="p-8">
+      <div className="p-4 md:p-8">
         <h1 className="text-2xl font-heading font-bold text-foreground mb-2">Admin Dashboard</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
           {Array.from({ length: 4 }).map((_, i) => (
@@ -49,7 +49,7 @@ export default function AdminPage() {
 
   if (!stats) {
     return (
-      <div className="p-8">
+      <div className="p-4 md:p-8">
         <h1 className="text-2xl font-heading font-bold text-foreground">Admin Dashboard</h1>
         <p className="text-muted mt-4">Failed to load stats.</p>
       </div>
@@ -64,8 +64,8 @@ export default function AdminPage() {
   ];
 
   return (
-    <div className="p-8">
-      <div className="flex items-center justify-between mb-8">
+    <div className="p-4 md:p-8">
+      <div className="flex items-center justify-between mb-4 md:mb-8">
         <div>
           <h1 className="text-2xl font-heading font-bold text-foreground">Admin Dashboard</h1>
           <p className="text-muted text-sm mt-1">Platform overview and quick stats</p>

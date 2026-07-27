@@ -111,12 +111,11 @@ export default function EditCoursePage({ params }: { params: Promise<{ id: strin
 
   const inputClass = 'w-full px-3 py-2 bg-surface border border-surface-light rounded-lg text-foreground text-sm placeholder:text-muted focus:outline-none focus:border-accent transition-colors';
 
-  if (loading) return <div className="p-8 text-muted">Loading...</div>;
-  if (!course) return <div className="p-8 text-muted">Course not found.</div>;
-
+  if (loading) return <div className="p-4 md:p-8 text-muted">Loading...</div>;
+  if (!course) return <div className="p-4 md:p-8 text-muted">Course not found.</div>;
   return (
-    <div className="p-8 max-w-4xl">
-      <div className="flex items-center gap-4 mb-8">
+    <div className="p-4 md:p-8 max-w-4xl">
+      <div className="flex items-center gap-4 mb-4 md:mb-8">
         <button onClick={() => router.push('/admin/courses')} className="text-muted hover:text-foreground">
           ← Back
         </button>

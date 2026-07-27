@@ -45,7 +45,7 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
   });
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <div className="flex items-center gap-4 mb-8">
         <Link href={`/instructor/courses/${id}`} className="text-muted hover:text-foreground">← Back to students</Link>
       </div>

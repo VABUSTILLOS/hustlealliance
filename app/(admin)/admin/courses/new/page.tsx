@@ -71,7 +71,7 @@ export default function NewCoursePage() {
   const labelClass = 'block text-sm text-muted mb-1.5';
 
   return (
-    <div className="p-8 max-w-3xl">
+    <div className="p-4 md:p-8 max-w-3xl">
       <h1 className="text-2xl font-heading font-bold text-foreground mb-8">Create New Course</h1>
 
       <form onSubmit={handleSubmit} className="space-y-6">
