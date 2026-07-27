@@ -240,21 +240,43 @@ function computeLayout(filtered: MemberNode[]): { nodes: LayoutNode[]; edges: La
 
 function FounderNode({ node, idx, inView }: { node: LayoutNode; idx: number; inView: boolean }) {
   const size = node.r * 2;
+  const driftX = [2, -3, 1.5, -2, 3, -1.5, 2.5, -2, 1][idx % 9];
+  const driftY = [-2.5, 1, 3, -1.5, 2, -3, 1.5, 2.5, -1][idx % 9];
+
   return (
     <Link href={`/member/${node.member.username}`} className="block group">
       <motion.div
         initial={{ opacity: 0, scale: 0.3 }}
-        animate={inView ? { opacity: 1, scale: 1 } : {}}
-        transition={{ duration: 0.5, delay: 0.3 + idx * 0.08, ease: 'easeOut' }}
+        animate={
+          inView
+            ? {
+                opacity: 1,
+                scale: 1,
+                x: [0, driftX, 0, -driftX, 0],
+                y: [0, driftY, 0, -driftY, 0],
+              }
+            : {}
+        }
+        transition={
+          inView
+            ? {
+                opacity: { duration: 0.5, delay: 0.3 + idx * 0.08, ease: 'easeOut' },
+                scale: { duration: 0.5, delay: 0.3 + idx * 0.08, ease: 'easeOut' },
+                x: { duration: 8 + idx * 1.2, repeat: Infinity, ease: 'easeInOut', delay: idx * 0.6 },
+                y: { duration: 7 + idx * 1.1, repeat: Infinity, ease: 'easeInOut', delay: idx * 0.4 },
+              }
+            : {}
+        }
       >
         <motion.div
-          animate={{ y: [0, -3, 0] }}
-          transition={{
-            duration: 3.5 + idx * 0.4,
-            repeat: Infinity,
-            ease: 'easeInOut',
-            delay: idx * 0.5,
+          animate={{
+            boxShadow: [
+              `0 0 6px ${node.member.accent}20`,
+              `0 0 20px ${node.member.accent}50`,
+              `0 0 6px ${node.member.accent}20`,
+            ],
           }}
+          transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: idx * 0.5 }}
           style={{
             width: size,
             height: size,
@@ -264,25 +286,13 @@ function FounderNode({ node, idx, inView }: { node: LayoutNode; idx: number; inV
           }}
           className="hover:border-[var(--color-accent)]/80 transition-colors duration-300 bg-black/40"
         >
-          <motion.div
-            animate={{
-              boxShadow: [
-                `0 0 6px ${node.member.accent}20`,
-                `0 0 16px ${node.member.accent}40`,
-                `0 0 6px ${node.member.accent}20`,
-              ],
-            }}
-            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: idx * 0.7 }}
-            className="w-full h-full rounded-full"
-          >
-            <img
-              src={node.member.image}
-              alt={node.member.name}
-              className="w-full h-full object-cover rounded-full"
-              style={{ filter: 'grayscale(100%) contrast(1.1)' }}
-              loading="lazy"
-            />
-          </motion.div>
+          <img
+            src={node.member.image}
+            alt={node.member.name}
+            className="w-full h-full object-cover rounded-full"
+            style={{ filter: 'grayscale(100%) contrast(1.1)' }}
+            loading="lazy"
+          />
         </motion.div>
         {/* Hover tooltip */}
         <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
@@ -392,61 +402,78 @@ export default function MemberSpotlight() {
             className="relative w-full"
             style={{ aspectRatio: `${VIEW_W}/${VIEW_H}` }}
           >
-            {/* SVG layer: edges + particles */}
-            <svg
-              viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
-              className="absolute inset-0 w-full h-full"
-              preserveAspectRatio="xMidYMid meet"
+            {/* Slow rotation wrapper for "one unified constellation" feel */}
+            <motion.div
+              animate={{ rotate: [0, 0.5, 0, -0.5, 0] }}
+              transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut' }}
+              className="absolute inset-0"
             >
-              {/* Edge lines */}
-              {layout.edges.map((edge, i) => {
-                const from = nodeMap.get(edge.from);
-                const to = nodeMap.get(edge.to);
-                if (!from || !to) return null;
-                return (
-                  <motion.line
-                    key={`${edge.from}-${edge.to}`}
-                    x1={from.x} y1={from.y} x2={to.x} y2={to.y}
-                    stroke={`${from.member.accent}20`}
-                    strokeWidth={1}
-                    initial={{ pathLength: 0, opacity: 0 }}
-                    animate={{ pathLength: 1, opacity: 1 }}
-                    transition={{ duration: 1.2, delay: 0.2 + i * 0.08, ease: 'easeInOut' }}
-                  />
-                );
-              })}
-
-              {/* Traveling glow particles */}
-              {layout.edges.slice(0, 15).map((edge, i) => {
-                const from = nodeMap.get(edge.from);
-                const to = nodeMap.get(edge.to);
-                if (!from || !to) return null;
-                return (
-                  <motion.circle
-                    key={`p-${edge.from}-${edge.to}`}
-                    r={2}
-                    fill={from.member.accent}
-                    filter="blur(0.5px)"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: [0, 0.6, 0] }}
-                    transition={{
-                      duration: 2.5,
-                      delay: 2 + i * 0.15,
-                      repeat: Infinity,
-                      repeatDelay: 3 + (i % 4),
-                      ease: 'easeInOut',
-                    }}
-                  >
-                    <animateMotion
-                      dur={`${2 + (i % 2.5)}s`}
-                      repeatCount="indefinite"
-                      begin={`${2 + i * 0.15}s`}
-                      path={`M${from.x},${from.y} L${to.x},${to.y}`}
+              {/* SVG layer: edges + particles */}
+              <svg
+                viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
+                className="absolute inset-0 w-full h-full"
+                preserveAspectRatio="xMidYMid meet"
+              >
+                {/* Edge lines — breathing pulse */}
+                {layout.edges.map((edge, i) => {
+                  const from = nodeMap.get(edge.from);
+                  const to = nodeMap.get(edge.to);
+                  if (!from || !to) return null;
+                  return (
+                    <motion.line
+                      key={`${edge.from}-${edge.to}`}
+                      x1={from.x} y1={from.y} x2={to.x} y2={to.y}
+                      stroke={`${from.member.accent}25`}
+                      strokeWidth={1.2}
+                      initial={{ pathLength: 0, opacity: 0 }}
+                      animate={{
+                        pathLength: 1,
+                        opacity: [0.15, 0.45, 0.15],
+                      }}
+                      transition={{
+                        pathLength: { duration: 1.2, delay: 0.2 + i * 0.08, ease: 'easeInOut' },
+                        opacity: {
+                          duration: 3 + (i % 3),
+                          delay: 1 + i * 0.2,
+                          repeat: Infinity,
+                          ease: 'easeInOut',
+                        },
+                      }}
                     />
-                  </motion.circle>
-                );
-              })}
-            </svg>
+                  );
+                })}
+
+                {/* Traveling glow particles */}
+                {layout.edges.map((edge, i) => {
+                  const from = nodeMap.get(edge.from);
+                  const to = nodeMap.get(edge.to);
+                  if (!from || !to) return null;
+                  return (
+                    <motion.circle
+                      key={`p-${edge.from}-${edge.to}`}
+                      r={2}
+                      fill={from.member.accent}
+                      filter="blur(0.8px)"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: [0, 0.7, 0] }}
+                      transition={{
+                        duration: 2.2,
+                        delay: 1.5 + i * 0.12,
+                        repeat: Infinity,
+                        repeatDelay: 2 + (i % 3),
+                        ease: 'easeInOut',
+                      }}
+                    >
+                      <animateMotion
+                        dur={`${1.8 + (i % 2)}s`}
+                        repeatCount="indefinite"
+                        begin={`${1.5 + i * 0.12}s`}
+                        path={`M${from.x},${from.y} L${to.x},${to.y}`}
+                      />
+                    </motion.circle>
+                  );
+                })}
+              </svg>
 
             {/* Node overlay */}
             {layout.nodes.map((node, idx) => {
@@ -463,24 +490,32 @@ export default function MemberSpotlight() {
               );
             })}
 
-            {/* Center badge */}
+            </motion.div>
+
+            {/* Center badge — unity message */}
             {filteredMembers.length > 0 && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.6 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 1.3, duration: 0.5 }}
+                transition={{ delay: 1.4, duration: 0.6 }}
                 className="absolute top-[92%] left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-10"
               >
-                <div className="text-center bg-black/70 backdrop-blur-md rounded-2xl px-5 py-2.5 border border-white/8">
+                <motion.div
+                  animate={{ boxShadow: [
+                    '0 0 20px rgba(255,59,48,0.1)',
+                    '0 0 40px rgba(255,59,48,0.2)',
+                    '0 0 20px rgba(255,59,48,0.1)',
+                  ]}}
+                  transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                  className="text-center bg-black/70 backdrop-blur-md rounded-2xl px-5 py-2.5 border border-white/8"
+                >
                   <div className="text-xl sm:text-2xl font-display font-bold text-white">
                     {filteredMembers.length === members.length ? '2,400+' : filteredMembers.length}
                   </div>
-                  <div className="text-[10px] font-mono uppercase tracking-wider text-white/50 mt-0.5">
-                    {filteredMembers.length === members.length
-                      ? t.spotlight.viewAll.replace('View all ', '').replace(' members', '')
-                      : 'founders'}
+                  <div className="text-[10px] font-mono uppercase tracking-wider text-white/40 mt-0.5">
+                    connected founders
                   </div>
-                </div>
+                </motion.div>
               </motion.div>
             )}
           </motion.div>
