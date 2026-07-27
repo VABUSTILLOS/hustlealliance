@@ -1,33 +1,36 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { motion, useSpring, useTransform, useInView } from 'framer-motion';
+import { motion, useInView, useAnimate } from 'framer-motion';
 import NeonButton from './NeonButton';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
 function AnimatedCounter({ end, suffix = '' }: { end: number; suffix?: string }) {
-  const ref = useRef<HTMLSpanElement>(null);
-  const inView = useInView(ref, { once: true, margin: '-100px' });
-  const spring = useSpring(0, { stiffness: 80, damping: 30 });
-  const display = useTransform(spring, (v) => Math.floor(v).toLocaleString());
+  const [scope, animate] = useAnimate();
+  const inView = useInView(scope, { once: true, margin: '-100px' });
+  const displayRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
-    if (inView) spring.set(end);
-  }, [inView, spring, end]);
+    if (!inView) return;
+    const controls = animate(0, end, {
+      duration: 1.5,
+      ease: [0.25, 0.1, 0.25, 1],
+      onUpdate(latest) {
+        if (displayRef.current) {
+          displayRef.current.textContent = Math.floor(latest).toLocaleString();
+        }
+      },
+    });
+    return () => controls.stop();
+  }, [inView, end, animate]);
 
   return (
-    <span ref={ref} className="font-display text-4xl sm:text-5xl tabular-nums">
-      <motion.span>{display}</motion.span>
+    <span ref={scope} className="font-display text-4xl sm:text-5xl tabular-nums">
+      <span ref={displayRef}>{end.toLocaleString()}</span>
       {suffix}
     </span>
   );
 }
-
-const stats = [
-  { value: 2400, suffix: '+', label: 'Founders' },
-  { value: 180, suffix: '+', label: 'Guides' },
-  { value: 40, suffix: 'M+', label: 'Raised' },
-];
 
 const container = {
   hidden: { opacity: 0 },

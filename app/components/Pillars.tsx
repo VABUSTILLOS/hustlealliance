@@ -2,39 +2,14 @@
 
 import { motion } from 'framer-motion';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import LiveChatFeed from './LiveChatFeed';
 
 function DeviceMockup({ type, t }: { type: string; t: any }) {
   switch (type) {
-    case 'phone':
+    case 'chat':
       return (
-        <div className="relative mx-auto w-36 h-64 sm:w-44 sm:h-80">
-          <div className="absolute inset-0 rounded-[24px] bg-surface-light border-2 border-white/10 overflow-hidden shadow-2xl">
-            <div className="absolute top-0 left-0 right-0 h-10 bg-black/40 border-b border-white/5 px-3 flex items-center gap-1.5">
-              <div className="w-2 h-2 rounded-full bg-accent/60" />
-              <div className="w-2 h-2 rounded-full bg-accent/40" />
-              <div className="w-2 h-2 rounded-full bg-accent/20" />
-            </div>
-            <div className="absolute top-14 left-2 right-2 space-y-2.5 px-1">
-              <div className="flex gap-2">
-                <div className="w-6 h-6 rounded-full bg-accent/30 flex-shrink-0" />
-                <div className="bg-mockup-bg rounded-2xl rounded-tl-sm px-3 py-2 text-[10px] text-foreground-muted w-3/4">
-                  {t.pillars.chat1}
-                </div>
-              </div>
-              <div className="flex gap-2 justify-end">
-                <div className="bg-accent/20 rounded-2xl rounded-tr-sm px-3 py-2 text-[10px] text-foreground-muted w-2/3">
-                  {t.pillars.chat2}
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <div className="w-6 h-6 rounded-full bg-accent-glow/30 flex-shrink-0" />
-                <div className="bg-mockup-bg rounded-2xl rounded-tl-sm px-3 py-2 text-[10px] text-foreground-muted w-3/4">
-                  {t.pillars.chat3}
-                </div>
-              </div>
-            </div>
-            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-20 h-1 bg-mockup-bg rounded-full" />
-          </div>
+        <div className="relative mx-auto w-full max-w-md">
+          <LiveChatFeed />
         </div>
       );
     case 'laptop':
@@ -114,7 +89,7 @@ export default function Pillars() {
   const { t } = useTranslation();
 
   const features = [
-    { title: t.pillars.community.title, description: t.pillars.community.desc, device: 'phone' as const },
+    { title: t.pillars.community.title, description: t.pillars.community.desc, device: 'chat' as const },
     { title: t.pillars.website.title, description: t.pillars.website.desc, device: 'laptop' as const },
     { title: t.pillars.guides.title, description: t.pillars.guides.desc, device: 'tablet' as const },
   ];
