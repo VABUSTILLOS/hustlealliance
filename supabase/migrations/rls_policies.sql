@@ -83,15 +83,15 @@ CREATE POLICY "auth_delete_quiz_a" ON "QuizAnswer" FOR DELETE USING (auth.role()
 
 ALTER TABLE "CommunityPost" ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "auth_read_community_post" ON "CommunityPost" FOR SELECT USING (auth.role() = 'authenticated');
-CREATE POLICY "user_insert_community_post" ON "CommunityPost" FOR INSERT WITH CHECK (auth.uid() = "authorId");
-CREATE POLICY "user_update_community_post" ON "CommunityPost" FOR UPDATE USING (auth.uid() = "authorId");
-CREATE POLICY "user_delete_community_post" ON "CommunityPost" FOR DELETE USING (auth.uid() = "authorId");
+CREATE POLICY "user_insert_community_post" ON "CommunityPost" FOR INSERT WITH CHECK (auth.uid()::text = "authorId");
+CREATE POLICY "user_update_community_post" ON "CommunityPost" FOR UPDATE USING (auth.uid()::text = "authorId");
+CREATE POLICY "user_delete_community_post" ON "CommunityPost" FOR DELETE USING (auth.uid()::text = "authorId");
 
 ALTER TABLE "CommunityComment" ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "auth_read_community_comment" ON "CommunityComment" FOR SELECT USING (auth.role() = 'authenticated');
-CREATE POLICY "user_insert_community_comment" ON "CommunityComment" FOR INSERT WITH CHECK (auth.uid() = "authorId");
-CREATE POLICY "user_update_community_comment" ON "CommunityComment" FOR UPDATE USING (auth.uid() = "authorId");
-CREATE POLICY "user_delete_community_comment" ON "CommunityComment" FOR DELETE USING (auth.uid() = "authorId");
+CREATE POLICY "user_insert_community_comment" ON "CommunityComment" FOR INSERT WITH CHECK (auth.uid()::text = "authorId");
+CREATE POLICY "user_update_community_comment" ON "CommunityComment" FOR UPDATE USING (auth.uid()::text = "authorId");
+CREATE POLICY "user_delete_community_comment" ON "CommunityComment" FOR DELETE USING (auth.uid()::text = "authorId");
 
 -- ============================================================================
 -- GROUP 3: USER-SCOPED — Users can only access their own rows
@@ -101,64 +101,64 @@ CREATE POLICY "user_delete_community_comment" ON "CommunityComment" FOR DELETE U
 -- ============================================================================
 
 ALTER TABLE "Enrollment" ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "user_read_enrollment" ON "Enrollment" FOR SELECT USING (auth.uid() = "userId");
-CREATE POLICY "user_insert_enrollment" ON "Enrollment" FOR INSERT WITH CHECK (auth.uid() = "userId");
-CREATE POLICY "user_update_enrollment" ON "Enrollment" FOR UPDATE USING (auth.uid() = "userId");
-CREATE POLICY "user_delete_enrollment" ON "Enrollment" FOR DELETE USING (auth.uid() = "userId");
+CREATE POLICY "user_read_enrollment" ON "Enrollment" FOR SELECT USING (auth.uid()::text = "userId");
+CREATE POLICY "user_insert_enrollment" ON "Enrollment" FOR INSERT WITH CHECK (auth.uid()::text = "userId");
+CREATE POLICY "user_update_enrollment" ON "Enrollment" FOR UPDATE USING (auth.uid()::text = "userId");
+CREATE POLICY "user_delete_enrollment" ON "Enrollment" FOR DELETE USING (auth.uid()::text = "userId");
 
 ALTER TABLE "LessonProgress" ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "user_read_lesson_progress" ON "LessonProgress" FOR SELECT USING (auth.uid() = "userId");
-CREATE POLICY "user_insert_lesson_progress" ON "LessonProgress" FOR INSERT WITH CHECK (auth.uid() = "userId");
-CREATE POLICY "user_update_lesson_progress" ON "LessonProgress" FOR UPDATE USING (auth.uid() = "userId");
-CREATE POLICY "user_delete_lesson_progress" ON "LessonProgress" FOR DELETE USING (auth.uid() = "userId");
+CREATE POLICY "user_read_lesson_progress" ON "LessonProgress" FOR SELECT USING (auth.uid()::text = "userId");
+CREATE POLICY "user_insert_lesson_progress" ON "LessonProgress" FOR INSERT WITH CHECK (auth.uid()::text = "userId");
+CREATE POLICY "user_update_lesson_progress" ON "LessonProgress" FOR UPDATE USING (auth.uid()::text = "userId");
+CREATE POLICY "user_delete_lesson_progress" ON "LessonProgress" FOR DELETE USING (auth.uid()::text = "userId");
 
 ALTER TABLE "QuizAttempt" ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "user_read_quiz_attempt" ON "QuizAttempt" FOR SELECT USING (auth.uid() = "userId");
-CREATE POLICY "user_insert_quiz_attempt" ON "QuizAttempt" FOR INSERT WITH CHECK (auth.uid() = "userId");
-CREATE POLICY "user_update_quiz_attempt" ON "QuizAttempt" FOR UPDATE USING (auth.uid() = "userId");
-CREATE POLICY "user_delete_quiz_attempt" ON "QuizAttempt" FOR DELETE USING (auth.uid() = "userId");
+CREATE POLICY "user_read_quiz_attempt" ON "QuizAttempt" FOR SELECT USING (auth.uid()::text = "userId");
+CREATE POLICY "user_insert_quiz_attempt" ON "QuizAttempt" FOR INSERT WITH CHECK (auth.uid()::text = "userId");
+CREATE POLICY "user_update_quiz_attempt" ON "QuizAttempt" FOR UPDATE USING (auth.uid()::text = "userId");
+CREATE POLICY "user_delete_quiz_attempt" ON "QuizAttempt" FOR DELETE USING (auth.uid()::text = "userId");
 
 ALTER TABLE "EarnedBadge" ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "user_read_earned_badge" ON "EarnedBadge" FOR SELECT USING (auth.uid() = "userId");
-CREATE POLICY "user_insert_earned_badge" ON "EarnedBadge" FOR INSERT WITH CHECK (auth.uid() = "userId");
-CREATE POLICY "user_update_earned_badge" ON "EarnedBadge" FOR UPDATE USING (auth.uid() = "userId");
-CREATE POLICY "user_delete_earned_badge" ON "EarnedBadge" FOR DELETE USING (auth.uid() = "userId");
+CREATE POLICY "user_read_earned_badge" ON "EarnedBadge" FOR SELECT USING (auth.uid()::text = "userId");
+CREATE POLICY "user_insert_earned_badge" ON "EarnedBadge" FOR INSERT WITH CHECK (auth.uid()::text = "userId");
+CREATE POLICY "user_update_earned_badge" ON "EarnedBadge" FOR UPDATE USING (auth.uid()::text = "userId");
+CREATE POLICY "user_delete_earned_badge" ON "EarnedBadge" FOR DELETE USING (auth.uid()::text = "userId");
 
 ALTER TABLE "Certificate" ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "user_read_certificate" ON "Certificate" FOR SELECT USING (auth.uid() = "userId");
-CREATE POLICY "user_insert_certificate" ON "Certificate" FOR INSERT WITH CHECK (auth.uid() = "userId");
-CREATE POLICY "user_update_certificate" ON "Certificate" FOR UPDATE USING (auth.uid() = "userId");
-CREATE POLICY "user_delete_certificate" ON "Certificate" FOR DELETE USING (auth.uid() = "userId");
+CREATE POLICY "user_read_certificate" ON "Certificate" FOR SELECT USING (auth.uid()::text = "userId");
+CREATE POLICY "user_insert_certificate" ON "Certificate" FOR INSERT WITH CHECK (auth.uid()::text = "userId");
+CREATE POLICY "user_update_certificate" ON "Certificate" FOR UPDATE USING (auth.uid()::text = "userId");
+CREATE POLICY "user_delete_certificate" ON "Certificate" FOR DELETE USING (auth.uid()::text = "userId");
 
 ALTER TABLE "XPTransaction" ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "user_read_xp" ON "XPTransaction" FOR SELECT USING (auth.uid() = "userId");
-CREATE POLICY "user_insert_xp" ON "XPTransaction" FOR INSERT WITH CHECK (auth.uid() = "userId");
-CREATE POLICY "user_update_xp" ON "XPTransaction" FOR UPDATE USING (auth.uid() = "userId");
-CREATE POLICY "user_delete_xp" ON "XPTransaction" FOR DELETE USING (auth.uid() = "userId");
+CREATE POLICY "user_read_xp" ON "XPTransaction" FOR SELECT USING (auth.uid()::text = "userId");
+CREATE POLICY "user_insert_xp" ON "XPTransaction" FOR INSERT WITH CHECK (auth.uid()::text = "userId");
+CREATE POLICY "user_update_xp" ON "XPTransaction" FOR UPDATE USING (auth.uid()::text = "userId");
+CREATE POLICY "user_delete_xp" ON "XPTransaction" FOR DELETE USING (auth.uid()::text = "userId");
 
 ALTER TABLE "Streak" ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "user_read_streak" ON "Streak" FOR SELECT USING (auth.uid() = "userId");
-CREATE POLICY "user_insert_streak" ON "Streak" FOR INSERT WITH CHECK (auth.uid() = "userId");
-CREATE POLICY "user_update_streak" ON "Streak" FOR UPDATE USING (auth.uid() = "userId");
-CREATE POLICY "user_delete_streak" ON "Streak" FOR DELETE USING (auth.uid() = "userId");
+CREATE POLICY "user_read_streak" ON "Streak" FOR SELECT USING (auth.uid()::text = "userId");
+CREATE POLICY "user_insert_streak" ON "Streak" FOR INSERT WITH CHECK (auth.uid()::text = "userId");
+CREATE POLICY "user_update_streak" ON "Streak" FOR UPDATE USING (auth.uid()::text = "userId");
+CREATE POLICY "user_delete_streak" ON "Streak" FOR DELETE USING (auth.uid()::text = "userId");
 
 ALTER TABLE "Notification" ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "user_read_notification" ON "Notification" FOR SELECT USING (auth.uid() = "userId");
-CREATE POLICY "user_insert_notification" ON "Notification" FOR INSERT WITH CHECK (auth.uid() = "userId");
-CREATE POLICY "user_update_notification" ON "Notification" FOR UPDATE USING (auth.uid() = "userId");
-CREATE POLICY "user_delete_notification" ON "Notification" FOR DELETE USING (auth.uid() = "userId");
+CREATE POLICY "user_read_notification" ON "Notification" FOR SELECT USING (auth.uid()::text = "userId");
+CREATE POLICY "user_insert_notification" ON "Notification" FOR INSERT WITH CHECK (auth.uid()::text = "userId");
+CREATE POLICY "user_update_notification" ON "Notification" FOR UPDATE USING (auth.uid()::text = "userId");
+CREATE POLICY "user_delete_notification" ON "Notification" FOR DELETE USING (auth.uid()::text = "userId");
 
 ALTER TABLE "ContentRelease" ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "user_read_content_release" ON "ContentRelease" FOR SELECT USING (auth.uid() = "userId");
-CREATE POLICY "user_insert_content_release" ON "ContentRelease" FOR INSERT WITH CHECK (auth.uid() = "userId");
-CREATE POLICY "user_update_content_release" ON "ContentRelease" FOR UPDATE USING (auth.uid() = "userId");
-CREATE POLICY "user_delete_content_release" ON "ContentRelease" FOR DELETE USING (auth.uid() = "userId");
+CREATE POLICY "user_read_content_release" ON "ContentRelease" FOR SELECT USING (auth.uid()::text = "userId");
+CREATE POLICY "user_insert_content_release" ON "ContentRelease" FOR INSERT WITH CHECK (auth.uid()::text = "userId");
+CREATE POLICY "user_update_content_release" ON "ContentRelease" FOR UPDATE USING (auth.uid()::text = "userId");
+CREATE POLICY "user_delete_content_release" ON "ContentRelease" FOR DELETE USING (auth.uid()::text = "userId");
 
 ALTER TABLE "LiveClassRegistration" ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "user_read_lc_reg" ON "LiveClassRegistration" FOR SELECT USING (auth.uid() = "userId");
-CREATE POLICY "user_insert_lc_reg" ON "LiveClassRegistration" FOR INSERT WITH CHECK (auth.uid() = "userId");
-CREATE POLICY "user_update_lc_reg" ON "LiveClassRegistration" FOR UPDATE USING (auth.uid() = "userId");
-CREATE POLICY "user_delete_lc_reg" ON "LiveClassRegistration" FOR DELETE USING (auth.uid() = "userId");
+CREATE POLICY "user_read_lc_reg" ON "LiveClassRegistration" FOR SELECT USING (auth.uid()::text = "userId");
+CREATE POLICY "user_insert_lc_reg" ON "LiveClassRegistration" FOR INSERT WITH CHECK (auth.uid()::text = "userId");
+CREATE POLICY "user_update_lc_reg" ON "LiveClassRegistration" FOR UPDATE USING (auth.uid()::text = "userId");
+CREATE POLICY "user_delete_lc_reg" ON "LiveClassRegistration" FOR DELETE USING (auth.uid()::text = "userId");
 
 -- ============================================================================
 -- GROUP 4: SERVER-ONLY — Restricted access; mutations blocked at PostgREST
@@ -167,20 +167,20 @@ CREATE POLICY "user_delete_lc_reg" ON "LiveClassRegistration" FOR DELETE USING (
 -- ============================================================================
 
 ALTER TABLE "User" ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "read_own_profile" ON "User" FOR SELECT USING (auth.uid() = id);
+CREATE POLICY "read_own_profile" ON "User" FOR SELECT USING (auth.uid()::text = id);
 CREATE POLICY "read_public_profile" ON "User" FOR SELECT USING (true);
 CREATE POLICY "block_insert_user" ON "User" FOR INSERT WITH CHECK (false);
 CREATE POLICY "block_update_user" ON "User" FOR UPDATE USING (false);
 CREATE POLICY "block_delete_user" ON "User" FOR DELETE USING (false);
 
 ALTER TABLE "Order" ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "user_read_own_orders" ON "Order" FOR SELECT USING (auth.uid() = "userId");
+CREATE POLICY "user_read_own_orders" ON "Order" FOR SELECT USING (auth.uid()::text = "userId");
 CREATE POLICY "block_insert_order" ON "Order" FOR INSERT WITH CHECK (false);
 CREATE POLICY "block_update_order" ON "Order" FOR UPDATE USING (false);
 CREATE POLICY "block_delete_order" ON "Order" FOR DELETE USING (false);
 
 ALTER TABLE "Entitlement" ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "user_read_own_entitlements" ON "Entitlement" FOR SELECT USING (auth.uid() = "userId");
+CREATE POLICY "user_read_own_entitlements" ON "Entitlement" FOR SELECT USING (auth.uid()::text = "userId");
 CREATE POLICY "block_insert_entitlement" ON "Entitlement" FOR INSERT WITH CHECK (false);
 CREATE POLICY "block_update_entitlement" ON "Entitlement" FOR UPDATE USING (false);
 CREATE POLICY "block_delete_entitlement" ON "Entitlement" FOR DELETE USING (false);
