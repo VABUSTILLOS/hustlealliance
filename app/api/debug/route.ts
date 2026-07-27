@@ -13,6 +13,21 @@ function testTcp(host: string, port: number, timeout = 5000): Promise<string> {
   });
 }
 
+function createLookup(hostname: string, cb: Function) {
+  dns.resolve6(hostname).then((addrs6) => {
+    if (addrs6?.length) return cb(null, addrs6[0], 6);
+    return dns.resolve4(hostname).then((addrs4) => {
+      if (addrs4?.length) return cb(null, addrs4[0], 4);
+      cb(new Error('No addresses found'));
+    });
+  }).catch((err6: any) => {
+    dns.resolve4(hostname).then((addrs4) => {
+      if (addrs4?.length) return cb(null, addrs4[0], 4);
+      cb(err6);
+    }).catch((err4: any) => cb(err4));
+  });
+}
+
 export async function GET() {
   const dbUrl = process.env.DATABASE_URL || '';
   const redacted = dbUrl.replace(/\/\/[^:]+:[^@]+@/, '//[USER]:[REDACTED]@');
@@ -31,12 +46,28 @@ export async function GET() {
   const tcp5432 = await testTcp('db.yftgdtdvmvvqyzcdntge.supabase.co', 5432, 5000);
   const tcp6543 = await testTcp('db.yftgdtdvmvvqyzcdntge.supabase.co', 6543, 5000);
 
+  // Test pg Pool with custom lookup
+  let pgResult = 'not_tested';
+  try {
+    const { Pool } = require('pg');
+    const pool = new Pool({
+      connectionString: dbUrl,
+      lookup: (hostname: string, _opts: any, cb: Function) => createLookup(hostname, cb),
+      connectionTimeoutMillis: 5000,
+    });
+    const res = await pool.query('SELECT 1 as val');
+    pgResult = `ok: ${JSON.stringify(res.rows)}`;
+    await pool.end();
+  } catch (e: any) {
+    pgResult = `error: ${e.message || e.code}`;
+  }
+
   return NextResponse.json({
     hasDbUrl: !!dbUrl,
     port: dbUrl.match(/:(\d+)\//)?.[1] || 'unknown',
-    redacted,
     dns4, dns6,
     tcp5432, tcp6543,
+    pgResult,
     nodeVersion: process.version,
   });
 }
