@@ -15,7 +15,7 @@ export default function HabitsPreview() {
   const { t } = useTranslation();
 
   return (
-    <section className="relative py-24 lg:py-32 px-4 bg-black overflow-hidden">
+    <section className="relative py-16 lg:py-32 px-4 bg-black overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/3 left-1/4 w-[400px] h-[400px] bg-[var(--color-accent)]/3 rounded-full blur-[130px]" />

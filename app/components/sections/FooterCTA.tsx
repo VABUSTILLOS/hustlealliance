@@ -71,7 +71,7 @@ export default function FooterCTA() {
         />
       </div>
 
-      <div className="relative z-10 max-w-6xl mx-auto px-4 py-24">
+      <div className="relative z-10 max-w-6xl mx-auto px-4 py-16">
         {/* CTA Section */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}

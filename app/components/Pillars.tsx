@@ -94,7 +94,7 @@ export default function Pillars() {
     { title: t.pillars.guides.title, description: t.pillars.guides.desc, device: 'tablet' as const },
   ];
   return (
-    <section className="relative py-24 lg:py-32 px-4 bg-black">
+    <section className="relative py-16 lg:py-32 px-4 bg-black">
       <div className="max-w-6xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

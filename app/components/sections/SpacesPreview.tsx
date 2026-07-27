@@ -23,7 +23,7 @@ export default function SpacesPreview() {
   };
 
   return (
-    <section className="relative py-24 lg:py-32 px-4 bg-black overflow-hidden">
+    <section className="relative py-16 lg:py-32 px-4 bg-black overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute bottom-1/2 right-1/4 w-[450px] h-[450px] bg-[var(--color-violet)]/4 rounded-full blur-[140px]" />

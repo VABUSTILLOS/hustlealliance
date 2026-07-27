@@ -152,7 +152,8 @@ function ResourceCard({ resource, index }: { resource: LibraryCard; index: numbe
 export default function ResourceLibrary() {
   const { t } = useTranslation();
   const [activeCategory, setActiveCategory] = useState<CategoryKey>('All');
-  const MAX_VISIBLE = 8; // 2 rows on desktop (4 cols), 1 row on mobile
+  const MAX_VISIBLE = 8;
+  const MOBILE_VISIBLE = 4;
 
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = { All: allCards.length };
@@ -175,7 +176,7 @@ export default function ResourceLibrary() {
   }, []);
 
   return (
-    <section className="relative py-24 lg:py-32 px-4 bg-black">
+    <section className="relative py-16 lg:py-32 px-4 bg-black">
       {/* Background glow */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-accent/3 rounded-full blur-[180px]" />
@@ -188,7 +189,7 @@ export default function ResourceLibrary() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="text-center mb-12"
+          className="text-center mb-8"
         >
           <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent mb-4">
             {t.resourceLibrary.tag}
@@ -207,7 +208,7 @@ export default function ResourceLibrary() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.4, delay: 0.15 }}
-          className="flex flex-wrap items-center justify-center gap-2 mb-14"
+          className="flex flex-wrap items-center justify-center gap-2 mb-10"
         >
           {categoryDefs.map((cat) => (
             <button
@@ -238,7 +239,9 @@ export default function ResourceLibrary() {
         <motion.div layout className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
           <AnimatePresence mode="popLayout">
             {visible.map((resource, i) => (
-              <ResourceCard key={resource.id} resource={resource} index={i} />
+              <div key={resource.id} className={i >= MOBILE_VISIBLE ? 'hidden sm:block' : undefined}>
+                <ResourceCard resource={resource} index={i} />
+              </div>
             ))}
           </AnimatePresence>
         </motion.div>

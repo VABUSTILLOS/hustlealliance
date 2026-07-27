@@ -73,7 +73,7 @@ export default function Pricing() {
     { quote: t.pricing.testimonials.t3.quote, name: t.pricing.testimonials.t3.name, role: t.pricing.testimonials.t3.role, avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=96&h=96&fit=crop&crop=face' },
   ];
   return (
-    <section className="relative py-24 lg:py-32 px-4 bg-black">
+    <section className="relative py-16 lg:py-32 px-4 bg-black">
       <div className="max-w-6xl mx-auto">
         {/* ── Header ─────────────────────────── */}
         <motion.div

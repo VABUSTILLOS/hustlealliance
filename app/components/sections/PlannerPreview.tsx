@@ -19,7 +19,7 @@ export default function PlannerPreview() {
   const { t } = useTranslation();
 
   return (
-    <section className="relative py-24 lg:py-32 px-4 bg-black overflow-hidden">
+    <section className="relative py-16 lg:py-32 px-4 bg-black overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-0 left-1/3 w-[500px] h-[500px] bg-gradient-to-br from-[var(--color-violet)]/5 to-[var(--color-magenta)]/5 rounded-full blur-[150px]" />

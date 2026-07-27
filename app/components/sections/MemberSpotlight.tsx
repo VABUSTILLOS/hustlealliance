@@ -267,7 +267,7 @@ export default function MemberSpotlight() {
   const handleNodeLeave = useCallback(() => setHoveredId(null), []);
 
   return (
-    <section ref={sectionRef} className="relative py-24 lg:py-32 px-4 bg-black overflow-hidden">
+    <section ref={sectionRef} className="relative py-16 lg:py-32 px-4 bg-black overflow-hidden">
       {/* Background glows */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/3 left-1/4 w-[400px] h-[400px] bg-[var(--color-violet)]/4 rounded-full blur-[140px]" />
@@ -281,7 +281,7 @@ export default function MemberSpotlight() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="text-center mb-10"
+          className="text-center mb-8"
         >
           <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent mb-4">
             {t.spotlight.tag}
@@ -299,7 +299,7 @@ export default function MemberSpotlight() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.4, delay: 0.2 }}
-          className="flex flex-wrap items-center justify-center gap-2 mb-12"
+          className="flex flex-wrap items-center justify-center gap-2 mb-8"
         >
           {categoryPills.map((pill) => (
             <button

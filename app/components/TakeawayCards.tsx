@@ -1,5 +1,6 @@
 'use client';
 
+import { useCallback } from 'react';
 import { motion } from 'framer-motion';
 
 interface Takeaway {
@@ -109,9 +110,16 @@ const tagColors: Record<string, string> = {
   Launch: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
 };
 
+const MOBILE_VISIBLE = 3;
+
 export default function TakeawayCards() {
+  const getTagColor = useCallback(
+    (tag: string) => tagColors[tag] || 'bg-[var(--color-mockup-bg)] text-[var(--color-foreground-dim)] border-[var(--color-border-subtle)]',
+    [],
+  );
+
   return (
-    <section className="relative py-24 lg:py-32 px-4 bg-[var(--color-bg)]">
+    <section className="relative py-16 lg:py-32 px-4 bg-[var(--color-bg)]">
       {/* Background glow */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/3 right-0 w-[500px] h-[500px] bg-[var(--color-accent)]/3 rounded-full blur-[150px]" />
@@ -124,7 +132,7 @@ export default function TakeawayCards() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="text-center mb-16"
+          className="text-center mb-10"
         >
           <p className="font-mono text-xs uppercase tracking-[0.2em] text-[var(--color-accent)] mb-4">
             🔥 Inside the Alliance
@@ -146,6 +154,7 @@ export default function TakeawayCards() {
           {takeaways.map((takeaway, i) => (
             <motion.div
               key={takeaway.id}
+              className={i >= MOBILE_VISIBLE ? 'hidden md:block' : undefined}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-50px' }}
@@ -195,9 +204,7 @@ export default function TakeawayCards() {
                   {takeaway.tags.map((tag) => (
                     <span
                       key={tag}
-                      className={`px-2 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider border ${
-                        tagColors[tag] || 'bg-[var(--color-mockup-bg)] text-[var(--color-foreground-dim)] border-[var(--color-border-subtle)]'
-                      }`}
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider border ${getTagColor(tag)}`}
                     >
                       {tag}
                     </span>
