@@ -61,7 +61,7 @@ export default function AdminUsersPage() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <h1 className="text-2xl font-heading font-bold text-foreground mb-2">Users</h1>
       <p className="text-muted text-sm mb-8">{total} total users</p>
 

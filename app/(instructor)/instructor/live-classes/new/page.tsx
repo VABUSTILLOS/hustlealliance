@@ -89,7 +89,7 @@ export default function NewLiveClassPage() {
   };
 
   return (
-    <div className="p-8 max-w-2xl">
+    <div className="p-4 md:p-8 max-w-2xl">
       <h1 className="text-2xl font-heading font-bold text-foreground mb-8">
         {existingId ? 'Edit Live Class' : 'New Live Class'}
       </h1>

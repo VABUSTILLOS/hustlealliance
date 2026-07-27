@@ -33,7 +33,7 @@ export default function CourseStudentsPage({ params }: { params: Promise<{ id: s
   if (!data) return <div className="p-8 text-muted">Course not found.</div>;
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <div className="flex items-center gap-4 mb-8">
         <Link href="/instructor" className="text-muted hover:text-foreground">← Back</Link>
         <div>

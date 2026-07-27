@@ -41,7 +41,7 @@ export default function CourseQuizzesPage({ params }: { params: Promise<{ id: st
   if (!data) return <div className="p-8 text-muted">Failed to load quiz data.</div>;
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <div className="flex items-center gap-4 mb-8">
         <Link href={`/instructor/courses/${id}`} className="text-muted hover:text-foreground">← Back</Link>
         <h1 className="text-2xl font-heading font-bold text-foreground">Quiz Results</h1>

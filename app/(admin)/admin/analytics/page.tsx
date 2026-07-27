@@ -66,7 +66,7 @@ export default function AdminAnalyticsPage() {
   if (!data) return <div className="p-8 text-muted">Failed to load analytics.</div>;
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <h1 className="text-2xl font-heading font-bold text-foreground mb-8">Analytics</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
