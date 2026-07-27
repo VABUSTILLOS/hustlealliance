@@ -13,9 +13,28 @@ const nextConfig: NextConfig = {
     formats: ['image/avif', 'image/webp'],
   },
 
-  // Cache-control headers for static assets & pages
+  // Cache-control & security headers
   async headers() {
     return [
+      // Security headers — force HTTPS everywhere, prevent downgrade attacks
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=63072000; includeSubDomains; preload',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+        ],
+      },
+      // Static assets — long-lived cache
       {
         source: '/:all*(svg|jpg|jpeg|png|gif|webp|avif|ico|woff|woff2|ttf|eot)',
         headers: [
@@ -25,6 +44,7 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      // Pages — short-lived cache
       {
         source: '/:path((?!api).*)',
         headers: [

@@ -1,7 +1,7 @@
 'use client';
 
-import { useRef, useState, useMemo, useCallback } from 'react';
-import { motion, useInView, AnimatePresence } from 'framer-motion';
+import { useRef, useState, useMemo, useEffect, useCallback } from 'react';
+import { motion, useAnimationControls, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import clsx from 'clsx';
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -127,179 +127,82 @@ const categoryPills = [
 
 type CategoryKey = (typeof categoryPills)[number]['key'];
 
-/* ── layout types ────────────────────────────────────── */
-interface LayoutNode {
+const NODE_SIZE = 64;
+const NODE_GAP = 24; // gap between nodes in the marquee
+const SCROLL_DURATION = 30; // seconds for one full cycle of the original set
+
+/* ── FounderCard sub-component ───────────────────────── */
+function FounderCard({
+  member,
+  isHovered,
+  isDimmed,
+  onHover,
+  onLeave,
+}: {
   member: MemberNode;
-  x: number;
-  y: number;
-  r: number;
-}
-
-interface LayoutEdge {
-  from: string;
-  to: string;
-}
-
-/* ── helpers ─────────────────────────────────────────── */
-function hashStr(s: string): number {
-  let h = 0;
-  for (let i = 0; i < s.length; i++) {
-    h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
-  }
-  return Math.abs(h);
-}
-
-const NODE_R = 26;
-const VIEW_W = 800;
-const VIEW_H = 500;
-
-/* ── compute layout once ─────────────────────────────── */
-function computeLayout(filtered: MemberNode[]): { nodes: LayoutNode[]; edges: LayoutEdge[] } {
-  const nodes: LayoutNode[] = [];
-  const edges: LayoutEdge[] = [];
-
-  if (filtered.length === 0) return { nodes, edges };
-
-  // Group by niche
-  const groups = new Map<string, MemberNode[]>();
-  for (const m of filtered) {
-    const list = groups.get(m.niche) || [];
-    list.push(m);
-    groups.set(m.niche, list);
-  }
-
-  const nicheKeys = Array.from(groups.keys());
-  const centerX = VIEW_W / 2;
-  const centerY = VIEW_H / 2;
-
-  if (nicheKeys.length === 1) {
-    // Single niche: arrange in a circle
-    const group = groups.get(nicheKeys[0])!;
-    const radius = Math.min(180, group.length * 50);
-    group.forEach((m, i) => {
-      const angle = (2 * Math.PI * i) / group.length - Math.PI / 2;
-      nodes.push({
-        member: m,
-        x: centerX + Math.cos(angle) * radius,
-        y: centerY + Math.sin(angle) * radius,
-        r: NODE_R,
-      });
-    });
-  } else {
-    // Arrange niches around the center
-    const nicheRadius = Math.min(180, nicheKeys.length * 40 + 40);
-    const positions: { cx: number; cy: number; members: MemberNode[] }[] = [];
-
-    nicheKeys.forEach((key, i) => {
-      const angle = (2 * Math.PI * i) / nicheKeys.length - Math.PI / 2;
-      positions.push({
-        cx: centerX + Math.cos(angle) * nicheRadius,
-        cy: centerY + Math.sin(angle) * nicheRadius,
-        members: groups.get(key)!,
-      });
-    });
-
-    // Place members around their niche center
-    positions.forEach((pos) => {
-      const { cx, cy, members: groupMembers } = pos;
-      const scatterR = Math.min(50, groupMembers.length * 18 + 15);
-      groupMembers.forEach((m, i) => {
-        const seed = hashStr(m.id);
-        const angle = (2 * Math.PI * i) / groupMembers.length + (seed % 30) * (Math.PI / 180);
-        const dist = groupMembers.length === 1 ? 0 : scatterR;
-        nodes.push({
-          member: m,
-          x: cx + Math.cos(angle) * dist,
-          y: cy + Math.sin(angle) * dist,
-          r: NODE_R,
-        });
-      });
-    });
-  }
-
-  // Build edges: members in same niche are connected
-  const nicheGroups = new Map<string, LayoutNode[]>();
-  for (const n of nodes) {
-    const list = nicheGroups.get(n.member.niche) || [];
-    list.push(n);
-    nicheGroups.set(n.member.niche, list);
-  }
-
-  for (const [, groupNodes] of nicheGroups) {
-    for (let i = 0; i < groupNodes.length; i++) {
-      for (let j = i + 1; j < groupNodes.length; j++) {
-        edges.push({ from: groupNodes[i].member.id, to: groupNodes[j].member.id });
-      }
-    }
-  }
-
-  return { nodes, edges };
-}
-
-/* ── sub-components ──────────────────────────────────── */
-
-function FounderNode({ node, idx, inView }: { node: LayoutNode; idx: number; inView: boolean }) {
-  const size = node.r * 2;
-  const driftX = [2, -3, 1.5, -2, 3, -1.5, 2.5, -2, 1][idx % 9];
-  const driftY = [-2.5, 1, 3, -1.5, 2, -3, 1.5, 2.5, -1][idx % 9];
-
+  isHovered: boolean;
+  isDimmed: boolean;
+  onHover: () => void;
+  onLeave: () => void;
+}) {
   return (
-    <Link href={`/member/${node.member.username}`} className="block group">
+    <Link
+      href={`/member/${member.username}`}
+      className="flex-shrink-0 flex flex-col items-center group"
+      style={{ width: NODE_SIZE + NODE_GAP }}
+      onMouseEnter={onHover}
+      onMouseLeave={onLeave}
+    >
       <motion.div
-        initial={{ opacity: 0, scale: 0.3 }}
-        animate={
-          inView
-            ? {
-                opacity: 1,
-                scale: 1,
-                x: [0, driftX, 0, -driftX, 0],
-                y: [0, driftY, 0, -driftY, 0],
-              }
-            : {}
-        }
-        transition={
-          inView
-            ? {
-                opacity: { duration: 0.5, delay: 0.3 + idx * 0.08, ease: 'easeOut' },
-                scale: { duration: 0.5, delay: 0.3 + idx * 0.08, ease: 'easeOut' },
-                x: { duration: 8 + idx * 1.2, repeat: Infinity, ease: 'easeInOut', delay: idx * 0.6 },
-                y: { duration: 7 + idx * 1.1, repeat: Infinity, ease: 'easeInOut', delay: idx * 0.4 },
-              }
-            : {}
-        }
+        animate={{
+          scale: isHovered ? 1.2 : 1,
+          opacity: isDimmed ? 0.35 : 1,
+        }}
+        transition={{ duration: 0.25, ease: 'easeOut' }}
+        style={{
+          width: NODE_SIZE,
+          height: NODE_SIZE,
+          borderRadius: '50%',
+          border: `2px solid ${member.accent}60`,
+          overflow: 'hidden',
+        }}
+        className="bg-black/40"
       >
         <motion.div
           animate={{
-            boxShadow: [
-              `0 0 6px ${node.member.accent}20`,
-              `0 0 20px ${node.member.accent}50`,
-              `0 0 6px ${node.member.accent}20`,
-            ],
+            boxShadow: isHovered
+              ? `0 0 28px ${member.accent}70`
+              : `0 0 8px ${member.accent}20`,
           }}
-          transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: idx * 0.5 }}
-          style={{
-            width: size,
-            height: size,
-            borderRadius: '50%',
-            border: `2px solid ${node.member.accent}60`,
-            overflow: 'hidden',
-          }}
-          className="hover:border-[var(--color-accent)]/80 transition-colors duration-300 bg-black/40"
+          transition={{ duration: 0.3 }}
+          className="w-full h-full rounded-full overflow-hidden"
         >
           <img
-            src={node.member.image}
-            alt={node.member.name}
+            src={member.image}
+            alt={member.name}
             className="w-full h-full object-cover rounded-full"
             style={{ filter: 'grayscale(100%) contrast(1.1)' }}
             loading="lazy"
           />
         </motion.div>
-        {/* Hover tooltip */}
-        <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
-          <span className="text-[9px] font-mono text-[var(--color-accent)] bg-black/90 px-2 py-1 rounded">
-            {node.member.name} · {node.member.startup}
-          </span>
-        </div>
+      </motion.div>
+
+      {/* Name + startup label — visible on hover */}
+      <motion.div
+        initial={false}
+        animate={{
+          opacity: isHovered ? 1 : 0,
+          y: isHovered ? 4 : -2,
+        }}
+        transition={{ duration: 0.2 }}
+        className="mt-2 text-center pointer-events-none whitespace-nowrap"
+      >
+        <p className="text-[11px] font-mono font-semibold text-white leading-tight">
+          {member.name}
+        </p>
+        <p className="text-[9px] font-mono uppercase tracking-wider text-[var(--color-accent)] leading-tight">
+          {member.startup}
+        </p>
       </motion.div>
     </Link>
   );
@@ -310,21 +213,58 @@ function FounderNode({ node, idx, inView }: { node: LayoutNode; idx: number; inV
 export default function MemberSpotlight() {
   const { t } = useTranslation();
   const [activeCategory, setActiveCategory] = useState<CategoryKey>('All');
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [isMarqueePaused, setIsMarqueePaused] = useState(false);
+  const marqueeControls = useAnimationControls();
   const sectionRef = useRef<HTMLElement>(null);
-  const inView = useInView(sectionRef, { once: true, margin: '-80px' });
 
   const filteredMembers = useMemo(() => {
     if (activeCategory === 'All') return members;
     return members.filter((m) => m.niche === activeCategory);
   }, [activeCategory]);
 
-  const layout = useMemo(() => computeLayout(filteredMembers), [filteredMembers]);
+  // Duplicate for seamless infinite loop
+  const marqueeItems = useMemo(
+    () => [...filteredMembers, ...filteredMembers],
+    [filteredMembers],
+  );
 
-  const nodeMap = useMemo(() => {
-    const m = new Map<string, LayoutNode>();
-    layout.nodes.forEach((n) => m.set(n.member.id, n));
-    return m;
-  }, [layout.nodes]);
+  // Drive the marquee animation
+  useEffect(() => {
+    if (marqueeItems.length === 0) return;
+
+    if (isMarqueePaused) {
+      marqueeControls.stop();
+    } else {
+      marqueeControls.start({
+        x: ['0%', '-50%'],
+        transition: {
+          x: {
+            repeat: Infinity,
+            repeatType: 'loop',
+            duration: SCROLL_DURATION,
+            ease: 'linear',
+          },
+        },
+      });
+    }
+  }, [isMarqueePaused, marqueeItems.length, marqueeControls, activeCategory]);
+
+  // Reset hover + pause state on category change
+  const handleCategoryChange = useCallback((key: CategoryKey) => {
+    setActiveCategory(key);
+    setHoveredId(null);
+    setIsMarqueePaused(false);
+  }, []);
+
+  const handleMarqueeEnter = useCallback(() => setIsMarqueePaused(true), []);
+  const handleMarqueeLeave = useCallback(() => {
+    setIsMarqueePaused(false);
+    setHoveredId(null);
+  }, []);
+
+  const handleNodeHover = useCallback((id: string) => setHoveredId(id), []);
+  const handleNodeLeave = useCallback(() => setHoveredId(null), []);
 
   return (
     <section ref={sectionRef} className="relative py-24 lg:py-32 px-4 bg-black overflow-hidden">
@@ -334,7 +274,7 @@ export default function MemberSpotlight() {
         <div className="absolute bottom-1/4 right-1/4 w-[350px] h-[350px] bg-[var(--color-accent)]/3 rounded-full blur-[120px]" />
       </div>
 
-      <div className="max-w-5xl mx-auto relative">
+      <div className="max-w-6xl mx-auto relative">
         {/* Section header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -364,12 +304,12 @@ export default function MemberSpotlight() {
           {categoryPills.map((pill) => (
             <button
               key={pill.key}
-              onClick={() => setActiveCategory(pill.key)}
+              onClick={() => handleCategoryChange(pill.key)}
               className={clsx(
                 'relative px-4 py-2 rounded-full text-xs font-mono uppercase tracking-wider transition-all duration-300',
                 activeCategory === pill.key
                   ? 'text-foreground bg-accent/20 border border-accent/40 shadow-[0_0_20px_rgba(255,59,48,0.1)]'
-                  : 'text-muted border border-white/10 hover:text-foreground hover:border-white/20'
+                  : 'text-muted border border-white/10 hover:text-foreground hover:border-white/20',
               )}
             >
               {activeCategory === pill.key && (
@@ -391,7 +331,7 @@ export default function MemberSpotlight() {
           ))}
         </motion.div>
 
-        {/* ── Network Graph ────────────────────────────── */}
+        {/* ── Infinite Scrolling Marquee ────────────────── */}
         <AnimatePresence mode="wait">
           <motion.div
             key={activeCategory}
@@ -399,138 +339,67 @@ export default function MemberSpotlight() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.35 }}
-            className="relative w-full"
-            style={{ aspectRatio: `${VIEW_W}/${VIEW_H}` }}
           >
-            {/* Slow rotation wrapper for "one unified constellation" feel */}
-            <motion.div
-              animate={{ rotate: [0, 0.5, 0, -0.5, 0] }}
-              transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut' }}
-              className="absolute inset-0"
-            >
-              {/* SVG layer: edges + particles */}
-              <svg
-                viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
-                className="absolute inset-0 w-full h-full"
-                preserveAspectRatio="xMidYMid meet"
-              >
-                {/* Edge lines — breathing pulse */}
-                {layout.edges.map((edge, i) => {
-                  const from = nodeMap.get(edge.from);
-                  const to = nodeMap.get(edge.to);
-                  if (!from || !to) return null;
-                  return (
-                    <motion.line
-                      key={`${edge.from}-${edge.to}`}
-                      x1={from.x} y1={from.y} x2={to.x} y2={to.y}
-                      stroke={`${from.member.accent}25`}
-                      strokeWidth={1.2}
-                      initial={{ pathLength: 0, opacity: 0 }}
-                      animate={{
-                        pathLength: 1,
-                        opacity: [0.15, 0.45, 0.15],
-                      }}
-                      transition={{
-                        pathLength: { duration: 1.2, delay: 0.2 + i * 0.08, ease: 'easeInOut' },
-                        opacity: {
-                          duration: 3 + (i % 3),
-                          delay: 1 + i * 0.2,
-                          repeat: Infinity,
-                          ease: 'easeInOut',
-                        },
-                      }}
-                    />
-                  );
-                })}
-
-                {/* Traveling glow particles */}
-                {layout.edges.map((edge, i) => {
-                  const from = nodeMap.get(edge.from);
-                  const to = nodeMap.get(edge.to);
-                  if (!from || !to) return null;
-                  return (
-                    <motion.circle
-                      key={`p-${edge.from}-${edge.to}`}
-                      r={2}
-                      fill={from.member.accent}
-                      filter="blur(0.8px)"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: [0, 0.7, 0] }}
-                      transition={{
-                        duration: 2.2,
-                        delay: 1.5 + i * 0.12,
-                        repeat: Infinity,
-                        repeatDelay: 2 + (i % 3),
-                        ease: 'easeInOut',
-                      }}
-                    >
-                      <animateMotion
-                        dur={`${1.8 + (i % 2)}s`}
-                        repeatCount="indefinite"
-                        begin={`${1.5 + i * 0.12}s`}
-                        path={`M${from.x},${from.y} L${to.x},${to.y}`}
-                      />
-                    </motion.circle>
-                  );
-                })}
-              </svg>
-
-            {/* Node overlay */}
-            {layout.nodes.map((node, idx) => {
-              const xPct = `${(node.x / VIEW_W) * 100}%`;
-              const yPct = `${(node.y / VIEW_H) * 100}%`;
-              return (
+            {marqueeItems.length > 0 ? (
+              <>
+                {/* Overflow mask for clean edges */}
                 <div
-                  key={node.member.id}
-                  className="absolute -translate-x-1/2 -translate-y-1/2"
-                  style={{ left: xPct, top: yPct }}
+                  className="relative overflow-hidden py-6"
+                  onMouseEnter={handleMarqueeEnter}
+                  onMouseLeave={handleMarqueeLeave}
                 >
-                  <FounderNode node={node} idx={idx} inView={inView} />
+                  {/* Fade edges */}
+                  <div className="absolute left-0 top-0 bottom-0 w-20 z-10 pointer-events-none bg-gradient-to-r from-black to-transparent" />
+                  <div className="absolute right-0 top-0 bottom-0 w-20 z-10 pointer-events-none bg-gradient-to-r from-transparent to-black" />
+
+                  <motion.div
+                    animate={marqueeControls}
+                    className="flex"
+                    style={{ width: 'fit-content' }}
+                  >
+                    {marqueeItems.map((member, i) => (
+                      <FounderCard
+                        key={`${member.id}-${i}`}
+                        member={member}
+                        isHovered={hoveredId === `${member.id}-${i}`}
+                        isDimmed={hoveredId !== null && hoveredId !== `${member.id}-${i}`}
+                        onHover={() => handleNodeHover(`${member.id}-${i}`)}
+                        onLeave={handleNodeLeave}
+                      />
+                    ))}
+                  </motion.div>
                 </div>
-              );
-            })}
 
-            </motion.div>
-
-            {/* Center badge — unity message */}
-            {filteredMembers.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.6 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 1.4, duration: 0.6 }}
-                className="absolute top-[92%] left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-10"
-              >
+                {/* Connected founders badge */}
                 <motion.div
-                  animate={{ boxShadow: [
-                    '0 0 20px rgba(255,59,48,0.1)',
-                    '0 0 40px rgba(255,59,48,0.2)',
-                    '0 0 20px rgba(255,59,48,0.1)',
-                  ]}}
-                  transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-                  className="text-center bg-black/70 backdrop-blur-md rounded-2xl px-5 py-2.5 border border-white/8"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6, duration: 0.5 }}
+                  className="flex justify-center mt-6"
                 >
-                  <div className="text-xl sm:text-2xl font-display font-bold text-white">
-                    {filteredMembers.length === members.length ? '2,400+' : filteredMembers.length}
-                  </div>
-                  <div className="text-[10px] font-mono uppercase tracking-wider text-white/40 mt-0.5">
-                    connected founders
+                  <div className="text-center bg-black/70 backdrop-blur-md rounded-2xl px-5 py-2.5 border border-white/8">
+                    <div className="text-xl sm:text-2xl font-display font-bold text-white">
+                      {filteredMembers.length === members.length
+                        ? '2,400+'
+                        : filteredMembers.length}
+                    </div>
+                    <div className="text-[10px] font-mono uppercase tracking-wider text-white/40 mt-0.5">
+                      connected founders
+                    </div>
                   </div>
                 </motion.div>
-              </motion.div>
+              </>
+            ) : (
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center text-[var(--color-foreground-muted)] py-16 font-mono text-sm"
+              >
+                No members in this category yet. More joining daily.
+              </motion.p>
             )}
           </motion.div>
         </AnimatePresence>
-
-        {/* Empty state */}
-        {filteredMembers.length === 0 && (
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center text-[var(--color-foreground-muted)] py-16 font-mono text-sm"
-          >
-            No members in this category yet. More joining daily.
-          </motion.p>
-        )}
 
         {/* View all link */}
         <motion.div
@@ -547,7 +416,13 @@ export default function MemberSpotlight() {
               hover:border-[var(--color-accent)]/30 hover:text-[var(--color-accent)] transition-all duration-300"
           >
             {t.spotlight.viewAll}
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <svg
+              className="w-4 h-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+            >
               <polyline points="9 18 15 12 9 6" />
             </svg>
           </Link>
