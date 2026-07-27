@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import dns from 'dns/promises';
+import dns from 'dns';
 import net from 'net';
 
 function testTcp(host: string, port: number, timeout = 5000): Promise<string> {
@@ -14,47 +14,60 @@ function testTcp(host: string, port: number, timeout = 5000): Promise<string> {
 }
 
 function createLookup(hostname: string, cb: Function) {
-  dns.resolve6(hostname).then((addrs6) => {
-    if (addrs6?.length) return cb(null, addrs6[0], 6);
-    return dns.resolve4(hostname).then((addrs4) => {
-      if (addrs4?.length) return cb(null, addrs4[0], 4);
-      cb(new Error('No addresses found'));
+  dns.resolve6(hostname, (err6, addrs6) => {
+    if (!err6 && addrs6?.length) return cb(null, addrs6[0], 6);
+    dns.resolve4(hostname, (err4, addrs4) => {
+      if (!err4 && addrs4?.length) return cb(null, addrs4[0], 4);
+      cb(err4 || err6);
     });
-  }).catch((err6: any) => {
-    dns.resolve4(hostname).then((addrs4) => {
-      if (addrs4?.length) return cb(null, addrs4[0], 4);
-      cb(err6);
-    }).catch((err4: any) => cb(err4));
   });
 }
 
 export async function GET() {
-  const dbUrl = process.env.DATABASE_URL || '';
-  const redacted = dbUrl.replace(/\/\/[^:]+:[^@]+@/, '//[USER]:[REDACTED]@');
-
   let dns4: string | null = null;
   let dns6: string | null = null;
-
   try {
     const hostname = 'db.yftgdtdvmvvqyzcdntge.supabase.co';
-    const r4 = await dns.resolve4(hostname).catch(() => null);
-    const r6 = await dns.resolve6(hostname).catch(() => null);
+    const r4 = await dns.promises.resolve4(hostname).catch(() => null);
+    const r6 = await dns.promises.resolve6(hostname).catch(() => null);
     dns4 = r4 ? r4.join(', ') : null;
     dns6 = r6 ? r6.join(', ') : null;
   } catch {}
 
   const tcp5432 = await testTcp('db.yftgdtdvmvvqyzcdntge.supabase.co', 5432, 5000);
-  const tcp6543 = await testTcp('db.yftgdtdvmvvqyzcdntge.supabase.co', 6543, 5000);
 
-  // Test pg Pool with custom lookup
+  // Test net.createConnection with custom lookup
+  let netResult = 'not_tested';
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const sock = net.createConnection({
+        host: 'db.yftgdtdvmvvqyzcdntge.supabase.co',
+        port: 6543,
+        lookup: (hostname: string, _opts: any, cb: Function) => createLookup(hostname, cb),
+        timeout: 5000,
+      }, () => {
+        netResult = 'connected';
+        sock.destroy();
+        resolve();
+      });
+      sock.on('error', (e: any) => {
+        netResult = `error: ${e.code || e.message}`;
+        sock.destroy();
+        resolve();
+      });
+      sock.on('timeout', () => {
+        netResult = 'timeout';
+        sock.destroy();
+        resolve();
+      });
+    });
+  } catch {}
+
+  // Test pg Pool
   let pgResult = 'not_tested';
   try {
     const { Pool } = require('pg');
-    const pool = new Pool({
-      connectionString: dbUrl,
-      lookup: (hostname: string, _opts: any, cb: Function) => createLookup(hostname, cb),
-      connectionTimeoutMillis: 5000,
-    });
+    const pool = new Pool({ connectionString: process.env.DATABASE_URL!, connectionTimeoutMillis: 5000 });
     const res = await pool.query('SELECT 1 as val');
     pgResult = `ok: ${JSON.stringify(res.rows)}`;
     await pool.end();
@@ -63,10 +76,9 @@ export async function GET() {
   }
 
   return NextResponse.json({
-    hasDbUrl: !!dbUrl,
-    port: dbUrl.match(/:(\d+)\//)?.[1] || 'unknown',
     dns4, dns6,
-    tcp5432, tcp6543,
+    tcp5432,
+    netResult,
     pgResult,
     nodeVersion: process.version,
   });
