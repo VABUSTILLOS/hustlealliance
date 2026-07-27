@@ -6,9 +6,7 @@ import clsx from 'clsx';
 import Link from 'next/link';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { resources as allResources } from '@/lib/data/resources';
-import { learningPaths } from '@/lib/data/learning-paths';
 import type { Resource } from '@/lib/data/resources';
-import type { LearningPath } from '@/lib/data/learning-paths';
 
 // ── Category system ──────────────────────────────────────────────
 const categoryDefs = [
@@ -20,48 +18,33 @@ const categoryDefs = [
   { key: 'Legal', label: 'Legal', icon: '⚖️' },
   { key: 'Strategy', label: 'Strategy', icon: '🎯' },
   { key: 'Operations', label: 'Ops', icon: '⚙️' },
-  { key: 'Playbooks', label: 'Playbooks', icon: '📖' },
 ] as const;
 type CategoryKey = (typeof categoryDefs)[number]['key'];
 
 // Tag → category mapping
 const tagCategoryMap: Record<string, CategoryKey> = {
-  fundraising: 'Fundraising', pitching: 'Fundraising', finance: 'Fundraising',
-  marketing: 'Marketing', 'social-media': 'Marketing', content: 'Marketing',
-  launch: 'Marketing', growth: 'Growth', sales: 'Growth',
-  product: 'Product', ux: 'Product', tech: 'Product', validation: 'Product',
-  legal: 'Legal', strategy: 'Strategy', ideation: 'Strategy',
-  operations: 'Operations', 'customer-research': 'Operations',
-  ai: 'Product',
+  fundraising: 'Fundraising', pitching: 'Fundraising', finance: 'Fundraising', 'venture-capital': 'Fundraising',
+  marketing: 'Marketing', 'social-media': 'Marketing', content: 'Marketing', branding: 'Marketing',
+  launch: 'Marketing', seo: 'Marketing', email: 'Marketing', outbound: 'Marketing',
+  growth: 'Growth', sales: 'Growth', pricing: 'Growth', revenue: 'Growth', scaling: 'Growth',
+  product: 'Product', ux: 'Product', tech: 'Product', validation: 'Product', mvp: 'Product',
+  legal: 'Legal', strategy: 'Strategy', ideation: 'Strategy', leadership: 'Strategy',
+  operations: 'Operations', 'customer-research': 'Operations', hiring: 'Operations', automation: 'Operations',
+  ai: 'Product', 'machine-learning': 'Product', analytics: 'Growth', networking: 'Strategy',
 };
 
 function getResourceCategory(resource: Resource): CategoryKey[] {
   const cats = new Set<CategoryKey>();
   for (const tag of resource.tags) {
-    const trimmed = tag.trim();
+    const trimmed = tag.trim().toLowerCase();
     const mapped = tagCategoryMap[trimmed];
     if (mapped) cats.add(mapped);
   }
   return cats.size > 0 ? [...cats] : ['Strategy'];
 }
 
-// ── Convert learning paths to resource-like cards ─────────────────
-type UnifiedCard = {
-  id: string;
-  title: string;
-  description: string;
-  category: CategoryKey;
-  isPlaybook: true;
-  accent: string;
-  spine: string;
-  tier: 'free';
-  format: string;
-  downloads: number;
-  slug: string;
-  modules: number;
-  difficulty: string;
-  duration: string;
-} | (Resource & { category: CategoryKey; accent: string; spine: string; isPlaybook: false; tier: 'free' | 'pro' });
+// ── Simplified card type ─────────────────────────────────────────
+type LibraryCard = Resource & { category: CategoryKey; accent: string; spine: string };
 
 const formatAccentMap: Record<string, { accent: string; spine: string }> = {
   PDF: { accent: '#FF3B30', spine: 'bg-accent' },
@@ -75,54 +58,29 @@ function getAccent(format: string): { accent: string; spine: string } {
   return formatAccentMap[format] || { accent: '#FF6B35', spine: 'bg-accent-glow' };
 }
 
-// Build the unified card list: all resources + playbooks
-const playbookCards: UnifiedCard[] = learningPaths.slice(0, 6).map((lp) => {
-  const catKey: CategoryKey = lp.category === 'Leadership' ? 'Strategy' : (lp.category as CategoryKey);
-  return {
-    id: `playbook-${lp.slug}`,
-    title: lp.title,
-    description: lp.tagline,
-    category: catKey,
-    isPlaybook: true as const,
-    accent: '#FF3B30',
-    spine: 'bg-accent',
-    tier: 'free' as const,
-    format: 'Interactive',
-    downloads: lp.studentCount,
-    slug: lp.slug,
-    modules: lp.modules.length,
-    difficulty: lp.difficulty,
-    duration: lp.duration,
-  };
-});
-
-const resourceCards: UnifiedCard[] = allResources.map((r) => {
+const allCards: LibraryCard[] = allResources.map((r) => {
   const primaryCat = getResourceCategory(r)[0] || 'Strategy';
   const { accent, spine } = getAccent(r.format);
-  // Resources with real download URLs are free; '#' fallback = locked/pro
-  const hasRealDownload = r.downloadUrl && r.downloadUrl !== '#';
-  return { ...r, category: primaryCat, accent, spine, isPlaybook: false as const, tier: hasRealDownload ? ('free' as const) : ('pro' as const) };
+  return { ...r, category: primaryCat, accent, spine };
 });
 
-const allCards: UnifiedCard[] = [...playbookCards, ...resourceCards];
-
-// ── 3D Book Cover (reused for non-playbook resources) ─────────────
+// ── 3D Book Cover ─────────────────────────────────────────────────
 function BookCover({ title, accent, spine, format }: { title: string; accent: string; spine: string; format: string }) {
   return (
-    <div className="relative mx-auto w-32 h-44 sm:w-36 sm:h-48 perspective-[800px] group/book">
+    <div className="relative mx-auto w-28 h-40 sm:w-32 sm:h-44 perspective-[800px] group/book">
       <div
         className="relative w-full h-full transition-transform duration-500 ease-out group-hover/book:[transform:rotateY(-8deg)_translateX(-4px)]"
         style={{ transformStyle: 'preserve-3d' }}
       >
-        <div className={`absolute left-0 top-0 bottom-0 w-3 ${spine} rounded-l-sm origin-left`} style={{ transform: 'rotateY(90deg) translateX(-1.5px)' }} />
+        <div className={`absolute left-0 top-0 bottom-0 w-2.5 ${spine} rounded-l-sm origin-left`} style={{ transform: 'rotateY(90deg) translateX(-1.25px)' }} />
         <div className="absolute inset-0 rounded-r-md overflow-hidden shadow-2xl" style={{ backgroundColor: '#0A0A0A' }}>
-          <div className="absolute inset-[6px] border border-white/10 rounded-sm flex flex-col p-4">
-            <div className="h-1 w-12 rounded-full mb-3" style={{ backgroundColor: accent }} />
-            <h4 className="font-heading text-sm font-bold text-foreground leading-tight flex-1 line-clamp-3">{title}</h4>
-            <div className="flex items-center justify-between mt-2">
-              <span className="text-[9px] font-mono uppercase tracking-wider text-foreground-dim">{format}</span>
-              <div className="w-5 h-5 rounded-full border border-foreground-dim flex items-center justify-center">
-                <span className="text-[7px] font-mono text-foreground-dim">HA</span>
+          <div className="absolute inset-[5px] border border-white/10 rounded-sm flex flex-col p-3">
+            <div className="h-1 w-10 rounded-full mb-2" style={{ backgroundColor: accent }} />
+            <h4 className="font-heading text-xs font-bold text-foreground leading-tight flex-1 line-clamp-3">{title}</h4>
+            <div className="flex items-center justify-between mt-1.5">
+              <span className="text-[8px] font-mono uppercase tracking-wider text-foreground-dim">{format}</span>
+              <div className="w-4 h-4 rounded-full border border-foreground-dim flex items-center justify-center">
+                <span className="text-[6px] font-mono text-foreground-dim">HA</span>
               </div>
             </div>
           </div>
@@ -134,154 +92,58 @@ function BookCover({ title, accent, spine, format }: { title: string; accent: st
   );
 }
 
-// ── Playbook Cover ────────────────────────────────────────────────
-function PlaybookCover({ title, modules, difficulty }: { title: string; modules: number; difficulty: string }) {
-  return (
-    <div className="relative mx-auto w-32 h-44 sm:w-36 sm:h-48 perspective-[800px] group/book">
-      <div
-        className="relative w-full h-full transition-transform duration-500 ease-out group-hover/book:[transform:rotateY(-8deg)_translateX(-4px)]"
-        style={{ transformStyle: 'preserve-3d' }}
-      >
-        <div className="absolute left-0 top-0 bottom-0 w-3 bg-accent rounded-l-sm origin-left" style={{ transform: 'rotateY(90deg) translateX(-1.5px)' }} />
-        <div className="absolute inset-0 rounded-r-md overflow-hidden shadow-2xl" style={{ backgroundColor: '#1a0505' }}>
-          <div className="absolute inset-[6px] border border-accent/20 rounded-sm flex flex-col p-4">
-            <span className="text-[9px] font-mono uppercase tracking-wider text-accent mb-2">Playbook</span>
-            <h4 className="font-heading text-sm font-bold text-foreground leading-tight flex-1 line-clamp-3">{title}</h4>
-            <div className="flex items-center gap-2 mt-2">
-              <span className="text-[9px] font-mono text-foreground-dim">{modules} modules</span>
-              <span className="text-[9px] font-mono text-accent">{difficulty}</span>
-            </div>
-          </div>
-          <div className="absolute inset-0 opacity-30" style={{ background: 'linear-gradient(135deg, #FF3B3020, #FF3B3060)' }} />
-        </div>
-      </div>
-      <div className="absolute right-0 top-0.5 bottom-0.5 w-[2px] bg-accent/30 rounded-r-sm" />
-    </div>
-  );
-}
-
-// ── Download/Preview icon button ──────────────────────────────────
-function ActionButton({ resource }: { resource: UnifiedCard }) {
-  if (resource.isPlaybook) {
-    return (
-      <Link
-        href={`/preview/${resource.slug}`}
-        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-accent/10 border border-accent/20 text-accent text-xs font-heading font-bold hover:bg-accent hover:text-white transition-all duration-200 group/btn"
-      >
-        Preview
-        <svg className="w-3 h-3 group-hover/btn:translate-x-0.5 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-          <polyline points="9 18 15 12 9 6" />
-        </svg>
-      </Link>
-    );
-  }
-
-  if (resource.tier === 'pro') {
-    return (
-      <Link
-        href="/signup"
-        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-accent/10 border border-accent/20 text-accent text-xs font-heading font-bold hover:bg-accent hover:text-white transition-all duration-200"
-      >
-        <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <rect x="3" y="11" width="18" height="11" rx="2" />
-          <path d="M7 11V7a5 5 0 0110 0v4" />
-        </svg>
-        Join to unlock
-      </Link>
-    );
-  }
-
-  return (
-    <a
-      href={`/api/download/${resource.id}?lang=en`}
-      download
-      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-heading font-bold hover:bg-emerald-500 hover:text-white transition-all duration-200 group/btn"
-    >
-      <svg className="w-3.5 h-3.5 group-hover/btn:translate-y-0.5 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
-      </svg>
-      Download
-    </a>
-  );
-}
-
-// ── Resource Card ─────────────────────────────────────────────────
-function ResourceCard({ resource, index }: { resource: UnifiedCard; index: number }) {
-  const { t } = useTranslation();
-
+// ── Resource Card (homepage preview — no download button) ──────────
+function ResourceCard({ resource, index }: { resource: LibraryCard; index: number }) {
   return (
     <motion.div
       layout
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
-      transition={{ duration: 0.3, delay: (index % 12) * 0.04 }}
+      transition={{ duration: 0.3, delay: (index % 8) * 0.04 }}
       className="group"
     >
-      <div className="bg-surface border border-surface-light rounded-2xl p-5 transition-all duration-500 hover:-translate-y-2 hover:border-accent/20 hover:shadow-[0_20px_60px_rgba(255,59,48,0.08)] h-full flex flex-col">
+      <Link href="/resources" className="block bg-surface border border-surface-light rounded-2xl p-4 transition-all duration-500 hover:-translate-y-2 hover:border-accent/20 hover:shadow-[0_20px_60px_rgba(255,59,48,0.08)] h-full flex flex-col">
         {/* Cover */}
-        <div className="mb-4 flex justify-center">
-          {resource.isPlaybook ? (
-            <PlaybookCover title={resource.title} modules={resource.modules} difficulty={resource.difficulty} />
-          ) : (
-            <BookCover title={resource.title} accent={resource.accent} spine={resource.spine} format={resource.format} />
-          )}
+        <div className="mb-3 flex justify-center">
+          <BookCover title={resource.title} accent={resource.accent} spine={resource.spine} format={resource.format} />
         </div>
 
-        {/* Category & tier badges */}
-        <div className="flex items-center justify-center gap-2 mb-2 flex-wrap">
-          {resource.isPlaybook ? (
-            <span className="text-[9px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full border bg-accent/10 text-accent border-accent/20">
-              Playbook
-            </span>
-          ) : (
-            <span className={clsx(
-              'text-[9px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full border',
-              resource.tier === 'free'
-                ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
-                : 'text-accent bg-accent/10 border-accent/20'
-            )}>
-              {resource.tier === 'free' ? t.resourceLibrary.free : t.resourceLibrary.pro}
-            </span>
-          )}
+        {/* Category badge */}
+        <div className="flex items-center justify-center gap-2 mb-1.5">
+          <span className="text-[9px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full border bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
+            Free
+          </span>
           <span className="text-[9px] font-mono uppercase tracking-wider text-foreground-dim">
             {resource.category}
           </span>
         </div>
 
         {/* Title & description */}
-        <h3 className="font-heading text-sm font-bold text-foreground leading-tight group-hover:text-accent transition-colors text-center">
+        <h3 className="font-heading text-xs font-bold text-foreground leading-tight group-hover:text-accent transition-colors text-center">
           {resource.title}
         </h3>
-        <p className="text-muted font-body text-xs mt-1.5 leading-relaxed line-clamp-2 text-center flex-1">
+        <p className="text-muted font-body text-[11px] mt-1 leading-relaxed line-clamp-2 text-center flex-1">
           {resource.description}
         </p>
 
-        {/* Metadata row */}
-        <div className="flex items-center justify-center gap-3 mt-3 text-[10px] font-mono text-foreground-dim">
-          {!resource.isPlaybook && (
-            <>
-              <span>{resource.fileSize}</span>
-              <span className="text-foreground-dim/40">·</span>
-            </>
-          )}
-          <span>{resource.format}</span>
+        {/* Metadata */}
+        <div className="flex items-center justify-center gap-2 mt-2 text-[9px] font-mono text-foreground-dim">
+          <span>{resource.fileSize}</span>
           <span className="text-foreground-dim/40">·</span>
-          <span className="flex items-center gap-1">
-            <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
-            </svg>
-            {resource.downloads >= 1000
-              ? `${(resource.downloads / 1000).toFixed(1)}K`
-              : resource.downloads}
-          </span>
+          <span>{resource.format}</span>
         </div>
 
-        {/* Action button */}
-        <div className="mt-4 flex justify-center">
-          <ActionButton resource={resource} />
+        {/* CTA — View in Library */}
+        <div className="mt-3 pt-3 border-t border-surface-light flex justify-center">
+          <span className="inline-flex items-center gap-1 text-[10px] font-heading font-bold text-accent hover:text-accent-glow transition-colors">
+            View in Library
+            <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </span>
         </div>
-      </div>
+      </Link>
     </motion.div>
   );
 }
@@ -290,7 +152,7 @@ function ResourceCard({ resource, index }: { resource: UnifiedCard; index: numbe
 export default function ResourceLibrary() {
   const { t } = useTranslation();
   const [activeCategory, setActiveCategory] = useState<CategoryKey>('All');
-  const [visibleCount, setVisibleCount] = useState(12);
+  const MAX_VISIBLE = 8; // 2 rows on desktop (4 cols), 1 row on mobile
 
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = { All: allCards.length };
@@ -306,12 +168,10 @@ export default function ResourceLibrary() {
     return allCards.filter((c) => c.category === activeCategory);
   }, [activeCategory]);
 
-  const visible = filtered.slice(0, visibleCount);
-  const hasMore = visibleCount < filtered.length;
+  const visible = useMemo(() => filtered.slice(0, MAX_VISIBLE), [filtered]);
 
   const handleCategoryChange = useCallback((cat: CategoryKey) => {
     setActiveCategory(cat);
-    setVisibleCount(12);
   }, []);
 
   return (
@@ -337,7 +197,7 @@ export default function ResourceLibrary() {
             {t.resourceLibrary.headline}
           </h2>
           <p className="mt-4 text-sm sm:text-base text-foreground-muted max-w-xl mx-auto">
-            180+ playbooks, templates, and tools built by founders who&apos;ve been in the trenches. Free to download, always.
+            {t.resourceLibrary.homeSubtitle}
           </p>
         </motion.div>
 
@@ -374,7 +234,7 @@ export default function ResourceLibrary() {
           ))}
         </motion.div>
 
-        {/* Resource grid */}
+        {/* Resource grid — 2 rows desktop (4 cols), 1 row mobile */}
         <motion.div layout className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
           <AnimatePresence mode="popLayout">
             {visible.map((resource, i) => (
@@ -386,38 +246,31 @@ export default function ResourceLibrary() {
         {/* Empty state */}
         {filtered.length === 0 && (
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center text-foreground-muted py-16 font-mono text-sm">
-            No resources in this category yet. More added weekly.
+            {t.resourceLibrary.empty}
           </motion.p>
         )}
 
-        {/* Show more / Show less */}
-        {hasMore && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center mt-10">
-            <button
-              onClick={() => setVisibleCount((c) => c + 12)}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-surface border border-surface-light text-foreground-muted font-heading text-sm hover:border-accent/30 hover:text-foreground transition-all duration-300"
-            >
-              Show more
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
-            </button>
-            <p className="mt-2 text-[10px] font-mono text-foreground-dim">
-              Showing {visibleCount} of {filtered.length} resources
-            </p>
-          </motion.div>
-        )}
-
-        {!hasMore && filtered.length > 12 && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center mt-10">
-            <button
-              onClick={() => setVisibleCount(12)}
-              className="text-xs font-mono text-foreground-dim hover:text-accent transition-colors"
-            >
-              Show less
-            </button>
-          </motion.div>
-        )}
+        {/* CTA — View full library */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+          className="text-center mt-10"
+        >
+          <Link
+            href="/resources"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-accent hover:bg-accent-glow text-white font-heading font-bold text-sm transition-all duration-300 hover:shadow-[0_8px_30px_rgba(255,59,48,0.3)] hover:-translate-y-0.5"
+          >
+            {t.resourceLibrary.viewAll}
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </Link>
+          <p className="mt-2 text-[10px] font-mono text-foreground-dim">
+            {t.resourceLibrary.showingCount.replace('{visible}', String(visible.length)).replace('{total}', String(filtered.length))}
+          </p>
+        </motion.div>
       </div>
     </section>
   );
