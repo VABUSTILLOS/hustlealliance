@@ -1,81 +1,55 @@
 import { NextResponse } from 'next/server';
 import dns from 'dns';
-import net from 'net';
+
+const POOLER_HOST = 'aws-0-us-east-1.pooler.supabase.com';
+const POOLER_PORT = 6543;
+const POOLER_USER = 'app_user.yftgdtdvmvvqyzcdntge';
+const POOLER_PASSWORD = 'HustleAlliance2024!';
+const POOLER_DB = 'postgres';
 
 export async function GET() {
+  // DNS check on pooler host (should be IPv4 on Vercel)
   let dns4: string | null = null;
   let dns6: string | null = null;
   try {
-    const hostname = 'db.yftgdtdvmvvqyzcdntge.supabase.co';
-    const r4 = await dns.promises.resolve4(hostname).catch(() => null);
-    const r6 = await dns.promises.resolve6(hostname).catch(() => null);
+    const r4 = await dns.promises.resolve4(POOLER_HOST).catch(() => null);
+    const r6 = await dns.promises.resolve6(POOLER_HOST).catch(() => null);
     dns4 = r4 ? r4.join(', ') : null;
     dns6 = r6 ? r6.join(', ') : null;
   } catch {}
 
-  // Direct IPv6 connection
-  let directIpv6 = 'not_tested';
-  try {
-    await new Promise<void>((resolve) => {
-      const sock = net.createConnection({ host: '2600:1f18:45ac:6d00:5c76:f39b:a986:f215', port: 6543, timeout: 5000 }, () => {
-        directIpv6 = 'connected';
-        sock.destroy();
-        resolve();
-      });
-      sock.on('error', (e: any) => { directIpv6 = `error: ${e.code || e.message}`; sock.destroy(); resolve(); });
-      sock.on('timeout', () => { directIpv6 = 'timeout'; sock.destroy(); resolve(); });
-    });
-  } catch {}
-
-  // Direct IPv6 + SSL
-  let directIpv6Tls = 'not_tested';
-  try {
-    const tls = require('tls');
-    await new Promise<void>((resolve) => {
-      const sock = tls.connect({ host: '2600:1f18:45ac:6d00:5c76:f39b:a986:f215', port: 6543, rejectUnauthorized: false, timeout: 5000 }, () => {
-        directIpv6Tls = 'connected';
-        sock.destroy();
-        resolve();
-      });
-      sock.on('error', (e: any) => { directIpv6Tls = `error: ${e.code || e.message}`; sock.destroy(); resolve(); });
-      sock.on('timeout', () => { directIpv6Tls = 'timeout'; sock.destroy(); resolve(); });
-    });
-  } catch {}
-
-  // pg with IPv6 address directly in connection string
-  let pgDirectIpv6 = 'not_tested';
-  try {
-    const { Pool } = require('pg');
-    const url = process.env.DATABASE_URL!;
-    // Replace hostname with IPv6
-    const ipv6Url = url.replace('db.yftgdtdvmvvqyzcdntge.supabase.co', '2600:1f18:45ac:6d00:5c76:f39b:a986:f215');
-    const pool = new Pool({ connectionString: ipv6Url, connectionTimeoutMillis: 5000 });
-    const res = await pool.query('SELECT 1 as val');
-    pgDirectIpv6 = `ok: ${JSON.stringify(res.rows)}`;
-    await pool.end();
-  } catch (e: any) {
-    pgDirectIpv6 = `error: ${e.message || e.code}`;
-  }
-
-  // pg with hostaddr parameter
-  let pgHostaddr = 'not_tested';
+  // pg to pooler (IPv4)
+  let pgResult = 'not_tested';
+  let tableCount: number | null = null;
   try {
     const { Pool } = require('pg');
     const pool = new Pool({
-      host: 'db.yftgdtdvmvvqyzcdntge.supabase.co',
-      port: 6543,
-      user: 'app_user',
-      password: 'HustleAlliance2024!',
-      database: 'postgres',
+      host: POOLER_HOST,
+      port: POOLER_PORT,
+      user: POOLER_USER,
+      password: POOLER_PASSWORD,
+      database: POOLER_DB,
       ssl: { rejectUnauthorized: false },
-      connectionTimeoutMillis: 5000,
+      connectionTimeoutMillis: 8000,
     });
     const res = await pool.query('SELECT 1 as val');
-    pgHostaddr = `ok: ${JSON.stringify(res.rows)}`;
+    pgResult = `ok: ${JSON.stringify(res.rows)}`;
+    const tc = await pool.query("SELECT count(*) as c FROM information_schema.tables WHERE table_schema = 'public'");
+    tableCount = parseInt(tc.rows[0].c);
     await pool.end();
   } catch (e: any) {
-    pgHostaddr = `error: ${e.message || e.code}`;
+    pgResult = `error: ${e.message || e.code}`;
   }
 
-  return NextResponse.json({ dns4, dns6, directIpv6, directIpv6Tls, pgDirectIpv6, pgHostaddr, nodeVersion: process.version });
+  // Check if env DATABASE_URL uses pooler
+  const dbUrl = process.env.DATABASE_URL || 'NOT SET';
+
+  return NextResponse.json({
+    dns4,
+    dns6,
+    pgResult,
+    tableCount,
+    nodeVersion: process.version,
+    dbUrlPreview: dbUrl ? dbUrl.substring(0, 80) + '...' : 'NONE',
+  });
 }
