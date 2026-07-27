@@ -64,6 +64,9 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
 
+  // Prevent Turbopack from bundling Node.js native modules
+  serverExternalPackages: ['pg'],
+
   // Reduce layout shift with automatic font optimization
   experimental: {
     optimizePackageImports: [
