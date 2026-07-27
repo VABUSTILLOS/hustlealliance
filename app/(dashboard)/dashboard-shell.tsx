@@ -7,6 +7,7 @@ import clsx from 'clsx';
 import { useStore } from '@/lib/store/useStore';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { useCurrentUser } from '@/lib/hooks/useCurrentUser';
+import { ReactQueryProvider } from '@/lib/hooks/queryClient';
 import dynamic from 'next/dynamic';
 
 const GamificationWidgetLazy = dynamic(
@@ -79,7 +80,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/');
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg)]">
+    <ReactQueryProvider>
+      <div className="min-h-screen bg-[var(--color-bg)]">
       {/* ── Desktop Sidebar ────────────────── */}
       <aside className="hidden lg:flex fixed left-0 top-0 bottom-0 w-64 bg-[var(--color-surface)] border-r border-[var(--color-border-subtle)] flex-col z-40">
         {/* Logo */}
@@ -177,5 +179,6 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         </div>
       </nav>
     </div>
+    </ReactQueryProvider>
   );
 }

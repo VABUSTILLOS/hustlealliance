@@ -5,10 +5,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useStore } from '@/lib/store/useStore';
 import { useCurrentUser, getFirstName, getAvatarUrl } from '@/lib/hooks/useCurrentUser';
-import { upcomingEvents } from '@/lib/data/events';
-import { learningPaths } from '@/lib/data/learning-paths';
-import { spaces as allSpaces } from '@/lib/data/spaces';
-import { friendsActivity } from '@/lib/data/gamification';
+import { useDashboard } from '@/lib/hooks/useDashboard';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
 // ── Circular Progress ────────────────────────────────────────────────────
@@ -51,35 +48,44 @@ const fadeUp = {
 export default function DashboardPage() {
   const { t } = useTranslation();
   const user = useCurrentUser();
-  const progress = useStore((s) => s.progress);
+  const { data: dashboard, isLoading: dashboardLoading } = useDashboard();
   const posts = useStore((s) => s.posts);
   const joinedSpaces = useStore((s) => s.joinedSpaces);
-  const getPathProgress = useStore((s) => s.getPathProgress);
-  const gamification = useStore((s) => s.gamification);
-  const checkDailyLogin = useStore((s) => s.checkDailyLogin);
-  const getNextBadge = useStore((s) => s.getNextBadge);
+  const spacesList = [
+    { slug: 'growth-hackers', name: 'Growth Hackers', description: 'Growth marketing community', memberCount: 42, category: 'growth' },
+    { slug: 'founder-circle', name: 'Founder Circle', description: 'Founders supporting founders', memberCount: 28, category: 'founders' },
+  ];
 
-  useEffect(() => { checkDailyLogin(); }, []);
+  // Use real API data when available, fall back to Zustand mock
+  const realCourses = dashboard?.courses || [];
+  const gamificationData = dashboard?.gamification || {
+    totalXP: 0, badges: [], streak: { currentStreak: 0, longestStreak: 0 }, certificates: [],
+  };
+  const upcomingClasses = dashboard?.upcomingClasses || [];
 
-  const enrolledPath = learningPaths.find((lp) => progress[lp.slug]);
-  const enrolledProgress = enrolledPath
-    ? getPathProgress(enrolledPath.slug, enrolledPath.totalLessons)
-    : 0;
+  const enrolledPath = realCourses.length > 0 ? realCourses[0] : null;
+  const enrolledProgress = enrolledPath?.percentage ?? 0;
 
   const latestPosts = posts.slice(0, 3);
-  const mySpaces = allSpaces.filter((s) => joinedSpaces.includes(s.slug));
+  const mySpaces = spacesList.filter((s) => joinedSpaces.includes(s.slug));
 
-  // Daily gem: pick a random first insight from a random path
-  const [dailyGem] = useState(() => {
-    const randomPath = learningPaths[Math.floor(Math.random() * learningPaths.length)];
-    if (randomPath.keyInsights.length > 0) {
-      return { path: randomPath, insight: randomPath.keyInsights[0] };
-    }
-    return { path: learningPaths[0], insight: learningPaths[0].keyInsights[0] };
-  });
+  // Daily gem: pick a random course as inspiration
+  const dailyGem = enrolledPath || null;
 
-  const nextBadge = getNextBadge();
-  const badgeProgress = nextBadge?.progress ?? 0;
+  // Next badge progress (use first unearned badge as target)
+  const ALL_BADGES = [
+    { id: 'first_steps', name: 'First Steps', icon: '👣', category: 'LEARNING', requirement: 1, description: 'Complete your first lesson' },
+    { id: 'streak_3', name: '3-Day Streak', icon: '🔥', category: 'STREAK', requirement: 3, description: 'Maintain a 3-day streak' },
+    { id: 'streak_7', name: '7-Day Warrior', icon: '⚔️', category: 'STREAK', requirement: 7, description: 'Maintain a 7-day streak' },
+    { id: 'quiz_master', name: 'Quiz Master', icon: '🧠', category: 'LEARNING', requirement: 5, description: 'Pass 5 quizzes' },
+    { id: 'course_complete', name: 'Course Graduate', icon: '🎓', category: 'MILESTONE', requirement: 1, description: 'Complete your first course' },
+  ];
+  const earnedBadgeIds = new Set(gamificationData.badges.map((b) => b.id));
+  const nextBadge = ALL_BADGES.find((b) => !earnedBadgeIds.has(b.id)) || null;
+  const badgeProgress = nextBadge
+    ? Math.min(100, nextBadge.id === 'first_steps' && gamificationData.totalXP > 0 ? 100 : 
+      Math.round((gamificationData.streak.currentStreak / nextBadge.requirement) * 100))
+    : 0;
 
   // Onboarding checklist
   const [onboardingDismissed, setOnboardingDismissed] = useState(false);
@@ -116,9 +122,9 @@ export default function DashboardPage() {
                 transition={{ duration: 0.8, repeat: Infinity, repeatDelay: 2 }}
                 className="text-2xl block mb-1"
               >🔥</motion.span>
-              <p className="text-foreground font-display text-xl leading-none">{gamification.streak}</p>
+              <p className="text-foreground font-display text-xl leading-none">{gamificationData.streak.currentStreak}</p>
               <p className="text-foreground-muted text-[10px] uppercase tracking-wider mt-1">
-                {t.dashboard.dailyStreak.replace('{streak}', String(gamification.streak))}
+                {t.dashboard.dailyStreak.replace('{streak}', String(gamificationData.streak.currentStreak))}
               </p>
             </Widget>
           </motion.div>
@@ -127,7 +133,7 @@ export default function DashboardPage() {
           <motion.div variants={fadeUp}>
             <Widget className="!p-4 text-center">
               <span className="text-2xl block mb-1">⚡</span>
-              <p className="text-foreground font-display text-xl leading-none">{gamification.xp}</p>
+              <p className="text-foreground font-display text-xl leading-none">{gamificationData.totalXP}</p>
               <p className="text-foreground-muted text-[10px] uppercase tracking-wider mt-1">{t.dashboard.yourXP}</p>
             </Widget>
           </motion.div>
@@ -136,7 +142,7 @@ export default function DashboardPage() {
           <motion.div variants={fadeUp}>
             <Widget className="!p-4 text-center">
               <span className="text-2xl block mb-1">🏅</span>
-              <p className="text-foreground font-display text-xl leading-none">{gamification.earnedBadges.length}</p>
+              <p className="text-foreground font-display text-xl leading-none">{gamificationData.badges.length}</p>
               <p className="text-foreground-muted text-[10px] uppercase tracking-wider mt-1">Badges</p>
             </Widget>
           </motion.div>
@@ -146,7 +152,7 @@ export default function DashboardPage() {
             <Widget className="!p-4 text-center">
               {nextBadge ? (
                 <>
-                  <span className="text-2xl block mb-1">{nextBadge.badge.icon}</span>
+                  <span className="text-2xl block mb-1">{nextBadge.icon}</span>
                   <div className="w-full h-1.5 bg-surface-light rounded-full mt-1 mb-1 overflow-hidden">
                     <motion.div
                       className="h-full bg-accent rounded-full"
@@ -156,7 +162,7 @@ export default function DashboardPage() {
                     />
                   </div>
                   <p className="text-foreground-muted text-[10px] uppercase tracking-wider mt-1 leading-tight">
-                    {nextBadge.badge.name}
+                    {nextBadge.name}
                   </p>
                 </>
               ) : (
@@ -309,6 +315,7 @@ export default function DashboardPage() {
           {/* Daily Gem + Friends Activity */}
           <motion.div variants={fadeUp} className="lg:col-span-2 space-y-6">
             {/* Today's 5-Minute Gem */}
+            {dailyGem && (
             <Widget className="relative overflow-hidden">
               <div className="absolute top-0 right-0 w-24 h-24 bg-accent/10 blur-3xl rounded-full pointer-events-none" />
               <div className="flex items-center gap-2 mb-4">
@@ -316,15 +323,15 @@ export default function DashboardPage() {
                 <h2 className="font-heading font-bold text-foreground text-lg">{t.dashboard.todayGem}</h2>
               </div>
               <div className="flex items-start gap-4 p-4 rounded-xl bg-white/5 border border-white/10">
-                <span className="text-3xl flex-shrink-0">{dailyGem.insight?.icon}</span>
+                <span className="text-3xl flex-shrink-0">💡</span>
                 <div className="min-w-0">
-                  <p className="text-foreground-muted text-xs uppercase tracking-wider mb-1">{dailyGem.path.title}</p>
-                  <h3 className="font-semibold text-foreground text-sm mb-1">{dailyGem.insight?.title}</h3>
-                  <p className="text-foreground-dim text-sm leading-relaxed">{dailyGem.insight?.insight}</p>
+                  <p className="text-foreground-muted text-xs uppercase tracking-wider mb-1">Daily Gem</p>
+                  <h3 className="font-semibold text-foreground text-sm mb-1">{dailyGem.title}</h3>
+                  <p className="text-foreground-dim text-sm leading-relaxed line-clamp-2">{dailyGem.tagline}</p>
                 </div>
               </div>
               <Link
-                href={`/learning/${dailyGem.path.slug}`}
+                href={`/learning/${dailyGem.slug}`}
                 className="inline-flex items-center gap-1.5 mt-4 text-accent text-sm font-medium hover:underline"
               >
                 {t.dashboard.startReading}
@@ -333,30 +340,28 @@ export default function DashboardPage() {
                 </svg>
               </Link>
             </Widget>
+            )}
 
-            {/* Friends' Activity */}
+            {/* Recent Activity */}
             <Widget>
               <h2 className="font-heading font-bold text-foreground text-lg mb-4">{t.dashboard.friendsActivity}</h2>
               <div className="space-y-3">
-                {friendsActivity.slice(0, 4).map((fa) => (
-                  <div key={fa.id} className="flex items-center gap-3">
-                    <img src={fa.avatar} alt={fa.name}
+                {latestPosts.length > 0 ? latestPosts.map((post) => (
+                  <div key={post.id} className="flex items-center gap-3">
+                    <img src={post.author.avatar} alt={post.author.name}
                       className="w-8 h-8 rounded-full border border-white/10 object-cover shrink-0" />
                     <div className="min-w-0 flex-1">
                       <p className="text-foreground text-sm">
-                        <span className="font-semibold">{fa.name}</span>{' '}
-                        <span className="text-foreground-dim">
-                          {fa.action === 'completed_lesson' && `${t.dashboard.completedPath} `}
-                          {fa.action === 'completed_path' && `${t.dashboard.completedPath} `}
-                          {fa.action === 'earned_badge' && `${t.dashboard.earnedBadge} `}
-                          {fa.action === 'started_path' && `${t.dashboard.startedPath} `}
-                        </span>
-                        <span className="text-accent font-medium">{fa.target}</span>
+                        <span className="font-semibold">{post.author.name}</span>{' '}
+                        <span className="text-foreground-dim">shared</span>
                       </p>
-                      <span className="text-foreground-muted text-xs">{fa.timestamp}</span>
+                      <p className="text-foreground-dim text-xs truncate">{post.text}</p>
+                      <span className="text-foreground-muted text-xs">{post.timestamp}</span>
                     </div>
                   </div>
-                ))}
+                )) : (
+                  <p className="text-foreground-dim text-sm py-4 text-center">No recent activity yet. Start learning to see updates!</p>
+                )}
               </div>
             </Widget>
           </motion.div>
@@ -451,18 +456,25 @@ export default function DashboardPage() {
             <Widget>
               <h2 className="font-heading font-bold text-foreground text-lg mb-5">{t.dashboard.upcomingEvents}</h2>
               <div className="space-y-4">
-                {upcomingEvents.slice(0, 3).map((event) => (
-                  <div key={event.id} className="flex gap-4 p-3 rounded-xl bg-surface-light/50 border border-white/5 hover:border-accent/20 transition-colors">
-                    <div className="w-12 h-12 rounded-xl bg-accent/10 border border-accent/20 flex flex-col items-center justify-center shrink-0">
-                      <span className="font-display text-accent text-lg leading-none">{event.date.split(' ')[1].replace(',', '')}</span>
-                      <span className="text-accent/60 text-[9px] font-mono uppercase">{event.date.split(' ')[0]}</span>
+                {upcomingClasses.length > 0 ? upcomingClasses.slice(0, 3).map((cls) => {
+                  const date = new Date(cls.startsAt);
+                  return (
+                    <div key={cls.id} className="flex gap-4 p-3 rounded-xl bg-surface-light/50 border border-white/5 hover:border-accent/20 transition-colors">
+                      <div className="w-12 h-12 rounded-xl bg-accent/10 border border-accent/20 flex flex-col items-center justify-center shrink-0">
+                        <span className="font-display text-accent text-lg leading-none">{date.getDate()}</span>
+                        <span className="text-accent/60 text-[9px] font-mono uppercase">{date.toLocaleString('en-US', { month: 'short' })}</span>
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="font-heading font-bold text-foreground text-sm mb-0.5">{cls.title}</h3>
+                        <p className="text-foreground-muted text-xs font-mono">
+                          {date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })} • {cls.instructor}
+                        </p>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <h3 className="font-heading font-bold text-foreground text-sm mb-0.5">{event.title}</h3>
-                      <p className="text-foreground-muted text-xs font-mono">{event.time} • {event.attendees} {t.dashboard.attending}</p>
-                    </div>
-                  </div>
-                ))}
+                  );
+                }) : (
+                  <p className="text-foreground-dim text-sm py-4 text-center">No upcoming live classes. Check back soon!</p>
+                )}
               </div>
             </Widget>
           </motion.div>

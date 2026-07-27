@@ -4,11 +4,14 @@ import { useState, use, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import clsx from 'clsx';
-import { learningPaths, type Lesson } from '@/lib/data/learning-paths';
-import { feedPosts } from '@/lib/data/community';
+import { useLesson, useCourse } from '@/lib/hooks/useCourses';
+import { useAccessCheck } from '@/lib/hooks/useAccessCheck';
+import { completeLessonAction } from '@/app/actions/learning';
 import { useStore } from '@/lib/store/useStore';
 import { useCurrentUser } from '@/lib/hooks/useCurrentUser';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import Paywall from '@/app/components/Paywall';
+import type { UpgradeOption } from '@/app/components/Paywall';
 
 export default function LessonPlayerPage({
   params,
@@ -17,7 +20,15 @@ export default function LessonPlayerPage({
 }) {
   const { slug, lessonSlug } = use(params);
   const { t } = useTranslation();
-  const path = learningPaths.find((lp) => lp.slug === slug);
+
+  const { data: course } = useCourse(slug);
+  const { data: lesson, isLoading: lessonLoading } = useLesson(slug, lessonSlug);
+  const { data: access, isLoading: accessLoading } = useAccessCheck({
+    courseId: course?.id,
+    lessonId: lesson?.id,
+    enabled: !!course?.id,
+  });
+
   const completeLesson = useStore((s) => s.completeLesson);
   const isLessonComplete = useStore((s) => s.isLessonComplete);
   const hasCheered = useStore((s) => s.hasCheered);
@@ -26,42 +37,46 @@ export default function LessonPlayerPage({
   const user = useCurrentUser();
   const posts = useStore((s) => s.posts);
 
-  // Flatten all lessons
-  const allLessons: { lesson: Lesson; moduleIdx: number; lessonIdx: number }[] = [];
-  path?.modules.forEach((mod, mi) => {
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [xpEarned, setXpEarned] = useState(0);
+  const [activeTab, setActiveTab] = useState<'content' | 'discuss'>('content');
+  const completed = lesson ? isLessonComplete(slug, lesson.slug) : false;
+  const cheered = lesson ? hasCheered(slug, lesson.slug) : false;
+
+  const discussPosts = posts.filter(
+    (p) => p.space === slug || !p.space
+  ).slice(0, 4);
+
+  // Build lesson list from course modules
+  const allLessons: { lesson: { id: string; title: string; slug: string; durationMinutes: number }; moduleIdx: number; lessonIdx: number }[] = [];
+  course?.modules.forEach((mod, mi) => {
     mod.lessons.forEach((l, li) => {
       allLessons.push({ lesson: l, moduleIdx: mi, lessonIdx: li });
     });
   });
 
   const currentIdx = allLessons.findIndex((l) => l.lesson.slug === lessonSlug);
-  const current = allLessons[currentIdx];
   const prev = currentIdx > 0 ? allLessons[currentIdx - 1] : null;
   const next = currentIdx < allLessons.length - 1 ? allLessons[currentIdx + 1] : null;
 
-  const [showCelebration, setShowCelebration] = useState(false);
-  const [activeTab, setActiveTab] = useState<'content' | 'discuss'>('content');
-  const completed = current ? isLessonComplete(slug, current.lesson.slug) : false;
-  const cheered = current ? hasCheered(slug, current.lesson.slug) : false;
-
-  const discussPosts = posts.filter(
-    (p) => p.space === path?.communitySpaceSlug || !p.space
-  ).slice(0, 4);
-
-  const handleComplete = () => {
-    if (current && !completed) {
-      completeLesson(slug, current.lesson.slug);
+  const handleComplete = async () => {
+    if (lesson && !completed) {
+      // Call server action for real db persistence + gamification
+      const result = await completeLessonAction(lesson.id);
+      // Also update local Zustand for optimistic UI
+      completeLesson(slug, lesson.slug);
+      setXpEarned(result.success ? (result.xpEarned ?? 10) : 10);
       setShowCelebration(true);
       setTimeout(() => setShowCelebration(false), 3000);
     }
   };
 
   const handleCheer = () => {
-    if (current) toggleCheer(slug, current.lesson.slug);
+    if (lesson) toggleCheer(slug, lesson.slug);
   };
 
   const handleShareWin = () => {
-    if (!current) return;
+    if (!lesson || !course) return;
     addPost({
       id: `post-${Date.now()}`,
       author: {
@@ -69,17 +84,30 @@ export default function LessonPlayerPage({
         avatar: user?.avatar ?? 'https://api.dicebear.com/9.x/initials/svg?seed=User',
         username: user?.username ?? user?.email?.split('@')[0] ?? 'member',
       },
-      text: `🎉 ${t.gamification.sharedWin} "${current.lesson.title}" ${t.gamification.from} "${path?.title}"!`,
+      text: `🎉 ${t.gamification.sharedWin} "${lesson.title}" ${t.gamification.from} "${course.title}"!`,
       timestamp: 'Just now',
       likes: 0,
       liked: false,
       comments: [],
-      space: path?.communitySpaceSlug,
+      space: slug,
       image: undefined,
     });
   };
 
-  if (!path || !current) {
+  // Loading state
+  if (lessonLoading || accessLoading) {
+    return (
+      <div className="px-4 sm:px-6 lg:px-8 py-8 max-w-5xl mx-auto animate-pulse space-y-6">
+        <div className="h-4 bg-surface-light rounded w-1/4" />
+        <div className="aspect-video bg-surface-light rounded-2xl" />
+        <div className="h-8 bg-surface-light rounded w-1/2" />
+        <div className="h-40 bg-surface-light rounded-2xl" />
+      </div>
+    );
+  }
+
+  // Not found
+  if (!lesson) {
     return (
       <div className="px-8 py-20 text-center">
         <h1 className="font-display text-3xl text-foreground mb-4">{t.lesson.notFound}</h1>
@@ -90,7 +118,10 @@ export default function LessonPlayerPage({
 
   const totalLessons = allLessons.length;
   const completedCount = allLessons.filter((l) => isLessonComplete(slug, l.lesson.slug)).length;
-  const pct = Math.round((completedCount / totalLessons) * 100);
+  const pct = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
+
+  // Access denied — show paywall
+  const showPaywall = access && !access.allowed;
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-8 max-w-5xl mx-auto">
@@ -100,7 +131,7 @@ export default function LessonPlayerPage({
         className="inline-flex items-center gap-1 text-muted font-mono text-xs hover:text-accent mb-6 transition-colors"
       >
         <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6" /></svg>
-        {t.lesson.backTo} {path.title}
+        {t.lesson.backTo} {course?.title || slug}
       </Link>
 
       {/* Progress bar */}
@@ -119,184 +150,174 @@ export default function LessonPlayerPage({
       {/* Lesson content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
-          {/* Video */}
-          <div className="aspect-video bg-surface border border-surface-light rounded-2xl overflow-hidden">
-            {current.lesson.locked ? (
-              <div className="w-full h-full flex flex-col items-center justify-center text-muted">
-                <svg className="w-12 h-12 mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0110 0v4" />
-                </svg>
-                <p className="font-heading font-bold text-lg">{t.lesson.locked}</p>
-                <p className="text-sm">{t.lesson.lockedHint}</p>
-              </div>
-            ) : (
-              <iframe src={current.lesson.videoUrl} className="w-full h-full" allowFullScreen title={current.lesson.title} />
-            )}
-          </div>
-
-          {/* Title & Mark Complete */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h1 className="font-display text-2xl sm:text-3xl text-foreground uppercase leading-none mb-1">
-                {current.lesson.title}
-              </h1>
-              <p className="font-mono text-xs text-muted">{current.lesson.duration}</p>
+          {/* Paywall or video */}
+          {showPaywall ? (
+            <div className="max-w-lg">
+              <Paywall
+                requiredTier={access.requiredTier}
+                userTier={access.userTier}
+                upgradeOptions={(access.upgradeOptions || []) as UpgradeOption[]}
+                contentTitle={course?.title || lesson.title}
+                contentDescription={`"${lesson.title}" requires ${access.requiredTier} tier access.`}
+              />
             </div>
-            {!current.lesson.locked && (
-              <button
-                onClick={handleComplete}
-                className={clsx(
-                  'inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-heading font-bold text-sm transition-all',
-                  completed
-                    ? 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 cursor-default'
-                    : 'bg-accent text-foreground hover:bg-accent-glow shadow-[0_0_20px_rgba(255,59,48,0.2)]'
-                )}
-                disabled={completed}
-              >
-                {completed ? (
-                  <>
-                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                      <polyline points="20 6 9 17 4 12" />
+          ) : (
+            <>
+              {/* Video */}
+              <div className="aspect-video bg-surface border border-surface-light rounded-2xl overflow-hidden">
+                {lesson.videoUrl ? (
+                  <iframe src={lesson.videoUrl} className="w-full h-full" allowFullScreen title={lesson.title} />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center text-muted">
+                    <svg className="w-12 h-12 mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <rect x="2" y="3" width="20" height="14" rx="2" /><polygon points="8 21 12 17 16 21" />
                     </svg>
-                    {t.lesson.completed}
+                    <p className="font-heading font-bold text-lg">{t.lesson.locked}</p>
+                    <p className="text-sm">{t.lesson.lockedHint}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Title & Mark Complete */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <h1 className="font-display text-2xl sm:text-3xl text-foreground uppercase leading-none mb-1">
+                    {lesson.title}
+                  </h1>
+                  <p className="font-mono text-xs text-muted">{lesson.durationMinutes} min</p>
+                </div>
+                <button
+                  onClick={handleComplete}
+                  className={clsx(
+                    'inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-heading font-bold text-sm transition-all',
+                    completed
+                      ? 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 cursor-default'
+                      : 'bg-accent text-foreground hover:bg-accent-glow shadow-[0_0_20px_rgba(255,59,48,0.2)]'
+                  )}
+                  disabled={completed}
+                >
+                  {completed ? (
+                    <>
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                      {t.lesson.completed}
+                    </>
+                  ) : (
+                    t.lesson.markComplete
+                  )}
+                </button>
+              </div>
+
+              {/* Content + Tab Bar */}
+              <div className="bg-surface border border-surface-light rounded-2xl overflow-hidden">
+                {/* Tab Bar */}
+                <div className="flex border-b border-surface-light">
+                  {(['content', 'discuss'] as const).map((tab) => (
+                    <button
+                      key={tab}
+                      onClick={() => setActiveTab(tab)}
+                      className={clsx(
+                        'flex-1 py-3 text-sm font-heading font-bold transition-colors',
+                        activeTab === tab
+                          ? 'text-accent border-b-2 border-accent'
+                          : 'text-foreground-dim hover:text-foreground'
+                      )}
+                    >
+                      {tab === 'content' ? lesson.title : t.gamification.discussTab}
+                    </button>
+                  ))}
+                </div>
+
+                {activeTab === 'content' ? (
+                  <>
+                    <div className="p-6 lg:p-8">
+                      <div className="prose prose-invert max-w-none text-foreground-muted text-sm leading-relaxed whitespace-pre-wrap">
+                        {lesson.content || 'No content available for this lesson.'}
+                      </div>
+                    </div>
+
+                    {/* Cheer & Share */}
+                    <div className="flex items-center gap-3 px-6 pb-6 border-t border-surface-light pt-4">
+                      <button
+                        onClick={handleCheer}
+                        className={clsx(
+                          'inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-heading font-bold transition-all',
+                          cheered
+                            ? 'bg-amber-500/10 border border-amber-500/30 text-amber-400'
+                            : 'bg-white/5 border border-white/10 text-foreground-dim hover:text-amber-400 hover:border-amber-500/30'
+                        )}
+                      >
+                        <motion.span
+                          animate={cheered ? { scale: [1, 1.3, 1] } : {}}
+                          transition={{ duration: 0.3 }}
+                        >
+                          👏
+                        </motion.span>
+                        {cheered ? t.gamification.cheers + '!' : t.gamification.cheerThis}
+                      </button>
+                      {completed && (
+                        <button
+                          onClick={handleShareWin}
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-heading font-bold
+                            bg-accent/10 border border-accent/30 text-accent hover:bg-accent/20 transition-all"
+                        >
+                          📢 {t.gamification.shareWin}
+                        </button>
+                      )}
+                    </div>
                   </>
                 ) : (
-                  t.lesson.markComplete
-                )}
-              </button>
-            )}
-          </div>
-
-          {/* Content + Tab Bar */}
-          <div className="bg-surface border border-surface-light rounded-2xl overflow-hidden">
-            {/* Tab Bar */}
-            <div className="flex border-b border-surface-light">
-              {(['content', 'discuss'] as const).map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={clsx(
-                    'flex-1 py-3 text-sm font-heading font-bold transition-colors',
-                    activeTab === tab
-                      ? 'text-accent border-b-2 border-accent'
-                      : 'text-foreground-dim hover:text-foreground'
-                  )}
-                >
-                  {tab === 'content' ? current.lesson.title : t.gamification.discussTab}
-                </button>
-              ))}
-            </div>
-
-            {activeTab === 'content' ? (
-              <>
-                <div className="p-6 lg:p-8">
-                  <div className="prose prose-invert max-w-none text-foreground-muted text-sm leading-relaxed whitespace-pre-wrap">
-                    {current.lesson.content}
-                  </div>
-                </div>
-
-                {/* Bite-sized Insight Cards */}
-                {current.lesson.insights && current.lesson.insights.length > 0 && (
-                  <div className="px-6 pb-6">
-                    <p className="text-foreground-muted text-xs uppercase tracking-wider mb-3 font-mono">Key Insights</p>
-                    <div className="flex gap-3 overflow-x-auto pb-2 -mx-6 px-6 scrollbar-thin">
-                      {current.lesson.insights.map((insight, i) => (
-                        <motion.div
-                          key={i}
-                          initial={{ opacity: 0, x: 20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: i * 0.1 }}
-                          className="flex-shrink-0 w-56 p-4 rounded-xl bg-white/5 border border-white/10
-                            hover:border-accent/20 transition-colors"
-                        >
-                          <span className="text-2xl block mb-2">{insight.icon}</span>
-                          <h4 className="font-semibold text-foreground text-sm mb-1">{insight.title}</h4>
-                          <p className="text-foreground-dim text-xs leading-relaxed">{insight.insight}</p>
-                        </motion.div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Cheer & Share */}
-                <div className="flex items-center gap-3 px-6 pb-6 border-t border-surface-light pt-4">
-                  <button
-                    onClick={handleCheer}
-                    className={clsx(
-                      'inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-heading font-bold transition-all',
-                      cheered
-                        ? 'bg-amber-500/10 border border-amber-500/30 text-amber-400'
-                        : 'bg-white/5 border border-white/10 text-foreground-dim hover:text-amber-400 hover:border-amber-500/30'
-                    )}
-                  >
-                    <motion.span
-                      animate={cheered ? { scale: [1, 1.3, 1] } : {}}
-                      transition={{ duration: 0.3 }}
-                    >
-                      👏
-                    </motion.span>
-                    {cheered ? t.gamification.cheers + '!' : t.gamification.cheerThis}
-                  </button>
-                  {completed && (
-                    <button
-                      onClick={handleShareWin}
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-heading font-bold
-                        bg-accent/10 border border-accent/30 text-accent hover:bg-accent/20 transition-all"
-                    >
-                      📢 {t.gamification.shareWin}
-                    </button>
-                  )}
-                </div>
-              </>
-            ) : (
-              /* Discuss Tab */
-              <div className="p-6">
-                {discussPosts.length > 0 ? (
-                  <div className="space-y-4">
-                    {discussPosts.map((post) => (
-                      <div key={post.id} className="flex gap-3 pb-4 border-b border-surface-light last:border-0 last:pb-0">
-                        <img src={post.author.avatar} alt={post.author.name}
-                          className="w-8 h-8 rounded-full border border-white/10 shrink-0 object-cover" />
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-foreground text-sm font-semibold">{post.author.name}</span>
-                            <span className="text-foreground-dim text-xs">{post.timestamp}</span>
+                  /* Discuss Tab */
+                  <div className="p-6">
+                    {discussPosts.length > 0 ? (
+                      <div className="space-y-4">
+                        {discussPosts.map((post) => (
+                          <div key={post.id} className="flex gap-3 pb-4 border-b border-surface-light last:border-0 last:pb-0">
+                            <img src={post.author.avatar} alt={post.author.name}
+                              className="w-8 h-8 rounded-full border border-white/10 shrink-0 object-cover" />
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="text-foreground text-sm font-semibold">{post.author.name}</span>
+                                <span className="text-foreground-dim text-xs">{post.timestamp}</span>
+                              </div>
+                              <p className="text-foreground-dim text-sm">{post.text}</p>
+                            </div>
                           </div>
-                          <p className="text-foreground-dim text-sm">{post.text}</p>
-                        </div>
+                        ))}
                       </div>
-                    ))}
+                    ) : (
+                      <p className="text-foreground-dim text-sm text-center py-8">
+                        No discussions yet. Be the first to share your thoughts!
+                      </p>
+                    )}
                   </div>
-                ) : (
-                  <p className="text-foreground-dim text-sm text-center py-8">
-                    No discussions yet. Be the first to share your thoughts!
-                  </p>
                 )}
               </div>
-            )}
-          </div>
 
-          {/* Nav */}
-          <div className="flex items-center justify-between pt-4">
-            {prev ? (
-              <Link
-                href={`/learning/${slug}/${prev.lesson.slug}`}
-                className="flex items-center gap-2 text-muted hover:text-foreground transition-colors text-sm font-medium"
-              >
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6" /></svg>
-                {prev.lesson.title}
-              </Link>
-            ) : <div />}
-            {next ? (
-              <Link
-                href={`/learning/${slug}/${next.lesson.slug}`}
-                className="flex items-center gap-2 text-accent hover:text-accent-glow transition-colors text-sm font-medium"
-              >
-                {next.lesson.title}
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6" /></svg>
-              </Link>
-            ) : <div />}
-          </div>
+              {/* Nav */}
+              <div className="flex items-center justify-between pt-4">
+                {prev ? (
+                  <Link
+                    href={`/learning/${slug}/${prev.lesson.slug}`}
+                    className="flex items-center gap-2 text-muted hover:text-foreground transition-colors text-sm font-medium"
+                  >
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6" /></svg>
+                    {prev.lesson.title}
+                  </Link>
+                ) : <div />}
+                {next ? (
+                  <Link
+                    href={`/learning/${slug}/${next.lesson.slug}`}
+                    className="flex items-center gap-2 text-accent hover:text-accent-glow transition-colors text-sm font-medium"
+                  >
+                    {next.lesson.title}
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6" /></svg>
+                  </Link>
+                ) : <div />}
+              </div>
+            </>
+          )}
         </div>
 
         {/* Lesson list sidebar */}
@@ -305,7 +326,7 @@ export default function LessonPlayerPage({
           {allLessons.map((item, i) => {
             const isActive = item.lesson.slug === lessonSlug;
             const isDone = isLessonComplete(slug, item.lesson.slug);
-            const isLocked = item.lesson.locked;
+            const isLocked = showPaywall && !isActive;
             return (
               <Link
                 key={item.lesson.slug}
@@ -379,7 +400,7 @@ export default function LessonPlayerPage({
             </motion.div>
             <p className="font-display text-2xl text-foreground uppercase">{t.lesson.completedTitle}</p>
             <p className="text-foreground-dim text-sm mt-2">{t.lesson.completedSub}</p>
-            <p className="text-accent text-sm font-bold mt-3">+{10} XP earned!</p>
+            <p className="text-accent text-sm font-bold mt-3">+{xpEarned} XP earned!</p>
           </motion.div>
         </motion.div>
       )}

@@ -1,0 +1,440 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  STUDENT
+  INSTRUCTOR
+  ADMIN
+}
+
+enum Difficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum CourseStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum LessonType {
+  VIDEO
+  ARTICLE
+  QUIZ
+  ASSIGNMENT
+}
+
+enum QuestionType {
+  MULTIPLE_CHOICE
+  TRUE_FALSE
+  SHORT_ANSWER
+}
+
+enum BadgeCategory {
+  LEARNING
+  STREAK
+  SOCIAL
+  MILESTONE
+}
+
+enum MembershipTier {
+  FREE
+  BASIC
+  PRO
+}
+
+enum ContentAccessLevel {
+  FREE
+  BASIC
+  PRO
+}
+
+enum OrderStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum NotificationType {
+  COURSE_ENROLLED
+  LESSON_COMPLETED
+  BADGE_EARNED
+  CERTIFICATE_ISSUED
+  COURSE_EXPIRING
+  LIVE_CLASS_REMINDER
+  QUIZ_PASSED
+  XP_MILESTONE
+}
+
+model User {
+  id                  String         @id @default(uuid())
+  email               String         @unique
+  name                String
+  avatar              String?
+  username            String?        @unique
+  role                UserRole       @default(STUDENT)
+  membershipTier      MembershipTier @default(FREE)
+  membershipExpiresAt DateTime?
+  stripeCustomerId    String?        @unique
+  bio                 String?
+  headline            String?
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  enrollments       Enrollment[]
+  lessonProgress    LessonProgress[]
+  quizAttempts      QuizAttempt[]
+  certificates      Certificate[]
+  earnedBadges      EarnedBadge[]
+  instructorCourses Course[]          @relation("CourseInstructor")
+  posts             CommunityPost[]
+  comments          CommunityComment[]
+  xpTransactions    XPTransaction[]
+  streak            Streak?
+  liveClassRegs     LiveClassRegistration[]
+  taughtLiveClasses LiveClass[]        @relation("LiveClassInstructor")
+  orders            Order[]
+  notifications     Notification[]
+  entitlements      Entitlement[]
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  courses     Course[]
+}
+
+model Course {
+  id              String            @id @default(uuid())
+  title           String
+  slug            String            @unique
+  tagline         String
+  description     String
+  thumbnail       String?
+  difficulty      Difficulty        @default(BEGINNER)
+  accessLevel     ContentAccessLevel @default(FREE)
+  durationWeeks   Int?
+  totalMinutes    Int?
+  studentCount    Int               @default(0)
+  price           Float?
+  status          CourseStatus      @default(DRAFT)
+  categoryId      String
+  instructorId    String
+  communitySpaceSlug String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  category      Category          @relation(fields: [categoryId], references: [id])
+  instructor    User              @relation("CourseInstructor", fields: [instructorId], references: [id])
+  modules       Module[]
+  enrollments   Enrollment[]
+  certificates  Certificate[]
+  orders        Order[]
+  attachments   CourseAttachment[]
+  liveClasses   LiveClass[]
+  entitlements  Entitlement[]
+}
+
+model Module {
+  id        String @id @default(uuid())
+  courseId  String
+  title     String
+  sortOrder Int
+
+  course  Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons Lesson[]
+}
+
+model Lesson {
+  id              String             @id @default(uuid())
+  moduleId        String
+  title           String
+  slug            String
+  content         String?
+  videoUrl        String?
+  durationMinutes Int?
+  sortOrder       Int
+  isPreview       Boolean            @default(false)
+  lessonType      LessonType         @default(VIDEO)
+  accessLevel     ContentAccessLevel?
+
+  module      Module             @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  progress    LessonProgress[]
+  quiz        Quiz?
+  attachments LessonAttachment[]
+  entitlements Entitlement[]
+  orders      Order[]
+}
+
+model CourseAttachment {
+  id        String   @id @default(uuid())
+  courseId  String
+  fileName  String
+  fileUrl   String
+  fileType  String
+  fileSize  Int?
+  uploadedAt DateTime @default(now())
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+}
+
+model LessonAttachment {
+  id        String   @id @default(uuid())
+  lessonId  String
+  fileName  String
+  fileUrl   String
+  fileType  String
+  uploadedAt DateTime @default(now())
+
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+}
+
+model Enrollment {
+  id          String    @id @default(uuid())
+  userId      String
+  courseId    String
+  enrolledAt  DateTime  @default(now())
+  expiresAt   DateTime?
+  progressPct Float     @default(0)
+  completedAt DateTime?
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+}
+
+model LessonProgress {
+  id                   String   @id @default(uuid())
+  userId               String
+  lessonId             String
+  completed            Boolean  @default(false)
+  completedAt          DateTime?
+  videoPositionSeconds Int      @default(0)
+  lastAccessedAt       DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+}
+
+model Quiz {
+  id              String  @id @default(uuid())
+  title           String?
+  lessonId        String  @unique
+  passingScore    Int     @default(70)
+  timeLimitMinutes Int?
+  randomizeOrder  Boolean @default(false)
+  maxAttempts     Int?
+
+  lesson    Lesson         @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  questions QuizQuestion[]
+  attempts  QuizAttempt[]
+}
+
+model QuizQuestion {
+  id           String       @id @default(uuid())
+  quizId       String
+  questionText String
+  questionType QuestionType @default(MULTIPLE_CHOICE)
+  sortOrder    Int
+  explanation  String?
+
+  quiz    Quiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  answers QuizAnswer[]
+}
+
+model QuizAnswer {
+  id         String  @id @default(uuid())
+  questionId String
+  answerText String
+  isCorrect  Boolean @default(false)
+  sortOrder  Int
+
+  question QuizQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+}
+
+model QuizAttempt {
+  id          String    @id @default(uuid())
+  userId      String
+  quizId      String
+  startedAt   DateTime  @default(now())
+  submittedAt DateTime?
+  score       Float?
+  passed      Boolean?
+  answers     Json?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+}
+
+model Badge {
+  id          String       @id @default(uuid())
+  name        String       @unique
+  description String
+  icon        String
+  category    BadgeCategory
+  requirement Int
+
+  earnedBy EarnedBadge[]
+}
+
+model EarnedBadge {
+  id       String   @id @default(uuid())
+  userId   String
+  badgeId  String
+  earnedAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge Badge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badgeId])
+}
+
+model XPTransaction {
+  id        String   @id @default(uuid())
+  userId    String
+  amount    Int
+  reason    String
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Streak {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  currentStreak  Int      @default(0)
+  longestStreak  Int      @default(0)
+  lastActiveDate DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Certificate {
+  id             String   @id @default(uuid())
+  userId         String
+  courseId       String
+  issuedAt       DateTime @default(now())
+  certificateUrl String?
+  uniqueCode     String   @unique @default(uuid())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+}
+
+model LiveClass {
+  id           String   @id @default(uuid())
+  title        String
+  description  String?
+  instructorId String
+  courseId     String?
+  platform     String   @default("JITSI")
+  meetingUrl   String?
+  roomName     String?
+  startsAt     DateTime
+  endsAt       DateTime
+  maxAttendees Int?
+  createdAt    DateTime @default(now())
+
+  instructor    User                     @relation("LiveClassInstructor", fields: [instructorId], references: [id])
+  course        Course?                  @relation(fields: [courseId], references: [id])
+  registrations LiveClassRegistration[]
+}
+
+model LiveClassRegistration {
+  id           String   @id @default(uuid())
+  userId       String
+  liveClassId  String
+  registeredAt DateTime @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  liveClass LiveClass @relation(fields: [liveClassId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, liveClassId])
+}
+
+model Order {
+  id              String      @id @default(uuid())
+  userId          String
+  courseId        String?
+  lessonId        String?
+  amount          Float
+  currency        String      @default("USD")
+  status          OrderStatus @default(PENDING)
+  stripeSessionId String?     @unique
+  createdAt       DateTime    @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course  Course? @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  lesson  Lesson? @relation(fields: [lessonId], references: [id], onDelete: SetNull)
+  entitlement Entitlement?
+}
+
+model Entitlement {
+  id          String   @id @default(uuid())
+  userId      String
+  courseId    String?
+  lessonId    String?
+  purchasedAt DateTime @default(now())
+  price       Float?
+  orderId     String?  @unique
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course? @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  lesson Lesson? @relation(fields: [lessonId], references: [id], onDelete: SetNull)
+  order  Order?  @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, courseId])
+  @@unique([userId, lessonId])
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  type      NotificationType
+  title     String
+  body      String
+  read      Boolean          @default(false)
+  metadata  Json?
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model CommunityPost {
+  id        String   @id @default(uuid())
+  authorId  String
+  content   String
+  space     String?
+  createdAt DateTime @default(now())
+
+  author   User              @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments CommunityComment[]
+}
+
+model CommunityComment {
+  id        String   @id @default(uuid())
+  postId    String
+  authorId  String
+  content   String
+  createdAt DateTime @default(now())
+
+  post   CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
