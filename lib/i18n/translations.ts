@@ -767,6 +767,27 @@ const t = {
       posts: 'Publicaciones',
       about: 'Acerca de',
     },
+    habitsPreview: {
+      tag: 'Hábitos de Fundador',
+      headline: 'Construye los Sistemas que Escalan',
+      subtitle: 'Registra hábitos diarios, mantén tu racha y construye las disciplinas que separan a los grandes fundadores del resto.',
+      cta: 'Registra Tus Hábitos',
+      quote: '"No llegas al nivel de tus metas. Caes al nivel de tus sistemas."',
+      quoteAuthor: 'James Clear',
+    },
+    plannerPreview: {
+      tag: 'Planificador Estratégico',
+      headline: 'Planifica Tu Semana Como un CEO',
+      subtitle: 'Un esquematizador para mapear tus prioridades, desglosar metas y ejecutar con claridad. Porque improvisar no escala.',
+      cta: 'Abre Tu Planificador',
+    },
+    valueProp: {
+      headline: 'El Valor Es Inmenso Comparado con Hacerlo Solo',
+      line1: 'La mayoría de fundadores pierden meses aprendiendo por las malas.',
+      line2: 'Aquí obtienes los playbooks, la red y los atajos.',
+      line3: 'La pregunta no es si puedes permitirte unirte — es si puedes permitirte no hacerlo.',
+      cta: 'Únete a la Alianza Hoy',
+    },
     profile: {
       notFound: 'Miembro no encontrado',
       backToDashboard: 'Volver al Panel',
