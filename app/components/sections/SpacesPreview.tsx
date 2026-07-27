@@ -24,9 +24,8 @@ type Edge = { from: string; to: string };
 
 /* ── helpers ────────────────────────────────────────── */
 const HUB_ACCENTS = ['#ff3b30', '#7c3aed', '#059669', '#0891b2', '#ea580c', '#db2777'];
-const FOUNDER_ACCENT = '#ffffff';
+const FOUNDER_BORDER = 'rgba(255,255,255,0.2)';
 
-/** Deterministic pseudo-random using a simple hash */
 function hashStr(s: string): number {
   let h = 0;
   for (let i = 0; i < s.length; i++) {
@@ -41,31 +40,28 @@ function useLayout() {
     const nodes: Node[] = [];
     const edges: Edge[] = [];
 
-    // --- hub nodes: spaces arranged in a 3-col × 2-row grid ---
     const previewSpaces = spaces.slice(0, 6);
     const cols = 3;
-    const hubRX = 26;
-    const hubRY = 26;
-    const marginX = 100;
-    const marginY = 80;
+    const hubR = 32;
+    const founderR = 20;
+    const marginX = 90;
+    const marginY = 90;
     const viewW = 800;
-    const viewH = 440;
+    const viewH = 480;
     const colGap = (viewW - marginX * 2) / (cols - 1);
-    const rowGap = (viewH - marginY * 2) / 1; // 2 rows, 1 gap
+    const rowGap = (viewH - marginY * 2);
 
     const hubMap = new Map<string, Node>();
 
+    // --- hub nodes ---
     previewSpaces.forEach((space, i) => {
       const col = i % cols;
       const row = Math.floor(i / cols);
-      const x = marginX + col * colGap;
-      const y = marginY + row * rowGap;
-
       const node: Node = {
         id: space.slug,
-        x,
-        y,
-        r: hubRX,
+        x: marginX + col * colGap,
+        y: marginY + row * rowGap,
+        r: hubR,
         image: space.image,
         label: space.name,
         isHub: true,
@@ -76,33 +72,34 @@ function useLayout() {
       hubMap.set(space.slug, node);
     });
 
-    // --- founder nodes: members connected to spaces ---
+    // --- founder nodes ---
     const founderEntries = Object.values(memberProfiles).slice(0, 6);
-    const founderR = 18;
     const usedPositions: { x: number; y: number }[] = [];
 
-    founderEntries.forEach((member) => {
+    founderEntries.forEach((member, idx) => {
       const seed = hashStr(member.username);
-      // find a hub this founder is connected to
       const connectedHubSlug = member.joinedSpaces.find((s) => hubMap.has(s));
-      const hub = connectedHubSlug ? hubMap.get(connectedHubSlug) : nodes[seed % nodes.length];
+      const hub = connectedHubSlug ? hubMap.get(connectedHubSlug) : nodes[idx % nodes.length];
 
-      // place founder near hub with some jitter
-      const angle = ((seed % 360) * Math.PI) / 180;
-      const dist = 70 + (seed % 40);
+      const angleOffset = (idx * 60 + (seed % 40)) * (Math.PI / 180);
+      const angle = ((seed % 360) * Math.PI) / 180 + angleOffset * 0.3;
+      const dist = 80 + (seed % 50);
       let fx = hub!.x + Math.cos(angle) * dist;
       let fy = hub!.y + Math.sin(angle) * dist;
 
       // avoid collisions
-      const minDist = founderR * 2 + 8;
+      const minDist = founderR * 2 + 12;
       for (const pos of usedPositions) {
         const dx = fx - pos.x;
         const dy = fy - pos.y;
         if (Math.sqrt(dx * dx + dy * dy) < minDist) {
-          fx += 20 * (seed % 3 === 0 ? 1 : -1);
-          fy += 15 * (seed % 3 === 1 ? 1 : -1);
+          fx += 25 * (seed % 3 === 0 ? 1 : -1);
+          fy += 20 * (seed % 3 === 1 ? 1 : -1);
         }
       }
+      // clamp to viewport
+      fx = Math.max(founderR + 10, Math.min(viewW - founderR - 10, fx));
+      fy = Math.max(founderR + 10, Math.min(viewH - founderR - 10, fy));
       usedPositions.push({ x: fx, y: fy });
 
       const node: Node = {
@@ -113,11 +110,10 @@ function useLayout() {
         image: member.avatar,
         label: member.name,
         isHub: false,
-        accent: FOUNDER_ACCENT,
+        accent: HUB_ACCENTS[idx % HUB_ACCENTS.length],
       };
       nodes.push(node);
 
-      // edges: founder → connected spaces
       member.joinedSpaces.forEach((slug) => {
         if (hubMap.has(slug)) {
           edges.push({ from: member.username, to: slug });
@@ -125,7 +121,7 @@ function useLayout() {
       });
     });
 
-    // add some inter-hub edges for network feel
+    // inter-hub edges for network feel
     for (let i = 0; i < 6; i++) {
       for (let j = i + 1; j < 6; j++) {
         if ((i + j) % 3 === 0) {
@@ -134,7 +130,7 @@ function useLayout() {
       }
     }
 
-    return { nodes, edges, viewW: 800, viewH: 440 };
+    return { nodes, edges, viewW, viewH };
   }, []);
 }
 
@@ -143,7 +139,7 @@ export default function SpacesPreview() {
   const { t } = useTranslation();
   const { nodes, edges, viewW, viewH } = useLayout();
   const sectionRef = useRef<HTMLElement>(null);
-  const inView = useInView(sectionRef, { once: true, margin: '-100px' });
+  const inView = useInView(sectionRef, { once: true, margin: '-80px' });
 
   const nodeMap = useMemo(() => {
     const m = new Map<string, Node>();
@@ -152,11 +148,11 @@ export default function SpacesPreview() {
   }, [nodes]);
 
   return (
-    <section ref={sectionRef} className="relative py-24 lg:py-32 px-4 bg-black overflow-hidden">
-      {/* Background glow */}
+    <section ref={sectionRef} className="relative py-20 lg:py-28 px-4 bg-black overflow-hidden">
+      {/* Background */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute bottom-1/3 left-1/4 w-[500px] h-[500px] bg-[var(--color-violet)]/5 rounded-full blur-[160px]" />
-        <div className="absolute top-1/4 right-1/3 w-[300px] h-[300px] bg-[var(--color-accent)]/4 rounded-full blur-[120px]" />
+        <div className="absolute top-1/3 right-1/4 w-[350px] h-[350px] bg-[var(--color-accent)]/4 rounded-full blur-[140px]" />
       </div>
 
       <div className="relative max-w-4xl mx-auto">
@@ -165,7 +161,7 @@ export default function SpacesPreview() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-10"
+          className="text-center mb-8"
         >
           <p className="font-mono text-[10px] sm:text-xs uppercase tracking-[0.3em] text-[var(--color-accent)] mb-4">
             {t.spaces.homeTag}
@@ -180,9 +176,10 @@ export default function SpacesPreview() {
 
         {/* ── Network Graph ────────────────────────────── */}
         <div className="relative w-full" style={{ aspectRatio: `${viewW}/${viewH}` }}>
+          {/* SVG layer: edges + particles */}
           <svg
             viewBox={`0 0 ${viewW} ${viewH}`}
-            className="w-full h-full"
+            className="absolute inset-0 w-full h-full"
             preserveAspectRatio="xMidYMid meet"
           >
             {/* Edge lines */}
@@ -190,46 +187,46 @@ export default function SpacesPreview() {
               const from = nodeMap.get(edge.from);
               const to = nodeMap.get(edge.to);
               if (!from || !to) return null;
+              const isHubEdge = from.isHub && to.isHub;
               return (
                 <motion.line
                   key={`${edge.from}-${edge.to}`}
-                  x1={from.x}
-                  y1={from.y}
-                  x2={to.x}
-                  y2={to.y}
-                  stroke="rgba(255,255,255,0.08)"
-                  strokeWidth={from.isHub && to.isHub ? 1 : 0.6}
+                  x1={from.x} y1={from.y} x2={to.x} y2={to.y}
+                  stroke={isHubEdge ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.05)'}
+                  strokeWidth={isHubEdge ? 1.2 : 0.8}
+                  strokeDasharray={isHubEdge ? '4 6' : undefined}
                   initial={{ pathLength: 0, opacity: 0 }}
                   animate={inView ? { pathLength: 1, opacity: 1 } : {}}
-                  transition={{ duration: 1.2, delay: 0.3 + i * 0.08, ease: 'easeInOut' }}
+                  transition={{ duration: 1.4, delay: 0.3 + i * 0.1, ease: 'easeInOut' }}
                 />
               );
             })}
 
-            {/* Glowing particles traveling along edges */}
-            {edges.map((edge, i) => {
+            {/* Traveling glow particles */}
+            {edges.slice(0, 12).map((edge, i) => {
               const from = nodeMap.get(edge.from);
               const to = nodeMap.get(edge.to);
               if (!from || !to) return null;
               return (
                 <motion.circle
-                  key={`particle-${edge.from}-${edge.to}`}
-                  r={2}
-                  fill={from.accent}
+                  key={`p-${edge.from}-${edge.to}`}
+                  r={2.5}
+                  fill={from.isHub ? from.accent : '#fff'}
+                  filter="blur(0.5px)"
                   initial={{ opacity: 0 }}
-                  animate={inView ? { opacity: [0, 0.8, 0] } : {}}
+                  animate={inView ? { opacity: [0, 0.7, 0] } : {}}
                   transition={{
-                    duration: 2.5,
-                    delay: 1.5 + i * 0.15,
+                    duration: 3,
+                    delay: 2 + i * 0.2,
                     repeat: Infinity,
-                    repeatDelay: 3 + (i % 4),
+                    repeatDelay: 4 + (i % 5),
                     ease: 'easeInOut',
                   }}
                 >
                   <animateMotion
-                    dur={`${2 + (i % 3)}s`}
+                    dur={`${2.5 + (i % 3)}s`}
                     repeatCount="indefinite"
-                    begin={`${1.5 + i * 0.15}s`}
+                    begin={`${2 + i * 0.2}s`}
                     path={`M${from.x},${from.y} L${to.x},${to.y}`}
                   />
                 </motion.circle>
@@ -237,92 +234,43 @@ export default function SpacesPreview() {
             })}
           </svg>
 
-          {/* Overlay nodes (positioned absolutely over the SVG) */}
-          {/* We use px calculations based on the viewBox ratio */}
-          {nodes.map((node, idx) => (
-            <motion.div
-              key={node.id}
-              initial={{ opacity: 0, scale: 0.6 }}
-              animate={inView ? { opacity: 1, scale: 1 } : {}}
-              transition={{ duration: 0.5, delay: 0.2 + idx * 0.06, ease: 'easeOut' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2"
-              style={{
-                left: `${(node.x / viewW) * 100}%`,
-                top: `${(node.y / viewH) * 100}%`,
-              }}
-            >
-              {node.isHub ? (
-                /* Hub node: space image circle with glow */
-                <Link href={`/spaces/${node.slug}`} className="block group">
-                  <motion.div
-                    className="relative"
-                    animate={{ boxShadow: [`0 0 8px ${node.accent}30`, `0 0 20px ${node.accent}50`, `0 0 8px ${node.accent}30`] }}
-                    transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
-                    style={{
-                      width: node.r * 2,
-                      height: node.r * 2,
-                      borderRadius: '50%',
-                      border: `2px solid ${node.accent}60`,
-                    }}
-                  >
-                    <img
-                      src={node.image}
-                      alt={node.label}
-                      className="w-full h-full rounded-full object-cover transition-transform duration-400 group-hover:scale-110"
-                      loading="lazy"
-                    />
-                    <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap">
-                      <span className="text-[9px] font-mono text-[var(--color-foreground-dim)] group-hover:text-[var(--color-accent)] transition-colors">
-                        {node.label}
-                      </span>
-                    </div>
-                  </motion.div>
-                </Link>
-              ) : (
-                /* Founder node: small avatar */
-                <Link href={`/member/${node.id}`} className="block group">
-                  <motion.div
-                    animate={{ y: [0, -3, 0] }}
-                    transition={{ duration: 3 + idx * 0.5, repeat: Infinity, ease: 'easeInOut', delay: idx * 0.3 }}
-                    style={{
-                      width: node.r * 2,
-                      height: node.r * 2,
-                      borderRadius: '50%',
-                      border: '2px solid rgba(255,255,255,0.15)',
-                      overflow: 'hidden',
-                    }}
-                    className="hover:border-[var(--color-accent)]/50 transition-colors duration-300"
-                  >
-                    <img
-                      src={node.image}
-                      alt={node.label}
-                      className="w-full h-full rounded-full object-cover"
-                      loading="lazy"
-                    />
-                  </motion.div>
-                  <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                    <span className="text-[8px] font-mono text-[var(--color-accent)] bg-black/80 px-1.5 py-0.5 rounded">
-                      {node.label}
-                    </span>
-                  </div>
-                </Link>
-              )}
-            </motion.div>
-          ))}
+          {/* Overlay nodes */}
+          {nodes.map((node, idx) => {
+            const size = node.r * 2;
+            const xPct = `${(node.x / viewW) * 100}%`;
+            const yPct = `${(node.y / viewH) * 100}%`;
 
-          {/* Center label showing total members */}
+            return (
+              <motion.div
+                key={node.id}
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={inView ? { opacity: 1, scale: 1 } : {}}
+                transition={{ duration: 0.55, delay: 0.15 + idx * 0.07, ease: 'easeOut' }}
+                className="absolute -translate-x-1/2 -translate-y-1/2"
+                style={{ left: xPct, top: yPct }}
+              >
+                {node.isHub ? (
+                  <HubNode node={node} size={size} idx={idx} />
+                ) : (
+                  <FounderNode node={node} size={size} idx={idx} />
+                )}
+              </motion.div>
+            );
+          })}
+
+          {/* Center badge */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.5 }}
+            initial={{ opacity: 0, scale: 0.6 }}
             animate={inView ? { opacity: 1, scale: 1 } : {}}
-            transition={{ delay: 1.2, duration: 0.6 }}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+            transition={{ delay: 1.5, duration: 0.6 }}
+            className="absolute top-[88%] left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-10"
           >
-            <div className="text-center">
-              <div className="text-3xl sm:text-4xl font-display font-bold text-[var(--color-foreground)]">
+            <div className="text-center bg-black/60 backdrop-blur-md rounded-2xl px-5 py-3 border border-white/8">
+              <div className="text-2xl sm:text-3xl font-display font-bold text-white">
                 {spaces.reduce((sum, s) => sum + s.memberCount, 0).toLocaleString()}+
               </div>
-              <div className="text-[10px] font-mono uppercase tracking-wider text-[var(--color-foreground-dim)] mt-1">
-                connected founders
+              <div className="text-[10px] font-mono uppercase tracking-wider text-white/50 mt-0.5">
+                {t.spaces.members}
               </div>
             </div>
           </motion.div>
@@ -350,5 +298,80 @@ export default function SpacesPreview() {
         </motion.div>
       </div>
     </section>
+  );
+}
+
+/* ── sub-components ─────────────────────────────────── */
+
+function HubNode({ node, size, idx }: { node: Node; size: number; idx: number }) {
+  return (
+    <Link href={`/spaces/${node.slug}`} className="block group">
+      <motion.div
+        className="relative"
+        animate={{
+          boxShadow: [
+            `0 0 10px ${node.accent}25`,
+            `0 0 24px ${node.accent}45`,
+            `0 0 10px ${node.accent}25`,
+          ],
+        }}
+        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: idx * 0.4 }}
+        style={{
+          width: size,
+          height: size,
+          borderRadius: '50%',
+          border: `2.5px solid ${node.accent}50`,
+          overflow: 'hidden',
+        }}
+      >
+        <img
+          src={node.image}
+          alt={node.label}
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          loading="lazy"
+        />
+      </motion.div>
+      <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 whitespace-nowrap">
+        <span className="text-[10px] font-mono font-medium text-white/60 group-hover:text-[var(--color-accent)] transition-colors">
+          {node.label}
+        </span>
+      </div>
+    </Link>
+  );
+}
+
+function FounderNode({ node, size, idx }: { node: Node; size: number; idx: number }) {
+  return (
+    <Link href={`/member/${node.id}`} className="block group">
+      <motion.div
+        animate={{ y: [0, -4, 0] }}
+        transition={{
+          duration: 3.5 + idx * 0.6,
+          repeat: Infinity,
+          ease: 'easeInOut',
+          delay: idx * 0.4,
+        }}
+        style={{
+          width: size,
+          height: size,
+          borderRadius: '50%',
+          border: `2px solid ${FOUNDER_BORDER}`,
+          overflow: 'hidden',
+        }}
+        className="hover:border-[var(--color-accent)]/60 transition-colors duration-300 bg-black/40"
+      >
+        <img
+          src={node.image}
+          alt={node.label}
+          className="w-full h-full object-cover"
+          loading="lazy"
+        />
+      </motion.div>
+      <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+        <span className="text-[9px] font-mono text-[var(--color-accent)] bg-black/85 px-1.5 py-0.5 rounded">
+          {node.label}
+        </span>
+      </div>
+    </Link>
   );
 }
