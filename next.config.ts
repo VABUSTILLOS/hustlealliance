@@ -67,6 +67,11 @@ const nextConfig: NextConfig = {
   // Prevent Turbopack from bundling Node.js native modules
   serverExternalPackages: ['pg'],
 
+  // Turbopack root directory
+  turbopack: {
+    root: '.',
+  },
+
   // Reduce layout shift with automatic font optimization
   experimental: {
     optimizePackageImports: [

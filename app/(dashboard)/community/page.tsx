@@ -6,6 +6,7 @@ import Link from 'next/link';
 import clsx from 'clsx';
 import { useStore } from '@/lib/store/useStore';
 import { useCurrentUser, getAvatarUrl } from '@/lib/hooks/useCurrentUser';
+import { useRealtimePosts } from '@/lib/hooks/useRealtimePosts';
 import { spaces as allSpaces } from '@/lib/data/spaces';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { FeedPost, Comment } from '@/lib/data/community';
@@ -19,6 +20,7 @@ export default function CommunityPage() {
   const addPost = useStore((s) => s.addPost);
   const joinedSpaces = useStore((s) => s.joinedSpaces);
   const user = useCurrentUser();
+  useRealtimePosts(); // Subscribe to live post updates
 
   const [sort, setSort] = useState<SortMode>('latest');
   const [newPostText, setNewPostText] = useState('');
