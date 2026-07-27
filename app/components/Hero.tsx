@@ -70,7 +70,7 @@ export default function Hero() {
             variants={item}
             className="font-mono text-xs uppercase tracking-[0.2em] text-accent mb-6"
           >
-            The Founder&apos;s Collective
+            {t.hero.eyebrow}
           </motion.p>
 
           {/* Headline */}

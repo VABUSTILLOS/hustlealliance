@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 interface Testimonial {
   id: string;
@@ -88,6 +89,7 @@ const item = {
 };
 
 export default function WallOfLove() {
+  const { t } = useTranslation();
   return (
     <section className="relative py-16 sm:py-24 overflow-hidden">
       {/* Background gradient */}
@@ -105,17 +107,17 @@ export default function WallOfLove() {
           className="text-center mb-12"
         >
           <p className="font-mono text-[10px] sm:text-xs uppercase tracking-[0.3em] text-[var(--color-accent)] mb-4">
-            Wall of Love
+            {t.wallOfLove.tag}
           </p>
           <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl text-[var(--color-foreground)] uppercase leading-tight">
-            Loved by founders
+            {t.wallOfLove.headline1}
             <br />
             <span className="bg-gradient-to-r from-[var(--color-violet)] to-[var(--color-magenta)] bg-clip-text text-transparent">
-              around the world
+              {t.wallOfLove.headlineHighlight}
             </span>
           </h2>
           <p className="mt-3 text-sm sm:text-base text-[var(--color-foreground-muted)] max-w-lg mx-auto">
-            Real results from real founders who leveled up with Hustle Alliance.
+            {t.wallOfLove.description}
           </p>
         </motion.div>
 

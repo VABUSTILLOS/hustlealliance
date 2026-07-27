@@ -71,14 +71,6 @@ export default function Navbar() {
               )}
             </button>
 
-            {/* Language toggle */}
-            <button
-              onClick={() => setLocale(locale === 'en' ? 'es' : 'en')}
-              className="px-2.5 py-1 rounded-lg border border-[var(--color-border-subtle)] text-xs font-mono font-bold text-[var(--color-foreground)]/70 hover:text-accent hover:border-accent/30 transition-all"
-            >
-              {locale === 'en' ? 'EN' : 'ES'}
-            </button>
-
             {isAuthenticated && user ? (
               <div className="relative">
                 <button
@@ -116,7 +108,7 @@ export default function Navbar() {
                           <polyline points="16 17 21 12 16 7" />
                           <line x1="21" y1="12" x2="9" y2="12" />
                         </svg>
-                        Sign Out
+                        {t.nav.signOut}
                       </button>
                     </motion.div>
                   )}
@@ -210,7 +202,7 @@ export default function Navbar() {
                     onClick={() => { useStore.getState().signOut(); setOpen(false); }}
                     className="block w-full text-center px-4 py-2 border border-foreground-dim/20 text-foreground/70 font-heading font-bold text-sm rounded-xl hover:border-red-400/30 hover:text-red-400 transition-all"
                   >
-                    Sign Out
+                    {t.nav.signOut}
                   </button>
                 </>
               ) : (

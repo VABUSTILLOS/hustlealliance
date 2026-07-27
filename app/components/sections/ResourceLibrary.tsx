@@ -94,6 +94,7 @@ function BookCover({ title, accent, spine, format }: { title: string; accent: st
 
 // ── Resource Card (homepage preview — no download button) ──────────
 function ResourceCard({ resource, index }: { resource: LibraryCard; index: number }) {
+  const { t } = useTranslation();
   return (
     <motion.div
       layout
@@ -112,7 +113,7 @@ function ResourceCard({ resource, index }: { resource: LibraryCard; index: numbe
         {/* Category badge */}
         <div className="flex items-center justify-center gap-2 mb-1.5">
           <span className="text-[9px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full border bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
-            Free
+            {t.resourceLibrary.free}
           </span>
           <span className="text-[9px] font-mono uppercase tracking-wider text-foreground-dim">
             {resource.category}
@@ -137,7 +138,7 @@ function ResourceCard({ resource, index }: { resource: LibraryCard; index: numbe
         {/* CTA — View in Library */}
         <div className="mt-3 pt-3 border-t border-surface-light flex justify-center">
           <span className="inline-flex items-center gap-1 text-[10px] font-heading font-bold text-accent hover:text-accent-glow transition-colors">
-            View in Library
+            {t.resourceLibrary.viewInLibrary}
             <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <polyline points="9 18 15 12 9 6" />
             </svg>

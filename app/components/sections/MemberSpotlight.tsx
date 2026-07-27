@@ -384,7 +384,7 @@ export default function MemberSpotlight() {
                         : filteredMembers.length}
                     </div>
                     <div className="text-[10px] font-mono uppercase tracking-wider text-white/40 mt-0.5">
-                      connected founders
+                      {t.spotlight.connectedFounders}
                     </div>
                   </div>
                 </motion.div>
@@ -395,7 +395,7 @@ export default function MemberSpotlight() {
                 animate={{ opacity: 1 }}
                 className="text-center text-[var(--color-foreground-muted)] py-16 font-mono text-sm"
               >
-                No members in this category yet. More joining daily.
+                {t.spotlight.emptyCategory}
               </motion.p>
             )}
           </motion.div>

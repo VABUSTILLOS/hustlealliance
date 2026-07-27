@@ -148,7 +148,7 @@ export default function Pillars() {
             href="#pricing"
             className="font-mono text-xs uppercase tracking-[0.15em] text-accent hover:text-accent-glow transition-colors inline-flex items-center gap-2"
           >
-            View all features
+            {t.pillars.viewAllFeatures}
             <span className="text-lg leading-none">&rarr;</span>
           </a>
         </motion.div>

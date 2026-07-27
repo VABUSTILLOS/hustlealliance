@@ -60,7 +60,7 @@ export default function HabitsPreview() {
                 <span className="text-lg font-display font-bold" style={{ color: habit.color }}>
                   {habit.streak}
                 </span>
-                <span className="text-[10px] font-mono text-[var(--color-foreground-dim)]">day streak</span>
+                <span className="text-[10px] font-mono text-[var(--color-foreground-dim)]">{t.habitsPreview.dayStreak}</span>
               </div>
               {/* Mini progress bar */}
               <div className="mt-2 h-1 rounded-full bg-[var(--color-surface-light)] overflow-hidden">

@@ -15,8 +15,10 @@ const t = {
       planner: 'Planner',
       joinAlliance: 'Join the Alliance',
       toggleMenu: 'Toggle menu',
+      signOut: 'Sign Out',
     },
     hero: {
+      eyebrow: "The Founder's Collective",
       line1: 'Stop hustling',
       line2: 'alone.',
       subheadline: 'Join 2,400+ founders building together. Community, custom websites, and the playbooks that actually work.',
@@ -29,6 +31,7 @@ const t = {
     pillars: {
       tag: 'What You Get',
       headline: 'Everything you need to build',
+      viewAllFeatures: 'View all features',
       community: {
         title: 'Community',
         desc: 'Real-time founder chats, mastermind groups, and a network that actually responds.',
@@ -51,6 +54,8 @@ const t = {
       line1: 'Real founders.',
       line2: 'Real builds.',
       viewAll: 'View all 2,400+ members',
+      connectedFounders: 'connected founders',
+      emptyCategory: 'No members in this category yet. More joining daily.',
       niche: {
         saas: 'SaaS',
         ai: 'AI',
@@ -141,6 +146,7 @@ const t = {
       showingCount: 'Showing {visible} of {total} resources',
       badge: 'Resources',
       homeTitle: 'Your War Chest of Founder Resources',
+      viewInLibrary: 'View in Library',
       showMore: 'Show more',
       showLess: 'Show less',
       categories: {
@@ -150,6 +156,31 @@ const t = {
         Product: 'Product',
         Growth: 'Growth',
       },
+    },
+    quickPreview: {
+      tag: 'Start in 5 Minutes',
+      headline1: 'Taste the',
+      headlineHighlight: 'knowledge',
+      headline2: 'before you commit',
+      description: 'Every learning path has a free first lesson. No signup needed. Pick one and start learning in 5 minutes.',
+      modules: 'modules',
+      previewLesson: 'Preview free lesson',
+      cta: 'Start your first free lesson →',
+      disclaimer: 'No account required. Free forever.',
+    },
+    takeawayCards: {
+      tag: '🔥 Inside the Alliance',
+      headline1: 'Mastermind',
+      headlineHighlight: 'Takeaways',
+      description: 'Real conversations. Real tactics. These are the kinds of insights dropped daily in our mastermind sessions.',
+      replies: 'replies',
+      membersOnly: '🔒 Members only',
+    },
+    wallOfLove: {
+      tag: 'Wall of Love',
+      headline1: 'Loved by founders',
+      headlineHighlight: 'around the world',
+      description: 'Real results from real founders who leveled up with Hustle Alliance.',
     },
     footer: {
       headline: 'Stop hustling alone.',
@@ -321,12 +352,16 @@ const t = {
       cta: 'Track Your Habits',
       quote: '"You do not rise to the level of your goals. You fall to the level of your systems."',
       quoteAuthor: 'James Clear',
+      dayStreak: 'day streak',
     },
     plannerPreview: {
       tag: 'Strategic Planner',
       headline: 'Plan Your Week Like a CEO',
       subtitle: "A workflowy-style outliner to map your priorities, break down goals, and execute with clarity. Because winging it doesn't scale.",
       cta: 'Open Your Planner',
+      thisWeek: 'This Week',
+      completed: '{done} of {total} completed',
+      weeklyProgress: 'Weekly progress',
     },
     valueProp: {
       headline: 'The Value Is Immense Compared to Doing It Alone',
@@ -472,8 +507,10 @@ const t = {
       planner: 'Planificador',
       joinAlliance: 'Únete a la Alianza',
       toggleMenu: 'Alternar menú',
+      signOut: 'Cerrar Sesión',
     },
     hero: {
+      eyebrow: 'El Colectivo de Founders',
       line1: 'Deja de emprender',
       line2: 'solo.',
       subheadline: 'Únete a más de 2,400 founders construyendo juntos. Comunidad, sitios web personalizados y los playbooks que realmente funcionan.',
@@ -486,6 +523,7 @@ const t = {
     pillars: {
       tag: 'Lo Que Obtienes',
       headline: 'Todo lo que necesitas para construir',
+      viewAllFeatures: 'Ver todas las funciones',
       community: {
         title: 'Comunidad',
         desc: 'Chats de founders en tiempo real, grupos mastermind y una red que realmente responde.',
@@ -508,6 +546,8 @@ const t = {
       line1: 'Founders reales.',
       line2: 'Proyectos reales.',
       viewAll: 'Ver todos los 2,400+ miembros',
+      connectedFounders: 'founders conectados',
+      emptyCategory: 'Aún no hay miembros en esta categoría. Más se unen a diario.',
       niche: {
         saas: 'SaaS',
         ai: 'IA',
@@ -598,6 +638,7 @@ const t = {
       showingCount: 'Mostrando {visible} de {total} recursos',
       badge: 'Recursos',
       homeTitle: 'Tu Arsenal de Recursos para Founders',
+      viewInLibrary: 'Ver en la Biblioteca',
       showMore: 'Mostrar más',
       showLess: 'Mostrar menos',
       categories: {
@@ -607,6 +648,31 @@ const t = {
         Product: 'Producto',
         Growth: 'Crecimiento',
       },
+    },
+    quickPreview: {
+      tag: 'Comienza en 5 Minutos',
+      headline1: 'Prueba el',
+      headlineHighlight: 'conocimiento',
+      headline2: 'antes de comprometerte',
+      description: 'Cada path de aprendizaje tiene una primera lección gratis. Sin registro. Elige uno y empieza en 5 minutos.',
+      modules: 'módulos',
+      previewLesson: 'Vista previa gratis',
+      cta: 'Empieza tu primera lección gratis →',
+      disclaimer: 'Sin cuenta requerida. Gratis para siempre.',
+    },
+    takeawayCards: {
+      tag: '🔥 Dentro de la Alianza',
+      headline1: 'Conclusiones del',
+      headlineHighlight: 'Mastermind',
+      description: 'Conversaciones reales. Tácticas reales. Este es el tipo de conocimiento que se comparte a diario en nuestras sesiones mastermind.',
+      replies: 'respuestas',
+      membersOnly: '🔒 Solo miembros',
+    },
+    wallOfLove: {
+      tag: 'Muro del Amor',
+      headline1: 'Amado por founders',
+      headlineHighlight: 'en todo el mundo',
+      description: 'Resultados reales de founders reales que subieron de nivel con Hustle Alliance.',
     },
     footer: {
       headline: 'Deja de emprender solo.',
@@ -774,12 +840,16 @@ const t = {
       cta: 'Registra Tus Hábitos',
       quote: '"No llegas al nivel de tus metas. Caes al nivel de tus sistemas."',
       quoteAuthor: 'James Clear',
+      dayStreak: 'días de racha',
     },
     plannerPreview: {
       tag: 'Planificador Estratégico',
       headline: 'Planifica Tu Semana Como un CEO',
       subtitle: 'Un esquematizador para mapear tus prioridades, desglosar metas y ejecutar con claridad. Porque improvisar no escala.',
       cta: 'Abre Tu Planificador',
+      thisWeek: 'Esta Semana',
+      completed: '{done} de {total} completados',
+      weeklyProgress: 'Progreso semanal',
     },
     valueProp: {
       headline: 'El Valor Es Inmenso Comparado con Hacerlo Solo',

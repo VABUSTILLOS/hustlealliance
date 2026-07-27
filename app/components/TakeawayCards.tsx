@@ -2,6 +2,7 @@
 
 import { useCallback } from 'react';
 import { motion } from 'framer-motion';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 interface Takeaway {
   id: string;
@@ -113,6 +114,7 @@ const tagColors: Record<string, string> = {
 const MOBILE_VISIBLE = 3;
 
 export default function TakeawayCards() {
+  const { t } = useTranslation();
   const getTagColor = useCallback(
     (tag: string) => tagColors[tag] || 'bg-[var(--color-mockup-bg)] text-[var(--color-foreground-dim)] border-[var(--color-border-subtle)]',
     [],
@@ -135,17 +137,17 @@ export default function TakeawayCards() {
           className="text-center mb-10"
         >
           <p className="font-mono text-xs uppercase tracking-[0.2em] text-[var(--color-accent)] mb-4">
-            🔥 Inside the Alliance
+            {t.takeawayCards.tag}
           </p>
           <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl text-[var(--color-foreground)] leading-none uppercase">
-            Mastermind
+            {t.takeawayCards.headline1}
             <br />
             <span className="bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-glow)] bg-clip-text text-transparent">
-              Takeaways
+              {t.takeawayCards.headlineHighlight}
             </span>
           </h2>
           <p className="mt-4 text-[var(--color-foreground-muted)] max-w-lg mx-auto text-sm sm:text-base">
-            Real conversations. Real tactics. These are the kinds of insights dropped daily in our mastermind sessions.
+            {t.takeawayCards.description}
           </p>
         </motion.div>
 
@@ -223,10 +225,10 @@ export default function TakeawayCards() {
                     <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                     </svg>
-                    {takeaway.replies} replies
+                    {takeaway.replies} {t.takeawayCards.replies}
                   </span>
                   <span className="ml-auto font-mono text-[10px] text-[var(--color-foreground-dim)]">
-                    🔒 Members only
+                    {t.takeawayCards.membersOnly}
                   </span>
                 </div>
               </article>

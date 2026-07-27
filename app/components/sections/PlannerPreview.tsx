@@ -17,6 +17,9 @@ const plannerTasks = [
 
 export default function PlannerPreview() {
   const { t } = useTranslation();
+  const doneCount = plannerTasks.filter((task) => task.done).length;
+  const totalCount = plannerTasks.length;
+  const pct = Math.round((doneCount / totalCount) * 100);
 
   return (
     <section className="relative py-16 lg:py-32 px-4 bg-black overflow-hidden">
@@ -56,8 +59,8 @@ export default function PlannerPreview() {
             {/* Header */}
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-[var(--color-border-subtle)]">
               <div>
-                <p className="font-heading font-bold text-sm text-[var(--color-foreground)]">This Week</p>
-                <p className="text-[10px] font-mono text-[var(--color-foreground-dim)] mt-0.5">3 of 8 completed</p>
+                <p className="font-heading font-bold text-sm text-[var(--color-foreground)]">{t.plannerPreview.thisWeek}</p>
+                <p className="text-[10px] font-mono text-[var(--color-foreground-dim)] mt-0.5">{t.plannerPreview.completed.replace('{done}', String(doneCount)).replace('{total}', String(totalCount))}</p>
               </div>
               <span className="text-lg">📋</span>
             </div>
@@ -103,11 +106,11 @@ export default function PlannerPreview() {
             {/* Progress bar */}
             <div className="mt-4 pt-3 border-t border-[var(--color-border-subtle)]">
               <div className="flex items-center justify-between text-[10px] font-mono text-[var(--color-foreground-dim)] mb-2">
-                <span>Weekly progress</span>
-                <span>37%</span>
+                <span>{t.plannerPreview.weeklyProgress}</span>
+                <span>{pct}%</span>
               </div>
               <div className="h-1.5 rounded-full bg-[var(--color-surface-light)] overflow-hidden">
-                <div className="h-full w-[37%] rounded-full bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-violet)]" />
+                <div className="h-full rounded-full bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-violet)]" style={{ width: `${pct}%` }} />
               </div>
             </div>
           </div>
