@@ -1,15 +1,17 @@
 import prisma from '@/lib/db/prisma';
 import { MembershipTier, ContentAccessLevel } from '@/lib/generated/prisma/client';
+import { checkDripStatus, DripStatus } from '@/lib/db/drip';
 
 // ─── Types ───────────────────────────────────────────────────────
 
 export type AccessCheckResult = {
   allowed: boolean;
-  reason: 'tier_granted' | 'entitlement_granted' | 'preview_granted' | 'blocked';
+  reason: 'tier_granted' | 'entitlement_granted' | 'preview_granted' | 'drip_locked' | 'prerequisite_locked' | 'blocked';
   requiredTier: ContentAccessLevel;
   userTier: MembershipTier;
   hasEntitlement: boolean;
   upgradeOptions: UpgradeOption[];
+  dripStatus: DripStatus | null;
 };
 
 export type UpgradeOption = {
@@ -169,11 +171,37 @@ export async function checkAccess(params: {
         userTier: MembershipTier.FREE,
         hasEntitlement: false,
         upgradeOptions: [],
+        dripStatus: null,
       };
     }
   }
 
-  // 2. Get user tier
+  // 2. Drip feed & prerequisites check (lessons only)
+  if (lessonId) {
+    // Find the course for this lesson
+    const lessonWithCourse = await prisma.lesson.findUnique({
+      where: { id: lessonId },
+      select: { module: { select: { courseId: true } } },
+    });
+    const resolvedCourseId = lessonWithCourse?.module.courseId;
+
+    if (resolvedCourseId) {
+      const dripResult = await checkDripStatus(userId, lessonId, resolvedCourseId);
+      if (!dripResult.allowed) {
+        return {
+          allowed: false,
+          reason: dripResult.reason === 'prerequisite_locked' ? 'prerequisite_locked' : 'drip_locked',
+          requiredTier: ContentAccessLevel.FREE,
+          userTier: MembershipTier.FREE,
+          hasEntitlement: false,
+          upgradeOptions: [],
+          dripStatus: dripResult,
+        };
+      }
+    }
+  }
+
+  // 3. Get user tier
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { membershipTier: true },
@@ -192,6 +220,7 @@ export async function checkAccess(params: {
       userTier,
       hasEntitlement: false,
       upgradeOptions: [],
+      dripStatus: null,
     };
   }
 
@@ -205,6 +234,7 @@ export async function checkAccess(params: {
       userTier,
       hasEntitlement: true,
       upgradeOptions: [],
+      dripStatus: null,
     };
   }
 
@@ -216,6 +246,7 @@ export async function checkAccess(params: {
     userTier,
     hasEntitlement: false,
     upgradeOptions: buildUpgradeOptions(userTier, effective),
+    dripStatus: null,
   };
 }
 

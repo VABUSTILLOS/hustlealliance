@@ -11,6 +11,7 @@ import {
   getCourseProgress,
   getUserCertificates,
   awardCertificate,
+  checkAndAwardBadges,
 } from '@/lib/db/progress';
 import { revalidatePath } from 'next/cache';
 
@@ -29,7 +30,13 @@ export async function completeLessonAction(lessonId: string) {
       updateStreak(user.id),
     ]);
 
+    // Check badges after lesson completion
+    const newBadges = await checkAndAwardBadges(user.id, 'lessons').catch(() => []);
+
     createNotification(user.id, 'LESSON_COMPLETED', 'Lesson Completed!', { lessonId }).catch(() => {});
+    if (newBadges.length > 0) {
+      createNotification(user.id, 'BADGE_EARNED', `Badge earned: ${newBadges.length} new!`, { badgeIds: newBadges }).catch(() => {});
+    }
 
     const lesson = await prisma.lesson.findUnique({
       where: { id: lessonId },
@@ -41,7 +48,11 @@ export async function completeLessonAction(lessonId: string) {
       if (cp && cp.percentage >= 100) {
         await awardCertificate(user.id, lesson.module.courseId);
         await awardXP(user.id, 100, `Course completed: ${cp.title}`);
+        const courseBadges = await checkAndAwardBadges(user.id, 'courses').catch(() => []);
         createNotification(user.id, 'CERTIFICATE_ISSUED', 'Certificate Earned! 🎉', { courseId: lesson.module.courseId }).catch(() => {});
+        if (courseBadges.length > 0) {
+          createNotification(user.id, 'BADGE_EARNED', `Badge earned: ${courseBadges.length} new!`, { badgeIds: courseBadges }).catch(() => {});
+        }
       }
     }
 
@@ -84,9 +95,14 @@ export async function submitQuizAction(quizId: string, answers: Record<string, s
       updateStreak(user.id),
     ]);
 
+    const quizBadges = await checkAndAwardBadges(user.id, 'lessons').catch(() => []);
+
     createNotification(user.id, attempt.passed ? 'QUIZ_PASSED' : 'LESSON_COMPLETED',
       attempt.passed ? `Quiz passed! +${xpAmount}XP` : 'Quiz submitted', { quizId, passed: attempt.passed }
     ).catch(() => {});
+    if (quizBadges.length > 0) {
+      createNotification(user.id, 'BADGE_EARNED', `Badge earned: ${quizBadges.length} new!`, { badgeIds: quizBadges }).catch(() => {});
+    }
 
     revalidatePath('/learning');
     return { success: true, attempt, xpEarned: xpAmount };

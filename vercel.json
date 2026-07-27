@@ -22,5 +22,11 @@
       "destination": "https://www.hustlealliance.com/$1",
       "permanent": true
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/release-drip",
+      "schedule": "*/5 * * * *"
+    }
   ]
 }

@@ -2,21 +2,41 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
-import { weeklyLeaderboard, monthlyLeaderboard, type LeaderboardEntry } from '@/lib/data/gamification';
-import { useStore } from '@/lib/store/useStore';
+import { useQuery } from '@tanstack/react-query';
 import { useCurrentUser } from '@/lib/hooks/useCurrentUser';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+
+interface LeaderboardEntry {
+  rank: number;
+  username: string;
+  name: string;
+  avatar: string | null;
+  xp: number;
+  streak: number;
+  badges: { icon: string; name: string }[];
+}
+
+async function fetchLeaderboard(period: string): Promise<LeaderboardEntry[]> {
+  const res = await fetch(`/api/leaderboard?period=${period}`);
+  if (!res.ok) throw new Error('Failed to load leaderboard');
+  const data = await res.json();
+  return data.entries || [];
+}
 
 export default function LeaderboardPage() {
   const { t } = useTranslation();
   const [period, setPeriod] = useState<'weekly' | 'monthly'>('weekly');
-  const gamification = useStore((s) => s.gamification);
   const user = useCurrentUser();
 
-  const data = period === 'weekly' ? weeklyLeaderboard : monthlyLeaderboard;
+  const { data = [], isLoading } = useQuery<LeaderboardEntry[]>({
+    queryKey: ['leaderboard', period],
+    queryFn: () => fetchLeaderboard(period),
+    staleTime: 60_000,
+  });
 
   const myRank = data.findIndex((e) => e.username === (user?.username ?? '')) + 1;
   const isTopThree = myRank > 0 && myRank <= 3;
+  const myEntry = myRank > 0 ? data[myRank - 1] : null;
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-8 max-w-4xl mx-auto">
@@ -51,7 +71,7 @@ export default function LeaderboardPage() {
         </div>
 
         {/* My Rank Card */}
-        {myRank > 0 ? (
+        {myEntry ? (
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -69,7 +89,7 @@ export default function LeaderboardPage() {
                 <p className="font-heading font-bold text-foreground text-lg">#{myRank}</p>
               </div>
               <div className="text-right">
-                <p className="text-foreground font-display text-xl">{gamification.xp}</p>
+                <p className="text-foreground font-display text-xl">{myEntry.xp}</p>
                 <p className="text-foreground-dim text-xs">{t.leaderboard.xp}</p>
               </div>
             </div>
@@ -105,15 +125,25 @@ export default function LeaderboardPage() {
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.3 }}
             >
-              {data.map((entry, i) => {
-                const isMe = entry.username === (user?.username ?? '');
-                const rankColor =
-                  entry.rank === 1 ? 'text-yellow-400' :
-                  entry.rank === 2 ? 'text-slate-300' :
-                  entry.rank === 3 ? 'text-amber-600' :
-                  'text-foreground-muted';
+              {isLoading ? (
+                <div className="flex items-center justify-center py-16 text-foreground-dim text-sm">
+                  Loading leaderboard...
+                </div>
+              ) : data.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-foreground-dim gap-2">
+                  <span className="text-3xl">🏆</span>
+                  <span className="text-sm">No entries yet. Be the first!</span>
+                </div>
+              ) : (
+                data.map((entry, i) => {
+                  const isMe = entry.username === (user?.username ?? '');
+                  const rankColor =
+                    entry.rank === 1 ? 'text-yellow-400' :
+                    entry.rank === 2 ? 'text-slate-300' :
+                    entry.rank === 3 ? 'text-amber-600' :
+                    'text-foreground-muted';
 
-                return (
+                  return (
                   <motion.div
                     key={entry.username}
                     initial={{ opacity: 0, x: -20 }}
@@ -134,17 +164,16 @@ export default function LeaderboardPage() {
                     {/* Name + Badges */}
                     <div className="flex items-center gap-2 min-w-0">
                       <img
-                        src={entry.avatar}
+                        src={entry.avatar ?? `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(entry.name)}`}
                         alt={entry.name}
                         className="w-7 h-7 rounded-full object-cover shrink-0"
                       />
                       <span className="text-foreground text-sm font-medium truncate">
                         {isMe ? 'You' : entry.name.split(' ')[0]}
                       </span>
-                      {entry.badges.slice(0, 2).map((b, bi) => (
-                        <span key={bi} className="text-xs" title={b}>
-                          {b === 'fire' ? '🔥' : b === 'quick-learner' ? '📚' : b === 'learning' ? '🧠' :
-                           b === 'social' ? '💬' : b === 'butterfly' ? '🦋' : b === 'pathfinder' ? '🏅' : '⭐'}
+                      {entry.badges.slice(0, 3).map((b, bi) => (
+                        <span key={bi} className="text-xs" title={b.name}>
+                          {b.icon}
                         </span>
                       ))}
                     </div>
@@ -158,7 +187,8 @@ export default function LeaderboardPage() {
                     </span>
                   </motion.div>
                 );
-              })}
+              })
+              )}
             </motion.div>
           </AnimatePresence>
         </div>

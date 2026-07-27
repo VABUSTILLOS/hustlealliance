@@ -66,7 +66,8 @@ export async function POST(request: NextRequest) {
     if (body.type === 'subscription') {
       mode = 'subscription';
       const tier = body.tier === 'BASIC' ? 'basic' : 'pro';
-      lineItems = [{ price: PRICE_IDS[`${tier}_monthly`], quantity: 1 }];
+      const interval = body.interval === 'yearly' ? 'yearly' : 'monthly';
+      lineItems = [{ price: PRICE_IDS[`${tier}_${interval}`], quantity: 1 }];
     } else {
       mode = 'payment';
       const { default: db } = await import('@/lib/db/prisma');

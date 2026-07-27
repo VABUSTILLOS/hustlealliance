@@ -1,11 +1,15 @@
+import 'dotenv/config';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../lib/generated/prisma/client';
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
+const adapter = new PrismaPg({
+  connectionString: (process.env.DATABASE_URL || '').replace('connect_timeout=0', 'connect_timeout=30'),
+});
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
   console.log('🌱 Seeding database...');
+  await prisma.$connect();
 
   // ==================== USERS ====================
   const adminUser = await prisma.user.upsert({
@@ -456,6 +460,61 @@ async function main() {
     },
   });
   console.log('✅ Sample live class created');
+
+  // ==================== DRIP FEED & PREREQUISITES ====================
+  if (fundraisingCourse) {
+    // Upsert drip settings for fundraising course: release 1 lesson every 3 days
+    await prisma.courseDripSettings.upsert({
+      where: { courseId: fundraisingCourse.id },
+      update: { enabled: true, type: 'INTERVAL_DAYS', intervalDays: 3 },
+      create: {
+        courseId: fundraisingCourse.id,
+        enabled: true,
+        type: 'INTERVAL_DAYS',
+        intervalDays: 3,
+      },
+    });
+    console.log('  ⏳ Drip settings: Fundraising 101 (every 3 days)');
+  }
+
+  const leadershipCourse = await prisma.course.findUnique({ where: { slug: 'leadership-foundations' } });
+  if (leadershipCourse) {
+    // Add prerequisite: "Defining Your Startup Culture" requires "From Builder to Leader" first
+    const fromBuilder = await prisma.lesson.findFirst({
+      where: { module: { courseId: leadershipCourse.id }, slug: 'from-builder-to-leader' },
+    });
+    const definingCulture = await prisma.lesson.findFirst({
+      where: { module: { courseId: leadershipCourse.id }, slug: 'defining-your-culture' },
+    });
+    if (fromBuilder && definingCulture) {
+      await prisma.lessonPrerequisite.upsert({
+        where: { lessonId_prerequisiteLessonId: { lessonId: definingCulture.id, prerequisiteLessonId: fromBuilder.id } },
+        update: {},
+        create: { lessonId: definingCulture.id, prerequisiteLessonId: fromBuilder.id },
+      });
+      console.log('  🔗 Prerequisite: "Defining Culture" → "From Builder to Leader"');
+    }
+  }
+
+  if (fundraisingCourse) {
+    // Add prerequisite: "Crafting Your Story" requires "Intro to Fundraising" first
+    const introFr = await prisma.lesson.findFirst({
+      where: { module: { courseId: fundraisingCourse.id }, slug: 'intro-to-fundraising' },
+    });
+    const craftingStory = await prisma.lesson.findFirst({
+      where: { module: { courseId: fundraisingCourse.id }, slug: 'crafting-your-story' },
+    });
+    if (introFr && craftingStory) {
+      await prisma.lessonPrerequisite.upsert({
+        where: { lessonId_prerequisiteLessonId: { lessonId: craftingStory.id, prerequisiteLessonId: introFr.id } },
+        update: {},
+        create: { lessonId: craftingStory.id, prerequisiteLessonId: introFr.id },
+      });
+      console.log('  🔗 Prerequisite: "Crafting Your Story" → "Intro to Fundraising"');
+    }
+  }
+
+  console.log('✅ Drip feed & prerequisites seeded');
 
   console.log('\n🎉 Seeding complete!');
 }

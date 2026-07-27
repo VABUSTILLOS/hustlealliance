@@ -54,6 +54,7 @@ export type LessonDetail = {
   videoUrl: string | null;
   content: string | null;
   sortOrder: number;
+  lessonType: string;
   accessLevel: string | null;
   module: {
     id: string;
@@ -66,15 +67,37 @@ export type LessonDetail = {
       communitySpaceSlug: string | null;
     };
   };
+  quiz: {
+    id: string;
+    title: string | null;
+    passingScore: number;
+    timeLimitMinutes: number | null;
+    randomizeOrder: boolean;
+    maxAttempts: number | null;
+    questions: Array<{
+      id: string;
+      questionText: string;
+      questionType: 'MULTIPLE_CHOICE' | 'TRUE_FALSE' | 'SHORT_ANSWER';
+      sortOrder: number;
+      explanation: string | null;
+      answers: Array<{
+        id: string;
+        answerText: string;
+        sortOrder: number;
+      }>;
+    }>;
+    _count: { questions: number };
+  } | null;
 };
 
 async function fetchJSON<T>(url: string): Promise<T> {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Failed to fetch ${url}: ${res.status}`);
   const data = await res.json();
-  // Unwrap { courses } / { course } envelope
+  // Unwrap { courses } / { course } / { lesson } envelope
   if (data.courses) return data.courses as T;
   if (data.course) return data.course as T;
+  if (data.lesson) return data.lesson as T;
   return data;
 }
 

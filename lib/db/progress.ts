@@ -142,9 +142,75 @@ export async function getUserGamification(userId: string) {
 }
 
 export async function awardXP(userId: string, amount: number, reason: string) {
-  return prisma.xPTransaction.create({
+  const xp = await prisma.xPTransaction.create({
     data: { userId, amount, reason },
   });
+
+  // Check milestone badges after XP gain
+  checkAndAwardBadges(userId, 'xp').catch(() => {});
+
+  return xp;
+}
+
+/** Badge criteria definitions — ID must match Badge table ID */
+const BADGE_CRITERIA: Record<string, { type: 'lessons' | 'streak' | 'xp' | 'courses'; threshold: number }> = {
+  'first-lesson':   { type: 'lessons', threshold: 1 },
+  '5-lessons':      { type: 'lessons', threshold: 5 },
+  '10-lessons':     { type: 'lessons', threshold: 10 },
+  '25-lessons':     { type: 'lessons', threshold: 25 },
+  '3-day-streak':   { type: 'streak',  threshold: 3 },
+  '7-day-streak':   { type: 'streak',  threshold: 7 },
+  '14-day-streak':  { type: 'streak',  threshold: 14 },
+  '30-day-streak':  { type: 'streak',  threshold: 30 },
+  '100-xp':         { type: 'xp',      threshold: 100 },
+  '500-xp':         { type: 'xp',      threshold: 500 },
+  '1000-xp':        { type: 'xp',      threshold: 1000 },
+  'first-path':     { type: 'courses', threshold: 1 },
+};
+
+/** Check all badge criteria and award any newly earned badges. Call after XP gain, streak update, or course/lesson completion. */
+export async function checkAndAwardBadges(userId: string, trigger: 'lessons' | 'streak' | 'xp' | 'courses' = 'lessons') {
+  const newlyEarned: string[] = [];
+
+  // Gather current stats
+  const [earnedIds, lessonCount, xpTotal, streak, certCount] = await Promise.all([
+    prisma.earnedBadge.findMany({ where: { userId }, select: { badgeId: true } }),
+    prisma.lessonProgress.count({ where: { userId, completed: true } }),
+    prisma.xPTransaction.aggregate({ where: { userId }, _sum: { amount: true } }),
+    prisma.streak.findUnique({ where: { userId } }),
+    prisma.certificate.count({ where: { userId } }),
+  ]);
+
+  const earnedSet = new Set(earnedIds.map((e) => e.badgeId));
+  const currentXP = xpTotal._sum.amount ?? 0;
+  const currentStreak = streak?.currentStreak ?? 0;
+  const currentCourses = certCount;
+
+  // Evaluate each badge
+  for (const [badgeId, criteria] of Object.entries(BADGE_CRITERIA)) {
+    if (earnedSet.has(badgeId)) continue;
+
+    let eligible = false;
+    switch (criteria.type) {
+      case 'lessons': eligible = lessonCount >= criteria.threshold; break;
+      case 'streak':  eligible = currentStreak >= criteria.threshold; break;
+      case 'xp':      eligible = currentXP >= criteria.threshold; break;
+      case 'courses': eligible = currentCourses >= criteria.threshold; break;
+    }
+
+    if (eligible) {
+      // Verify badge exists in DB
+      const badge = await prisma.badge.findUnique({ where: { id: badgeId } });
+      if (badge) {
+        await prisma.earnedBadge.create({
+          data: { userId, badgeId },
+        });
+        newlyEarned.push(badgeId);
+      }
+    }
+  }
+
+  return newlyEarned;
 }
 
 export async function updateStreak(userId: string) {

@@ -73,6 +73,13 @@ enum NotificationType {
   LIVE_CLASS_REMINDER
   QUIZ_PASSED
   XP_MILESTONE
+  CONTENT_UNLOCKED
+}
+
+enum DripScheduleType {
+  CALENDAR
+  INTERVAL_DAYS
+  INTERVAL_LESSONS
 }
 
 model User {
@@ -105,6 +112,7 @@ model User {
   orders            Order[]
   notifications     Notification[]
   entitlements      Entitlement[]
+  contentReleases   ContentRelease[]
 }
 
 model Category {
@@ -144,6 +152,7 @@ model Course {
   attachments   CourseAttachment[]
   liveClasses   LiveClass[]
   entitlements  Entitlement[]
+  dripSettings  CourseDripSettings?
 }
 
 model Module {
@@ -175,6 +184,10 @@ model Lesson {
   attachments LessonAttachment[]
   entitlements Entitlement[]
   orders      Order[]
+  dripOverride LessonDripOverride?
+  releases    ContentRelease[]
+  prerequisites LessonPrerequisite[]       @relation("LessonPrereqs")
+  requiredBy    LessonPrerequisite[]       @relation("LessonPrerequisiteFor")
 }
 
 model CourseAttachment {
@@ -415,6 +428,56 @@ model Notification {
   createdAt DateTime         @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model CourseDripSettings {
+  id           String           @id @default(uuid())
+  courseId     String           @unique
+  enabled      Boolean          @default(false)
+  type         DripScheduleType @default(INTERVAL_DAYS)
+  intervalDays Int              @default(3)
+  startDate    DateTime?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+}
+
+model LessonDripOverride {
+  id             String           @id @default(uuid())
+  lessonId       String           @unique
+  type           DripScheduleType @default(INTERVAL_DAYS)
+  intervalDays   Int?
+  unlockAt       DateTime?
+  minLessonsDone Int?
+  createdAt      DateTime         @default(now())
+
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+}
+
+model ContentRelease {
+  id         String   @id @default(uuid())
+  userId     String
+  lessonId   String
+  releasesAt DateTime
+  isReleased Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+}
+
+model LessonPrerequisite {
+  id                    String @id @default(uuid())
+  lessonId              String
+  prerequisiteLessonId  String
+
+  lesson            Lesson @relation("LessonPrereqs", fields: [lessonId], references: [id], onDelete: Cascade)
+  prerequisite      Lesson @relation("LessonPrerequisiteFor", fields: [prerequisiteLessonId], references: [id], onDelete: Cascade)
+
+  @@unique([lessonId, prerequisiteLessonId])
 }
 
 model CommunityPost {

@@ -6,11 +6,13 @@ import Link from 'next/link';
 import clsx from 'clsx';
 import { useLesson, useCourse } from '@/lib/hooks/useCourses';
 import { useAccessCheck } from '@/lib/hooks/useAccessCheck';
+import { useDripStatus } from '@/lib/hooks/useDripStatus';
 import { completeLessonAction } from '@/app/actions/learning';
 import { useStore } from '@/lib/store/useStore';
 import { useCurrentUser } from '@/lib/hooks/useCurrentUser';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import Paywall from '@/app/components/Paywall';
+import QuizPlayer from '@/app/components/QuizPlayer';
 import type { UpgradeOption } from '@/app/components/Paywall';
 
 export default function LessonPlayerPage({
@@ -28,6 +30,7 @@ export default function LessonPlayerPage({
     lessonId: lesson?.id,
     enabled: !!course?.id,
   });
+  const { data: dripStatus, isLoading: dripLoading } = useDripStatus(lesson?.id);
 
   const completeLesson = useStore((s) => s.completeLesson);
   const isLessonComplete = useStore((s) => s.isLessonComplete);
@@ -95,7 +98,7 @@ export default function LessonPlayerPage({
   };
 
   // Loading state
-  if (lessonLoading || accessLoading) {
+  if (lessonLoading || accessLoading || dripLoading) {
     return (
       <div className="px-4 sm:px-6 lg:px-8 py-8 max-w-5xl mx-auto animate-pulse space-y-6">
         <div className="h-4 bg-surface-light rounded w-1/4" />
@@ -122,6 +125,9 @@ export default function LessonPlayerPage({
 
   // Access denied — show paywall
   const showPaywall = access && !access.allowed;
+
+  // Drip/prerequisite lock — show scheduled unlock
+  const showDripLock = dripStatus && !dripStatus.allowed && (!access || access.allowed);
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-8 max-w-5xl mx-auto">
@@ -151,7 +157,50 @@ export default function LessonPlayerPage({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
           {/* Paywall or video */}
-          {showPaywall ? (
+          {/* Drip feed / prerequisite lock */}
+          {showDripLock ? (
+            <div className="max-w-lg">
+              {dripStatus.reason === 'prerequisite_locked' ? (
+                <div className="bg-amber-500/5 border border-amber-500/20 rounded-2xl p-8 text-center space-y-4">
+                  <span className="text-4xl block">🔐</span>
+                  <h2 className="font-display text-xl text-foreground uppercase">{t.lesson.prerequisiteLocked}</h2>
+                  <p className="text-foreground-dim text-sm">
+                    {t.lesson.prerequisiteHint}{' '}
+                    &ldquo;{lesson.title}&rdquo;
+                  </p>
+                  <ul className="space-y-2 text-left">
+                    {dripStatus.missingPrerequisites.map((p) => (
+                      <li key={p.id} className="flex items-center gap-2 text-sm text-foreground-dim">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500/60 shrink-0" />
+                        {p.title}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : (
+                <div className="bg-cyan-500/5 border border-cyan-500/20 rounded-2xl p-8 text-center space-y-4">
+                  <span className="text-4xl block">⏳</span>
+                  <h2 className="font-display text-xl text-foreground uppercase">{t.lesson.dripLocked}</h2>
+                  <p className="text-foreground-dim text-sm">
+                    &ldquo;{lesson.title}&rdquo;{' '}
+                    {t.lesson.dripUnlocksAt.replace('{date}',
+                      dripStatus.releasesAt
+                        ? new Date(dripStatus.releasesAt).toLocaleDateString('en-US', {
+                            weekday: 'long',
+                            month: 'long',
+                            day: 'numeric',
+                            year: 'numeric',
+                          })
+                        : 'completing previous lessons'
+                    )}
+                  </p>
+                  <p className="text-foreground-muted text-xs">
+                    {t.lesson.dripComingSoon}
+                  </p>
+                </div>
+              )}
+            </div>
+          ) : showPaywall ? (
             <div className="max-w-lg">
               <Paywall
                 requiredTier={access.requiredTier}
@@ -211,31 +260,51 @@ export default function LessonPlayerPage({
 
               {/* Content + Tab Bar */}
               <div className="bg-surface border border-surface-light rounded-2xl overflow-hidden">
-                {/* Tab Bar */}
-                <div className="flex border-b border-surface-light">
-                  {(['content', 'discuss'] as const).map((tab) => (
-                    <button
-                      key={tab}
-                      onClick={() => setActiveTab(tab)}
-                      className={clsx(
-                        'flex-1 py-3 text-sm font-heading font-bold transition-colors',
-                        activeTab === tab
-                          ? 'text-accent border-b-2 border-accent'
-                          : 'text-foreground-dim hover:text-foreground'
-                      )}
-                    >
-                      {tab === 'content' ? lesson.title : t.gamification.discussTab}
-                    </button>
-                  ))}
-                </div>
-
-                {activeTab === 'content' ? (
+                {lesson.lessonType === 'QUIZ' && lesson.quiz ? (
+                  <div className="p-6 lg:p-8">
+                    <QuizPlayer
+                      quiz={{
+                        id: lesson.quiz.id,
+                        title: lesson.quiz.title,
+                        passingScore: lesson.quiz.passingScore,
+                        timeLimitMinutes: lesson.quiz.timeLimitMinutes,
+                        randomizeOrder: lesson.quiz.randomizeOrder,
+                        maxAttempts: lesson.quiz.maxAttempts,
+                        questions: lesson.quiz.questions,
+                        _count: lesson.quiz._count,
+                      }}
+                      onComplete={(passed, score) => {
+                        if (passed) handleComplete();
+                      }}
+                    />
+                  </div>
+                ) : (
                   <>
-                    <div className="p-6 lg:p-8">
-                      <div className="prose prose-invert max-w-none text-foreground-muted text-sm leading-relaxed whitespace-pre-wrap">
-                        {lesson.content || 'No content available for this lesson.'}
-                      </div>
+                    {/* Tab Bar */}
+                    <div className="flex border-b border-surface-light">
+                      {(['content', 'discuss'] as const).map((tab) => (
+                        <button
+                          key={tab}
+                          onClick={() => setActiveTab(tab)}
+                          className={clsx(
+                            'flex-1 py-3 text-sm font-heading font-bold transition-colors',
+                            activeTab === tab
+                              ? 'text-accent border-b-2 border-accent'
+                              : 'text-foreground-dim hover:text-foreground'
+                          )}
+                        >
+                          {tab === 'content' ? lesson.title : t.gamification.discussTab}
+                        </button>
+                      ))}
                     </div>
+
+                    {activeTab === 'content' ? (
+                      <>
+                        <div className="p-6 lg:p-8">
+                          <div className="prose prose-invert max-w-none text-foreground-muted text-sm leading-relaxed whitespace-pre-wrap">
+                            {lesson.content || 'No content available for this lesson.'}
+                          </div>
+                        </div>
 
                     {/* Cheer & Share */}
                     <div className="flex items-center gap-3 px-6 pb-6 border-t border-surface-light pt-4">
@@ -293,6 +362,8 @@ export default function LessonPlayerPage({
                     )}
                   </div>
                 )}
+                </>
+              )}
               </div>
 
               {/* Nav */}
@@ -326,16 +397,19 @@ export default function LessonPlayerPage({
           {allLessons.map((item, i) => {
             const isActive = item.lesson.slug === lessonSlug;
             const isDone = isLessonComplete(slug, item.lesson.slug);
-            const isLocked = showPaywall && !isActive;
+            const isPaywallLocked = showPaywall && !isActive;
+            const isDripLocked = !isActive && showDripLock;
+            const isAnyLocked = isPaywallLocked || isDripLocked;
             return (
               <Link
                 key={item.lesson.slug}
-                href={isLocked ? '#' : `/learning/${slug}/${item.lesson.slug}`}
+                href={isAnyLocked ? '#' : `/learning/${slug}/${item.lesson.slug}`}
                 className={clsx(
                   'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors',
                   isActive && 'bg-accent/10 border border-accent/20',
                   !isActive && 'hover:bg-surface-light/50',
-                  isLocked && 'opacity-40 pointer-events-none'
+                  isPaywallLocked && 'opacity-40 pointer-events-none',
+                  isDripLocked && 'opacity-60 cursor-not-allowed'
                 )}
               >
                 <span className={clsx(
@@ -349,10 +423,13 @@ export default function LessonPlayerPage({
                 <span className={clsx('truncate', isActive ? 'text-foreground' : 'text-muted')}>
                   {item.lesson.title}
                 </span>
-                {isLocked && (
+                {isPaywallLocked && (
                   <svg className="w-3.5 h-3.5 text-muted shrink-0 ml-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0110 0v4" />
                   </svg>
+                )}
+                {isDripLocked && (
+                  <span className="text-[10px] shrink-0 ml-auto" title="Not yet unlocked">⏳</span>
                 )}
               </Link>
             );

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db/prisma';
+import prisma from '@/lib/db/prisma';
 
 export async function GET(
   request: NextRequest,
@@ -7,71 +7,73 @@ export async function GET(
 ) {
   const { courseId, lessonSlug } = await params;
 
-  // Find the course first (by slug or ID)
-  const course = await prisma.course.findFirst({
+  // Find the lesson by slug, scoped to the course
+  const lesson = await prisma.lesson.findFirst({
     where: {
-      OR: [{ id: courseId }, { slug: courseId }],
+      slug: lessonSlug,
+      module: {
+        course: {
+          OR: [{ id: courseId }, { slug: courseId }],
+        },
+      },
     },
-    select: {
-      id: true,
-      title: true,
-      slug: true,
-      accessLevel: true,
-      communitySpaceSlug: true,
-    },
-  });
-
-  if (!course) {
-    return NextResponse.json({ error: 'Course not found' }, { status: 404 });
-  }
-
-  // Find the lesson by slug within this course's modules
-  const module = await prisma.courseModule.findFirst({
-    where: {
-      courseId: course.id,
-      lessons: { some: { slug: lessonSlug } },
-    },
-    select: {
-      id: true,
-      title: true,
-      lessons: {
-        where: { slug: lessonSlug },
-        take: 1,
-        select: {
-          id: true,
-          title: true,
-          slug: true,
-          content: true,
-          videoUrl: true,
-          durationMinutes: true,
-          sortOrder: true,
-          accessLevel: true,
+    include: {
+      module: {
+        include: {
+          course: {
+            select: { id: true, title: true, slug: true, accessLevel: true, communitySpaceSlug: true },
+          },
+        },
+      },
+      quiz: {
+        include: {
+          questions: {
+            orderBy: { sortOrder: 'asc' },
+            include: {
+              answers: {
+                orderBy: { sortOrder: 'asc' },
+                select: { id: true, answerText: true, sortOrder: true },
+              },
+            },
+          },
         },
       },
     },
   });
 
-  if (!module || module.lessons.length === 0) {
+  if (!lesson) {
     return NextResponse.json({ error: 'Lesson not found' }, { status: 404 });
   }
-
-  const lesson = module.lessons[0];
 
   return NextResponse.json(
     {
       lesson: {
-        ...lesson,
+        id: lesson.id,
+        title: lesson.title,
+        slug: lesson.slug,
+        content: lesson.content,
+        videoUrl: lesson.videoUrl,
+        durationMinutes: lesson.durationMinutes,
+        sortOrder: lesson.sortOrder,
+        lessonType: lesson.lessonType,
+        accessLevel: lesson.accessLevel,
         module: {
-          id: module.id,
-          title: module.title,
-          course: {
-            id: course.id,
-            title: course.title,
-            slug: course.slug,
-            accessLevel: course.accessLevel,
-            communitySpaceSlug: course.communitySpaceSlug,
-          },
+          id: lesson.module.id,
+          title: lesson.module.title,
+          course: lesson.module.course,
         },
+        quiz: lesson.quiz
+          ? {
+              id: lesson.quiz.id,
+              title: lesson.quiz.title,
+              passingScore: lesson.quiz.passingScore,
+              timeLimitMinutes: lesson.quiz.timeLimitMinutes,
+              randomizeOrder: lesson.quiz.randomizeOrder,
+              maxAttempts: lesson.quiz.maxAttempts,
+              questions: lesson.quiz.questions,
+              _count: { questions: lesson.quiz.questions.length },
+            }
+          : null,
       },
     },
     {
