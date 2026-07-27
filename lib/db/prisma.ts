@@ -1,17 +1,12 @@
 import { PrismaPg } from '@prisma/adapter-pg';
-import { Pool } from 'pg';
 import { PrismaClient } from '@/lib/generated/prisma/client';
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 
 const createPrismaClient = () => {
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL!,
-    ssl: { rejectUnauthorized: false },
-    max: 5,
-    idleTimeoutMillis: 30000,
-  });
-  const adapter = new PrismaPg(pool);
+  const url = new URL(process.env.DATABASE_URL!);
+  url.searchParams.set('sslmode', 'no-verify');
+  const adapter = new PrismaPg({ connectionString: url.toString() });
   return new PrismaClient({ adapter });
 };
 
