@@ -1,4 +1,8 @@
+import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+
+const SUPABASE_URL = 'https://yftgdtdvmvvqyzcdntge.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_sY8NIgcLzNcLUGx2Swl9BA_yqf9NIc8';
 
 export async function proxy(request: NextRequest) {
   const host = request.headers.get('host') || '';
@@ -12,6 +16,49 @@ export async function proxy(request: NextRequest) {
       'Strict-Transport-Security',
       'max-age=63072000; includeSubDomains; preload'
     );
+    return response;
+  }
+
+  const path = request.nextUrl.pathname;
+  const isProtected =
+    path.startsWith('/admin') ||
+    path.startsWith('/instructor') ||
+    path.startsWith('/dashboard');
+
+  // Only do Supabase SSR session check for protected routes
+  if (isProtected) {
+    let response = NextResponse.next({ request });
+
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL || SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || SUPABASE_ANON_KEY,
+      {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll();
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value }) =>
+              request.cookies.set(name, value)
+            );
+            response = NextResponse.next({ request });
+            cookiesToSet.forEach(({ name, value, options }) =>
+              response.cookies.set(name, value, options)
+            );
+          },
+        },
+      }
+    );
+
+    await supabase.auth.getSession();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      const loginUrl = new URL('/login', request.url);
+      loginUrl.searchParams.set('redirect', path);
+      return NextResponse.redirect(loginUrl);
+    }
+
     return response;
   }
 

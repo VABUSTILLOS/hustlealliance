@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { enrollUser, getEnrollment } from '@/lib/db/courses';
 import { checkAccess } from '@/lib/auth/accessControl';
 import { createClient } from '@/lib/supabase/server';
+import { notifyCourseEnrollment } from '@/lib/notifications/service';
+import prisma from '@/lib/db/prisma';
 
 // POST /api/courses/[courseId]/enroll — enroll the current user in a course
 export async function POST(
@@ -44,6 +46,15 @@ export async function POST(
     }
 
     const enrollment = await enrollUser(user.id, courseId);
+
+    // Fire enrollment notification (async, don't block)
+    const course = await prisma.course.findUnique({
+      where: { id: courseId },
+      select: { title: true, slug: true },
+    });
+    if (course && user.email) {
+      notifyCourseEnrollment(user.id, user.email, course.title, course.slug).catch(() => {});
+    }
 
     return NextResponse.json({ enrollment }, { status: 201 });
   } catch (error) {

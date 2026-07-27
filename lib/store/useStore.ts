@@ -12,6 +12,8 @@ export interface UserInfo {
   name: string;
   avatar: string;
   username?: string;
+  role?: 'STUDENT' | 'INSTRUCTOR' | 'ADMIN';
+  membershipTier?: 'FREE' | 'BASIC' | 'PRO';
 }
 
 export interface UserProgress {

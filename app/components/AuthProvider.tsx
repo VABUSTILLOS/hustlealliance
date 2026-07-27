@@ -27,6 +27,21 @@ function cleanUrl() {
   window.history.replaceState({}, '', url.pathname + url.search + url.hash);
 }
 
+/** Fetch the full user profile from the database (includes role + membership tier). */
+async function fetchDbProfile(): Promise<{ role?: string; membershipTier?: string } | null> {
+  try {
+    const res = await fetch('/api/me');
+    if (!res.ok) return null;
+    const data = await res.json();
+    return {
+      role: data.user?.role,
+      membershipTier: data.user?.membershipTier,
+    };
+  } catch {
+    return null;
+  }
+}
+
 async function fetchUser(accessToken: string): Promise<{ email: string; name?: string } | null> {
   try {
     const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
@@ -62,13 +77,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         useStore.setState({ isAuthenticated: true });
         cleanUrl();
 
-        // Fetch user info
-        const profile = await fetchUser(tokenData.access_token);
+        // Fetch user info from Supabase auth + DB profile
+        const [profile, dbProfile] = await Promise.all([
+          fetchUser(tokenData.access_token),
+          fetchDbProfile(),
+        ]);
         if (profile) {
           saveUserInfo({
             email: profile.email,
             name: profile.name || profile.email.split('@')[0],
             avatar: getAvatarUrl(profile.name, profile.email),
+            role: (dbProfile?.role as 'STUDENT' | 'INSTRUCTOR' | 'ADMIN') || 'STUDENT',
+            membershipTier: (dbProfile?.membershipTier as 'FREE' | 'BASIC' | 'PRO') || 'FREE',
           });
         }
         setReady(true);
@@ -86,12 +106,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // If no user info stored yet, fetch it
             const userRaw = localStorage.getItem('hustle_user_info');
             if (!userRaw) {
-              const profile = await fetchUser(session.access_token);
+              const [profile, dbProfile] = await Promise.all([
+                fetchUser(session.access_token),
+                fetchDbProfile(),
+              ]);
               if (profile) {
                 saveUserInfo({
                   email: profile.email,
                   name: profile.name || profile.email.split('@')[0],
                   avatar: getAvatarUrl(profile.name, profile.email),
+                  role: (dbProfile?.role as 'STUDENT' | 'INSTRUCTOR' | 'ADMIN') || 'STUDENT',
+                  membershipTier: (dbProfile?.membershipTier as 'FREE' | 'BASIC' | 'PRO') || 'FREE',
                 });
               }
             } else {
@@ -101,6 +126,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                   useStore.getState().setCurrentUser(existing);
                 }
               } catch { /* ignore */ }
+              // Refresh DB profile in background to keep role/tier up to date
+              fetchDbProfile().then((dbProfile) => {
+                if (dbProfile) {
+                  const current = useStore.getState().currentUser;
+                  if (current) {
+                    useStore.getState().setCurrentUser({
+                      ...current,
+                      role: (dbProfile.role as 'STUDENT' | 'INSTRUCTOR' | 'ADMIN') || 'STUDENT',
+                      membershipTier: (dbProfile.membershipTier as 'FREE' | 'BASIC' | 'PRO') || 'FREE',
+                    });
+                    // Update localStorage too
+                    const raw = localStorage.getItem('hustle_user_info');
+                    if (raw) {
+                      try {
+                        const parsed = JSON.parse(raw);
+                        parsed.role = dbProfile.role;
+                        parsed.membershipTier = dbProfile.membershipTier;
+                        localStorage.setItem('hustle_user_info', JSON.stringify(parsed));
+                      } catch { /* ignore */ }
+                    }
+                  }
+                }
+              });
             }
           } else {
             localStorage.removeItem(AUTH_STORAGE_KEY);
