@@ -16,7 +16,25 @@ The LMS uses Supabase Realtime for two features:
    - ✅ `CommunityComment`
 3. Click "Apply changes"
 
-> **Note:** Replication is required for `postgres_changes` listeners in `useRealtimePosts`. The Broadcast channel in `useLiveClassPresence` works independently of table replication but requires Realtime to be enabled (it is by default).
+
+## Row Level Security (RLS)
+
+All 29 public tables now have RLS policies defined. To apply:
+
+1. Go to [Supabase Dashboard → SQL Editor](https://supabase.com/dashboard/project/yftgdtdvmvvqyzcdntge/sql/new)
+2. Copy and paste the contents of `supabase/migrations/rls_policies.sql`
+3. Click "Run"
+
+**Policy summary:**
+
+| Group | Tables | SELECT | INSERT/UPDATE/DELETE |
+|---|---|---|---|
+| Public Read | Category, Badge, Course, Module, Lesson, Attachments, LiveClass | Anyone | Authenticated only |
+| Auth Read | Quiz, QuizQuestion, QuizAnswer, CommunityPost, CommunityComment | Authenticated | Own rows only |
+| User-Scoped | Enrollment, LessonProgress, QuizAttempt, EarnedBadge, Certificate, XPTransaction, Streak, Notification, ContentRelease, LiveClassRegistration | Own rows only | Own rows only |
+| Server-Only | User, Order, Entitlement, DripSettings, DripOverride, Prerequisite | Restricted | Blocked (Prisma only) |
+
+> **Note:** The app accesses all tables through Prisma on the server side (API routes), which bypasses RLS. These policies are defense-in-depth against direct PostgREST access via the anon key.
 
 ### Verify
 
