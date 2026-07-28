@@ -1,6 +1,7 @@
 'use server';
 
-import { createClient } from '@/lib/supabase/server';
+// TODO: IMPLEMENT REAL AUTH - REVERT FOR PRODUCTION
+import { getCurrentUser } from '@/lib/auth/user';
 import prisma from '@/lib/db/prisma';
 import {
   markLessonComplete,
@@ -18,9 +19,7 @@ import { revalidatePath } from 'next/cache';
 // ─── Lesson Completion ──────────────────────────────────────────
 
 export async function completeLessonAction(lessonId: string) {
-  const supabase = await createClient();
-  const { data: { user }, error } = await supabase.auth.getUser();
-  if (error || !user) return { success: false, error: 'Unauthorized' };
+  const user = await getCurrentUser();
 
   try {
     await markLessonComplete(user.id, lessonId);
@@ -66,9 +65,7 @@ export async function completeLessonAction(lessonId: string) {
 // ─── Video Position ─────────────────────────────────────────────
 
 export async function saveVideoPositionAction(lessonId: string, positionSeconds: number) {
-  const supabase = await createClient();
-  const { data: { user }, error } = await supabase.auth.getUser();
-  if (error || !user) return { success: false };
+  const user = await getCurrentUser();
 
   try {
     await updateVideoPosition(user.id, lessonId, positionSeconds);
@@ -81,9 +78,7 @@ export async function saveVideoPositionAction(lessonId: string, positionSeconds:
 // ─── Quiz Submission ────────────────────────────────────────────
 
 export async function submitQuizAction(quizId: string, answers: Record<string, string>) {
-  const supabase = await createClient();
-  const { data: { user }, error } = await supabase.auth.getUser();
-  if (error || !user) return { success: false, error: 'Unauthorized' };
+  const user = await getCurrentUser();
 
   try {
     const { submitQuizAttempt } = await import('@/lib/db/quizzes');
@@ -114,9 +109,7 @@ export async function submitQuizAction(quizId: string, answers: Record<string, s
 // ─── Enrollment ─────────────────────────────────────────────────
 
 export async function enrollInCourseAction(courseId: string) {
-  const supabase = await createClient();
-  const { data: { user }, error } = await supabase.auth.getUser();
-  if (error || !user) return { success: false, error: 'Unauthorized' };
+  const user = await getCurrentUser();
 
   try {
     const { enrollUser } = await import('@/lib/db/courses');
@@ -146,9 +139,7 @@ export async function enrollInCourseAction(courseId: string) {
 // ─── Gamification Summary ───────────────────────────────────────
 
 export async function getGamificationSummaryAction() {
-  const supabase = await createClient();
-  const { data: { user }, error } = await supabase.auth.getUser();
-  if (error || !user) return null;
+  const user = await getCurrentUser();
 
   try {
     const [gamification, certificates] = await Promise.all([

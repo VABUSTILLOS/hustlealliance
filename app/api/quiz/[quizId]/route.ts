@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getQuizById, getUserQuizAttempts } from '@/lib/db/quizzes';
-import { createClient } from '@/lib/supabase/server';
+// TODO: IMPLEMENT REAL AUTH - REVERT FOR PRODUCTION
+import { getCurrentUser } from "@/lib/auth/user";
 
 // GET /api/quiz/[quizId] — get quiz questions (without answer keys)
 export async function GET(
@@ -8,12 +9,7 @@ export async function GET(
   { params }: { params: Promise<{ quizId: string }> }
 ) {
   try {
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const user = await getCurrentUser();
 
     const { quizId } = await params;
     const [quiz, attempts] = await Promise.all([

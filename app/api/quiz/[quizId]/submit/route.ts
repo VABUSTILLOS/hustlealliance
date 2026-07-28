@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { submitQuizAttempt, getUserQuizAttempts } from '@/lib/db/quizzes';
 import { awardXP } from '@/lib/db/progress';
-import { createClient } from '@/lib/supabase/server';
+// TODO: IMPLEMENT REAL AUTH - REVERT FOR PRODUCTION
+import { getCurrentUser } from "@/lib/auth/user";
 
 // POST /api/quiz/[quizId]/submit — submit quiz answers for grading
 // Body: { answers: Record<string, string | string[]> }
@@ -10,12 +11,7 @@ export async function POST(
   { params }: { params: Promise<{ quizId: string }> }
 ) {
   try {
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const user = await getCurrentUser();
 
     const { quizId } = await params;
     const { answers } = await request.json();

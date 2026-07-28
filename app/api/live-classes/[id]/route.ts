@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
-import { createClient } from '@/lib/supabase/server';
+// TODO: IMPLEMENT REAL AUTH - REVERT FOR PRODUCTION
+import { getCurrentUser } from "@/lib/auth/user";
 
 // GET /api/live-classes/[id] — get live class details with registration status
 export async function GET(
@@ -8,8 +9,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await getCurrentUser();
 
     const { id } = await params;
 

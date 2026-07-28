@@ -101,7 +101,7 @@ export default function Hero() {
             variants={item}
             className="flex flex-col sm:flex-row gap-4"
           >
-            <NeonButton variant="primary" href="/login" className="text-base !py-4 !px-10 !text-base">
+            <NeonButton variant="primary" href="/dashboard" className="text-base !py-4 !px-10 !text-base">
               {t.hero.cta1}
             </NeonButton>
             <NeonButton variant="secondary" href="/spaces" className="text-base !py-4 !px-10">

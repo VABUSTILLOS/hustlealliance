@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+// TODO: IMPLEMENT REAL AUTH - REVERT FOR PRODUCTION
+import { getCurrentUser } from "@/lib/auth/user";
 import { getCourseDripSettings, upsertCourseDripSettings } from '@/lib/db/drip';
 import prisma from '@/lib/db/prisma';
 
@@ -21,11 +22,7 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ courseId: string }> }
 ) {
-  const supabase = await createClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const user = await getCurrentUser();
 
   // Verify instructor/admin role
   const dbUser = await prisma.user.findUnique({

@@ -1,16 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserGamification, getUserCertificates } from '@/lib/db/progress';
-import { createClient } from '@/lib/supabase/server';
+// TODO: IMPLEMENT REAL AUTH - REVERT FOR PRODUCTION
+import { getCurrentUser } from "@/lib/auth/user";
 
 // GET /api/progress/gamification — get user's XP, badges, and streak
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const user = await getCurrentUser();
 
     const [gamification, certificates] = await Promise.all([
       getUserGamification(user.id),

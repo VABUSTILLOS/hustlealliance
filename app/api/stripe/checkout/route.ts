@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+// TODO: IMPLEMENT REAL AUTH - REVERT FOR PRODUCTION
+import { getCurrentUser } from "@/lib/auth/user";
 
 // ─── Stripe lazy init ───────────────────────────────────────────────
 let stripe: any = null;
@@ -28,11 +29,7 @@ const DEMO_MODE = !process.env.STRIPE_SECRET_KEY;
 // POST /api/stripe/checkout — create a Stripe Checkout Session
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const user = await getCurrentUser();
 
     const body = await request.json();
     const origin = request.nextUrl.origin;

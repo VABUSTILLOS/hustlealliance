@@ -1,17 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { updateVideoPosition } from '@/lib/db/progress';
-import { createClient } from '@/lib/supabase/server';
+// TODO: IMPLEMENT REAL AUTH - REVERT FOR PRODUCTION
+import { getCurrentUser } from "@/lib/auth/user";
 
 // POST /api/progress/video-position — save video watch position
 // Body: { lessonId: string, positionSeconds: number }
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const user = await getCurrentUser();
 
     const { lessonId, positionSeconds } = await request.json();
     if (!lessonId || typeof positionSeconds !== 'number') {

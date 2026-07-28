@@ -161,6 +161,7 @@ export const useStore = create<AppState>()(
 
       setCurrentUser: (user) => set({ currentUser: user }),
 
+      // TODO: IMPLEMENT REAL AUTH - REVERT FOR PRODUCTION
       signOut: async () => {
         localStorage.removeItem('sb-yftgdtdvmvvqyzcdntge-auth-token');
         localStorage.removeItem('hustle_user_info');

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+// TODO: IMPLEMENT REAL AUTH - REVERT FOR PRODUCTION
+import { getCurrentUser } from "@/lib/auth/user";
 import { getLessonPrerequisites, addLessonPrerequisite, removeLessonPrerequisite } from '@/lib/db/drip';
 import prisma from '@/lib/db/prisma';
 
@@ -16,11 +17,7 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ lessonId: string }> }
 ) {
-  const supabase = await createClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const user = await getCurrentUser();
 
   const dbUser = await prisma.user.findUnique({
     where: { id: user.id },
@@ -46,11 +43,7 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ lessonId: string }> }
 ) {
-  const supabase = await createClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const user = await getCurrentUser();
 
   const dbUser = await prisma.user.findUnique({
     where: { id: user.id },

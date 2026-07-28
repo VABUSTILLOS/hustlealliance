@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
-import { createClient } from '@/lib/supabase/server';
+// TODO: IMPLEMENT REAL AUTH - REVERT FOR PRODUCTION
+import { getCurrentUser } from "@/lib/auth/user";
 
 // GET /api/notifications — list user notifications
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const { data: { user }, error } = await supabase.auth.getUser();
-    if (error || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+    const user = await getCurrentUser();
     const { searchParams } = request.nextUrl;
     const unreadOnly = searchParams.get('unread') === 'true';
     const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 50);
@@ -36,10 +34,7 @@ export async function GET(request: NextRequest) {
 // POST /api/notifications — mark as read
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const { data: { user }, error } = await supabase.auth.getUser();
-    if (error || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+    const user = await getCurrentUser();
     const { id, markAllRead } = await request.json();
 
     if (markAllRead) {

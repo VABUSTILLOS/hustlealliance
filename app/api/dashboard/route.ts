@@ -1,15 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
-import { createClient } from '@/lib/supabase/server';
+// TODO: IMPLEMENT REAL AUTH - REVERT FOR PRODUCTION
+import { getCurrentUser } from "@/lib/auth/user";
 import { getUserAccessSummary } from '@/lib/auth/accessControl';
 
 // GET /api/dashboard — student dashboard summary
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const { data: { user }, error } = await supabase.auth.getUser();
-    if (error || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+    const user = await getCurrentUser();
     const dbUser = await prisma.user.findUnique({
       where: { id: user.id },
       select: { id: true, name: true, avatar: true, membershipTier: true },

@@ -153,7 +153,7 @@ export default function Pricing() {
 
                 {/* CTA */}
                 <Link
-                  href="/login"
+                  href="/dashboard"
                   className={clsx(
                     'w-full py-3 rounded-xl font-heading font-bold text-sm uppercase tracking-wider transition-all duration-300 inline-block text-center',
                     tier.variant === 'solid'

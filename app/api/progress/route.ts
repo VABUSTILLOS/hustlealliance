@@ -1,16 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserProgress, getCourseProgress } from '@/lib/db/progress';
-import { createClient } from '@/lib/supabase/server';
+// TODO: IMPLEMENT REAL AUTH - REVERT FOR PRODUCTION
+import { getCurrentUser } from "@/lib/auth/user";
 
 // GET /api/progress?courseId=xxx — get user's progress (optionally filtered by course)
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const user = await getCurrentUser();
 
     const { searchParams } = request.nextUrl;
     const courseId = searchParams.get('courseId');

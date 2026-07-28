@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { enrollUser, getEnrollment } from '@/lib/db/courses';
 import { checkAccess } from '@/lib/auth/accessControl';
-import { createClient } from '@/lib/supabase/server';
+// TODO: IMPLEMENT REAL AUTH - REVERT FOR PRODUCTION
+import { getCurrentUser } from "@/lib/auth/user";
 import { notifyCourseEnrollment } from '@/lib/notifications/service';
 import prisma from '@/lib/db/prisma';
 
@@ -14,12 +15,7 @@ export async function POST(
     const { courseId } = await params;
 
     // Get the authenticated user from Supabase
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const user = await getCurrentUser();
 
     // Check if already enrolled
     const existing = await getEnrollment(user.id, courseId);

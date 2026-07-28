@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { markLessonComplete, awardXP, updateStreak, checkAndAwardBadges, awardCertificate } from '@/lib/db/progress';
-import { createClient } from '@/lib/supabase/server';
+// TODO: IMPLEMENT REAL AUTH - REVERT FOR PRODUCTION
+import { getCurrentUser } from "@/lib/auth/user";
 import { notifyCourseComplete, notifyCertificateEarned, notifyBadgeEarned } from '@/lib/notifications/service';
 import prisma from '@/lib/db/prisma';
 
@@ -8,12 +9,7 @@ import prisma from '@/lib/db/prisma';
 // Body: { lessonId: string }
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const user = await getCurrentUser();
 
     const { lessonId } = await request.json();
     if (!lessonId || typeof lessonId !== 'string') {
