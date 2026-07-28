@@ -67,7 +67,7 @@ export default function ValueProposition() {
           transition={{ delay: 0.3 }}
         >
           <Link
-            href="/signup"
+            href="/dashboard"
             className="inline-flex items-center gap-2 px-10 py-5 rounded-xl bg-[var(--color-accent)] text-white font-heading font-bold text-base
               hover:shadow-[0_0_50px_rgba(255,59,48,0.4)] transition-all active:scale-[0.97] animate-pulse-glow"
           >

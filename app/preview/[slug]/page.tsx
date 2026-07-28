@@ -180,7 +180,7 @@ export default function PreviewPage({
                 Join Hustle Alliance to unlock all {path.totalLessons} lessons, earn badges, and connect with {path.studentCount.toLocaleString()}+ founders.
               </p>
               <Link
-                href="/login"
+                href="/dashboard"
                 className="block w-full py-3 rounded-xl bg-[var(--color-accent)] text-white font-heading font-bold text-sm
                   hover:shadow-[0_0_30px_rgba(255,59,48,0.3)] transition-all active:scale-[0.98]"
               >
