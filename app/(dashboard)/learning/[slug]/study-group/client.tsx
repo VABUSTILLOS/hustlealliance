@@ -1,14 +1,15 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useRef } from 'react';
 import Link from 'next/link';
-import { getStudyGroup, ensureGroupMembership } from './actions';
+import { CourseStudyGroup } from '@/app/components/CourseStudyGroup';
+import type { StudyGroupWithMembers } from './actions';
 
 const USER_INFO_KEY = 'hustle_user_info';
 const AUTH_STORAGE_KEY = 'sb-yftgdtdvmvvqyzcdntge-auth-token';
 
-function getEmailFromStorage(): string | null {
-  if (typeof window === 'undefined') return null;
+function getEmailFromStorage(): string {
+  if (typeof window === 'undefined') return 'guest@hustlealliance.com';
   try {
     const raw = localStorage.getItem(USER_INFO_KEY);
     if (raw) {
@@ -21,100 +22,46 @@ function getEmailFromStorage(): string | null {
       if (session?.user?.email) return session.user.email;
       const token = session?.access_token;
       if (token) {
-        try {
-          const payload = JSON.parse(atob(token.split('.')[1]));
-          if (payload?.email) return payload.email;
-        } catch { /* JWT decode failed */ }
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        if (payload?.email) return payload.email;
       }
     }
-    return null;
-  } catch {
-    return null;
-  }
+  } catch { /* ignore */ }
+  return 'guest@hustlealliance.com';
 }
 
-export function StudyGroupClient({ slug }: { slug: string }) {
-  const hasLoaded = useRef(false);
-  const emailRef = useRef<string>('');
-
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [group, setGroup] = useState<Awaited<ReturnType<typeof getStudyGroup>>>(null);
-
-  useEffect(() => {
-    if (hasLoaded.current) return;
-    hasLoaded.current = true;
-
-    const email = getEmailFromStorage() || `guest+${slug}@hustlealliance.com`;
-    emailRef.current = email;
-    loadGroup(email);
-
-    async function loadGroup(e: string) {
-      try {
-        setLoading(true);
-        setError(null);
-        await ensureGroupMembership(e, slug);
-        const data = await getStudyGroup(e, slug);
-        if (!data) {
-          setError('Study group not found for this course.');
-        } else {
-          setGroup(data);
-        }
-      } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : 'Something went wrong');
-      } finally {
-        setLoading(false);
-      }
-    }
-  }, [slug]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen p-8 text-center">
-        <div className="animate-pulse space-y-4 max-w-md mx-auto">
-          <div className="h-4 bg-surface-light rounded w-3/4 mx-auto" />
-          <div className="h-8 bg-surface-light rounded w-1/2 mx-auto" />
-          <div className="h-32 bg-surface-light rounded" />
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen p-8">
-        <div className="max-w-md mx-auto text-center">
-          <h1 className="text-xl font-bold text-red-500">Error</h1>
-          <p className="text-muted mt-2">{error}</p>
-          <Link href={`/learning/${slug}`} className="text-accent hover:underline mt-4 inline-block">
-            ← Back to course
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  if (!group) {
-    return (
-      <div className="min-h-screen p-8">
-        <div className="max-w-md mx-auto text-center">
-          <h1 className="text-xl font-bold text-red-500">Not Found</h1>
-          <p className="text-muted mt-2">This study group does not exist.</p>
-          <Link href={`/learning/${slug}`} className="text-accent hover:underline mt-4 inline-block">
-            ← Back to course
-          </Link>
-        </div>
-      </div>
-    );
-  }
+export function StudyGroupClient({
+  slug,
+  group,
+}: {
+  slug: string;
+  group: NonNullable<StudyGroupWithMembers>;
+}) {
+  const emailRef = useRef(getEmailFromStorage());
+  const memberCount = group.members.length;
 
   return (
-    <div className="min-h-screen p-8">
-      <h1>Group loaded! {group.members.length} members</h1>
-      <p>Actions work, now need CourseStudyGroup component.</p>
-      <Link href={`/learning/${slug}`} className="text-accent hover:underline mt-4 inline-block">
-        ← Back to course
-      </Link>
+    <div className="min-h-screen">
+      <div className="border-b border-[var(--color-border-subtle)] bg-[var(--color-surface)]">
+        <div className="px-4 sm:px-6 lg:px-8 py-4 max-w-7xl mx-auto">
+          <div className="flex items-center gap-2 text-sm text-muted mb-1">
+            <Link href="/learning" className="hover:text-accent transition-colors">Learning</Link>
+            <span>/</span>
+            <Link href={`/learning/${slug}`} className="hover:text-accent transition-colors">Course</Link>
+            <span>/</span>
+            <span className="text-foreground font-medium">Study Group</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="font-heading font-bold text-2xl text-foreground">Study Group</h1>
+              <p className="text-muted text-sm mt-1">{memberCount} member{memberCount !== 1 ? 's' : ''}</p>
+            </div>
+            <Link href={`/learning/${slug}`} className="text-sm text-accent hover:underline">← Back to course</Link>
+          </div>
+        </div>
+      </div>
+
+      <CourseStudyGroup userEmail={emailRef.current} courseSlug={slug} group={group} />
     </div>
   );
 }
