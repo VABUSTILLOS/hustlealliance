@@ -178,10 +178,10 @@ export default function LearningPathPage({
                 )}
               </div>
 
-              {/* Community discussion link */}
-              {course.modules.length > 0 && course.modules[0]?.lessons.length > 0 && (
+              {/* Study Group — only visible to enrolled students */}
+              {enrolled && (
                 <Link
-                  href={`/spaces/${slug}`}
+                  href={`/learning/${slug}/study-group`}
                   className="block bg-surface border border-surface-light rounded-2xl p-5 hover:border-accent/20 transition-colors group"
                 >
                   <h3 className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted mb-3">

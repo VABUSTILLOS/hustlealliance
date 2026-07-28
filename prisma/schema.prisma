@@ -103,8 +103,11 @@ model User {
   certificates      Certificate[]
   earnedBadges      EarnedBadge[]
   instructorCourses Course[]          @relation("CourseInstructor")
-  posts             CommunityPost[]
-  comments          CommunityComment[]
+  posts                CommunityPost[]
+  comments             CommunityComment[]
+  studyGroupMemberships GroupMember[]
+  studyGroupPosts       GroupPost[]
+  studyGroupReplies     GroupReply[]
   xpTransactions    XPTransaction[]
   streak            Streak?
   liveClassRegs     LiveClassRegistration[]
@@ -153,6 +156,7 @@ model Course {
   liveClasses   LiveClass[]
   entitlements  Entitlement[]
   dripSettings  CourseDripSettings?
+  studyGroup    CourseStudyGroup?
 }
 
 model Module {
@@ -500,4 +504,54 @@ model CommunityComment {
 
   post   CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
   author User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+// ── Course Study Groups (ISOLATED — zero FK overlap with CommunityPost/Comment/Spaces) ──
+
+model CourseStudyGroup {
+  id          String   @id @default(uuid())
+  courseId    String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  course  Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  members GroupMember[]
+  posts   GroupPost[]
+}
+
+model GroupMember {
+  id       String   @id @default(uuid())
+  groupId  String
+  userId   String
+  joinedAt DateTime @default(now())
+
+  group CourseStudyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+}
+
+model GroupPost {
+  id        String   @id @default(uuid())
+  groupId   String
+  authorId  String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  group   CourseStudyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  author  User             @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  replies GroupReply[]
+}
+
+model GroupReply {
+  id        String   @id @default(uuid())
+  postId    String
+  authorId  String
+  content   String
+  createdAt DateTime @default(now())
+
+  post   GroupPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
 }
