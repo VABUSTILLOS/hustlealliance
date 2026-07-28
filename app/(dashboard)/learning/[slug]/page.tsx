@@ -179,25 +179,23 @@ export default function LearningPathPage({
               </div>
 
               {/* Study Group — server actions enforce enrollment on visit */}
-              {course.modules.length > 0 && course.modules[0]?.lessons.length > 0 && (
-                <Link
-                  href={`/learning/${slug}/study-group`}
-                  className="block bg-surface border border-surface-light rounded-2xl p-5 hover:border-accent/20 transition-colors group"
-                >
-                  <h3 className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted mb-3">
-                    {t.gamification.discussTab}
-                  </h3>
-                  <p className="text-foreground-muted text-sm mb-2">
-                    {t.gamification.studyGroupDesc}
-                  </p>
-                  <span className="inline-flex items-center gap-1.5 text-accent text-sm font-medium group-hover:text-accent-glow transition-colors">
-                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
-                    </svg>
-                    {t.gamification.joinStudyGroup}
-                  </span>
-                </Link>
-              )}
+              <Link
+                href={`/learning/${slug}/study-group`}
+                className="block bg-surface border border-surface-light rounded-2xl p-5 hover:border-accent/20 transition-colors group"
+              >
+                <h3 className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted mb-3">
+                  {t.gamification.discussTab}
+                </h3>
+                <p className="text-foreground-muted text-sm mb-2">
+                  {t.gamification.studyGroupDesc}
+                </p>
+                <span className="inline-flex items-center gap-1.5 text-accent text-sm font-medium group-hover:text-accent-glow transition-colors">
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+                  </svg>
+                  {t.gamification.joinStudyGroup}
+                </span>
+              </Link>
             </div>
           </div>
         </div>
