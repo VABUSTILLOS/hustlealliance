@@ -2,6 +2,7 @@
 
 import { memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
 import { useStore } from '@/lib/store/useStore';
 import { useCurrentUser } from '@/lib/hooks/useCurrentUser';
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -36,7 +37,7 @@ const CommentTreeInner = memo(function CommentTreeInner({
       <div className="mt-4 pt-4 border-t border-surface-light space-y-3">
         {post.comments.map((c) => (
           <div key={c.id} className="flex gap-2 ml-4">
-            <img src={c.author.avatar} alt="" className="w-6 h-6 rounded-full border border-white/10 object-cover shrink-0 mt-0.5" />
+            <Image src={c.author.avatar} alt="" width={24} height={24} className="rounded-full border border-white/10 object-cover shrink-0 mt-0.5" />
             <div className="bg-surface-light rounded-xl px-3 py-2 flex-1">
               <p className="font-heading font-bold text-foreground text-xs">{c.author.name}</p>
               <p className="text-foreground-muted text-xs">{c.text}</p>
@@ -45,7 +46,7 @@ const CommentTreeInner = memo(function CommentTreeInner({
         ))}
         {/* Add comment */}
         <div className="flex gap-2 ml-4 pt-1">
-          <img src={user?.avatar ?? 'https://api.dicebear.com/9.x/initials/svg?seed=User'} alt="" className="w-6 h-6 rounded-full border border-white/10 object-cover shrink-0" />
+          <Image src={user?.avatar ?? 'https://api.dicebear.com/9.x/initials/svg?seed=User'} alt="" width={24} height={24} className="rounded-full border border-white/10 object-cover shrink-0" />
           <div className="flex-1 flex gap-2">
             <input
               value={commentText}

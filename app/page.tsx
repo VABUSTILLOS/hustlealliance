@@ -9,20 +9,20 @@ export default function Home() {
     <div className="scroll-smooth bg-deep text-foreground font-body">
       <Navbar />
       <Hero />
-      <HomepageLazySection importFn={() => import('./components/sections/QuickPreviewCTA')} />
-      <HomepageLazySection importFn={() => import('./components/Pillars')} />
-      <HomepageLazySection importFn={() => import('./components/TakeawayCards')} />
-      <HomepageLazySection importFn={() => import('./components/sections/MemberSpotlight')} />
-      <HomepageLazySection importFn={() => import('./components/sections/ResourceLibrary')} />
-      <HomepageLazySection importFn={() => import('./components/sections/GamificationSection')} />
-      <HomepageLazySection importFn={() => import('./components/sections/SpacesPreview')} />
-      <HomepageLazySection importFn={() => import('./components/sections/HabitsPreview')} />
-      <HomepageLazySection importFn={() => import('./components/sections/PlannerPreview')} />
-      <HomepageLazySection importFn={() => import('./components/sections/ValueProposition')} />
-      <HomepageLazySection importFn={() => import('./components/sections/Pricing')} />
-      <HomepageLazySection importFn={() => import('./components/sections/WallOfLove')} />
-      <HomepageLazySection importFn={() => import('./components/sections/FooterCTA')} />
-      <HomepageLazySection importFn={() => import('./components/ActivityTicker')} />
+      <HomepageLazySection name="QuickPreviewCTA" />
+      <HomepageLazySection name="Pillars" />
+      <HomepageLazySection name="TakeawayCards" />
+      <HomepageLazySection name="MemberSpotlight" />
+      <HomepageLazySection name="ResourceLibrary" />
+      <HomepageLazySection name="GamificationSection" />
+      <HomepageLazySection name="SpacesPreview" />
+      <HomepageLazySection name="HabitsPreview" />
+      <HomepageLazySection name="PlannerPreview" />
+      <HomepageLazySection name="ValueProposition" />
+      <HomepageLazySection name="Pricing" />
+      <HomepageLazySection name="WallOfLove" />
+      <HomepageLazySection name="FooterCTA" />
+      <HomepageLazySection name="ActivityTicker" />
     </div>
   );
 }

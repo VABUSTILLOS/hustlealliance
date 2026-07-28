@@ -1,13 +1,52 @@
 'use client';
 
-import { useLazySection } from './sections/LazySection';
+import { useRef, useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
+import type { ComponentType } from 'react';
 
-export function HomepageLazySection({
-  importFn,
-}: {
-  importFn: () => Promise<{ default: React.ComponentType<any> }>;
-}) {
-  const { ref, Component, isVisible } = useLazySection(importFn);
+const sectionMap: Record<string, () => Promise<{ default: ComponentType<any> }>> = {
+  QuickPreviewCTA: () => import('./sections/QuickPreviewCTA'),
+  Pillars: () => import('./Pillars'),
+  TakeawayCards: () => import('./TakeawayCards'),
+  MemberSpotlight: () => import('./sections/MemberSpotlight'),
+  ResourceLibrary: () => import('./sections/ResourceLibrary'),
+  GamificationSection: () => import('./sections/GamificationSection'),
+  SpacesPreview: () => import('./sections/SpacesPreview'),
+  HabitsPreview: () => import('./sections/HabitsPreview'),
+  PlannerPreview: () => import('./sections/PlannerPreview'),
+  ValueProposition: () => import('./sections/ValueProposition'),
+  Pricing: () => import('./sections/Pricing'),
+  WallOfLove: () => import('./sections/WallOfLove'),
+  FooterCTA: () => import('./sections/FooterCTA'),
+  ActivityTicker: () => import('./ActivityTicker'),
+};
+
+export function HomepageLazySection({ name }: { name: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+  const [Component, setComponent] = useState<ComponentType<any> | null>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || isVisible) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          const importFn = sectionMap[name];
+          if (importFn) {
+            importFn().then((mod) => setComponent(() => mod.default));
+          }
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '200px 0px' }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [name, isVisible]);
 
   return (
     <div ref={ref} className="min-h-[100px]">

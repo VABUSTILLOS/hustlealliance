@@ -3,6 +3,7 @@
 import { memo, Suspense, lazy } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import Image from 'next/image';
 import clsx from 'clsx';
 import { useStore } from '@/lib/store/useStore';
 import type { FeedPost } from '@/lib/data/community';
@@ -102,7 +103,7 @@ export const PostFeed = memo(function PostFeed({
               >
                 {/* Author row */}
                 <div className="flex items-center gap-3 mb-3">
-                  <img src={post.author.avatar} alt="" className="w-10 h-10 rounded-full border border-white/10 object-cover" />
+                  <Image src={post.author.avatar} alt="" width={40} height={40} className="rounded-full border border-white/10 object-cover" />
                   <div className="flex-1 min-w-0">
                     <p className="font-heading font-bold text-foreground text-sm">{post.author.name}</p>
                     <div className="flex items-center gap-2">
@@ -123,7 +124,15 @@ export const PostFeed = memo(function PostFeed({
 
                 {/* Image */}
                 {post.image && (
-                  <img src={post.image} alt="" className="w-full rounded-xl mb-3 max-h-96 object-cover" loading="lazy" />
+                  <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden mb-3">
+                    <Image
+                      src={post.image}
+                      alt=""
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 672px, 700px"
+                      className="object-cover"
+                    />
+                  </div>
                 )}
 
                 {/* Actions */}

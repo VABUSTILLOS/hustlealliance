@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 import clsx from 'clsx';
 import { useStore } from '@/lib/store/useStore';
 import { useCurrentUser } from '@/lib/hooks/useCurrentUser';
@@ -56,7 +57,7 @@ export function PostCreator() {
       className="bg-surface border border-surface-light rounded-2xl p-5 mb-6"
     >
       <div className="flex gap-3">
-        <img src={user?.avatar ?? 'https://api.dicebear.com/9.x/initials/svg?seed=User'} alt="" className="w-10 h-10 rounded-full border border-white/10 object-cover shrink-0" />
+        <Image src={user?.avatar ?? 'https://api.dicebear.com/9.x/initials/svg?seed=User'} alt="" width={40} height={40} className="rounded-full border border-white/10 object-cover shrink-0" />
         <div className="flex-1 space-y-3">
           <textarea
             value={newPostText}
@@ -67,7 +68,7 @@ export function PostCreator() {
           />
           {previewImage && (
             <div className="relative inline-block">
-              <img src={previewImage} alt="Preview" className="max-h-48 rounded-lg" />
+              <Image src={previewImage} alt="Preview" width={400} height={300} className="max-h-48 rounded-lg" style={{ width: 'auto', height: 'auto' }} />
               <button
                 onClick={() => setPreviewImage(null)}
                 className="absolute -top-2 -right-2 w-6 h-6 bg-black/60 rounded-full flex items-center justify-center text-white text-xs"
