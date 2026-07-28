@@ -31,6 +31,8 @@ export default async function StudyGroupPage({
   }
 
   const memberCount = group.members.length;
+  const postCount = group.posts.length;
+  const fileCount = group.files?.length ?? 0;
 
   return (
     <div className="min-h-screen">

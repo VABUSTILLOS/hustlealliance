@@ -108,6 +108,7 @@ model User {
   studyGroupMemberships GroupMember[]
   studyGroupPosts       GroupPost[]
   studyGroupReplies     GroupReply[]
+  studyGroupFiles       GroupFile[]
   xpTransactions    XPTransaction[]
   streak            Streak?
   liveClassRegs     LiveClassRegistration[]
@@ -518,6 +519,7 @@ model CourseStudyGroup {
   course  Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
   members GroupMember[]
   posts   GroupPost[]
+  files   GroupFile[]
 }
 
 model GroupMember {
@@ -554,4 +556,18 @@ model GroupReply {
 
   post   GroupPost @relation(fields: [postId], references: [id], onDelete: Cascade)
   author User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+model GroupFile {
+  id         String   @id @default(uuid())
+  groupId    String
+  uploaderId String
+  fileName   String
+  fileUrl    String
+  fileSize   Int
+  mimeType   String
+  createdAt  DateTime @default(now())
+
+  group    CourseStudyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  uploader User             @relation(fields: [uploaderId], references: [id], onDelete: Cascade)
 }
