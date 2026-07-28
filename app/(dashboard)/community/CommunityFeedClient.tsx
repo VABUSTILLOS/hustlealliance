@@ -7,7 +7,7 @@ import { useStore } from '@/lib/store/useStore';
 import { useCurrentUser } from '@/lib/hooks/useCurrentUser';
 import { LazyMotionDiv, LazyAnimatePresence } from '@/lib/framer/lazy-motion';
 import { useCommunityFeed } from './useCommunityFeed';
-import type { GetCommunityPostsResult } from '@/lib/db/community';
+import type { GetCommunityPostsResult, TrendingTopic } from '@/lib/db/community';
 import type { Comment } from '@/lib/data/community';
 
 const SortControls = dynamic(() => import('./SortControls').then((m) => ({ default: m.SortControls })));
@@ -17,9 +17,10 @@ type SortMode = 'latest' | 'popular' | 'my-spaces';
 
 interface CommunityFeedClientProps {
   initialData: GetCommunityPostsResult;
+  trending: TrendingTopic[];
 }
 
-export function CommunityFeedClient({ initialData }: CommunityFeedClientProps) {
+export function CommunityFeedClient({ initialData, trending }: CommunityFeedClientProps) {
   const toggleLike = useStore((s) => s.toggleLike);
   const addComment = useStore((s) => s.addComment);
   const user = useCurrentUser();
@@ -103,6 +104,25 @@ export function CommunityFeedClient({ initialData }: CommunityFeedClientProps) {
       }>
         <SortControls sort={sort} onSortChange={setSort} />
       </Suspense>
+
+      {/* Trending topics — server-fetched, no extra client round-trip */}
+      {trending.length > 0 && (
+        <div className="flex items-center gap-2 mb-6 overflow-x-auto scrollbar-none">
+          <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--color-muted)] shrink-0">
+            🔥 Trending
+          </span>
+          {trending.map((t) => (
+            <button
+              key={t.space}
+              onClick={() => setSort('latest')}
+              className="shrink-0 px-3 py-1.5 rounded-full text-xs font-mono bg-[var(--color-surface-light)] text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-accent)]/20 transition-colors border border-[var(--color-border-subtle)]"
+            >
+              {t.space}
+              <span className="ml-1.5 text-[var(--color-muted)]">{t.postCount}</span>
+            </button>
+          ))}
+        </div>
+      )}
 
       {filtered.length === 0 ? (
         <LazyMotionDiv

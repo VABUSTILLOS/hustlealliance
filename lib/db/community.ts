@@ -120,3 +120,55 @@ export const getCommentsForPost = cache(
     }));
   },
 );
+
+// ── Trending ──
+
+export interface TrendingTopic {
+  space: string;
+  postCount: number;
+  commentCount: number;
+}
+
+/**
+ * Returns the top active spaces from the last 7 days.
+ * Wrapped with cache() so parallel calls in the same request are deduplicated.
+ */
+export const getTrendingTopics = cache(
+  async (limit = 5): Promise<TrendingTopic[]> => {
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+    const rows = await prisma.communityPost.groupBy({
+      by: ['space'],
+      where: {
+        space: { not: null },
+        createdAt: { gte: sevenDaysAgo },
+      },
+      _count: { id: true },
+      orderBy: { _count: { id: 'desc' } },
+      take: limit,
+    });
+
+    const spaces = rows.map((r) => r.space as string);
+
+    // Fetch comment counts per space
+    const commentData = await Promise.all(
+      spaces.map(async (space) => {
+        const count = await prisma.communityComment.count({
+          where: {
+            post: { space },
+            createdAt: { gte: sevenDaysAgo },
+          },
+        });
+        return { space, commentCount: count };
+      }),
+    );
+
+    const commentMap = new Map(commentData.map((d) => [d.space, d.commentCount]));
+
+    return rows.map((row) => ({
+      space: row.space as string,
+      postCount: row._count.id,
+      commentCount: commentMap.get(row.space as string) ?? 0,
+    }));
+  },
+);
