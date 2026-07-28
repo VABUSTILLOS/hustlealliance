@@ -1,11 +1,21 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { Suspense } from 'react';
+
+export default function NewLiveClassPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-muted">Loading form...</div>}>
+      <LiveClassForm />
+    </Suspense>
+  );
+}
+
+import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 type CourseOption = { id: string; title: string };
 
-export default function NewLiveClassPage() {
+function LiveClassForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const existingId = searchParams.get('id');
