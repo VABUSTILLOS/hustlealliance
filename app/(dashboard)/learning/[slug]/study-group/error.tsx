@@ -40,6 +40,17 @@ export default function StudyGroupError({
             ? "You're not enrolled in this course. Enroll to access the study group."
             : 'There was an error loading the study group. Please try again.'}
         </p>
+        {error.message !== 'Not enrolled in this course' && (
+          <details className="mb-6 text-left">
+            <summary className="text-xs text-muted cursor-pointer hover:text-foreground transition-colors">
+              Error details
+            </summary>
+            <pre className="mt-2 p-3 bg-surface border border-surface-light rounded-xl text-xs text-red-400 overflow-auto max-h-40 whitespace-pre-wrap">
+              {error.message}
+              {error.stack ? '\n\n' + error.stack : ''}
+            </pre>
+          </details>
+        )}
         <div className="flex items-center justify-center gap-3">
           <button
             onClick={reset}

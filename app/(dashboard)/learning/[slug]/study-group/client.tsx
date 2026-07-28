@@ -38,7 +38,7 @@ export function StudyGroupClient({
   group: NonNullable<StudyGroupWithMembers>;
 }) {
   const emailRef = useRef(getEmailFromStorage());
-  const memberCount = group.members.length;
+  const memberCount = (group.members ?? []).length;
 
   return (
     <div className="min-h-screen">
