@@ -25,7 +25,7 @@ export default async function StudyGroupPage({
     }
 
     // Upsert study group
-    const group = await prisma.courseStudyGroup.upsert({
+    const raw = await prisma.courseStudyGroup.upsert({
       where: { courseId: course.id },
       create: { courseId: course.id, description: null },
       update: {},
@@ -62,6 +62,11 @@ export default async function StudyGroupPage({
         },
       },
     });
+
+    // Serialize to plain JSON to break any shared object references
+    // (Prisma adapters can return the same User object in multiple includes,
+    // causing React Flight serialization to fail with circular references)
+    const group = JSON.parse(JSON.stringify(raw)) as typeof raw;
 
     return <StudyGroupClient slug={slug} group={group} />;
   } catch (error) {
