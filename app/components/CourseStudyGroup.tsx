@@ -82,6 +82,7 @@ function timeAgo(date: string | Date) {
 // ── Props ─────────────────────────────────────────────────────────
 
 interface CourseStudyGroupProps {
+  userEmail: string;
   courseSlug: string;
   group: GroupData;
 }
@@ -89,6 +90,7 @@ interface CourseStudyGroupProps {
 // ── Component ─────────────────────────────────────────────────────
 
 export function CourseStudyGroup({
+  userEmail,
   courseSlug,
   group,
 }: CourseStudyGroupProps) {
@@ -118,7 +120,7 @@ export function CourseStudyGroup({
     setIsPosting(true);
     setError(null);
     try {
-      const newPost = await createGroupPost(courseSlug, trimmed);
+      const newPost = await createGroupPost(userEmail, courseSlug, trimmed);
       if (newPost) {
         setPosts((prev) => [newPost as PostData, ...prev]);
         setContent('');
@@ -140,7 +142,7 @@ export function CourseStudyGroup({
     setIsReplying(true);
     setError(null);
     try {
-      const reply = await createGroupReply(courseSlug, postId, trimmed);
+      const reply = await createGroupReply(userEmail, courseSlug, postId, trimmed);
       if (reply) {
         setPosts((prev) =>
           prev.map((p) =>
@@ -171,7 +173,7 @@ export function CourseStudyGroup({
     try {
       const formData = new FormData();
       formData.append('file', file);
-      const uploadedFile = await uploadGroupFile(courseSlug, formData);
+      const uploadedFile = await uploadGroupFile(userEmail, courseSlug, formData);
       if (uploadedFile) {
         setFiles((prev) => [uploadedFile as FileData, ...prev]);
         router.refresh();

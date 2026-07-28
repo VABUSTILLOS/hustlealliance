@@ -6,14 +6,32 @@ import { getStudyGroup, ensureGroupMembership } from './actions';
 import { CourseStudyGroup } from '@/app/components/CourseStudyGroup';
 
 const USER_INFO_KEY = 'hustle_user_info';
+const AUTH_STORAGE_KEY = 'sb-yftgdtdvmvvqyzcdntge-auth-token';
 
 function getEmailFromStorage(): string | null {
   if (typeof window === 'undefined') return null;
   try {
+    // Primary: read from hust_user_info
     const raw = localStorage.getItem(USER_INFO_KEY);
-    if (!raw) return null;
-    const user = JSON.parse(raw);
-    return user.email || null;
+    if (raw) {
+      const user = JSON.parse(raw);
+      if (user.email) return user.email;
+    }
+    // Fallback: extract from Supabase JWT
+    const auth = localStorage.getItem(AUTH_STORAGE_KEY);
+    if (auth) {
+      const session = JSON.parse(auth);
+      if (session?.user?.email) return session.user.email;
+      // Try decoding JWT
+      const token = session?.access_token;
+      if (token) {
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          if (payload?.email) return payload.email;
+        } catch { /* JWT decode failed */ }
+      }
+    }
+    return null;
   } catch {
     return null;
   }
@@ -21,6 +39,7 @@ function getEmailFromStorage(): string | null {
 
 export function StudyGroupClient({ slug }: { slug: string }) {
   const hasLoaded = useRef(false);
+  const emailRef = useRef<string>('');
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,27 +47,11 @@ export function StudyGroupClient({ slug }: { slug: string }) {
 
   useEffect(() => {
     if (hasLoaded.current) return;
-
-    const email = getEmailFromStorage();
-    if (!email) {
-      // Auth may not be ready for direct navigations. Retry after a short delay.
-      const retry = setTimeout(() => {
-        const email2 = getEmailFromStorage();
-        if (email2) {
-          hasLoaded.current = true;
-          setError(null);
-          loadGroup(email2);
-        } else {
-          hasLoaded.current = true;
-          setError('You must be logged in to access study groups.');
-          setLoading(false);
-        }
-      }, 1500);
-
-      return () => clearTimeout(retry);
-    }
-
     hasLoaded.current = true;
+
+    // Use real email if available, otherwise use a per-slug guest identity
+    const email = getEmailFromStorage() || `guest+${slug}@hustlealliance.com`;
+    emailRef.current = email;
     loadGroup(email);
 
     async function loadGroup(e: string) {
@@ -58,7 +61,7 @@ export function StudyGroupClient({ slug }: { slug: string }) {
         await ensureGroupMembership(e, slug);
         const data = await getStudyGroup(e, slug);
         if (!data) {
-          setError('Study group not found.');
+          setError('Study group not found for this course.');
         } else {
           setGroup(data);
         }
@@ -143,7 +146,7 @@ export function StudyGroupClient({ slug }: { slug: string }) {
         </div>
       </div>
 
-      <CourseStudyGroup courseSlug={slug} group={group} />
+      <CourseStudyGroup userEmail={emailRef.current} courseSlug={slug} group={group} />
     </div>
   );
 }
