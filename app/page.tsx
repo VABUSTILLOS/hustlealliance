@@ -2,6 +2,8 @@ import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import { HomepageLazySection } from './components/HomepageLazySection';
 
+export const revalidate = 3600;
+
 export default function Home() {
   return (
     <div className="scroll-smooth bg-deep text-foreground font-body">
