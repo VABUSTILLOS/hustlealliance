@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { motion, useInView, useAnimate } from 'framer-motion';
+import { useInView, useAnimate } from 'framer-motion';
+import { LazyMotion } from '@/lib/framer/lazy-motion';
 import Image from 'next/image';
 import NeonButton from './NeonButton';
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -60,40 +61,43 @@ export default function Hero() {
     <section className="relative min-h-screen flex flex-col lg:flex-row overflow-hidden">
       {/* Left: Content */}
       <div className="relative z-10 flex flex-col justify-center w-full lg:w-3/5 px-6 sm:px-12 lg:px-16 xl:px-24 py-20 lg:py-0">
-        <motion.div
+        <LazyMotion
           variants={container}
           initial="hidden"
           animate="show"
           className="max-w-2xl"
         >
           {/* Eyebrow */}
-          <motion.p
+          <LazyMotion
+            as="p"
             variants={item}
             className="font-mono text-xs uppercase tracking-[0.2em] text-accent mb-6"
           >
             {t.hero.eyebrow}
-          </motion.p>
+          </LazyMotion>
 
           {/* Headline */}
-          <motion.h1
+          <LazyMotion
+            as="h1"
             variants={item}
             className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl text-foreground leading-[0.9] mb-6 uppercase"
           >
             {t.hero.line1}
             <br />
             <span className="text-accent">{t.hero.line2}</span>
-          </motion.h1>
+          </LazyMotion>
 
           {/* Subheadline */}
-          <motion.p
+          <LazyMotion
+            as="p"
             variants={item}
             className="text-muted text-lg sm:text-xl max-w-md mb-10 font-body leading-relaxed"
           >
             {t.hero.subheadline}
-          </motion.p>
+          </LazyMotion>
 
           {/* CTAs */}
-          <motion.div
+          <LazyMotion
             variants={item}
             className="flex flex-col sm:flex-row gap-4"
           >
@@ -103,11 +107,11 @@ export default function Hero() {
             <NeonButton variant="secondary" href="/spaces" className="text-base !py-4 !px-10">
               {t.hero.cta2}
             </NeonButton>
-          </motion.div>
-        </motion.div>
+          </LazyMotion>
+        </LazyMotion>
 
         {/* Stats row */}
-        <motion.div
+        <LazyMotion
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1, duration: 0.6 }}
@@ -123,7 +127,7 @@ export default function Hero() {
               </span>
             </div>
           ))}
-        </motion.div>
+        </LazyMotion>
       </div>
 
       {/* Right: Full-bleed photography */}

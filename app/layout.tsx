@@ -42,6 +42,10 @@ export default function RootLayout({
       className={`${inter.variable} ${bebasNeue.variable} ${jetbrainsMono.variable} scroll-smooth antialiased`}
     >
       <body className="min-h-screen bg-[var(--color-bg)]">
+        {/* Preconnect to external image origins — saves ~150ms DNS+TLS on first load */}
+        <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://yftgdtdvmvvqyzcdntge.supabase.co" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://api.dicebear.com" crossOrigin="anonymous" />
         <Providers>
           <div className="bg-[var(--color-bg)] text-[var(--color-foreground)] min-h-screen font-body">
             <CursorGlow />

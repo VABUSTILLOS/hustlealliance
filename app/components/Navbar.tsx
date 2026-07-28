@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { LazyMotion, LazyAnimatePresence } from '@/lib/framer/lazy-motion';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -93,9 +93,9 @@ export default function Navbar() {
                       {getFirstName(user.name)}
                     </span>
                   </button>
-                  <AnimatePresence>
+                  <LazyAnimatePresence>
                     {userMenuOpen && (
-                      <motion.div
+                      <LazyMotion
                         initial={{ opacity: 0, scale: 0.95, y: -4 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: -4 }}
@@ -117,9 +117,9 @@ export default function Navbar() {
                           </svg>
                           {t.nav.signOut}
                         </button>
-                      </motion.div>
+                      </LazyMotion>
                     )}
-                  </AnimatePresence>
+                  </LazyAnimatePresence>
                 </div>
               </div>
             ) : (
@@ -138,15 +138,18 @@ export default function Navbar() {
             className="md:hidden flex flex-col gap-1.5 p-2"
             aria-label={t.nav.toggleMenu}
           >
-            <motion.span
+            <LazyMotion
+              as="span"
               animate={open ? { rotate: 45, y: 7 } : { rotate: 0, y: 0 }}
               className="block w-6 h-0.5 bg-accent rounded"
             />
-            <motion.span
+            <LazyMotion
+              as="span"
               animate={open ? { opacity: 0 } : { opacity: 1 }}
               className="block w-6 h-0.5 bg-accent rounded"
             />
-            <motion.span
+            <LazyMotion
+              as="span"
               animate={open ? { rotate: -45, y: -7 } : { rotate: 0, y: 0 }}
               className="block w-6 h-0.5 bg-accent rounded"
             />
@@ -155,9 +158,9 @@ export default function Navbar() {
       </div>
 
       {/* Mobile Menu */}
-      <AnimatePresence>
+      <LazyAnimatePresence>
         {open && (
-          <motion.div
+          <LazyMotion
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
@@ -223,9 +226,9 @@ export default function Navbar() {
                 </Link>
               )}
             </div>
-          </motion.div>
+          </LazyMotion>
         )}
-      </AnimatePresence>
+      </LazyAnimatePresence>
     </nav>
   );
 }
