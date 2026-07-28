@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import clsx from 'clsx';
 import Image from 'next/image';
 import type { AuthUser } from '@/lib/auth/user';
+import MobileBottomNav from '@/app/components/MobileBottomNav';
 
 const instructorLinks = [
   {
@@ -113,30 +114,8 @@ export function InstructorShell({ user, children }: { user: AuthUser; children: 
         </motion.div>
       </main>
 
-      {/* Mobile bottom nav */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-surface border-t border-surface-light z-40">
-        <div className="flex items-center justify-around px-2 py-2">
-          {instructorLinks.map((link) => {
-            const active = isActive(link.href);
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                prefetch={true}
-                className={clsx(
-                  'flex flex-col items-center gap-1 px-3 py-1.5 rounded-lg text-[10px] font-medium transition-colors',
-                  active ? 'text-accent' : 'text-muted'
-                )}
-              >
-                <span className={clsx(active && 'drop-shadow-[0_0_6px_rgba(255,59,48,0.4)]')}>
-                  {link.icon}
-                </span>
-                {link.label}
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
+      {/* Mobile bottom nav (swipeable) */}
+      <MobileBottomNav items={instructorLinks} />
     </div>
   );
 }

@@ -10,6 +10,7 @@ import { useStore } from '@/lib/store/useStore';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { useCurrentUser } from '@/lib/hooks/useCurrentUser';
 import { ReactQueryProvider } from '@/lib/hooks/queryClient';
+import MobileBottomNav from '@/app/components/MobileBottomNav';
 import dynamic from 'next/dynamic';
 
 const GamificationWidgetLazy = dynamic(
@@ -165,30 +166,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         <GlobalAudioPlayerLazy />
       </main>
 
-      {/* ── Mobile Bottom Tab Bar ───────────── */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-surface border-t border-surface-light z-40">
-        <div className="flex items-center justify-around px-2 py-2">
-          {mobileLinks.map((link) => {
-            const active = isActive(link.href);
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                prefetch={true}
-                className={clsx(
-                  'flex flex-col items-center gap-1 px-3 py-1.5 rounded-lg text-[10px] font-medium transition-colors',
-                  active ? 'text-accent' : 'text-muted'
-                )}
-              >
-                <span className={clsx(active && 'drop-shadow-[0_0_6px_rgba(255,59,48,0.4)]')}>
-                  {link.icon}
-                </span>
-                {link.label}
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
+      {/* ── Mobile Bottom Tab Bar (swipeable) ── */}
+      <MobileBottomNav items={mobileLinks} />
     </div>
     </ReactQueryProvider>
   );
