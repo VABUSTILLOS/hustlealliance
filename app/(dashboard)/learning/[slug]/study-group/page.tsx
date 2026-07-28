@@ -1,5 +1,6 @@
 import prisma from '@/lib/db/prisma';
 import { StudyGroupClient } from './client';
+import { ensureStudyGroupTables } from '@/lib/db/init-study-groups';
 
 export default async function StudyGroupPage({
   params,
@@ -7,6 +8,9 @@ export default async function StudyGroupPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+
+  // Ensure study group tables exist in the database
+  await ensureStudyGroupTables();
 
   // Fetch course + study group server-side — no auth required
   const course = await prisma.course.findUnique({
