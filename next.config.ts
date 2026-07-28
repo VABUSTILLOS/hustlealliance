@@ -34,9 +34,9 @@ const nextConfig: NextConfig = {
           },
         ],
       },
-      // Static assets — long-lived cache
+      // Static assets — long-lived immutable cache
       {
-        source: '/:all*(svg|jpg|jpeg|png|gif|webp|avif|ico|woff|woff2|ttf|eot)',
+        source: '/_next/static/:path*',
         headers: [
           {
             key: 'Cache-Control',
@@ -44,13 +44,33 @@ const nextConfig: NextConfig = {
           },
         ],
       },
-      // Pages — short-lived cache
+      // Next.js image optimization responses — 30-day CDN cache
       {
-        source: '/:path((?!api).*)',
+        source: '/_next/image/:path*',
         headers: [
           {
             key: 'Cache-Control',
-            value: 'public, max-age=0, must-revalidate',
+            value: 'public, max-age=2592000, stale-while-revalidate=86400',
+          },
+        ],
+      },
+      // API: community endpoints — rapid revalidation for real-time feel
+      {
+        source: '/api/community/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, s-maxage=10, stale-while-revalidate=30',
+          },
+        ],
+      },
+      // Pages — short-lived CDN cache with background revalidation
+      {
+        source: '/:path((?!api|_next).*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, s-maxage=60, stale-while-revalidate=300, must-revalidate',
           },
         ],
       },
@@ -69,7 +89,7 @@ const nextConfig: NextConfig = {
 
   // Turbopack root directory
   turbopack: {
-    root: '.',
+    root: process.cwd(),
   },
 
   // Reduce layout shift with automatic font optimization

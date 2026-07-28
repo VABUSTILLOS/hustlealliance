@@ -15,6 +15,8 @@ import WallOfLove from './components/sections/WallOfLove';
 import FooterCTA from './components/sections/FooterCTA';
 import ActivityTicker from './components/ActivityTicker';
 
+export const revalidate = 3600;
+
 export default function Home() {
   return (
     <div className="scroll-smooth bg-deep text-foreground font-body">
