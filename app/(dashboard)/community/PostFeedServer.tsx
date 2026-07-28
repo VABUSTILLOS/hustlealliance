@@ -1,17 +1,11 @@
 import { getCommunityPosts } from '@/lib/db/community';
-import { PostFeedUI } from './PostFeedUI';
+import { CommunityFeedClient } from './CommunityFeedClient';
 
 export async function PostFeedServer() {
-  const { items, hasMore, nextCursor } = await getCommunityPosts({
+  const data = await getCommunityPosts({
     sort: 'latest',
     limit: 20,
   });
 
-  return (
-    <PostFeedUI
-      initialPosts={items}
-      initialHasMore={hasMore}
-      initialCursor={nextCursor}
-    />
-  );
+  return <CommunityFeedClient initialData={data} />;
 }

@@ -44,16 +44,30 @@ export function useRealtimePosts() {
             image?: string | null;
           };
 
-          // TODO: Replace this per-post author fetch with a Postgres VIEW
-          // (CommunityPostWithAuthor) to eliminate the extra round-trip on each INSERT:
+          // ================================================================
+          // OPTIMIZATION: Replace per-post author fetch with a Postgres VIEW.
+          //
+          // Run this SQL in Supabase SQL Editor (one-time migration):
           //
           //   CREATE VIEW "CommunityPostWithAuthor" AS
-          //   SELECT p.*, u.name AS "authorName", u.username AS "authorUsername", u.avatar AS "authorAvatar"
+          //   SELECT
+          //     p.*,
+          //     u.name   AS "authorName",
+          //     u.username AS "authorUsername",
+          //     u.avatar  AS "authorAvatar",
+          //     COALESCE(lc."likeCount", 0) AS "likeCount"
           //   FROM "CommunityPost" p
-          //   JOIN "User" u ON u.id = p."authorId";
+          //   JOIN "User" u ON u.id = p."authorId"
+          //   LEFT JOIN LATERAL (
+          //     SELECT COUNT(*)::int AS "likeCount"
+          //     FROM "PostLike"
+          //     WHERE "postId" = p.id
+          //   ) lc ON true;
           //
-          // Then subscribe to CommunityPostWithAuthor instead of CommunityPost,
-          // and skip this supabase.from('User') fetch entirely.
+          // Then subscribe to "CommunityPostWithAuthor" instead of
+          // "CommunityPost", and remove this supabase.from('User') fetch.
+          // This eliminates 1 round-trip per real-time INSERT (→ ~40ms saved).
+          // ================================================================
 
           // Fetch author info so we can display name + avatar
           const { data: author } = await supabase

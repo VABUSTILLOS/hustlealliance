@@ -64,7 +64,43 @@ export async function proxy(request: NextRequest) {
 
   // Auth is handled client-side via localStorage + Zustand.
   // The proxy just passes through — no server-side redirects needed.
-  return NextResponse.next();
+
+  // Apply CDN caching headers at the edge
+  const response = NextResponse.next();
+
+  // Community feed API — real-time feel with brief CDN cache
+  if (path.startsWith('/api/community')) {
+    response.headers.set(
+      'Cache-Control',
+      'public, s-maxage=10, stale-while-revalidate=30',
+    );
+  }
+
+  // Avatar proxy — long-lived cache
+  if (path.startsWith('/api/avatar')) {
+    response.headers.set(
+      'Cache-Control',
+      'public, max-age=2592000, s-maxage=2592000, stale-while-revalidate=86400',
+    );
+  }
+
+  // Leaderboard / public data — 60s CDN cache
+  if (path.startsWith('/api/leaderboard') || path.startsWith('/api/courses')) {
+    response.headers.set(
+      'Cache-Control',
+      'public, max-age=30, s-maxage=60, stale-while-revalidate=300',
+    );
+  }
+
+  // Auth / private endpoints — never cache
+  if (path.startsWith('/api/me') || path.startsWith('/api/dashboard')) {
+    response.headers.set(
+      'Cache-Control',
+      'private, no-cache, no-store, must-revalidate',
+    );
+  }
+
+  return response;
 }
 
 export const config = {
