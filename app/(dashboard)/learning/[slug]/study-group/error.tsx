@@ -41,15 +41,13 @@ export default function StudyGroupError({
             : 'There was an error loading the study group. Please try again.'}
         </p>
         {error.message !== 'Not enrolled in this course' && (
-          <details className="mb-6 text-left">
-            <summary className="text-xs text-muted cursor-pointer hover:text-foreground transition-colors">
-              Error details
-            </summary>
-            <pre className="mt-2 p-3 bg-surface border border-surface-light rounded-xl text-xs text-red-400 overflow-auto max-h-40 whitespace-pre-wrap">
+          <div className="mb-6 p-3 bg-surface border border-surface-light rounded-xl text-left">
+            <p className="text-xs text-muted mb-1 font-medium">Error details:</p>
+            <pre className="text-xs text-red-400 overflow-auto max-h-40 whitespace-pre-wrap font-mono">
               {error.message}
               {error.stack ? '\n\n' + error.stack : ''}
             </pre>
-          </details>
+          </div>
         )}
         <div className="flex items-center justify-center gap-3">
           <button
