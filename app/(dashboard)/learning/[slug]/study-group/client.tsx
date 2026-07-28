@@ -2,41 +2,47 @@
 
 import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
-import { useCurrentUser } from '@/lib/hooks/useCurrentUser';
 import { getStudyGroup, ensureGroupMembership } from './actions';
 import { CourseStudyGroup } from '@/app/components/CourseStudyGroup';
 
+const USER_INFO_KEY = 'hustle_user_info';
+
+function getEmailFromStorage(): string | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(USER_INFO_KEY);
+    if (!raw) return null;
+    const user = JSON.parse(raw);
+    return user.email || null;
+  } catch {
+    return null;
+  }
+}
+
 export function StudyGroupClient({ slug }: { slug: string }) {
-  const user = useCurrentUser();
   const hasLoaded = useRef(false);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [group, setGroup] = useState<Awaited<ReturnType<typeof getStudyGroup>>>(null);
 
-  // Fallback: if auth never resolves, show error after a short grace period
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!user?.email && loading) {
-        setError('You must be logged in to access study groups.');
-        setLoading(false);
-      }
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (!user?.email) return;
-
     if (hasLoaded.current) return;
     hasLoaded.current = true;
+
+    const email = getEmailFromStorage();
+    if (!email) {
+      setError('You must be logged in to access study groups.');
+      setLoading(false);
+      return;
+    }
 
     async function init() {
       try {
         setLoading(true);
         setError(null);
-        await ensureGroupMembership(user!.email!, slug);
-        const data = await getStudyGroup(user!.email!, slug);
+        await ensureGroupMembership(email!, slug);
+        const data = await getStudyGroup(email!, slug);
         if (!data) {
           setError('Study group not found.');
         } else {
@@ -50,8 +56,7 @@ export function StudyGroupClient({ slug }: { slug: string }) {
     }
 
     init();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug, user?.email]);
+  }, [slug]);
 
   if (loading) {
     return (

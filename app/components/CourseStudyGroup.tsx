@@ -3,7 +3,6 @@
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import clsx from 'clsx';
-import { useCurrentUser } from '@/lib/hooks/useCurrentUser';
 import {
   createGroupPost,
   createGroupReply,
@@ -95,8 +94,6 @@ export function CourseStudyGroup({
 }: CourseStudyGroupProps) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const user = useCurrentUser();
-  const userEmail = user?.email;
 
   // Local state
   const [activeTab, setActiveTab] = useState<Tab>('discussions');
@@ -116,12 +113,12 @@ export function CourseStudyGroup({
 
   const handlePost = async () => {
     const trimmed = content.trim();
-    if (!trimmed || isPosting || !userEmail) return;
+    if (!trimmed || isPosting ) return;
 
     setIsPosting(true);
     setError(null);
     try {
-      const newPost = await createGroupPost(userEmail, courseSlug, trimmed);
+      const newPost = await createGroupPost(courseSlug, trimmed);
       if (newPost) {
         setPosts((prev) => [newPost as PostData, ...prev]);
         setContent('');
@@ -138,12 +135,12 @@ export function CourseStudyGroup({
 
   const handleReply = async (postId: string) => {
     const trimmed = (replyContent[postId] ?? '').trim();
-    if (!trimmed || isReplying || !userEmail) return;
+    if (!trimmed || isReplying ) return;
 
     setIsReplying(true);
     setError(null);
     try {
-      const reply = await createGroupReply(userEmail, courseSlug, postId, trimmed);
+      const reply = await createGroupReply(courseSlug, postId, trimmed);
       if (reply) {
         setPosts((prev) =>
           prev.map((p) =>
@@ -167,14 +164,14 @@ export function CourseStudyGroup({
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !userEmail) return;
+    if (!file ) return;
 
     setIsUploading(true);
     setError(null);
     try {
       const formData = new FormData();
       formData.append('file', file);
-      const uploadedFile = await uploadGroupFile(userEmail, courseSlug, formData);
+      const uploadedFile = await uploadGroupFile(courseSlug, formData);
       if (uploadedFile) {
         setFiles((prev) => [uploadedFile as FileData, ...prev]);
         router.refresh();
