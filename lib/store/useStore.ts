@@ -613,6 +613,20 @@ export const useStore = create<AppState>()(
     }),
     {
       name: 'hustle-alliance-storage',
+      version: 1,
+      merge: (persisted, initial) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const p = persisted as Record<string, any> | null;
+        const merged = {
+          ...initial,
+          ...(p || {}),
+        };
+        // Never let stale null currentUser overwrite the Founder default
+        if (!p?.currentUser || !(p.currentUser as UserInfo)?.email) {
+          merged.currentUser = FOUNDER_PROFILE;
+        }
+        return merged as typeof initial;
+      },
       partialize: (state) => ({
         currentUser: state.currentUser,
         progress: state.progress,
