@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import clsx from 'clsx';
 import { useStore } from '@/lib/store/useStore';
@@ -21,11 +22,18 @@ const GlobalAudioPlayerLazy = dynamic(
 );
 
 // ── Subtle page transition wrapper ──
+// Pathname-based key is deferred to post-hydration to avoid SSR/client key mismatch
 function PageTransition({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
+
   return (
     <motion.div
-      key={pathname}
+      key={hydrated ? pathname : undefined}
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.12, ease: 'easeOut' }}

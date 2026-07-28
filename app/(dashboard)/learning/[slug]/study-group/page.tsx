@@ -10,41 +10,31 @@ export default async function StudyGroupPage({
 }) {
   const { slug } = await params;
 
-  // Temporary debug: verify page rendering
-  let debugInfo = '';
   let group = null;
   let memberCount = 0;
 
   // Auto-join group on visit (ensures group row exists + current user is a member)
   try {
     await ensureGroupMembership(slug);
-    debugInfo = 'membership-ok';
-  } catch (e: unknown) {
-    debugInfo = 'membership-error: ' + (e instanceof Error ? e.message : String(e));
+  } catch {
     redirect(`/learning/${slug}`);
   }
 
   // Fetch full group data once for SSR
   try {
     group = await getStudyGroup(slug);
-    debugInfo += ' | group-ok';
-  } catch (e: unknown) {
-    debugInfo += ' | group-error: ' + (e instanceof Error ? e.message : String(e));
+  } catch {
     notFound();
   }
 
   if (!group) {
-    debugInfo += ' | group-null';
     notFound();
   }
 
   memberCount = group.members.length;
-  const postCount = group.posts.length;
-  const fileCount = group.files?.length ?? 0;
 
   return (
     <div className="min-h-screen">
-      {/* DEBUG: {debugInfo} */}
       {/* Header / Breadcrumb */}
       <div className="border-b border-[var(--color-border-subtle)] bg-[var(--color-surface)]">
         <div className="px-4 sm:px-6 lg:px-8 py-4 max-w-7xl mx-auto">
@@ -71,7 +61,7 @@ export default async function StudyGroupPage({
                 Study Group
               </h1>
               <p className="text-muted text-sm mt-1">
-                DEBUG: {debugInfo} | {memberCount} member{memberCount !== 1 ? 's' : ''}
+                {memberCount} member{memberCount !== 1 ? 's' : ''}
               </p>
             </div>
             <Link
