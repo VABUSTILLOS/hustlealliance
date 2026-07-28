@@ -28,34 +28,46 @@ export function StudyGroupClient({ slug }: { slug: string }) {
 
   useEffect(() => {
     if (hasLoaded.current) return;
-    hasLoaded.current = true;
 
     const email = getEmailFromStorage();
     if (!email) {
-      setError('You must be logged in to access study groups.');
-      setLoading(false);
-      return;
+      // Auth may not be ready for direct navigations. Retry after a short delay.
+      const retry = setTimeout(() => {
+        const email2 = getEmailFromStorage();
+        if (email2) {
+          hasLoaded.current = true;
+          setError(null);
+          loadGroup(email2);
+        } else {
+          hasLoaded.current = true;
+          setError('You must be logged in to access study groups.');
+          setLoading(false);
+        }
+      }, 1500);
+
+      return () => clearTimeout(retry);
     }
 
-    async function init() {
+    hasLoaded.current = true;
+    loadGroup(email);
+
+    async function loadGroup(e: string) {
       try {
         setLoading(true);
         setError(null);
-        await ensureGroupMembership(email!, slug);
-        const data = await getStudyGroup(email!, slug);
+        await ensureGroupMembership(e, slug);
+        const data = await getStudyGroup(e, slug);
         if (!data) {
           setError('Study group not found.');
         } else {
           setGroup(data);
         }
-      } catch (e: unknown) {
-        setError(e instanceof Error ? e.message : 'Something went wrong');
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Something went wrong');
       } finally {
         setLoading(false);
       }
     }
-
-    init();
   }, [slug]);
 
   if (loading) {
