@@ -178,8 +178,8 @@ export default function LearningPathPage({
                 )}
               </div>
 
-              {/* Study Group — only visible to enrolled students */}
-              {enrolled && (
+              {/* Study Group — server actions enforce enrollment */}
+              {!showPaywall && (
                 <Link
                   href={`/learning/${slug}/study-group`}
                   className="block bg-surface border border-surface-light rounded-2xl p-5 hover:border-accent/20 transition-colors group"
