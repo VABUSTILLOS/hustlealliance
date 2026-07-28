@@ -99,8 +99,8 @@ export function CourseStudyGroup({
 
   // Local state
   const [activeTab, setActiveTab] = useState<Tab>('discussions');
-  const [posts, setPosts] = useState<PostData[]>(group.posts);
-  const [members] = useState<MemberData[]>(group.members);
+  const [posts, setPosts] = useState<PostData[]>(group.posts ?? []);
+  const [members] = useState<MemberData[]>(group.members ?? []);
   const [files, setFiles] = useState<FileData[]>(group.files ?? []);
   const [content, setContent] = useState('');
   const [isPosting, setIsPosting] = useState(false);
@@ -147,7 +147,7 @@ export function CourseStudyGroup({
         setPosts((prev) =>
           prev.map((p) =>
             p.id === postId
-              ? { ...p, replies: [...p.replies, reply as ReplyData] }
+              ? { ...p, replies: [...(p.replies ?? []), reply as ReplyData] }
               : p
           )
         );
@@ -751,13 +751,13 @@ function PostCard({
         <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
         </svg>
-        Reply{post.replies.length > 0 ? ` (${post.replies.length})` : ''}
+        Reply{(post.replies ?? []).length > 0 ? ` (${(post.replies ?? []).length})` : ''}
       </button>
 
       {/* Replies */}
-      {post.replies.length > 0 && (
+      {(post.replies ?? []).length > 0 && (
         <div className="mt-3 pl-4 border-l-2 border-[var(--color-border-subtle)] space-y-3">
-          {post.replies.map((reply) => (
+          {post.replies!.map((reply) => (
             <div key={reply.id}>
               <div className="flex items-center gap-2 mb-1">
                 <img
