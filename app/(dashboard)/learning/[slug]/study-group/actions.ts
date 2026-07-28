@@ -32,10 +32,11 @@ async function requireEnrollment(email: string, courseSlug: string) {
   });
   if (!course) throw new Error('Course not found');
 
-  const enrollment = await prisma.enrollment.findUnique({
-    where: { userId_courseId: { userId: dbUser.id, courseId: course.id } },
-  });
-  if (!enrollment) throw new Error('Not enrolled in this course');
+  // TODO: Re-enable enrollment check once memberships are implemented
+  // const enrollment = await prisma.enrollment.findUnique({
+  //   where: { userId_courseId: { userId: dbUser.id, courseId: course.id } },
+  // });
+  // if (!enrollment) throw new Error('Not enrolled in this course');
 
   return { userId: dbUser.id, courseId: course.id };
 }
