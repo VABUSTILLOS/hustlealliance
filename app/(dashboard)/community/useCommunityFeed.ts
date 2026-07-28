@@ -1,24 +1,19 @@
 'use client';
 
 import { useInfiniteQuery } from '@tanstack/react-query';
-import type { CommunityPostItem } from '@/lib/db/community';
-
-interface FeedPage {
-  items: CommunityPostItem[];
-  hasMore: boolean;
-  nextCursor: string | null;
-}
+import type { CommunityPostItem, GetCommunityPostsResult } from '@/lib/db/community';
 
 interface UseCommunityFeedOpts {
   sort?: 'latest' | 'popular';
   space?: string;
   limit?: number;
+  initialData?: { pages: GetCommunityPostsResult[]; pageParams: (string | undefined)[] };
 }
 
 export function useCommunityFeed(opts: UseCommunityFeedOpts = {}) {
-  const { sort = 'latest', space, limit = 20 } = opts;
+  const { sort = 'latest', space, limit = 20, initialData } = opts;
 
-  return useInfiniteQuery<FeedPage>({
+  return useInfiniteQuery<GetCommunityPostsResult>({
     queryKey: ['community-feed', { sort, space }],
     queryFn: async ({ pageParam }) => {
       const params = new URLSearchParams();
@@ -35,5 +30,6 @@ export function useCommunityFeed(opts: UseCommunityFeedOpts = {}) {
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     staleTime: 30_000,
     gcTime: 5 * 60_000,
+    initialData,
   });
 }

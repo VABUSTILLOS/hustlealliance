@@ -1,11 +1,11 @@
 'use client';
 
 import { memo, Suspense, lazy } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
 import clsx from 'clsx';
 import { useStore } from '@/lib/store/useStore';
+import { LazyMotionDiv, LazyAnimatePresence } from '@/lib/framer/lazy-motion';
 import type { FeedPost } from '@/lib/data/community';
 
 const CommentTreeSection = lazy(() => import('./CommentTree'));
@@ -53,7 +53,7 @@ export const PostFeed = memo(function PostFeed({
   return (
     <>
       {!hasPosts ? (
-        <motion.div
+        <LazyMotionDiv
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center py-16 px-4"
@@ -87,14 +87,14 @@ export const PostFeed = memo(function PostFeed({
               Write a post
             </button>
           )}
-        </motion.div>
+        </LazyMotionDiv>
       ) : (
         <div className="space-y-4">
-          <AnimatePresence>
+          <LazyAnimatePresence>
             {visible.map((post) => {
             const commentsOpen = expandedComments.has(post.id);
             return (
-              <motion.div
+              <LazyMotionDiv
                 key={post.id}
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -163,23 +163,23 @@ export const PostFeed = memo(function PostFeed({
                     />
                   </Suspense>
                 )}
-              </motion.div>
+              </LazyMotionDiv>
             );
           })}
-        </AnimatePresence>
+        </LazyAnimatePresence>
       </div>
       )}
 
       {/* Load More */}
       {hasPosts && visibleCount < filtered.length && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center mt-8">
+        <LazyMotionDiv initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center mt-8">
           <button
             onClick={onLoadMore}
             className="px-6 py-2 bg-surface border border-surface-light rounded-xl text-muted font-mono text-sm hover:border-accent/30 hover:text-accent transition-all"
           >
             Load More
           </button>
-        </motion.div>
+        </LazyMotionDiv>
       )}
     </>
   );

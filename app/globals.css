@@ -69,6 +69,28 @@ body {
   padding-right: env(safe-area-inset-right);
 }
 
+/* ── Font fallback tuning — minimizes CLS during font swap ── */
+@font-face {
+  font-family: 'Inter Fallback';
+  src: local('Arial');
+  size-adjust: 107%;
+  ascent-override: 90%;
+  descent-override: 22%;
+}
+
+@font-face {
+  font-family: 'Bebas Neue Fallback';
+  src: local('Impact'), local('Arial Narrow');
+  size-adjust: 95%;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono Fallback';
+  src: local('Courier New');
+  size-adjust: 102%;
+  ascent-override: 95%;
+}
+
 /* Glass card effect */
 .glass-card {
   background-color: var(--color-glass-bg);

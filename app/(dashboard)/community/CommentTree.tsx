@@ -1,9 +1,9 @@
 'use client';
 
 import { memo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { useStore } from '@/lib/store/useStore';
+import { LazyMotionDiv } from '@/lib/framer/lazy-motion';
 import { useCurrentUser } from '@/lib/hooks/useCurrentUser';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
@@ -28,7 +28,7 @@ const CommentTreeInner = memo(function CommentTreeInner({
   if (!post) return null;
 
   return (
-    <motion.div
+    <LazyMotionDiv
       initial={{ height: 0, opacity: 0 }}
       animate={{ height: 'auto', opacity: 1 }}
       exit={{ height: 0, opacity: 0 }}
@@ -64,7 +64,7 @@ const CommentTreeInner = memo(function CommentTreeInner({
           </div>
         </div>
       </div>
-    </motion.div>
+    </LazyMotionDiv>
   );
 });
 

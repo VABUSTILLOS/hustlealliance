@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { motion } from 'framer-motion';
 import Image from 'next/image';
 import clsx from 'clsx';
 import { useStore } from '@/lib/store/useStore';
+import { LazyMotionDiv } from '@/lib/framer/lazy-motion';
 import { useCurrentUser } from '@/lib/hooks/useCurrentUser';
 import { spaces as allSpaces } from '@/lib/data/spaces';
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -50,7 +50,7 @@ export function PostCreator() {
   };
 
   return (
-    <motion.div
+    <LazyMotionDiv
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 }}
@@ -114,6 +114,6 @@ export function PostCreator() {
           </div>
         </div>
       </div>
-    </motion.div>
+    </LazyMotionDiv>
   );
 }
