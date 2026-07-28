@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { useCurrentUser } from '@/lib/hooks/useCurrentUser';
 import { getStudyGroup, ensureGroupMembership } from './actions';
@@ -8,20 +8,30 @@ import { CourseStudyGroup } from '@/app/components/CourseStudyGroup';
 
 export function StudyGroupClient({ slug }: { slug: string }) {
   const user = useCurrentUser();
+  const hasLoaded = useRef(false);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [group, setGroup] = useState<Awaited<ReturnType<typeof getStudyGroup>>>(null);
 
   useEffect(() => {
+    // Wait for AuthProvider to hydrate the Zustand store.
+    // On first pass user is null (SSR), keep showing loading skeleton.
     if (!user?.email) {
-      setError('You must be logged in to access study groups.');
-      setLoading(false);
+      if (!loading) {
+        // Only set error on subsequent passes — means auth truly missing
+        setError('You must be logged in to access study groups.');
+      }
       return;
     }
 
+    if (hasLoaded.current) return;
+    hasLoaded.current = true;
+
     async function init() {
       try {
+        setLoading(true);
+        setError(null);
         await ensureGroupMembership(user!.email!, slug);
         const data = await getStudyGroup(user!.email!, slug);
         if (!data) {
@@ -37,6 +47,7 @@ export function StudyGroupClient({ slug }: { slug: string }) {
     }
 
     init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug, user?.email]);
 
   if (loading) {
