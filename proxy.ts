@@ -22,8 +22,7 @@ export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const isProtected =
     path.startsWith('/admin') ||
-    path.startsWith('/instructor') ||
-    path.startsWith('/dashboard');
+    path.startsWith('/instructor');
 
   // Only do Supabase SSR session check for protected routes
   if (isProtected) {
@@ -62,7 +61,7 @@ export async function proxy(request: NextRequest) {
     return response;
   }
 
-  // Auth is handled client-side via localStorage + Zustand.
+  // Non-admin/instructor routes: auth is handled client-side via localStorage + Zustand.
   // The proxy just passes through — no server-side redirects needed.
 
   // Apply CDN caching headers at the edge
