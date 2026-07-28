@@ -1,8 +1,11 @@
 'use server';
 
-import { createClient } from '@/lib/supabase/server';
 import prisma from '@/lib/db/prisma';
 import { revalidatePath } from 'next/cache';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+
+const SUPABASE_URL = 'https://yftgdtdvmvvqyzcdntge.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_sY8NIgcLzNcLUGx2Swl9BA_yqf9NIc8';
 
 // ── Types ─────────────────────────────────────────────────────────
 
@@ -11,14 +14,16 @@ export type StudyGroupWithMembers = NonNullable<
 >;
 
 // ── Enrollment Gate (reused by every action) ──────────────────────
+// Verifies the user exists in the DB and is enrolled in the course.
+// Uses DB-level auth (userId from Zustand store) instead of Supabase cookies.
 
-async function requireEnrollment(courseSlug: string) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-  if (error || !user) throw new Error('Unauthorized');
+async function requireEnrollment(userId: string, courseSlug: string) {
+  // Verify user exists in database
+  const dbUser = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true },
+  });
+  if (!dbUser) throw new Error('Unauthorized');
 
   const course = await prisma.course.findUnique({
     where: { slug: courseSlug },
@@ -27,17 +32,17 @@ async function requireEnrollment(courseSlug: string) {
   if (!course) throw new Error('Course not found');
 
   const enrollment = await prisma.enrollment.findUnique({
-    where: { userId_courseId: { userId: user.id, courseId: course.id } },
+    where: { userId_courseId: { userId, courseId: course.id } },
   });
   if (!enrollment) throw new Error('Not enrolled in this course');
 
-  return { userId: user.id, courseId: course.id };
+  return { userId, courseId: course.id };
 }
 
 // ── Auto-join Group ───────────────────────────────────────────────
 
-export async function ensureGroupMembership(courseSlug: string) {
-  const { userId, courseId } = await requireEnrollment(courseSlug);
+export async function ensureGroupMembership(userId: string, courseSlug: string) {
+  const { userId: uid, courseId } = await requireEnrollment(userId, courseSlug);
 
   const group = await prisma.courseStudyGroup.upsert({
     where: { courseId },
@@ -46,8 +51,8 @@ export async function ensureGroupMembership(courseSlug: string) {
   });
 
   await prisma.groupMember.upsert({
-    where: { groupId_userId: { groupId: group.id, userId } },
-    create: { groupId: group.id, userId },
+    where: { groupId_userId: { groupId: group.id, userId: uid } },
+    create: { groupId: group.id, userId: uid },
     update: {},
   });
 
@@ -57,19 +62,19 @@ export async function ensureGroupMembership(courseSlug: string) {
 
 // ── Post ──────────────────────────────────────────────────────────
 
-export async function createGroupPost(courseSlug: string, content: string) {
+export async function createGroupPost(userId: string, courseSlug: string, content: string) {
   if (!content || content.trim().length === 0) {
     throw new Error('Content cannot be empty');
   }
 
-  const { userId, courseId } = await requireEnrollment(courseSlug);
+  const { userId: uid, courseId } = await requireEnrollment(userId, courseSlug);
 
   const group = await prisma.courseStudyGroup.findUniqueOrThrow({
     where: { courseId },
   });
 
   const post = await prisma.groupPost.create({
-    data: { groupId: group.id, authorId: userId, content: content.trim() },
+    data: { groupId: group.id, authorId: uid, content: content.trim() },
     include: {
       author: { select: { id: true, name: true, avatar: true, username: true } },
       replies: {
@@ -88,6 +93,7 @@ export async function createGroupPost(courseSlug: string, content: string) {
 // ── Reply ─────────────────────────────────────────────────────────
 
 export async function createGroupReply(
+  userId: string,
   courseSlug: string,
   postId: string,
   content: string
@@ -96,10 +102,10 @@ export async function createGroupReply(
     throw new Error('Reply cannot be empty');
   }
 
-  const { userId } = await requireEnrollment(courseSlug);
+  const { userId: uid } = await requireEnrollment(userId, courseSlug);
 
   const reply = await prisma.groupReply.create({
-    data: { postId, authorId: userId, content: content.trim() },
+    data: { postId, authorId: uid, content: content.trim() },
     include: {
       author: { select: { id: true, name: true, avatar: true } },
     },
@@ -112,10 +118,11 @@ export async function createGroupReply(
 // ── File Upload ───────────────────────────────────────────────────
 
 export async function uploadGroupFile(
+  userId: string,
   courseSlug: string,
   formData: FormData
 ) {
-  const { userId, courseId } = await requireEnrollment(courseSlug);
+  const { userId: uid, courseId } = await requireEnrollment(userId, courseSlug);
 
   const file = formData.get('file') as File;
   if (!file || !(file instanceof File)) {
@@ -131,7 +138,7 @@ export async function uploadGroupFile(
     where: { courseId },
   });
 
-  const supabase = await createClient();
+  const supabase = createSupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   const buffer = Buffer.from(await file.arrayBuffer());
   const filePath = `study-groups/${group.id}/${Date.now()}-${file.name}`;
 
@@ -154,7 +161,7 @@ export async function uploadGroupFile(
   const groupFile = await prisma.groupFile.create({
     data: {
       groupId: group.id,
-      uploaderId: userId,
+      uploaderId: uid,
       fileName: file.name,
       fileUrl: publicUrl,
       fileSize: file.size,
@@ -171,8 +178,8 @@ export async function uploadGroupFile(
 
 // ── Fetch Group Data ──────────────────────────────────────────────
 
-export async function getStudyGroup(courseSlug: string) {
-  const { courseId } = await requireEnrollment(courseSlug);
+export async function getStudyGroup(userId: string, courseSlug: string) {
+  const { courseId } = await requireEnrollment(userId, courseSlug);
 
   const group = await prisma.courseStudyGroup.findUnique({
     where: { courseId },
@@ -215,9 +222,9 @@ export async function getStudyGroup(courseSlug: string) {
 
 // ── Check Access (used by the page before rendering) ──────────────
 
-export async function canAccessStudyGroup(courseSlug: string) {
+export async function canAccessStudyGroup(userId: string, courseSlug: string) {
   try {
-    await requireEnrollment(courseSlug);
+    await requireEnrollment(userId, courseSlug);
     return true;
   } catch {
     return false;

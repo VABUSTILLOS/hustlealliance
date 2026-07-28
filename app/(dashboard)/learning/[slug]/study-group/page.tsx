@@ -1,34 +1,67 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { useCurrentUser } from '@/lib/hooks/useCurrentUser';
 import { getStudyGroup, ensureGroupMembership } from './actions';
 import { CourseStudyGroup } from '@/app/components/CourseStudyGroup';
 
-export default async function StudyGroupPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
-  const { slug } = await params;
+export default function StudyGroupPage() {
+  const params = useParams();
+  const slug = params.slug as string;
+  const user = useCurrentUser();
 
-  let error: string | null = null;
-  let group: Awaited<ReturnType<typeof getStudyGroup>> = null;
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [group, setGroup] = useState<Awaited<ReturnType<typeof getStudyGroup>>>(null);
 
-  // Auto-join group on visit
-  try {
-    await ensureGroupMembership(slug);
-  } catch (e: unknown) {
-    error = 'membership: ' + (e instanceof Error ? e.message : String(e));
-  }
-
-  // Fetch group data
-  if (!error) {
-    try {
-      group = await getStudyGroup(slug);
-      if (!group) {
-        error = 'Study group not found';
-      }
-    } catch (e: unknown) {
-      error = 'fetch: ' + (e instanceof Error ? e.message : String(e));
+  useEffect(() => {
+    if (!user?.id) {
+      setError('You must be logged in to access study groups.');
+      setLoading(false);
+      return;
     }
+
+    async function init() {
+      try {
+        await ensureGroupMembership(user!.id!, slug);
+        const data = await getStudyGroup(user!.id!, slug);
+        if (!data) {
+          setError('Study group not found.');
+        } else {
+          setGroup(data);
+        }
+      } catch (e: unknown) {
+        setError(e instanceof Error ? e.message : 'Something went wrong');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    init();
+  }, [slug, user?.id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen">
+        <div className="border-b border-[var(--color-border-subtle)] bg-[var(--color-surface)]">
+          <div className="px-4 sm:px-6 lg:px-8 py-4 max-w-7xl mx-auto">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="h-4 w-16 bg-surface-light rounded animate-pulse" />
+              <div className="h-4 w-4 bg-surface-light rounded animate-pulse" />
+              <div className="h-4 w-24 bg-surface-light rounded animate-pulse" />
+            </div>
+            <div className="h-8 w-48 bg-surface-light rounded animate-pulse" />
+          </div>
+        </div>
+        <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-4">
+          <div className="h-10 w-64 bg-surface-light rounded animate-pulse" />
+          <div className="h-32 bg-surface-light rounded animate-pulse" />
+          <div className="h-32 bg-surface-light rounded animate-pulse" />
+        </div>
+      </div>
+    );
   }
 
   if (error) {
@@ -45,7 +78,21 @@ export default async function StudyGroupPage({
     );
   }
 
-  const memberCount = group!.members.length;
+  if (!group) {
+    return (
+      <div className="min-h-screen p-8">
+        <div className="max-w-md mx-auto text-center">
+          <h1 className="text-xl font-bold text-red-500">Not Found</h1>
+          <p className="text-muted mt-2">This study group does not exist.</p>
+          <Link href={`/learning/${slug}`} className="text-accent hover:underline mt-4 inline-block">
+            ← Back to course
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const memberCount = group.members.length;
 
   return (
     <div className="min-h-screen">
@@ -70,7 +117,7 @@ export default async function StudyGroupPage({
       </div>
 
       {/* Client component with interactive state */}
-      <CourseStudyGroup courseSlug={slug} group={group!} />
+      <CourseStudyGroup courseSlug={slug} group={group} />
     </div>
   );
 }
