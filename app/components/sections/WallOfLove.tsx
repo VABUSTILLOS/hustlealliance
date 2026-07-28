@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
 interface Testimonial {
@@ -159,11 +160,12 @@ export default function WallOfLove() {
 
               {/* Author */}
               <div className="flex items-center gap-3 pt-4 border-t border-[var(--color-border-subtle)]">
-                <img
+                <Image
                   src={tm.avatar}
                   alt={tm.name}
-                  className="w-10 h-10 rounded-full border-2 border-white/10 object-cover shrink-0"
-                  loading="lazy"
+                  width={40}
+                  height={40}
+                  className="rounded-full border-2 border-white/10 object-cover shrink-0"
                 />
                 <div className="min-w-0">
                   <p className="font-heading font-bold text-[var(--color-foreground)] text-sm">

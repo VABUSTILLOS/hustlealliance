@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { useStore } from '@/lib/store/useStore';
 import { useCurrentUser, getFirstName, getAvatarUrl } from '@/lib/hooks/useCurrentUser';
@@ -180,8 +181,8 @@ export default function DashboardPage() {
           <Widget className="relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-r from-accent/5 via-transparent to-transparent pointer-events-none" />
             <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-5">
-              <img src={user?.avatar ?? 'https://api.dicebear.com/9.x/initials/svg?seed=User'} alt={user?.name ?? 'User'}
-                className="w-16 h-16 rounded-full border-2 border-white/10 object-cover shrink-0" />
+              <Image src={user?.avatar ?? 'https://api.dicebear.com/9.x/initials/svg?seed=User'} alt={user?.name ?? 'User'}
+                width={64} height={64} className="rounded-full border-2 border-white/10 object-cover shrink-0" />
               <div className="flex-1 min-w-0">
                 <h1 className="font-display text-2xl sm:text-3xl text-white uppercase leading-none mb-1">
                   {t.dashboard.welcomeBack} {getFirstName(user?.name)} 👋
@@ -348,8 +349,8 @@ export default function DashboardPage() {
               <div className="space-y-3">
                 {latestPosts.length > 0 ? latestPosts.map((post) => (
                   <div key={post.id} className="flex items-center gap-3">
-                    <img src={post.author.avatar} alt={post.author.name}
-                      className="w-8 h-8 rounded-full border border-white/10 object-cover shrink-0" />
+                    <Image src={post.author.avatar} alt={post.author.name}
+                      width={32} height={32} className="rounded-full border border-white/10 object-cover shrink-0" />
                     <div className="min-w-0 flex-1">
                       <p className="text-foreground text-sm">
                         <span className="font-semibold">{post.author.name}</span>{' '}
@@ -382,8 +383,8 @@ export default function DashboardPage() {
                   key={post.id}
                   className="flex gap-3 pb-4 border-b border-surface-light last:border-0 last:pb-0"
                 >
-                  <img src={post.author.avatar} alt={post.author.name}
-                    className="w-8 h-8 rounded-full border border-white/10 object-cover shrink-0 mt-0.5" />
+                  <Image src={post.author.avatar} alt={post.author.name}
+                    width={32} height={32} className="rounded-full border border-white/10 object-cover shrink-0 mt-0.5" />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="font-heading font-bold text-foreground text-sm">{post.author.name}</span>

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import Image from 'next/image';
 import clsx from 'clsx';
 import { useCourses } from '@/lib/hooks/useCourses';
 import { useStore } from '@/lib/store/useStore';
@@ -142,11 +143,12 @@ export default function LearningCatalogPage() {
                     <div className="bg-surface border border-surface-light rounded-2xl overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:border-accent/20 hover:shadow-[0_20px_60px_rgba(255,59,48,0.08)] h-full flex flex-col">
                       {/* Thumbnail */}
                       <div className="relative h-48 overflow-hidden">
-                        <img
+                        <Image
                           src={course.thumbnail || 'https://images.unsplash.com/photo-1553484771-371e845efba1?w=800&h=500&fit=crop'}
                           alt={course.title}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                          loading="lazy"
+                          fill
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          className="object-cover transition-transform duration-500 group-hover:scale-105"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-surface via-transparent to-transparent" />
                         {/* Difficulty badge */}

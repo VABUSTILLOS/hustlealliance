@@ -4,13 +4,18 @@ const nextConfig: NextConfig = {
   // Image optimization — allow remote avatars from DiceBear
   images: {
     remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'api.dicebear.com',
-      },
+      { protocol: 'https', hostname: 'api.dicebear.com' },
+      { protocol: 'https', hostname: 'images.unsplash.com' },
+      { protocol: 'https', hostname: '*.supabase.co' },
     ],
     // Enable AVIF/WebP for smaller images
     formats: ['image/avif', 'image/webp'],
+    // Mobile-first device sizes for srcSet generation
+    deviceSizes: [375, 414, 640, 768, 1024, 1280, 1536, 1920],
+    // Smaller image sizes for thumbnails/avatars
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    // Minimum cache TTL for optimized images on Vercel (30 days)
+    minimumCacheTTL: 2592000,
   },
 
   // Cache-control & security headers

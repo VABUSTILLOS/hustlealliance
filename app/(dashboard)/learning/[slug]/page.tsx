@@ -3,6 +3,7 @@
 import { useState, use } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import Image from 'next/image';
 import clsx from 'clsx';
 import { useCourse } from '@/lib/hooks/useCourses';
 import { useAccessCheck } from '@/lib/hooks/useAccessCheck';
@@ -142,10 +143,12 @@ export default function LearningPathPage({
                 <div className="bg-surface border border-surface-light rounded-2xl p-5">
                   <h3 className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted mb-4">{t.learningDetail.instructor}</h3>
                   <div className="flex items-center gap-3 mb-3">
-                    <img
+                    <Image
                       src={course.instructor.avatar || 'https://api.dicebear.com/9.x/initials/svg?seed=Instructor&backgroundColor=dc2626'}
                       alt={course.instructor.name}
-                      className="w-12 h-12 rounded-full border-2 border-white/10 object-cover"
+                      width={48}
+                      height={48}
+                      className="rounded-full border-2 border-white/10 object-cover"
                     />
                     <div>
                       <p className="font-heading font-bold text-foreground text-sm">{course.instructor.name}</p>

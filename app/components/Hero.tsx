@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { motion, useInView, useAnimate } from 'framer-motion';
+import Image from 'next/image';
 import NeonButton from './NeonButton';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
@@ -128,10 +129,13 @@ export default function Hero() {
       {/* Right: Full-bleed photography */}
       <div className="relative w-full lg:w-2/5 h-64 sm:h-80 lg:h-auto min-h-[50vh] lg:min-h-screen overflow-hidden">
         {/* B&W Photo */}
-        <img
+        <Image
           src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1200&h=1600&fit=crop&crop=faces"
           alt="Founders collaborating"
-          className="absolute inset-0 w-full h-full object-cover"
+          fill
+          priority
+          sizes="(max-width: 1024px) 100vw, 40vw"
+          className="object-cover"
           style={{ filter: 'grayscale(100%) contrast(1.3) brightness(0.8)' }}
         />
         {/* Red overlay */}

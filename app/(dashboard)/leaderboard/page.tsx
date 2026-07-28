@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
+import Image from 'next/image';
 import { useQuery } from '@tanstack/react-query';
 import { useCurrentUser } from '@/lib/hooks/useCurrentUser';
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -82,7 +83,7 @@ export default function LeaderboardPage() {
                 w-12 h-12 rounded-full flex items-center justify-center shrink-0
                 ${isTopThree ? 'bg-accent text-white' : 'bg-surface-light text-foreground-dim'}
               `}>
-                <img src={user?.avatar ?? 'https://api.dicebear.com/9.x/initials/svg?seed=User'} alt={user?.name ?? 'User'} className="w-12 h-12 rounded-full" />
+                <Image src={user?.avatar ?? 'https://api.dicebear.com/9.x/initials/svg?seed=User'} alt={user?.name ?? 'User'} width={48} height={48} className="rounded-full" />
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-foreground-muted text-xs uppercase tracking-wider">{t.leaderboard.myRank}</p>
@@ -163,10 +164,12 @@ export default function LeaderboardPage() {
 
                     {/* Name + Badges */}
                     <div className="flex items-center gap-2 min-w-0">
-                      <img
+                      <Image
                         src={entry.avatar ?? `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(entry.name)}`}
                         alt={entry.name}
-                        className="w-7 h-7 rounded-full object-cover shrink-0"
+                        width={28}
+                        height={28}
+                        className="rounded-full object-cover shrink-0"
                       />
                       <span className="text-foreground text-sm font-medium truncate">
                         {isMe ? 'You' : entry.name.split(' ')[0]}

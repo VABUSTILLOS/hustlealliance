@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, Clock, Users, Video, User } from 'lucide-react';
+import Image from 'next/image';
 import clsx from 'clsx';
 
 interface LiveClassCardProps {
@@ -87,7 +88,7 @@ export default function LiveClassCard({
       <div className="flex items-center gap-3 mb-3">
         <div className="flex items-center gap-2">
           {instructor.avatar ? (
-            <img src={instructor.avatar} alt={instructor.name} className="w-6 h-6 rounded-full object-cover" />
+            <Image src={instructor.avatar} alt={instructor.name} width={24} height={24} className="rounded-full object-cover" />
           ) : (
             <User className="w-5 h-5 text-muted" />
           )}

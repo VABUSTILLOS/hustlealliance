@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import Image from 'next/image';
 import { spaces } from '@/lib/data/spaces';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
@@ -66,11 +67,12 @@ export default function SpacesPreview() {
               >
                 {/* Image */}
                 <div className="relative h-40 overflow-hidden">
-                  <img
+                  <Image
                     src={space.image}
                     alt={space.name}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    loading="lazy"
+                    fill
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-surface)] via-transparent to-transparent" />
                   {/* Member count badge */}

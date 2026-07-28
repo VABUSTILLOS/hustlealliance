@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import clsx from 'clsx';
+import Image from 'next/image';
 import type { AuthUser } from '@/lib/auth/user';
 
 const adminLinks = [
@@ -105,10 +106,12 @@ export function AdminShell({ user, children }: { user: AuthUser; children: React
         {/* Divider + Back to site */}
         <div className="px-6 py-4 border-t border-surface-light space-y-3">
           <div className="flex items-center gap-3">
-            <img
+            <Image
               src={user.avatar}
               alt={user.name}
-              className="w-8 h-8 rounded-full border-2 border-white/10 object-cover"
+              width={32}
+              height={32}
+              className="rounded-full border-2 border-white/10 object-cover"
             />
             <div className="flex-1 min-w-0">
               <p className="text-foreground font-heading font-bold text-sm truncate">{user.name}</p>

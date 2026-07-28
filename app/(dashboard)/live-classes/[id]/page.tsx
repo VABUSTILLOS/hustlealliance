@@ -3,6 +3,7 @@
 import { useState, useEffect, use } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useStore } from '@/lib/store/useStore';
 import { useLiveClassPresence } from '@/lib/hooks/useLiveClassPresence';
@@ -238,13 +239,15 @@ export default function LiveClassPage({ params }: { params: Promise<{ id: string
         >
           <h2 className="text-lg font-semibold">👤 Instructor</h2>
           <div className="flex items-center gap-3">
-            <img
+            <Image
               src={
                 liveClass.instructor.avatar ??
                 `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(liveClass.instructor.name)}`
               }
               alt={liveClass.instructor.name}
-              className="w-10 h-10 rounded-full"
+              width={40}
+              height={40}
+              className="rounded-full"
             />
             <span>{liveClass.instructor.name}</span>
           </div>
@@ -254,7 +257,7 @@ export default function LiveClassPage({ params }: { params: Promise<{ id: string
           </h2>
           <div className="flex flex-wrap gap-2">
             {attendees.map((a) => (
-              <img
+              <Image
                 key={a.userId}
                 src={
                   a.avatar ||
@@ -262,7 +265,9 @@ export default function LiveClassPage({ params }: { params: Promise<{ id: string
                 }
                 alt={a.name}
                 title={a.name}
-                className="w-8 h-8 rounded-full border-2 border-primary-500/50"
+                width={32}
+                height={32}
+                className="rounded-full border-2 border-primary-500/50"
               />
             ))}
             {attendees.length === 0 && (

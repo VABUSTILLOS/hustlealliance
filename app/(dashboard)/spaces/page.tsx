@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import Image from 'next/image';
 import clsx from 'clsx';
 import { spaces } from '@/lib/data/spaces';
 import { useStore } from '@/lib/store/useStore';
@@ -59,8 +60,9 @@ export default function SpacesPage() {
               <Link href={`/spaces/${space.slug}`} className="block group">
                 <div className="bg-surface border border-surface-light rounded-2xl overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:border-accent/20 hover:shadow-[0_20px_60px_rgba(255,59,48,0.08)]">
                   <div className="relative h-40 overflow-hidden">
-                    <img src={space.image} alt={space.name}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                    <Image src={space.image} alt={space.name}
+                      fill className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" />
                     <div className="absolute inset-0 bg-gradient-to-t from-surface via-transparent" />
                   </div>
                   <div className="p-5">

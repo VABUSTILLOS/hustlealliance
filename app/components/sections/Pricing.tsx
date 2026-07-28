@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import Image from 'next/image';
 import clsx from 'clsx';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
@@ -199,11 +200,12 @@ export default function Pricing() {
 
                 {/* Author */}
                 <div className="flex items-center gap-3">
-                  <img
+                  <Image
                     src={t.avatar}
                     alt={t.name}
-                    className="w-10 h-10 rounded-full border-2 border-white/10 object-cover"
-                    loading="lazy"
+                    width={40}
+                    height={40}
+                    className="rounded-full border-2 border-white/10 object-cover"
                   />
                   <div>
                     <p className="text-foreground font-heading font-bold text-sm">

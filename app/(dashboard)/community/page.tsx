@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import Image from 'next/image';
 import clsx from 'clsx';
 import { useStore } from '@/lib/store/useStore';
 import { useCurrentUser, getAvatarUrl } from '@/lib/hooks/useCurrentUser';
@@ -117,7 +118,7 @@ export default function CommunityPage() {
         className="bg-surface border border-surface-light rounded-2xl p-5 mb-6"
       >
         <div className="flex gap-3">
-          <img src={user?.avatar ?? 'https://api.dicebear.com/9.x/initials/svg?seed=User'} alt="" className="w-10 h-10 rounded-full border border-white/10 object-cover shrink-0" />
+          <Image src={user?.avatar ?? 'https://api.dicebear.com/9.x/initials/svg?seed=User'} alt="" width={40} height={40} className="rounded-full border border-white/10 object-cover shrink-0" />
           <div className="flex-1 space-y-3">
             <textarea
               value={newPostText}
@@ -128,7 +129,7 @@ export default function CommunityPage() {
             />
             {previewImage && (
               <div className="relative inline-block">
-                <img src={previewImage} alt="Preview" className="max-h-48 rounded-lg" />
+                <Image src={previewImage} alt="Preview" width={400} height={300} className="max-h-48 rounded-lg" />
                 <button
                   onClick={() => setPreviewImage(null)}
                   className="absolute -top-2 -right-2 w-6 h-6 bg-black/60 rounded-full flex items-center justify-center text-white text-xs"
@@ -209,7 +210,7 @@ export default function CommunityPage() {
               >
                 {/* Author row */}
                 <div className="flex items-center gap-3 mb-3">
-                  <img src={post.author.avatar} alt="" className="w-10 h-10 rounded-full border border-white/10 object-cover" />
+                  <Image src={post.author.avatar} alt="" width={40} height={40} className="rounded-full border border-white/10 object-cover" />
                   <div className="flex-1 min-w-0">
                     <p className="font-heading font-bold text-foreground text-sm">{post.author.name}</p>
                     <div className="flex items-center gap-2">
@@ -230,7 +231,15 @@ export default function CommunityPage() {
 
                 {/* Image */}
                 {post.image && (
-                  <img src={post.image} alt="" className="w-full rounded-xl mb-3 max-h-96 object-cover" loading="lazy" />
+                  <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden mb-3">
+                    <Image
+                      src={post.image}
+                      alt=""
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 672px, 700px"
+                      className="object-cover"
+                    />
+                  </div>
                 )}
 
                 {/* Actions */}
@@ -262,7 +271,7 @@ export default function CommunityPage() {
                       <div className="mt-4 pt-4 border-t border-surface-light space-y-3">
                         {post.comments.map((c) => (
                           <div key={c.id} className="flex gap-2 ml-4">
-                            <img src={c.author.avatar} alt="" className="w-6 h-6 rounded-full border border-white/10 object-cover shrink-0 mt-0.5" />
+                            <Image src={c.author.avatar} alt="" width={24} height={24} className="rounded-full border border-white/10 object-cover shrink-0 mt-0.5" />
                             <div className="bg-surface-light rounded-xl px-3 py-2 flex-1">
                               <p className="font-heading font-bold text-foreground text-xs">{c.author.name}</p>
                               <p className="text-foreground-muted text-xs">{c.text}</p>
@@ -271,7 +280,7 @@ export default function CommunityPage() {
                         ))}
                         {/* Add comment */}
                         <div className="flex gap-2 ml-4 pt-1">
-                          <img src={user?.avatar ?? 'https://api.dicebear.com/9.x/initials/svg?seed=User'} alt="" className="w-6 h-6 rounded-full border border-white/10 object-cover shrink-0" />
+                          <Image src={user?.avatar ?? 'https://api.dicebear.com/9.x/initials/svg?seed=User'} alt="" width={24} height={24} className="rounded-full border border-white/10 object-cover shrink-0" />
                           <div className="flex-1 flex gap-2">
                             <input
                               value={commentTexts[post.id] || ''}

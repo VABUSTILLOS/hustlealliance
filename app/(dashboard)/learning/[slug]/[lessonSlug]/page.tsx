@@ -3,6 +3,7 @@
 import { useState, use, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import Image from 'next/image';
 import clsx from 'clsx';
 import { useLesson, useCourse } from '@/lib/hooks/useCourses';
 import { useAccessCheck } from '@/lib/hooks/useAccessCheck';
@@ -343,8 +344,8 @@ export default function LessonPlayerPage({
                       <div className="space-y-4">
                         {discussPosts.map((post) => (
                           <div key={post.id} className="flex gap-3 pb-4 border-b border-surface-light last:border-0 last:pb-0">
-                            <img src={post.author.avatar} alt={post.author.name}
-                              className="w-8 h-8 rounded-full border border-white/10 shrink-0 object-cover" />
+                            <Image src={post.author.avatar} alt={post.author.name}
+                              width={32} height={32} className="rounded-full border border-white/10 shrink-0 object-cover" />
                             <div className="min-w-0">
                               <div className="flex items-center gap-2 mb-1">
                                 <span className="text-foreground text-sm font-semibold">{post.author.name}</span>

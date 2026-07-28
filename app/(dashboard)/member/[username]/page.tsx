@@ -3,6 +3,7 @@
 import { useState, use } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import Image from 'next/image';
 import { memberProfiles, currentUser } from '@/lib/data/users';
 import { learningPaths } from '@/lib/data/learning-paths';
 import { spaces as allSpaces } from '@/lib/data/spaces';
@@ -61,8 +62,8 @@ export default function MemberProfilePage({
         className="bg-surface border border-surface-light rounded-2xl p-6 lg:p-8 mb-8"
       >
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
-          <img src={profile.avatar} alt={profile.name}
-            className="w-20 h-20 rounded-full border-2 border-white/10 object-cover" />
+          <Image src={profile.avatar} alt={profile.name}
+            width={80} height={80} className="rounded-full border-2 border-white/10 object-cover" />
           <div className="flex-1 min-w-0">
             <h1 className="font-display text-2xl sm:text-3xl text-foreground uppercase leading-none mb-1">
               {profile.name}
@@ -194,7 +195,7 @@ export default function MemberProfilePage({
               className="bg-surface border border-surface-light rounded-2xl p-6 w-full max-w-md"
             >
               <div className="flex items-center gap-3 mb-4">
-                <img src={profile.avatar} alt="" className="w-10 h-10 rounded-full border border-white/10 object-cover" />
+                <Image src={profile.avatar} alt="" width={40} height={40} className="rounded-full border border-white/10 object-cover" />
                 <h3 className="font-heading font-bold text-foreground">{t.profile.messageTo} {profile.name}</h3>
               </div>
               {messageSent ? (

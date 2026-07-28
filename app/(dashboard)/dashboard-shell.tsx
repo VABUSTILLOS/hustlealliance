@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 import clsx from 'clsx';
 import { useStore } from '@/lib/store/useStore';
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -127,10 +128,12 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         {/* User + Sign Out */}
         <div className="px-6 py-5 border-t border-surface-light">
           <div className="flex items-center gap-3 group mb-3">
-            <img
+            <Image
               src={user?.avatar ?? 'https://api.dicebear.com/9.x/initials/svg?seed=User'}
               alt={user?.name ?? 'User'}
-              className="w-9 h-9 rounded-full border-2 border-white/10 object-cover"
+              width={36}
+              height={36}
+              className="rounded-full border-2 border-white/10 object-cover"
             />
             <div className="flex-1 min-w-0">
               <p className="text-foreground font-heading font-bold text-sm truncate">{user?.name ?? 'Member'}</p>

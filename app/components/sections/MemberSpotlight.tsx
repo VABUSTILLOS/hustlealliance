@@ -3,6 +3,7 @@
 import { useRef, useState, useMemo, useEffect, useCallback } from 'react';
 import { motion, useAnimationControls, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import Image from 'next/image';
 import clsx from 'clsx';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
@@ -177,12 +178,13 @@ function FounderCard({
           transition={{ duration: 0.3 }}
           className="w-full h-full rounded-full overflow-hidden"
         >
-          <img
+          <Image
             src={member.image}
             alt={member.name}
-            className="w-full h-full object-cover rounded-full"
+            fill
+            sizes="120px"
+            className="object-cover rounded-full"
             style={{ filter: 'grayscale(100%) contrast(1.1)' }}
-            loading="lazy"
           />
         </motion.div>
       </motion.div>

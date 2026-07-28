@@ -2,6 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { useStore } from '@/lib/store/useStore';
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -228,7 +229,7 @@ export default function TaskDetailPage() {
               {uploadedFile ? (
                 <div className="space-y-3">
                   {uploadedFile.startsWith('data:image') ? (
-                    <img src={uploadedFile} alt={uploadedFileName} className="max-h-48 mx-auto rounded-lg" />
+                    <Image src={uploadedFile} alt={uploadedFileName} width={400} height={300} className="max-h-48 mx-auto rounded-lg" />
                   ) : (
                     <span className="text-4xl block">📄</span>
                   )}
@@ -297,7 +298,7 @@ export default function TaskDetailPage() {
               <div className="p-3 rounded-lg bg-surface/50 border border-surface-light">
                 <p className="text-xs text-muted mb-2">{t.journey.previousEvidence}</p>
                 {existingEvidence.startsWith('data:image') ? (
-                  <img src={existingEvidence} alt={t.journey.evidenceSubmitted} className="max-h-48 rounded-lg" />
+                  <Image src={existingEvidence} alt={t.journey.evidenceSubmitted} width={400} height={300} className="max-h-48 rounded-lg" />
                 ) : existingEvidence.startsWith('data:') ? (
                   <span className="text-2xl">📄</span>
                 ) : (

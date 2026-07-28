@@ -3,6 +3,7 @@
 import { use } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import Image from 'next/image';
 import clsx from 'clsx';
 import { spaces } from '@/lib/data/spaces';
 import { useStore } from '@/lib/store/useStore';
@@ -49,7 +50,7 @@ export default function SpaceDetailPage({
         animate={{ opacity: 1, y: 0 }}
         className="relative h-48 rounded-2xl overflow-hidden mb-8"
       >
-        <img src={space.image} alt={space.name} className="w-full h-full object-cover" />
+        <Image src={space.image} alt={space.name} fill className="object-cover" sizes="(max-width: 640px) 100vw, 700px" />
         <div className="absolute inset-0 bg-gradient-to-t from-surface via-surface/50" />
         <div className="absolute bottom-0 left-0 right-0 p-6">
           <h1 className="font-display text-3xl sm:text-4xl text-foreground uppercase leading-none mb-2">
@@ -88,7 +89,7 @@ export default function SpaceDetailPage({
               className="bg-surface border border-surface-light rounded-2xl p-5"
             >
               <div className="flex items-center gap-3 mb-3">
-                <img src={post.author.avatar} alt="" className="w-10 h-10 rounded-full border border-white/10 object-cover" />
+                <Image src={post.author.avatar} alt="" width={40} height={40} className="rounded-full border border-white/10 object-cover" />
                 <div>
                   <p className="font-heading font-bold text-foreground text-sm">{post.author.name}</p>
                   <div className="flex items-center gap-2">
@@ -100,7 +101,9 @@ export default function SpaceDetailPage({
               </div>
               <p className="text-foreground-muted text-sm mb-3">{post.text}</p>
               {post.image && (
-                <img src={post.image} alt="" className="w-full rounded-xl mb-3 max-h-80 object-cover" />
+                <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden mb-3">
+                  <Image src={post.image} alt="" fill className="object-cover" sizes="(max-width: 640px) 100vw, 700px" />
+                </div>
               )}
               <button onClick={() => toggleLike(post.id)} className="flex items-center gap-1.5">
                 <svg className={clsx('w-4 h-4', post.liked ? 'text-accent fill-accent' : 'text-muted')}

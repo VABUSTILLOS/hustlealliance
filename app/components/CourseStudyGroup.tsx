@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import clsx from 'clsx';
 import {
@@ -498,13 +499,15 @@ function MembersTab({ members }: { members: MemberData[] }) {
               <span className="text-muted text-xs font-mono w-6 text-right">
                 {i + 1}
               </span>
-              <img
+              <Image
                 src={
                   m.user.avatar ??
                   'https://api.dicebear.com/9.x/initials/svg?seed=User'
                 }
                 alt={m.user.name}
-                className="w-10 h-10 rounded-full border border-white/10 object-cover shrink-0"
+                width={40}
+                height={40}
+                className="rounded-full border border-white/10 object-cover shrink-0"
               />
               <div className="min-w-0 flex-1">
                 <p className="text-foreground text-sm font-bold">
@@ -561,13 +564,15 @@ function Sidebar({
           <div className="space-y-2.5">
             {members.slice(0, 10).map((m) => (
               <div key={m.userId} className="flex items-center gap-3 group">
-                <img
+                <Image
                   src={
                     m.user.avatar ??
                     'https://api.dicebear.com/9.x/initials/svg?seed=User'
                   }
                   alt={m.user.name}
-                  className="w-8 h-8 rounded-full border border-white/10 object-cover shrink-0"
+                  width={32}
+                  height={32}
+                  className="rounded-full border border-white/10 object-cover shrink-0"
                 />
                 <div className="min-w-0 flex-1">
                   <p className="text-foreground text-sm font-medium truncate">
@@ -715,13 +720,15 @@ function PostCard({
     <div className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-5">
       {/* Author */}
       <div className="flex items-center gap-3 mb-3">
-        <img
+        <Image
           src={
             post.author.avatar ??
             'https://api.dicebear.com/9.x/initials/svg?seed=User'
           }
           alt={post.author.name}
-          className="w-9 h-9 rounded-full border border-white/10 object-cover"
+          width={36}
+          height={36}
+          className="rounded-full border border-white/10 object-cover"
         />
         <div>
           <p className="font-heading font-bold text-foreground text-sm">
@@ -760,13 +767,15 @@ function PostCard({
           {post.replies!.map((reply) => (
             <div key={reply.id}>
               <div className="flex items-center gap-2 mb-1">
-                <img
+                <Image
                   src={
                     reply.author.avatar ??
                     'https://api.dicebear.com/9.x/initials/svg?seed=User'
                   }
                   alt={reply.author.name}
-                  className="w-5 h-5 rounded-full border border-white/10 object-cover"
+                  width={20}
+                  height={20}
+                  className="rounded-full border border-white/10 object-cover"
                 />
                 <span className="font-bold text-foreground text-xs">
                   {reply.author.name}

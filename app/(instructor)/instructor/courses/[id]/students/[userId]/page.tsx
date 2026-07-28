@@ -2,6 +2,7 @@
 
 import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 type LessonDetail = {
   lessonId: string;
@@ -52,10 +53,12 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
 
       <div className="glass-card p-6 mb-8">
         <div className="flex items-center gap-4 mb-4">
-          <img
+          <Image
             src={data.student.avatar || `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(data.student.name)}`}
             alt={data.student.name}
-            className="w-12 h-12 rounded-full border-2 border-white/10"
+            width={48}
+            height={48}
+            className="rounded-full border-2 border-white/10"
           />
           <div>
             <h1 className="text-xl font-heading font-bold text-foreground">{data.student.name}</h1>

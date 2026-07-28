@@ -3,6 +3,7 @@
 import { use } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import Image from 'next/image';
 import { learningPaths } from '@/lib/data/learning-paths';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
@@ -218,10 +219,12 @@ export default function PreviewPage({
                 Instructor
               </h3>
               <div className="flex items-center gap-3">
-                <img
+                <Image
                   src={path.author.avatar}
                   alt={path.author.name}
-                  className="w-12 h-12 rounded-full border-2 border-white/10 object-cover"
+                  width={48}
+                  height={48}
+                  className="rounded-full border-2 border-white/10 object-cover"
                 />
                 <div>
                   <p className="font-heading font-bold text-[var(--color-foreground)] text-sm">

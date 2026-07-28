@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { useTheme } from '@/lib/theme/useTheme';
@@ -81,10 +82,12 @@ export default function Navbar() {
                     onClick={() => setUserMenuOpen(!userMenuOpen)}
                     className="flex items-center gap-2 px-3 py-1.5 rounded-xl hover:bg-surface-light/50 transition-colors"
                   >
-                    <img
+                    <Image
                       src={user.avatar}
                       alt={user.name}
-                      className="w-8 h-8 rounded-full border-2 border-white/10 object-cover"
+                      width={32}
+                      height={32}
+                      className="rounded-full border-2 border-white/10 object-cover"
                     />
                     <span className="text-sm font-medium text-foreground hidden lg:block">
                       {getFirstName(user.name)}
@@ -197,7 +200,7 @@ export default function Navbar() {
               {isAuthenticated && user ? (
                 <>
                   <div className="flex items-center gap-3 py-2 border-t border-surface-light mt-2 pt-3">
-                    <img src={user.avatar} alt={user.name} className="w-10 h-10 rounded-full border-2 border-white/10 object-cover" />
+                    <Image src={user.avatar} alt={user.name} width={40} height={40} className="rounded-full border-2 border-white/10 object-cover" />
                     <div className="flex-1 min-w-0">
                       <p className="text-foreground font-heading font-bold text-sm truncate">{user.name}</p>
                       <p className="text-muted text-xs truncate">{user.email}</p>
