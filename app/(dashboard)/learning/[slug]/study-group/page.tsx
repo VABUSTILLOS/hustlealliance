@@ -17,7 +17,7 @@ export default function StudyGroupPage() {
   const [group, setGroup] = useState<Awaited<ReturnType<typeof getStudyGroup>>>(null);
 
   useEffect(() => {
-    if (!user?.id) {
+    if (!user?.email) {
       setError('You must be logged in to access study groups.');
       setLoading(false);
       return;
@@ -25,8 +25,8 @@ export default function StudyGroupPage() {
 
     async function init() {
       try {
-        await ensureGroupMembership(user!.id!, slug);
-        const data = await getStudyGroup(user!.id!, slug);
+        await ensureGroupMembership(user!.email!, slug);
+        const data = await getStudyGroup(user!.email!, slug);
         if (!data) {
           setError('Study group not found.');
         } else {
@@ -40,7 +40,7 @@ export default function StudyGroupPage() {
     }
 
     init();
-  }, [slug, user?.id]);
+  }, [slug, user?.email]);
 
   if (loading) {
     return (
