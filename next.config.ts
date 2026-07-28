@@ -74,7 +74,7 @@ const nextConfig: NextConfig = {
 
   // Turbopack root directory
   turbopack: {
-    root: '.',
+    root: process.cwd(),
   },
 
   // Reduce layout shift with automatic font optimization
