@@ -1,31 +1,38 @@
 'use client';
 
 import { useStore, type UserInfo } from '@/lib/store/useStore';
+import { FOUNDER_PROFILE } from '@/lib/auth/mock';
 
 const USER_INFO_KEY = 'hustle_user_info';
 
 /**
  * Reads the current user from Zustand (persisted) or localStorage fallback.
- * Returns null if not authenticated.
+ * Always returns a user — falls back to the generic Founder profile so
+ * unauthenticated visitors see the full dashboard without redirect loops.
  */
-export function useCurrentUser(): UserInfo | null {
+export function useCurrentUser(): UserInfo {
   const storeUser = useStore((s) => s.currentUser);
-  if (storeUser && storeUser.email) return storeUser;
+  if (storeUser && storeUser.email && storeUser.id !== FOUNDER_PROFILE.id) return storeUser;
 
   // Fallback: try localStorage directly (for SSR hydration edge cases)
-  if (typeof window === 'undefined') return null;
+  if (typeof window === 'undefined') return FOUNDER_PROFILE;
   try {
     const raw = localStorage.getItem(USER_INFO_KEY);
     if (raw) {
       const user: UserInfo = JSON.parse(raw);
-      if (user.email) {
+      if (user.email && user.id !== FOUNDER_PROFILE.id) {
         // Sync back to store
         useStore.getState().setCurrentUser(user);
         return user;
       }
     }
   } catch { /* ignore */ }
-  return null;
+
+  // Ensure store is synced to founder profile
+  if (!storeUser || !storeUser.email) {
+    useStore.getState().setCurrentUser(FOUNDER_PROFILE);
+  }
+  return FOUNDER_PROFILE;
 }
 
 /**

@@ -4,10 +4,7 @@ import { useState, useEffect, use } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
-import { useStore } from '@/lib/store/useStore';
 import { useLiveClassPresence } from '@/lib/hooks/useLiveClassPresence';
-import { createClient } from '@/lib/supabase/client';
 
 interface LiveClassDetail {
   id: string;
@@ -27,8 +24,6 @@ interface LiveClassDetail {
 
 export default function LiveClassPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const router = useRouter();
-  const currentUser = useStore((s) => s.currentUser);
 
   const [liveClass, setLiveClass] = useState<LiveClassDetail | null>(null);
   const [isRegistered, setIsRegistered] = useState(false);
@@ -58,10 +53,7 @@ export default function LiveClassPage({ params }: { params: Promise<{ id: string
   }, [id]);
 
   const handleRegister = async () => {
-    if (!currentUser?.id) {
-      router.push('/login');
-      return;
-    }
+    // Always allow registration — the Founder profile is set as default for unauthenticated visitors
     setRegistering(true);
     try {
       const res = await fetch(`/api/live-classes/${id}/register`, { method: 'POST' });

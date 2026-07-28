@@ -5,6 +5,7 @@ import { currentUser as fallbackUser } from '@/lib/data/users';
 import { spaces as initialSpaces } from '@/lib/data/spaces';
 import { badges as allBadges, XP_REWARDS, type Badge } from '@/lib/data/gamification';
 import { journeyLevels } from '@/lib/data/journey';
+import { FOUNDER_PROFILE } from '@/lib/auth/mock';
 
 export interface UserInfo {
   id?: string;
@@ -155,9 +156,9 @@ function checkAndUnlockBadges(state: GamificationState): { earnedBadges: string[
 export const useStore = create<AppState>()(
   persist(
     (set, get) => ({
-      // Auth
-      currentUser: null as UserInfo | null,
-      isAuthenticated: false,
+      // Auth — defaults to Founder profile so unauthenticated visitors see the full dashboard
+      currentUser: FOUNDER_PROFILE as UserInfo | null,
+      isAuthenticated: true,
 
       setCurrentUser: (user) => set({ currentUser: user }),
 
@@ -165,7 +166,8 @@ export const useStore = create<AppState>()(
       signOut: async () => {
         localStorage.removeItem('sb-yftgdtdvmvvqyzcdntge-auth-token');
         localStorage.removeItem('hustle_user_info');
-        set({ isAuthenticated: false, currentUser: null });
+        // Reset to founder profile instead of null so visitors keep seeing the dashboard
+        set({ isAuthenticated: true, currentUser: FOUNDER_PROFILE });
       },
 
       // Progress
