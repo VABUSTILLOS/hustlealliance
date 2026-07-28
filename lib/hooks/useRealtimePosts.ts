@@ -24,7 +24,9 @@ export function useRealtimePosts() {
     const supabase = createClient();
 
     const channel = supabase
-      .channel('community-posts')
+      .channel('community-posts', {
+        config: { broadcast: { self: false } },
+      })
       .on(
         'postgres_changes',
         {
@@ -41,6 +43,17 @@ export function useRealtimePosts() {
             createdAt: string;
             image?: string | null;
           };
+
+          // TODO: Replace this per-post author fetch with a Postgres VIEW
+          // (CommunityPostWithAuthor) to eliminate the extra round-trip on each INSERT:
+          //
+          //   CREATE VIEW "CommunityPostWithAuthor" AS
+          //   SELECT p.*, u.name AS "authorName", u.username AS "authorUsername", u.avatar AS "authorAvatar"
+          //   FROM "CommunityPost" p
+          //   JOIN "User" u ON u.id = p."authorId";
+          //
+          // Then subscribe to CommunityPostWithAuthor instead of CommunityPost,
+          // and skip this supabase.from('User') fetch entirely.
 
           // Fetch author info so we can display name + avatar
           const { data: author } = await supabase

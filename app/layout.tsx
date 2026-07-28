@@ -4,6 +4,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { Providers } from "./providers";
 import ToggleBar from "./components/ToggleBar";
 import CursorGlow from "./components/CursorGlow";
+import { WebVitals } from "./components/WebVitals";
 import "./globals.css";
 
 const inter = Inter({
@@ -45,6 +46,7 @@ export default function RootLayout({
           <div className="bg-[var(--color-bg)] text-[var(--color-foreground)] min-h-screen font-body">
             <CursorGlow />
             <ToggleBar />
+            <WebVitals />
             {children}
           </div>
         </Providers>
