@@ -14,16 +14,19 @@ export function StudyGroupClient({ slug }: { slug: string }) {
   const [error, setError] = useState<string | null>(null);
   const [group, setGroup] = useState<Awaited<ReturnType<typeof getStudyGroup>>>(null);
 
+  // Fallback: if auth never resolves, show error after a short grace period
   useEffect(() => {
-    // Wait for AuthProvider to hydrate the Zustand store.
-    // On first pass user is null (SSR), keep showing loading skeleton.
-    if (!user?.email) {
-      if (!loading) {
-        // Only set error on subsequent passes — means auth truly missing
+    const timer = setTimeout(() => {
+      if (!user?.email && loading) {
         setError('You must be logged in to access study groups.');
+        setLoading(false);
       }
-      return;
-    }
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!user?.email) return;
 
     if (hasLoaded.current) return;
     hasLoaded.current = true;

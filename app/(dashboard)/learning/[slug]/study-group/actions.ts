@@ -15,16 +15,28 @@ export type StudyGroupWithMembers = NonNullable<
 
 // ── Enrollment Gate (reused by every action) ──────────────────────
 // Verifies the user exists in the DB and is enrolled in the course.
-// Looks up user by email (the only reliable cross-system link between
-// Zustand/localStorage and the Prisma database).
+// Auto-creates a Prisma User record for existing Supabase auth users
+// who don't have one yet (bridges the Supabase↔Prisma gap).
 
 async function requireEnrollment(email: string, courseSlug: string) {
-  // Find user by email first — Zustand store has email but not the DB UUID
-  const dbUser = await prisma.user.findUnique({
+  // Find or create user by email — Zustand store has email but not the DB UUID
+  let dbUser = await prisma.user.findUnique({
     where: { email },
     select: { id: true },
   });
-  if (!dbUser) throw new Error('Unauthorized');
+
+  if (!dbUser) {
+    // Auto-provision a Prisma User record for Supabase-auth'd users
+    dbUser = await prisma.user.create({
+      data: {
+        email,
+        name: email.split('@')[0],
+        membershipTier: 'FREE',
+        role: 'STUDENT',
+      },
+      select: { id: true },
+    });
+  }
 
   const course = await prisma.course.findUnique({
     where: { slug: courseSlug },
