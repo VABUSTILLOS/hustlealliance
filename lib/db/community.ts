@@ -399,3 +399,91 @@ export const getCommunityMembers = cache(
     };
   },
 );
+
+// ── Single member profile ──
+
+export interface MemberProfile {
+  id: string;
+  name: string;
+  username: string | null;
+  avatar: string | null;
+  role: string;
+  membershipTier: string;
+  bio: string | null;
+  headline: string | null;
+  location: string | null;
+  website: string | null;
+  industries: string[];
+  skills: string[];
+  yearsExperience: number | null;
+  interests: string[];
+  canHelpWith: string[];
+  lookingFor: string[];
+  businessInfo: string | null;
+  hasOpportunities: boolean;
+  marketplaceSeller: boolean;
+  socialLinks: Record<string, string> | null;
+  postCount: number;
+  commentCount: number;
+  followerCount: number;
+  followingCount: number;
+  joinedAt: string;
+}
+
+export const getMemberProfile = cache(
+  async (username: string, currentUserId?: string): Promise<{ profile: MemberProfile | null; isFollowing: boolean }> => {
+    const user = await prisma.user.findFirst({
+      where: { username },
+      select: {
+        id: true, name: true, username: true, avatar: true,
+        role: true, membershipTier: true, bio: true, createdAt: true,
+        profile: {
+          select: {
+            headline: true, location: true, website: true,
+            industries: true, skills: true, yearsExperience: true,
+            interests: true, canHelpWith: true, lookingFor: true,
+            businessInfo: true, hasOpportunities: true, marketplaceSeller: true,
+            socialLinks: true,
+          },
+        },
+        _count: { select: { posts: true, comments: true, followers: true, following: true } },
+      },
+    });
+
+    if (!user) return { profile: null, isFollowing: false };
+
+    let isFollowing = false;
+    if (currentUserId) {
+      const follow = await prisma.follow.findUnique({
+        where: { followerId_followedId: { followerId: currentUserId, followedId: user.id } },
+      });
+      isFollowing = !!follow;
+    }
+
+    return {
+      profile: {
+        id: user.id, name: user.name, username: user.username,
+        avatar: user.avatar, role: user.role, membershipTier: user.membershipTier,
+        bio: user.bio, headline: user.profile?.headline ?? null,
+        location: user.profile?.location ?? null,
+        website: user.profile?.website ?? null,
+        industries: user.profile?.industries ?? [],
+        skills: user.profile?.skills ?? [],
+        yearsExperience: user.profile?.yearsExperience ?? null,
+        interests: user.profile?.interests ?? [],
+        canHelpWith: user.profile?.canHelpWith ?? [],
+        lookingFor: user.profile?.lookingFor ?? [],
+        businessInfo: user.profile?.businessInfo ?? null,
+        hasOpportunities: user.profile?.hasOpportunities ?? false,
+        marketplaceSeller: user.profile?.marketplaceSeller ?? false,
+        socialLinks: user.profile?.socialLinks as Record<string, string> | null,
+        postCount: user._count.posts,
+        commentCount: user._count.comments,
+        followerCount: user._count.followers,
+        followingCount: user._count.following,
+        joinedAt: user.createdAt.toISOString(),
+      },
+      isFollowing,
+    };
+  },
+);

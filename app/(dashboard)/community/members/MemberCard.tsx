@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import type { CommunityMemberItem } from '@/lib/db/community';
 
 const tierBadge = {
@@ -20,7 +21,8 @@ const roleLabel: Record<string, string> = {
 
 export function MemberCard({ member }: { member: CommunityMemberItem }) {
   return (
-    <div className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-5 hover:border-[var(--color-border-light)] transition-colors group">
+    <Link href={`/community/members/${member.username || member.id}`} className="block">
+    <div className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-5 hover:border-[var(--color-accent)] transition-colors group cursor-pointer h-full">
       {/* Top: Avatar + Name */}
       <div className="flex items-start gap-4 mb-3">
         <div className="w-12 h-12 rounded-full bg-[var(--color-surface-light)] overflow-hidden shrink-0">
@@ -95,5 +97,6 @@ export function MemberCard({ member }: { member: CommunityMemberItem }) {
         </span>
       </div>
     </div>
+    </Link>
   );
 }

@@ -1,5 +1,4 @@
-// lib/seed/users.ts — User profile definitions for community seeding
-// Each user has a complete profile: bio, headline, avatar, role, tier, and interests.
+import { pickN, randInt } from '../seed/utils';
 
 export interface SeedUser {
   email: string;
@@ -13,12 +12,49 @@ export interface SeedUser {
   industries: string[];
   skills: string[];
   location: string;
-  joinedDaysAgo: number; // How many days ago they joined (for createdAt)
+  joinedDaysAgo: number;
+  interests?: string[];
+  canHelpWith?: string[];
+  lookingFor?: string[];
+  businessInfo?: string;
+  hasOpportunities?: boolean;
 }
 
 // Avatar helper — uses dicebear initials API with deterministic seeds
 function av(name: string, bg: string = '7c3aed'): string {
   return `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(name)}&backgroundColor=${bg}`;
+}
+
+// Generate interest/help/looking-for arrays based on a user's industries and skills
+function generateProfileExtras(skills: string[], industries: string[]): {
+  interests: string[]; canHelpWith: string[]; lookingFor: string[];
+} {
+  const interestPool = [
+    ...skills,
+    ...industries,
+    'Startup Growth', 'Product-Market Fit', 'Fundraising', 'Remote Teams',
+    'AI & Automation', 'Community Building', 'Open Source', 'DEI in Tech',
+    'Mental Health', 'Sustainable Business', 'Web3 & Crypto', 'Climate Tech',
+  ];
+  const helpPool = [
+    ...skills.slice(0, 3),
+    'Pitch Deck Reviews', 'Warm Intros to VCs', 'Hiring Engineers',
+    'Go-to-Market Strategy', 'Product Design Feedback', 'Legal Setup Advice',
+    'Cap Table Management', 'Customer Discovery', 'SEO & Content Marketing',
+    'Financial Modeling', 'MVP Development', 'User Research',
+  ];
+  const lookingPool = [
+    'Co-founder (Technical)', 'Co-founder (Business)', 'Angel Investors',
+    'Beta Testers', 'Advisors', 'Enterprise Clients', 'PR & Media Coverage',
+    'Strategic Partnerships', 'Seed Round ($500K-$2M)', 'Engineering Talent',
+    'Sales Talent', 'International Expansion Help', 'Board Members',
+  ];
+
+  return {
+    interests: pickN([...new Set(interestPool)], randInt(3, 6)),
+    canHelpWith: pickN([...new Set(helpPool)], randInt(2, 5)),
+    lookingFor: pickN(lookingPool, randInt(2, 4)),
+  };
 }
 
 // ── Hero Users (admins + instructors + top contributors) ──────────────────
@@ -262,9 +298,20 @@ export const noviceUsers: SeedUser[] = [
   { email: 'novice8@example.com', name: 'Morgan Yu', username: 'morgany', role: 'STUDENT', membershipTier: 'FREE', avatar: av('Morgan Yu', '94a3b8'), bio: 'Literally just signed up. Have a napkin idea for an AI dating app coach. Don\'t know where to start. This community seemed like a good first step.', headline: 'Day 1 Founder | AI Dating App Idea | Complete Beginner', industries: ['Consumer', 'AI/ML'], skills: ['None yet!'], location: 'San Diego, CA', joinedDaysAgo: 1 },
 ];
 
-// ── Export all users ────────────────────────────────────────────────────────
+// ── Export all users (with auto-generated profile extras) ─────────────────
 
-export const allSeedUsers: SeedUser[] = [...heroUsers, ...memberUsers, ...noviceUsers];
+export const allSeedUsers: SeedUser[] = [...heroUsers, ...memberUsers, ...noviceUsers].map(u => {
+  const extras = generateProfileExtras(u.skills, u.industries);
+  const isBusiness = u.role === 'INSTRUCTOR' || u.membershipTier === 'PRO' || u.joinedDaysAgo > 60;
+  return {
+    ...u,
+    interests: extras.interests,
+    canHelpWith: extras.canHelpWith,
+    lookingFor: extras.lookingFor,
+    businessInfo: u.bio.length > 50 ? u.bio.slice(0, 200).replace(/\.\s.*$/, '.') : `Building ${u.industries[0] || 'a startup'} in ${u.location.split(',')[0]}.`,
+    hasOpportunities: isBusiness,
+  };
+});
 
 // ── Space definitions (for post assignment) ─────────────────────────────────
 

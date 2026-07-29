@@ -257,6 +257,8 @@ model User {
 
   // ── NEW: Extended profile ──
   profile            Profile?
+  memberLists        MemberList[]      // Lists they've created
+  savedInLists       MemberListItem[]  // Lists they've been added to
 
   // ── NEW: Social graph ──
   followers          Follow[]              @relation("UserFollowed")
@@ -823,6 +825,12 @@ model Profile {
   phone           String?
   dateOfBirth     DateTime?
   privacySettings Json?    // { showEmail, showLocation, showActivity }
+  interests       String[] @default([])  // e.g. ["AI/ML", "Fundraising", "Remote Work"]
+  canHelpWith     String[] @default([])  // e.g. ["Pitch Decks", "Hiring Engineers", "SEO"]
+  lookingFor      String[] @default([])  // e.g. ["Co-founder", "Angel Investors", "Beta Users"]
+  businessInfo    String?                // Description of their business/startup
+  hasOpportunities Boolean  @default(false)  // Whether they have job/business opportunities listed
+  marketplaceSeller Boolean @default(false) // Whether they have marketplace listings
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -1306,4 +1314,35 @@ model SearchQuery {
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ── Member Lists (user-curated contact lists) ──────────────────────────
+
+model MemberList {
+  id          String   @id @default(uuid())
+  ownerId     String
+  name        String
+  description String?
+  isPublic    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  owner User             @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  items MemberListItem[]
+
+  @@index([ownerId])
+}
+
+model MemberListItem {
+  id        String   @id @default(uuid())
+  listId    String
+  memberId  String
+  note      String?  // Optional note about why they were added
+  addedAt   DateTime @default(now())
+
+  list   MemberList @relation(fields: [listId], references: [id], onDelete: Cascade)
+  member User       @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([listId, memberId])
+  @@index([memberId])
 }

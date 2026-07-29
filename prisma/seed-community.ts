@@ -92,7 +92,7 @@ async function main() {
     // Create Profile record
     await prisma.profile.upsert({
       where: { userId: user.id },
-      update: {},
+      update: { interests: u.interests, canHelpWith: u.canHelpWith, lookingFor: u.lookingFor, businessInfo: u.businessInfo, hasOpportunities: u.hasOpportunities },
       create: {
         userId: user.id,
         displayName: u.name,
@@ -103,6 +103,11 @@ async function main() {
         summary: u.bio,
         socialLinks: {},
         yearsExperience: randInt(1, 20),
+        interests: u.interests,
+        canHelpWith: u.canHelpWith,
+        lookingFor: u.lookingFor,
+        businessInfo: u.businessInfo,
+        hasOpportunities: u.hasOpportunities,
         createdAt,
       },
     });
