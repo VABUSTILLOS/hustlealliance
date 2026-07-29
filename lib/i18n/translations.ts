@@ -328,6 +328,10 @@ const t = {
       writeComment: 'Write a comment...',
       submit: 'Post',
       noPosts: 'No posts yet. Be the first!',
+      feedPersonal: 'For You',
+      feedGlobal: 'Global',
+      feedSpaces: 'Spaces',
+      noComments: 'No comments yet',
     },
     spaces: {
       tag: 'Spaces',
@@ -826,6 +830,10 @@ const t = {
       writeComment: 'Escribe un comentario...',
       submit: 'Publicar',
       noPosts: 'No hay posts aún. ¡Sé el primero!',
+      feedPersonal: 'Para Ti',
+      feedGlobal: 'Global',
+      feedSpaces: 'Grupos',
+      noComments: 'Sin comentarios aún',
     },
     spaces: {
       tag: 'Grupos',

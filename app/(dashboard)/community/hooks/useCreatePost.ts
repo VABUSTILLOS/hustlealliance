@@ -1,0 +1,36 @@
+"use client";
+
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { CommunityPostItem } from "@/lib/db/community";
+
+interface CreatePostInput {
+  content: string;
+  space?: string;
+  imageUrls?: string[];
+  visibility?: "PUBLIC" | "SPACES_ONLY" | "GROUP_ONLY";
+}
+
+export function useCreatePost() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: CreatePostInput) => {
+      const res = await fetch("/api/community/posts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Failed" }));
+        throw new Error(err.error ?? "Failed to create post");
+      }
+      return res.json() as Promise<CommunityPostItem>;
+    },
+    onSuccess: () => {
+      // Invalidate all feed queries to refetch
+      queryClient.invalidateQueries({ queryKey: ["community-feed"] });
+      queryClient.invalidateQueries({ queryKey: ["personal-feed"] });
+      queryClient.invalidateQueries({ queryKey: ["global-feed"] });
+    },
+  });
+}

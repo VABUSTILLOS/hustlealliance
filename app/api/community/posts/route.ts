@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { createPost, getFeedPosts } from "@/lib/db/posts";
 import { fanoutToFollowers } from "@/lib/db/feed";
 import { getCurrentUser } from "@/lib/auth/user";
+import { extractMentions } from "@/lib/mentions/parser";
+import { notifyMentioned } from "@/lib/notifications/service";
+import prisma from "@/lib/db/prisma";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -26,6 +29,40 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const post = await createPost({ ...body, authorId: user.id });
 
+    // Extract and persist mentions
+    const mentions = extractMentions(body.content ?? "");
+    if (mentions.length > 0) {
+      const mentionedUsers = await prisma.user.findMany({
+        where: { username: { in: mentions, mode: "insensitive" } },
+        select: { id: true, username: true, email: true },
+      });
+
+      if (mentionedUsers.length > 0) {
+        // Batch insert mention records
+        await prisma.mention.createMany({
+          data: mentionedUsers.map((u) => ({
+            entityType: "POST" as const,
+            entityId: post.id,
+            userId: u.id,
+            mentionedBy: user.id,
+          })),
+        });
+
+        // Notify mentioned users (fire-and-forget)
+        for (const u of mentionedUsers) {
+          if (u.id !== user.id) {
+            notifyMentioned(
+              u.id,
+              u.email,
+              user.name ?? "Someone",
+              post.id,
+              "Post"
+            ).catch(() => {});
+          }
+        }
+      }
+    }
+
     // Fanout to followers for global visibility posts
     if (post.visibility === "PUBLIC" && !post.groupId) {
       fanoutToFollowers({
@@ -34,7 +71,7 @@ export async function POST(req: NextRequest) {
         entityType: "Post",
         entityId: post.id,
         metadata: { preview: post.content.slice(0, 150) },
-      }).catch(() => {}); // fire-and-forget
+      }).catch(() => {});
     }
 
     return NextResponse.json(post, { status: 201 });

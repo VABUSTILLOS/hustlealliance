@@ -1,53 +1,52 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import clsx from 'clsx';
-import { useStore } from '@/lib/store/useStore';
 import { LazyMotionDiv } from '@/lib/framer/lazy-motion';
 import { useCurrentUser } from '@/lib/hooks/useCurrentUser';
 import { spaces as allSpaces } from '@/lib/data/spaces';
 import { useTranslation } from '@/lib/i18n/useTranslation';
-import type { FeedPost } from '@/lib/data/community';
+import { useCreatePost } from './hooks/useCreatePost';
 
 export function PostCreator() {
-  const addPost = useStore((s) => s.addPost);
-  const joinedSpaces = useStore((s) => s.joinedSpaces);
   const user = useCurrentUser();
   const { t } = useTranslation();
+  const createPost = useCreatePost();
 
   const [newPostText, setNewPostText] = useState('');
   const [newPostSpace, setNewPostSpace] = useState('');
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleImagePick = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImagePick = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = () => setPreviewImage(reader.result as string);
       reader.readAsDataURL(file);
     }
-  };
+  }, []);
 
-  const handlePost = () => {
-    if (!newPostText.trim()) return;
-    const newPost: FeedPost = {
-      id: String(Date.now()),
-      author: { username: user?.username ?? 'member', name: user?.name ?? 'Member', avatar: user?.avatar ?? 'https://api.dicebear.com/9.x/initials/svg?seed=User' },
-      text: newPostText,
-      image: previewImage || undefined,
-      timestamp: 'Just now',
-      likes: 0,
-      liked: false,
-      comments: [],
-      space: newPostSpace || undefined,
-    };
-    addPost(newPost);
-    setNewPostText('');
-    setPreviewImage(null);
-    setNewPostSpace('');
-  };
+  const handlePost = useCallback(() => {
+    if (!newPostText.trim() || createPost.isPending) return;
+    createPost.mutate(
+      {
+        content: newPostText.trim(),
+        space: newPostSpace || undefined,
+        imageUrls: previewImage ? [previewImage] : undefined,
+      },
+      {
+        onSuccess: () => {
+          setNewPostText('');
+          setPreviewImage(null);
+          setNewPostSpace('');
+        },
+      }
+    );
+  }, [newPostText, newPostSpace, previewImage, createPost]);
+
+  const isDisabled = !newPostText.trim() || createPost.isPending;
 
   return (
     <LazyMotionDiv
@@ -94,22 +93,22 @@ export function PostCreator() {
                 className="bg-surface-light border border-white/10 rounded-lg text-muted text-xs px-2 py-1.5 outline-none"
               >
                 <option value="">{t.community.public}</option>
-                {allSpaces.filter((s) => joinedSpaces.includes(s.slug)).map((s) => (
+                {allSpaces.map((s) => (
                   <option key={s.slug} value={s.slug}>{s.name}</option>
                 ))}
               </select>
             </div>
             <button
               onClick={handlePost}
-              disabled={!newPostText.trim()}
+              disabled={isDisabled}
               className={clsx(
                 'px-4 py-2 rounded-xl font-heading font-bold text-sm transition-all',
-                newPostText.trim()
+                !isDisabled
                   ? 'bg-accent text-white hover:bg-accent-glow'
                   : 'bg-surface-light text-muted cursor-not-allowed'
               )}
             >
-              {t.community.post}
+              {createPost.isPending ? t.community?.posting ?? 'Posting...' : t.community.post}
             </button>
           </div>
         </div>

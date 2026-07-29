@@ -1,7 +1,7 @@
 'use client';
 
 import { useInfiniteQuery } from '@tanstack/react-query';
-import type { CommunityPostItem, GetCommunityPostsResult } from '@/lib/db/community';
+import type { GetCommunityPostsResult } from '@/lib/db/community';
 
 interface UseCommunityFeedOpts {
   sort?: 'latest' | 'popular';
