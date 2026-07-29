@@ -3,11 +3,13 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { useStore } from '@/lib/store/useStore';
 import { useCurrentUser, getFirstName, getAvatarUrl } from '@/lib/hooks/useCurrentUser';
 import { useDashboard } from '@/lib/hooks/useDashboard';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+
+const UpcomingEventsWidgetLazy = lazy(() => import('@/app/components/UpcomingEventsWidget'));
 
 // ── Circular Progress ────────────────────────────────────────────────────
 function CircularProgress({ pct, size = 96, stroke = 6, glow = true }: { pct: number; size?: number; stroke?: number; glow?: boolean }) {
@@ -478,6 +480,13 @@ export default function DashboardPage() {
                 )}
               </div>
             </Widget>
+          </motion.div>
+
+          {/* Community Events */}
+          <motion.div variants={fadeUp}>
+            <Suspense fallback={null}>
+              <UpcomingEventsWidgetLazy />
+            </Suspense>
           </motion.div>
         </div>
       </motion.div>

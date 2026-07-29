@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getEventBySlug, getEventById, updateEvent, deleteEvent } from "@/lib/db/events";
+import { getEventBySlug, getEventById, updateEvent, cancelEvent } from "@/lib/db/events";
 import { getCurrentUser } from "@/lib/auth/user";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -19,10 +19,14 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   try {
     const { id } = await params;
     const body = await req.json();
-    const event = await updateEvent(id, body);
+    if (body.startDate) body.startDate = new Date(body.startDate);
+    if (body.endDate) body.endDate = new Date(body.endDate);
+    const event = await updateEvent(id, user.id, body);
     return NextResponse.json(event);
   } catch (err) {
-    return NextResponse.json({ error: (err as Error).message }, { status: 500 });
+    const msg = (err as Error).message;
+    if (msg === "Forbidden") return NextResponse.json({ error: msg }, { status: 403 });
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
 
@@ -31,9 +35,11 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
     const { id } = await params;
-    await deleteEvent(id);
+    await cancelEvent(id, user.id);
     return NextResponse.json({ success: true });
   } catch (err) {
-    return NextResponse.json({ error: (err as Error).message }, { status: 500 });
+    const msg = (err as Error).message;
+    if (msg === "Forbidden") return NextResponse.json({ error: msg }, { status: 403 });
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
