@@ -310,6 +310,9 @@ model User {
 
   // ── NEW: Groups created ──
   createdGroups      CommunityGroup[]
+
+  // ── NEW: Notification preferences ──
+  notificationPreference NotificationPreference?
 }
 
 model Category {
@@ -630,6 +633,13 @@ model Notification {
 
   @@index([userId, read, createdAt])
   @@index([type])
+}
+
+model NotificationPreference {
+  userId      String @id
+  preferences Json   @default("{}")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model CourseDripSettings {

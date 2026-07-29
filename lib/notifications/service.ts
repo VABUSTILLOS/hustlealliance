@@ -353,3 +353,26 @@ export async function notifyEventReminder(
     emailHtml: `<p>Your event <strong>${eventTitle}</strong> is coming up!</p>`,
   });
 }
+
+export async function notifyGroupJoinRequest(
+  adminUserId: string, adminEmail: string,
+  requesterName: string, groupId: string, groupName: string,
+) {
+  return createNotification({
+    userId: adminUserId, userEmail: adminEmail,
+    type: 'GROUP_JOIN_REQUEST',
+    title: 'Join request',
+    body: `${requesterName} wants to join "${groupName}".`,
+    sourceId: groupId,
+    metadata: { requesterName, groupId, groupName },
+  });
+}
+
+export async function notifyNewPost(
+  spaceId: string, postId: string,
+) {
+  console.log('[Notifications] New post in space', spaceId, 'post:', postId);
+  // Broadcast to space members — implement actual member query when needed
+  // For now, this is a placeholder that logs the event
+  return { spaceId, postId, status: 'logged' };
+}
