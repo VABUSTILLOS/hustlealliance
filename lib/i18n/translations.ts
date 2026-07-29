@@ -1,4 +1,3 @@
-/* eslint-disable import/no-anonymous-default-export */
 export type Locale = 'en' | 'es';
 
 const t = {
