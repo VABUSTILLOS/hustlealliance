@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getGroupMembers } from "@/lib/db/groups";
+import { getGroupFeed } from "@/lib/db/groups";
 
-// GET /api/groups/[id]/members
+// GET /api/groups/[id]/feed
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -9,10 +9,11 @@ export async function GET(
   try {
     const { id } = await params;
     const url = new URL(req.url);
-    const limit = parseInt(url.searchParams.get("limit") ?? "50");
+    const limit = parseInt(url.searchParams.get("limit") ?? "20");
     const cursor = url.searchParams.get("cursor") ?? undefined;
-    const members = await getGroupMembers(id, limit, cursor);
-    return NextResponse.json(members);
+
+    const posts = await getGroupFeed(id, limit, cursor);
+    return NextResponse.json(posts);
   } catch (err) {
     return NextResponse.json({ error: (err as Error).message }, { status: 500 });
   }

@@ -1,20 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
-import { listGroups, createGroup } from "@/lib/db/groups";
+import { listGroups, createGroup, searchGroups, getUserGroups } from "@/lib/db/groups";
 import { getCurrentUser } from "@/lib/auth/user";
+import type { GroupVisibility } from "@/lib/generated/prisma/client";
 
 // GET /api/groups
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const query = searchParams.get("query");
+  const visibility = searchParams.get("visibility");
+  const my = searchParams.get("my");
   const limit = parseInt(searchParams.get("limit") ?? "20");
+  const cursor = searchParams.get("cursor") ?? undefined;
 
   try {
+    const user = await getCurrentUser();
+
+    if (my === "true" && user) {
+      const memberships = await getUserGroups(user.id);
+      return NextResponse.json(memberships);
+    }
+
     if (query) {
-      const { searchGroups } = await import("@/lib/db/groups");
       const groups = await searchGroups(query, limit);
       return NextResponse.json(groups);
     }
-    const groups = await listGroups({ limit });
+
+    const groups = await listGroups({
+      visibility: visibility as GroupVisibility | undefined,
+      limit,
+      cursor,
+    });
     return NextResponse.json(groups);
   } catch (err) {
     return NextResponse.json({ error: (err as Error).message }, { status: 500 });
