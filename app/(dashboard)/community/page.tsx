@@ -4,10 +4,19 @@ import { PostFeedServer } from './PostFeedServer';
 import { PostFeedSkeleton } from './PostFeedSkeleton';
 import { CommunitySidebar } from './CommunitySidebar';
 import { getTrendingTopics } from '@/lib/db/community';
+import type { FeedTab } from './FeedTabs';
 
 export const dynamic = 'force-dynamic';
 
-export default async function CommunityPage() {
+const VALID_TABS: FeedTab[] = ['personal', 'global', 'spaces'];
+
+export default async function CommunityPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) {
+  const { tab } = await searchParams;
+  const initialTab: FeedTab = tab && VALID_TABS.includes(tab as FeedTab) ? (tab as FeedTab) : 'spaces';
   const trending = await getTrendingTopics(5);
 
   return (
@@ -17,7 +26,7 @@ export default async function CommunityPage() {
         <div className="flex-1 min-w-0">
           <CommunityHeader />
           <Suspense fallback={<PostFeedSkeleton />}>
-            <PostFeedServer trending={trending} />
+            <PostFeedServer trending={trending} initialTab={initialTab} />
           </Suspense>
         </div>
 
