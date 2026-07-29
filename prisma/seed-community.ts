@@ -360,22 +360,20 @@ async function main() {
   console.log(`   ✅ ${totalRSVPs} RSVPs created`);
   }
 
-  // ── PHASE 7: Course Study Groups (disable RLS, populate all groups) ────────
+  // ── PHASE 7: Course Study Groups (transaction with RLS bypass) ──────────
   console.log('\n📦 Phase 7: Creating CourseStudyGroups...');
   try {
-    // Bypass RLS by temporarily assuming the postgres role
-    console.log('   🔓 Escalating role to bypass RLS...');
-    await prisma.$executeRawUnsafe(`SET ROLE postgres`);
+    // Use interactive transaction to force single connection for RLS bypass
+    await prisma.$transaction(async (tx) => {
+      console.log('   🔓 Bypassing RLS via transaction...');
+      await tx.$executeRawUnsafe(`SET LOCAL "request.jwt.claim.role" TO 'service_role'`);
 
-    try {
-      const courses = await prisma.course.findMany({ where: { status: 'PUBLISHED' } });
+      const courses = await tx.course.findMany({ where: { status: 'PUBLISHED' } });
       console.log(`   Found ${courses.length} published courses`);
 
-      // Find existing groups and their member counts
-      const existingGroups = await prisma.courseStudyGroup.findMany({
+      const existingGroups = await tx.courseStudyGroup.findMany({
         include: { _count: { select: { members: true, posts: true } } },
       });
-      const existingCourseIds = new Set(existingGroups.map(g => g.courseId));
 
       let totalMembers = 0;
       let totalPosts = 0;
@@ -390,7 +388,7 @@ async function main() {
           groupId = existingGroup.id;
           console.log(`   📚 ${course.title}: existing group (${existingGroup._count.members} members, ${existingGroup._count.posts} posts)`);
         } else {
-          const group = await prisma.courseStudyGroup.create({
+          const group = await tx.courseStudyGroup.create({
             data: {
               courseId: course.id,
               description: `Study group for ${course.title}. Collaborate, ask questions, and share resources with your cohort.`,
@@ -400,58 +398,52 @@ async function main() {
           console.log(`   📚 ${course.title}: new group created`);
         }
 
-        // Add members if group has fewer than 8
         const existingMemberCount = existingGroup?._count.members ?? 0;
         if (existingMemberCount < 8) {
           const memberCount = randInt(12, 35);
           const existingMemberIds = existingGroup
-            ? (await prisma.courseGroupMember.findMany({ where: { groupId }, select: { userId: true } })).map(m => m.userId)
+            ? (await tx.courseGroupMember.findMany({ where: { groupId }, select: { userId: true } })).map(m => m.userId)
             : [];
           const availableIds = userIds.filter(u => !existingMemberIds.includes(u));
           const newMemberIds = pickN(availableIds, Math.min(memberCount, availableIds.length));
           const memberDates = sequentialDates(newMemberIds.length, SEED_WINDOW, 1);
-
           const memberChunks = chunk(newMemberIds.map((userId, i) => ({
             groupId, userId, joinedAt: memberDates[i],
           })), 50);
           for (const m of memberChunks) {
-            await prisma.courseGroupMember.createMany({ data: m, skipDuplicates: true });
+            await tx.courseGroupMember.createMany({ data: m, skipDuplicates: true });
           }
           totalMembers += newMemberIds.length;
         }
 
-        // Add posts if group has fewer than 10
         const existingPostCount = existingGroup?._count.posts ?? 0;
         if (existingPostCount < 10) {
-          const allMemberIds = (await prisma.courseGroupMember.findMany({ where: { groupId }, select: { userId: true } })).map(m => m.userId);
+          const allMemberIds = (await tx.courseGroupMember.findMany({ where: { groupId }, select: { userId: true } })).map(m => m.userId);
           const postCount = randInt(15, 35);
           for (let p = 0; p < postCount; p++) {
             const authorId = pick(allMemberIds.length > 0 ? allMemberIds : userIds);
             const content = fillTemplate(pick(groupPostTemplates));
             const createdAt = weekdayDate(SEED_WINDOW, 0);
-            const post = await prisma.courseGroupPost.create({
+            const post = await tx.courseGroupPost.create({
               data: { groupId, authorId, content, createdAt },
             });
-
-            // Add 0-5 replies per post
             const replyCount = randInt(0, 5);
             if (replyCount > 0) {
-              const replyDates = burstDates(createdAt, replyCount, 72); // within 3 days
+              const replyDates = burstDates(createdAt, replyCount, 72);
               const replyRows = Array.from({ length: replyCount }, (_, ri) => ({
                 postId: post.id,
                 authorId: pick(allMemberIds.length > 0 ? allMemberIds : userIds),
                 content: fillTemplate(pick(commentTemplates)),
                 createdAt: replyDates[ri],
               }));
-              await prisma.courseGroupReply.createMany({ data: replyRows });
+              await tx.courseGroupReply.createMany({ data: replyRows });
               totalReplies += replyCount;
             }
           }
           totalPosts += postCount;
         }
 
-        // Add files if group has fewer than 3
-        const existingFileCount = await prisma.courseGroupFile.count({ where: { groupId } });
+        const existingFileCount = await tx.courseGroupFile.count({ where: { groupId } });
         if (existingFileCount < 3) {
           const fileNames = [
             'study-guide-module-1.pdf', 'practice-questions.pdf', 'cheat-sheet.pdf',
@@ -467,17 +459,13 @@ async function main() {
             fileSize: randInt(100_000, 5_000_000),
             mimeType: 'application/pdf',
           }));
-          await prisma.courseGroupFile.createMany({ data: fileRows, skipDuplicates: true });
+          await tx.courseGroupFile.createMany({ data: fileRows, skipDuplicates: true });
           totalFiles += fileCount;
         }
       }
 
       console.log(`   ✅ Study groups: ${courses.length} groups, ${totalMembers} new members, ${totalPosts} new posts, ${totalReplies} replies, ${totalFiles} new files`);
-    } finally {
-      // Reset role back
-      console.log('   🔒 Resetting role...');
-      await prisma.$executeRawUnsafe(`RESET ROLE`);
-    }
+    });
   } catch (e: any) {
     console.warn(`   ⚠️  Phase 7 skipped (${e.code || 'error'}): ${e.message?.slice(0, 150)}`);
   }
