@@ -49,7 +49,7 @@ export async function getFeedPosts(params: {
 }) {
   const { space, groupId, visibility, limit = 20, cursor } = params;
 
-  const where: Record<string, unknown> = {};
+  const where: Record<string, unknown> = { isDeleted: false };
   if (space) where.space = space;
   if (groupId) where.groupId = groupId;
   if (visibility) where.visibility = visibility;
@@ -85,7 +85,7 @@ export async function getPostById(postId: string) {
 
 export async function getUserPosts(userId: string, limit = 20, cursor?: string) {
   return prisma.communityPost.findMany({
-    where: { authorId: userId },
+    where: { authorId: userId, isDeleted: false },
     include: {
       author: { select: { id: true, name: true, username: true, avatar: true } },
       _count: { select: { likes: true, comments: true } },
@@ -98,6 +98,8 @@ export async function getUserPosts(userId: string, limit = 20, cursor?: string) 
 
 // ── Update ──────────────────────────────────────────────────────────────
 
+const EDIT_WINDOW_HOURS = 24;
+
 export async function updatePost(postId: string, authorId: string, data: {
   content?: string;
   imageUrls?: string[];
@@ -105,9 +107,16 @@ export async function updatePost(postId: string, authorId: string, data: {
   isPinned?: boolean;
 }) {
   const post = await prisma.communityPost.findFirst({
-    where: { id: postId, authorId },
+    where: { id: postId, authorId, isDeleted: false },
   });
   if (!post) throw new Error("Post not found or unauthorized");
+
+  // Check edit window
+  const hoursSinceCreation =
+    (Date.now() - post.createdAt.getTime()) / (1000 * 60 * 60);
+  if (hoursSinceCreation > EDIT_WINDOW_HOURS) {
+    throw new Error(`Posts can only be edited within ${EDIT_WINDOW_HOURS} hours of posting`);
+  }
 
   return prisma.communityPost.update({
     where: { id: postId },
@@ -115,15 +124,18 @@ export async function updatePost(postId: string, authorId: string, data: {
   });
 }
 
-// ── Delete ──────────────────────────────────────────────────────────────
+// ── Delete (soft-delete) ────────────────────────────────────────────────
 
 export async function deletePost(postId: string, authorId: string) {
   const post = await prisma.communityPost.findFirst({
-    where: { id: postId, authorId },
+    where: { id: postId, authorId, isDeleted: false },
   });
   if (!post) throw new Error("Post not found or unauthorized");
 
-  return prisma.communityPost.delete({ where: { id: postId } });
+  return prisma.communityPost.update({
+    where: { id: postId },
+    data: { isDeleted: true, deletedAt: new Date() },
+  });
 }
 
 // ── Likes ───────────────────────────────────────────────────────────────
@@ -152,11 +164,121 @@ export async function getPostLikes(postId: string, limit = 50) {
 // ── Pinning ─────────────────────────────────────────────────────────────
 
 export async function togglePinPost(postId: string, authorId: string) {
-  const post = await prisma.communityPost.findFirst({ where: { id: postId, authorId } });
+  const post = await prisma.communityPost.findFirst({
+    where: { id: postId, authorId, isDeleted: false },
+  });
   if (!post) throw new Error("Post not found or unauthorized");
 
   return prisma.communityPost.update({
     where: { id: postId },
     data: { isPinned: !post.isPinned },
+  });
+}
+
+export async function getPinnedPosts(spaceId?: string) {
+  const where: Record<string, unknown> = {
+    isPinned: true,
+    isDeleted: false,
+  };
+  if (spaceId) where.space = spaceId;
+
+  return prisma.communityPost.findMany({
+    where,
+    include: {
+      author: { select: { id: true, name: true, username: true, avatar: true } },
+      _count: { select: { likes: true, comments: true, shares: true } },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+// ── Shares ──────────────────────────────────────────────────────────────
+
+export async function sharePost(postId: string, userId: string, content?: string) {
+  // Verify post exists and is not deleted
+  const post = await prisma.communityPost.findFirst({
+    where: { id: postId, isDeleted: false },
+  });
+  if (!post) throw new Error("Post not found");
+
+  return prisma.communityShare.create({
+    data: { postId, userId, content },
+    select: {
+      id: true,
+      content: true,
+      createdAt: true,
+      user: { select: { id: true, name: true, username: true, avatar: true } },
+    },
+  });
+}
+
+// ── Reports ─────────────────────────────────────────────────────────────
+
+export async function reportPost(postId: string, userId: string, reason: string) {
+  // Verify post exists and is not deleted
+  const post = await prisma.communityPost.findFirst({
+    where: { id: postId, isDeleted: false },
+  });
+  if (!post) throw new Error("Post not found");
+
+  return prisma.communityReport.upsert({
+    where: { postId_userId: { postId, userId } },
+    create: { postId, userId, reason },
+    update: { reason },
+  });
+}
+
+// ── Post Image ──────────────────────────────────────────────────────────
+
+export async function uploadPostImage(postId: string, imageUrl: string) {
+  return prisma.communityPost.update({
+    where: { id: postId },
+    data: { imageUrls: { push: imageUrl } },
+  });
+}
+
+// ── Search ──────────────────────────────────────────────────────────────
+
+export async function searchPosts(query: string, filters?: {
+  space?: string;
+  authorId?: string;
+  limit?: number;
+  cursor?: string;
+}) {
+  const { space, authorId, limit = 20, cursor } = filters ?? {};
+
+  const where: Record<string, unknown> = {
+    isDeleted: false,
+    content: { contains: query, mode: "insensitive" },
+  };
+  if (space) where.space = space;
+  if (authorId) where.authorId = authorId;
+
+  return prisma.communityPost.findMany({
+    where,
+    include: {
+      author: { select: { id: true, name: true, username: true, avatar: true } },
+      _count: { select: { likes: true, comments: true, shares: true } },
+    },
+    take: limit,
+    ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+// ── Post Detail (enriched) ──────────────────────────────────────────────
+
+export async function getPostDetail(postId: string) {
+  return prisma.communityPost.findFirst({
+    where: { id: postId, isDeleted: false },
+    include: {
+      author: { select: { id: true, name: true, username: true, avatar: true } },
+      likes: {
+        include: { user: { select: { id: true, name: true, avatar: true } } },
+        orderBy: { createdAt: "desc" },
+        take: 50,
+      },
+      _count: { select: { likes: true, comments: true, shares: true } },
+    },
   });
 }

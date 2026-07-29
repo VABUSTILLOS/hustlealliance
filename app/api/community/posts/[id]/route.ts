@@ -25,6 +25,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   } catch (err) {
     const msg = (err as Error).message;
     if (msg.includes("not found")) return NextResponse.json({ error: msg }, { status: 404 });
+    if (msg.includes("only be edited within")) return NextResponse.json({ error: msg }, { status: 403 });
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

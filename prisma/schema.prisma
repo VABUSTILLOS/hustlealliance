@@ -293,6 +293,10 @@ model User {
   // ── NEW: Mentions ──
   mentionsReceived   Mention[]
 
+  // ── NEW: Post shares & reports ──
+  shares             CommunityShare[]
+  reports            CommunityReport[]
+
   // ── NEW: Activity feed ──
   feedItemsOwned FeedItem[] @relation("FeedOwner")
   feedItemsActed FeedItem[] @relation("FeedActor")
@@ -687,6 +691,8 @@ model CommunityPost {
   isPinned   Boolean        @default(false)
   isEdited   Boolean        @default(false)
   editedAt   DateTime?
+  isDeleted  Boolean        @default(false)
+  deletedAt  DateTime?
   visibility PostVisibility @default(PUBLIC)
   groupId    String?
   group      CommunityGroup? @relation(fields: [groupId], references: [id], onDelete: SetNull)
@@ -695,11 +701,14 @@ model CommunityPost {
   author   User              @relation(fields: [authorId], references: [id], onDelete: Cascade)
   comments CommunityComment[]
   likes    PostLike[]
+  shares   CommunityShare[]
+  reports  CommunityReport[]
 
   @@index([authorId, createdAt])
   @@index([groupId, createdAt])
   @@index([space, createdAt])
   @@index([createdAt])
+  @@index([isDeleted])
 }
 
 model CommunityComment {
@@ -863,6 +872,39 @@ model PostLike {
   id        String   @id @default(uuid())
   postId    String
   userId    String
+  createdAt DateTime @default(now())
+
+  post CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([postId])
+  @@index([userId])
+}
+
+// ── Post Shares ────────────────────────────────────────────────────────
+
+model CommunityShare {
+  id        String   @id @default(uuid())
+  postId    String
+  userId    String
+  content   String?  // Optional reshare comment
+  createdAt DateTime @default(now())
+
+  post CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([postId, createdAt])
+  @@index([userId])
+}
+
+// ── Post Reports ───────────────────────────────────────────────────────
+
+model CommunityReport {
+  id        String   @id @default(uuid())
+  postId    String
+  userId    String
+  reason    String
   createdAt DateTime @default(now())
 
   post CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
