@@ -5,7 +5,10 @@ const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 
 const createPrismaClient = () => {
   const { Pool } = require('pg');
-  const connectionString = process.env.DATABASE_URL!;
+  const connectionString = process.env.DATABASE_URL;
+  if (!connectionString) {
+    throw new Error('DATABASE_URL environment variable is not set');
+  }
   // Add connect_timeout to avoid hanging on cold starts
   const urlWithTimeout = connectionString.includes('?')
     ? `${connectionString}&connect_timeout=10`
@@ -23,8 +26,18 @@ const createPrismaClient = () => {
   return new PrismaClient({ adapter });
 };
 
-export const prisma = globalForPrisma.prisma || createPrismaClient();
+let _prisma: PrismaClient | undefined;
 
-globalForPrisma.prisma = prisma;
+// Lazy initialization: PrismaClient is only created on first access, not at
+// import time. This prevents build-time crashes when DATABASE_URL is unset.
+export const prisma = new Proxy({} as PrismaClient, {
+  get(_target, prop: string | symbol, receiver: unknown) {
+    if (!_prisma) {
+      _prisma = globalForPrisma.prisma || createPrismaClient();
+      globalForPrisma.prisma = _prisma;
+    }
+    return Reflect.get(_prisma as object, prop, receiver);
+  },
+});
 
 export default prisma;
