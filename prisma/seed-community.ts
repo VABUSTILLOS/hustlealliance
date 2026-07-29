@@ -363,13 +363,9 @@ async function main() {
   // ── PHASE 7: Course Study Groups (disable RLS, populate all groups) ────────
   console.log('\n📦 Phase 7: Creating CourseStudyGroups...');
   try {
-    // Temporarily disable RLS on study group tables
-    console.log('   🔓 Disabling RLS on CourseStudyGroup tables...');
-    await prisma.$executeRawUnsafe(`ALTER TABLE "CourseStudyGroup" DISABLE ROW LEVEL SECURITY`);
-    await prisma.$executeRawUnsafe(`ALTER TABLE "CourseGroupMember" DISABLE ROW LEVEL SECURITY`);
-    await prisma.$executeRawUnsafe(`ALTER TABLE "CourseGroupPost" DISABLE ROW LEVEL SECURITY`);
-    await prisma.$executeRawUnsafe(`ALTER TABLE "CourseGroupFile" DISABLE ROW LEVEL SECURITY`);
-    await prisma.$executeRawUnsafe(`ALTER TABLE "CourseGroupReply" DISABLE ROW LEVEL SECURITY`);
+    // Bypass RLS by temporarily assuming the postgres role
+    console.log('   🔓 Escalating role to bypass RLS...');
+    await prisma.$executeRawUnsafe(`SET ROLE postgres`);
 
     try {
       const courses = await prisma.course.findMany({ where: { status: 'PUBLISHED' } });
@@ -478,13 +474,9 @@ async function main() {
 
       console.log(`   ✅ Study groups: ${courses.length} groups, ${totalMembers} new members, ${totalPosts} new posts, ${totalReplies} replies, ${totalFiles} new files`);
     } finally {
-      // Always re-enable RLS
-      console.log('   🔒 Re-enabling RLS on CourseStudyGroup tables...');
-      await prisma.$executeRawUnsafe(`ALTER TABLE "CourseStudyGroup" ENABLE ROW LEVEL SECURITY`);
-      await prisma.$executeRawUnsafe(`ALTER TABLE "CourseGroupMember" ENABLE ROW LEVEL SECURITY`);
-      await prisma.$executeRawUnsafe(`ALTER TABLE "CourseGroupPost" ENABLE ROW LEVEL SECURITY`);
-      await prisma.$executeRawUnsafe(`ALTER TABLE "CourseGroupFile" ENABLE ROW LEVEL SECURITY`);
-      await prisma.$executeRawUnsafe(`ALTER TABLE "CourseGroupReply" ENABLE ROW LEVEL SECURITY`);
+      // Reset role back
+      console.log('   🔒 Resetting role...');
+      await prisma.$executeRawUnsafe(`RESET ROLE`);
     }
   } catch (e: any) {
     console.warn(`   ⚠️  Phase 7 skipped (${e.code || 'error'}): ${e.message?.slice(0, 150)}`);
