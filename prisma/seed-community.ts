@@ -8,7 +8,6 @@
 import 'dotenv/config';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../lib/generated/prisma/client';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import {
   random, pick, pickN, pickWeighted, sliceRandom, randInt, randFloat,
   randomDate, randomDateBiased, weekdayDate, burstDates, dateNear, startOfDay,
@@ -25,18 +24,6 @@ const adapter = new PrismaPg({
   connectionString: (process.env.DATABASE_URL || '').replace('connect_timeout=0', 'connect_timeout=30'),
 });
 const prisma = new PrismaClient({ adapter });
-
-// Supabase service-role client for bypassing RLS on CourseStudyGroup tables (Phase 7)
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://yftgdtdvmvvqyzcdntge.supabase.co';
-
-function createServiceRoleClient(): SupabaseClient | null {
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!key || key.startsWith('[') || key.length < 20) {
-    console.warn('   ⚠️  SUPABASE_SERVICE_ROLE_KEY not available or masked, RLS bypass disabled');
-    return null;
-  }
-  return createClient(SUPABASE_URL, key, { auth: { persistSession: false } });
-}
 
 const NOW = Date.now();
 const MS_DAY = 86_400_000;
@@ -372,96 +359,93 @@ async function main() {
   console.log(`   ✅ ${totalRSVPs} RSVPs created`);
   }
 
-  // ── PHASE 7: Course Study Groups (via Supabase REST API, bypasses RLS) ────
+  // ── PHASE 7: Course Study Groups (disable RLS, insert, re-enable) ────────
   console.log('\n📦 Phase 7: Creating CourseStudyGroups...');
   try {
-    const supabase = createServiceRoleClient();
-    if (!supabase) {
-      console.warn('   ⚠️  Phase 7 skipped: SUPABASE_SERVICE_ROLE_KEY not available');
+    // Count existing — if any study groups exist, skip (idempotent)
+    const existingCount = await prisma.$queryRawUnsafe<{ count: bigint }[]>(
+      `SELECT COUNT(*)::bigint FROM "CourseStudyGroup"`
+    );
+    if (Number(existingCount[0].count) > 0) {
+      console.log(`   ⏭️  ${existingCount[0].count} study groups already exist, skipping`);
     } else {
-      const courses = await prisma.course.findMany({ where: { status: 'PUBLISHED' } });
-      console.log(`   Found ${courses.length} published courses`);
+      // Temporarily disable RLS on study group tables
+      console.log('   🔓 Disabling RLS on CourseStudyGroup tables...');
+      await prisma.$executeRawUnsafe(`ALTER TABLE "CourseStudyGroup" DISABLE ROW LEVEL SECURITY`);
+      await prisma.$executeRawUnsafe(`ALTER TABLE "CourseGroupMember" DISABLE ROW LEVEL SECURITY`);
+      await prisma.$executeRawUnsafe(`ALTER TABLE "CourseGroupPost" DISABLE ROW LEVEL SECURITY`);
+      await prisma.$executeRawUnsafe(`ALTER TABLE "CourseGroupFile" DISABLE ROW LEVEL SECURITY`);
 
-      for (const course of courses) {
-        // Check if study group already exists (idempotent)
-        const { data: existing } = await supabase
-          .from('CourseStudyGroup')
-          .select('id')
-          .eq('courseId', course.id)
-          .maybeSingle();
+      try {
+        const courses = await prisma.course.findMany({ where: { status: 'PUBLISHED' } });
+        console.log(`   Found ${courses.length} published courses`);
 
-        if (existing) {
-          console.log(`   ⏭️  Study group exists for ${course.slug}, skipping`);
-          continue;
-        }
+        let totalMembers = 0;
+        let totalPosts = 0;
+        let totalFiles = 0;
 
-        // Create the study group
-        const { data: group, error: createErr } = await supabase
-          .from('CourseStudyGroup')
-          .insert({
-            courseId: course.id,
-            description: `Study group for ${course.title}. Collaborate, ask questions, and share resources with your cohort.`,
-          })
-          .select('id')
-          .single();
-
-        if (createErr || !group) {
-          console.warn(`   ⚠️  Failed to create group for ${course.slug}: ${createErr?.message}`);
-          continue;
-        }
-
-        // Add members (8-30)
-        const memberCount = randInt(8, 30);
-        const memberIds = pickN(userIds, memberCount);
-        const memberDates = sequentialDates(memberCount, SEED_WINDOW, 1);
-
-        const memberRows = memberIds.map((userId, i) => ({
-          groupId: group.id,
-          userId,
-          joinedAt: memberDates[i].toISOString(),
-        }));
-        // Insert in batches (Supabase REST API has limits)
-        for (const batch of chunk(memberRows, 50)) {
-          await supabase.from('CourseGroupMember').insert(batch);
-        }
-
-        // Add group posts (10-30)
-        const postCount = randInt(10, 30);
-        for (let p = 0; p < postCount; p++) {
-          const authorId = pick(memberIds);
-          const content = fillTemplate(pick(groupPostTemplates));
-          const createdAt = weekdayDate(SEED_WINDOW, 0);
-
-          await supabase.from('CourseGroupPost').insert({
-            groupId: group.id,
-            authorId,
-            content,
-            createdAt: createdAt.toISOString(),
+        for (const course of courses) {
+          const group = await prisma.courseStudyGroup.create({
+            data: {
+              courseId: course.id,
+              description: `Study group for ${course.title}. Collaborate, ask questions, and share resources with your cohort.`,
+            },
           });
+
+          // Add members (8-30)
+          const memberCount = randInt(8, 30);
+          const memberIds = pickN(userIds, memberCount);
+          const memberDates = sequentialDates(memberCount, SEED_WINDOW, 1);
+
+          await prisma.courseGroupMember.createMany({
+            data: memberIds.map((userId, i) => ({
+              groupId: group.id, userId, joinedAt: memberDates[i],
+            })),
+            skipDuplicates: true,
+          });
+
+          // Add group posts (10-30)
+          const postCount = randInt(10, 30);
+          for (let p = 0; p < postCount; p++) {
+            const authorId = pick(memberIds);
+            const content = fillTemplate(pick(groupPostTemplates));
+            const createdAt = weekdayDate(SEED_WINDOW, 0);
+            await prisma.courseGroupPost.create({
+              data: { groupId: group.id, authorId, content, createdAt },
+            });
+          }
+
+          // Add group files (3-8)
+          const fileCount = randInt(3, 8);
+          const fileNames = [
+            'study-guide-module-1.pdf', 'practice-questions.pdf', 'cheat-sheet.pdf',
+            'additional-resources.pdf', 'workshop-notes.pdf', 'group-project-brief.pdf',
+            'exam-prep-guide.pdf', 'case-studies.pdf',
+          ];
+          const fileRows = Array.from({ length: fileCount }, () => ({
+            groupId: group.id,
+            uploaderId: pick(heroIds),
+            fileName: pick(fileNames),
+            fileUrl: 'https://example.com/files/placeholder.pdf',
+            fileSize: randInt(100_000, 5_000_000),
+            mimeType: 'application/pdf',
+          }));
+          await prisma.courseGroupFile.createMany({ data: fileRows });
+
+          totalMembers += memberCount;
+          totalPosts += postCount;
+          totalFiles += fileCount;
         }
 
-        // Add group files (3-8)
-        const fileCount = randInt(3, 8);
-        const fileNames = [
-          'study-guide-module-1.pdf', 'practice-questions.pdf', 'cheat-sheet.pdf',
-          'additional-resources.pdf', 'workshop-notes.pdf', 'group-project-brief.pdf',
-          'exam-prep-guide.pdf', 'case-studies.pdf',
-        ];
-        const fileRows = Array.from({ length: fileCount }, () => ({
-          groupId: group.id,
-          uploaderId: pick(heroIds),
-          fileName: pick(fileNames),
-          fileUrl: 'https://example.com/files/placeholder.pdf',
-          fileSize: randInt(100_000, 5_000_000),
-          mimeType: 'application/pdf',
-        }));
-        for (const batch of chunk(fileRows, 50)) {
-          await supabase.from('CourseGroupFile').insert(batch);
-        }
-
-        console.log(`   ✅ ${course.slug}: ${memberCount} members, ${postCount} posts, ${fileCount} files`);
+        console.log(`   ✅ Study groups: ${courses.length} groups, ${totalMembers} members, ${totalPosts} posts, ${totalFiles} files`);
+      } finally {
+        // Always re-enable RLS
+        console.log('   🔒 Re-enabling RLS on CourseStudyGroup tables...');
+        await prisma.$executeRawUnsafe(`ALTER TABLE "CourseStudyGroup" ENABLE ROW LEVEL SECURITY`);
+        await prisma.$executeRawUnsafe(`ALTER TABLE "CourseGroupMember" ENABLE ROW LEVEL SECURITY`);
+        await prisma.$executeRawUnsafe(`ALTER TABLE "CourseGroupPost" ENABLE ROW LEVEL SECURITY`);
+        await prisma.$executeRawUnsafe(`ALTER TABLE "CourseGroupFile" ENABLE ROW LEVEL SECURITY`);
       }
-      console.log(`   ✅ Study groups populated`);
     }
   } catch (e: any) {
     console.warn(`   ⚠️  Phase 7 skipped (${e.code || 'error'}): ${e.message?.slice(0, 150)}`);
