@@ -17,6 +17,11 @@ export interface CommunityPostItem {
   space: string | null;
   createdAt: string;
   commentCount: number;
+  likeCount: number;
+  shareCount: number;
+  isPinned: boolean;
+  isEdited: boolean;
+  imageUrls: string[];
 }
 
 export interface CommunityCommentItem {
@@ -52,7 +57,8 @@ export const getCommunityPosts = cache(
     // Fetch limit+1 to determine if there are more items
     const take = limit + 1;
 
-    const where = space ? { space } : {};
+    const where: Record<string, unknown> = { isDeleted: false };
+    if (space) where.space = space;
 
     const posts = await prisma.communityPost.findMany({
       where,
@@ -66,7 +72,7 @@ export const getCommunityPosts = cache(
         author: {
           select: { id: true, name: true, username: true, avatar: true },
         },
-        _count: { select: { comments: true } },
+        _count: { select: { comments: true, likes: true, shares: true } },
       },
     });
 
@@ -83,6 +89,11 @@ export const getCommunityPosts = cache(
       space: post.space,
       createdAt: post.createdAt.toISOString(),
       commentCount: post._count.comments,
+      likeCount: post._count.likes,
+      shareCount: post._count.shares,
+      isPinned: post.isPinned,
+      isEdited: post.isEdited,
+      imageUrls: post.imageUrls,
     }));
 
     const nextCursor = hasMore ? items[items.length - 1]?.id ?? null : null;
@@ -170,5 +181,98 @@ export const getTrendingTopics = cache(
       postCount: row._count.id,
       commentCount: commentMap.get(row.space as string) ?? 0,
     }));
+  },
+);
+
+// ── Pinned Posts ──────────────────────────────────────────────────────
+
+export const getPinnedPosts = cache(
+  async (spaceId?: string) => {
+    const where: Record<string, unknown> = {
+      isPinned: true,
+      isDeleted: false,
+    };
+    if (spaceId) where.space = spaceId;
+
+    const posts = await prisma.communityPost.findMany({
+      where,
+      include: {
+        author: { select: { id: true, name: true, username: true, avatar: true } },
+        _count: { select: { likes: true, comments: true, shares: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return posts.map((post) => ({
+      id: post.id,
+      author: {
+        id: post.author.id,
+        name: post.author.name,
+        username: post.author.username,
+        avatar: post.author.avatar,
+      },
+      content: post.content,
+      space: post.space,
+      createdAt: post.createdAt.toISOString(),
+      commentCount: post._count.comments,
+      likeCount: post._count.likes,
+      shareCount: post._count.shares,
+      isPinned: post.isPinned,
+      isEdited: post.isEdited,
+      imageUrls: post.imageUrls,
+    }));
+  },
+);
+
+// ── Post Detail (cached) ──────────────────────────────────────────────
+
+export interface PostDetail {
+  id: string;
+  author: CommunityPostAuthor;
+  content: string;
+  space: string | null;
+  imageUrls: string[];
+  isPinned: boolean;
+  isEdited: boolean;
+  editedAt: string | null;
+  visibility: string;
+  createdAt: string;
+  likeCount: number;
+  commentCount: number;
+  shareCount: number;
+}
+
+export const getPostDetailCached = cache(
+  async (postId: string): Promise<PostDetail | null> => {
+    const post = await prisma.communityPost.findFirst({
+      where: { id: postId, isDeleted: false },
+      include: {
+        author: { select: { id: true, name: true, username: true, avatar: true } },
+        _count: { select: { likes: true, comments: true, shares: true } },
+      },
+    });
+
+    if (!post) return null;
+
+    return {
+      id: post.id,
+      author: {
+        id: post.author.id,
+        name: post.author.name,
+        username: post.author.username,
+        avatar: post.author.avatar,
+      },
+      content: post.content,
+      space: post.space,
+      imageUrls: post.imageUrls,
+      isPinned: post.isPinned,
+      isEdited: post.isEdited,
+      editedAt: post.editedAt?.toISOString() ?? null,
+      visibility: post.visibility,
+      createdAt: post.createdAt.toISOString(),
+      likeCount: post._count.likes,
+      commentCount: post._count.comments,
+      shareCount: post._count.shares,
+    };
   },
 );
