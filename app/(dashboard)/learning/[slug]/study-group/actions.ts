@@ -61,7 +61,7 @@ export async function ensureGroupMembership(email: string, courseSlug: string) {
     update: {},
   });
 
-  await prisma.groupMember.upsert({
+  await prisma.courseGroupMember.upsert({
     where: { groupId_userId: { groupId: group.id, userId: uid } },
     create: { groupId: group.id, userId: uid },
     update: {},
@@ -88,7 +88,7 @@ export async function createGroupPost(
     where: { courseId },
   });
 
-  const post = await prisma.groupPost.create({
+  const post = await prisma.courseGroupPost.create({
     data: { groupId: group.id, authorId: uid, content: content.trim() },
     include: {
       author: { select: { id: true, name: true, avatar: true, username: true } },
@@ -119,7 +119,7 @@ export async function createGroupReply(
 
   const { userId: uid } = await requireEnrollment(email, courseSlug);
 
-  const reply = await prisma.groupReply.create({
+  const reply = await prisma.courseGroupReply.create({
     data: { postId, authorId: uid, content: content.trim() },
     include: {
       author: { select: { id: true, name: true, avatar: true } },
@@ -172,7 +172,7 @@ export async function uploadGroupFile(
     data: { publicUrl },
   } = supabase.storage.from('study-group-files').getPublicUrl(filePath);
 
-  const groupFile = await prisma.groupFile.create({
+  const groupFile = await prisma.courseGroupFile.create({
     data: {
       groupId: group.id,
       uploaderId: uid,

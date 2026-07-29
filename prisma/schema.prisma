@@ -74,12 +74,147 @@ enum NotificationType {
   QUIZ_PASSED
   XP_MILESTONE
   CONTENT_UNLOCKED
+  // ── Community social types ──
+  FOLLOWED
+  POST_LIKED
+  COMMENT_LIKED
+  COMMENTED
+  MENTIONED
+  FRIEND_REQUEST
+  FRIEND_ACCEPTED
+  GROUP_INVITE
+  GROUP_JOIN_REQUEST
+  GROUP_POST
+  EVENT_INVITE
+  EVENT_REMINDER
+  NEW_MESSAGE
+  JOB_APPLICATION_UPDATE
 }
 
 enum DripScheduleType {
   CALENDAR
   INTERVAL_DAYS
   INTERVAL_LESSONS
+}
+
+// ── Community Enums ──────────────────────────────────────────────────────
+
+enum PostVisibility {
+  PUBLIC
+  CONNECTIONS_ONLY
+  GROUP_ONLY
+}
+
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  BLOCKED
+}
+
+enum MentionEntityType {
+  POST
+  COMMENT
+  MESSAGE
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  FILE
+  SYSTEM
+}
+
+enum GroupVisibility {
+  PUBLIC
+  PRIVATE
+  HIDDEN
+}
+
+enum CommunityGroupRole {
+  OWNER
+  ADMIN
+  MODERATOR
+  MEMBER
+}
+
+enum CommunityGroupMemberStatus {
+  ACTIVE
+  INVITED
+  REQUESTED
+  BANNED
+}
+
+enum EventType {
+  ONLINE
+  IN_PERSON
+  HYBRID
+}
+
+enum EventStatus {
+  UPCOMING
+  LIVE
+  ENDED
+  CANCELLED
+}
+
+enum RSVPStatus {
+  GOING
+  INTERESTED
+  NOT_GOING
+}
+
+enum JobType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  INTERNSHIP
+  CO_FOUNDER
+}
+
+enum JobStatus {
+  OPEN
+  CLOSED
+  FILLED
+  DRAFT
+}
+
+enum ApplicationStatus {
+  SUBMITTED
+  REVIEWING
+  INTERVIEW
+  OFFERED
+  REJECTED
+  WITHDRAWN
+}
+
+enum ProductType {
+  DIGITAL
+  PHYSICAL
+  COURSE
+  MEMBERSHIP
+}
+
+enum StoreOrderStatus {
+  PENDING
+  PAID
+  FULFILLED
+  CANCELLED
+  REFUNDED
+}
+
+enum FeedItemType {
+  POST_CREATED
+  POST_LIKED
+  COMMENT_CREATED
+  USER_FOLLOWED
+  FRIEND_ACCEPTED
+  GROUP_JOINED
+  EVENT_CREATED
+  EVENT_RSVP
+  BADGE_EARNED
+  JOB_POSTED
+  PRODUCT_LISTED
 }
 
 model User {
@@ -94,9 +229,11 @@ model User {
   stripeCustomerId    String?        @unique
   bio                 String?
   headline            String?
+  coverPhoto          String?
   createdAt           DateTime       @default(now())
   updatedAt           DateTime       @updatedAt
 
+  // ── Existing LMS relations ──
   enrollments       Enrollment[]
   lessonProgress    LessonProgress[]
   quizAttempts      QuizAttempt[]
@@ -105,10 +242,10 @@ model User {
   instructorCourses Course[]          @relation("CourseInstructor")
   posts                CommunityPost[]
   comments             CommunityComment[]
-  studyGroupMemberships GroupMember[]
-  studyGroupPosts       GroupPost[]
-  studyGroupReplies     GroupReply[]
-  studyGroupFiles       GroupFile[]
+  studyGroupMemberships CourseGroupMember[]
+  studyGroupPosts       CourseGroupPost[]
+  studyGroupReplies     CourseGroupReply[]
+  studyGroupFiles       CourseGroupFile[]
   xpTransactions    XPTransaction[]
   streak            Streak?
   liveClassRegs     LiveClassRegistration[]
@@ -117,6 +254,58 @@ model User {
   notifications     Notification[]
   entitlements      Entitlement[]
   contentReleases   ContentRelease[]
+
+  // ── NEW: Extended profile ──
+  profile            Profile?
+
+  // ── NEW: Social graph ──
+  followers          Follow[]              @relation("UserFollowed")
+  following          Follow[]              @relation("UserFollower")
+  friendships        Friendship[]          @relation("UserA")
+  friendOf           Friendship[]          @relation("UserB")
+
+  // ── NEW: Post/comment likes ──
+  postLikes          PostLike[]
+  commentLikes       CommentLike[]
+
+  // ── NEW: Messages ──
+  sentMessages       Message[]              @relation("MessageSender")
+  messageReads       MessageRead[]
+  conversations      ConversationParticipant[]
+
+  // ── NEW: Community groups ──
+  communityGroupMemberships CommunityGroupMember[]
+  communityGroupPosts       CommunityGroupPost[]
+  communityGroupComments    CommunityGroupComment[]
+
+  // ── NEW: Events ──
+  eventRSVPs         EventRSVP[]
+  createdEvents      Event[]               @relation("EventCreator")
+
+  // ── NEW: Jobs ──
+  jobListings        JobListing[]
+  jobApplications    JobApplication[]
+
+  // ── NEW: Store ──
+  storeOrders        StoreOrder[]
+  storeReviews       StoreReview[]
+
+  // ── NEW: Mentions ──
+  mentionsReceived   Mention[]
+
+  // ── NEW: Activity feed ──
+  feedItemsOwned FeedItem[] @relation("FeedOwner")
+  feedItemsActed FeedItem[] @relation("FeedActor")
+
+  // ── NEW: Search ──
+  searchQueries      SearchQuery[]
+
+  // ── NEW: Blocks ──
+  blockedUsers       BlockedUser[]          @relation("BlockedBy")
+  blockedByUsers     BlockedUser[]          @relation("BlockedUser")
+
+  // ── NEW: Groups created ──
+  createdGroups      CommunityGroup[]
 }
 
 model Category {
@@ -429,10 +618,14 @@ model Notification {
   title     String
   body      String
   read      Boolean          @default(false)
+  sourceId  String?          // Entity that triggered this notification (post, comment, user, group, event, message, job)
   metadata  Json?
   createdAt DateTime         @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read, createdAt])
+  @@index([type])
 }
 
 model CourseDripSettings {
@@ -486,14 +679,27 @@ model LessonPrerequisite {
 }
 
 model CommunityPost {
-  id        String   @id @default(uuid())
-  authorId  String
-  content   String
-  space     String?
-  createdAt DateTime @default(now())
+  id         String         @id @default(uuid())
+  authorId   String
+  content    String
+  space      String?
+  imageUrls  String[]       @default([])
+  isPinned   Boolean        @default(false)
+  isEdited   Boolean        @default(false)
+  editedAt   DateTime?
+  visibility PostVisibility @default(PUBLIC)
+  groupId    String?
+  group      CommunityGroup? @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  createdAt  DateTime       @default(now())
 
   author   User              @relation(fields: [authorId], references: [id], onDelete: Cascade)
   comments CommunityComment[]
+  likes    PostLike[]
+
+  @@index([authorId, createdAt])
+  @@index([groupId, createdAt])
+  @@index([space, createdAt])
+  @@index([createdAt])
 }
 
 model CommunityComment {
@@ -503,8 +709,12 @@ model CommunityComment {
   content   String
   createdAt DateTime @default(now())
 
-  post   CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
-  author User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  post    CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author  User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  likes   CommentLike[]
+
+  @@index([postId, createdAt])
+  @@index([authorId])
 }
 
 // ── Course Study Groups (ISOLATED — zero FK overlap with CommunityPost/Comment/Spaces) ──
@@ -516,13 +726,13 @@ model CourseStudyGroup {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  course  Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  members GroupMember[]
-  posts   GroupPost[]
-  files   GroupFile[]
+  course  Course               @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  members CourseGroupMember[]
+  posts   CourseGroupPost[]
+  files   CourseGroupFile[]
 }
 
-model GroupMember {
+model CourseGroupMember {
   id       String   @id @default(uuid())
   groupId  String
   userId   String
@@ -534,7 +744,7 @@ model GroupMember {
   @@unique([groupId, userId])
 }
 
-model GroupPost {
+model CourseGroupPost {
   id        String   @id @default(uuid())
   groupId   String
   authorId  String
@@ -542,23 +752,23 @@ model GroupPost {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  group   CourseStudyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  author  User             @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  replies GroupReply[]
+  group   CourseStudyGroup  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  author  User              @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  replies CourseGroupReply[]
 }
 
-model GroupReply {
+model CourseGroupReply {
   id        String   @id @default(uuid())
   postId    String
   authorId  String
   content   String
   createdAt DateTime @default(now())
 
-  post   GroupPost @relation(fields: [postId], references: [id], onDelete: Cascade)
-  author User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  post   CourseGroupPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author User            @relation(fields: [authorId], references: [id], onDelete: Cascade)
 }
 
-model GroupFile {
+model CourseGroupFile {
   id         String   @id @default(uuid())
   groupId    String
   uploaderId String
@@ -570,4 +780,458 @@ model GroupFile {
 
   group    CourseStudyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
   uploader User             @relation(fields: [uploaderId], references: [id], onDelete: Cascade)
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// ── COMMUNITY MODULE: Profiles, Social Graph, Groups, Events, Jobs, Store
+// ═══════════════════════════════════════════════════════════════════════
+
+// ── Extended Profile ───────────────────────────────────────────────────
+
+model Profile {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  displayName     String?
+  location        String?
+  website         String?
+  socialLinks     Json?    // { twitter, linkedin, github, instagram, youtube }
+  skills          String[] @default([])
+  industries      String[] @default([])
+  yearsExperience Int?
+  headline        String?
+  summary         String?
+  phone           String?
+  dateOfBirth     DateTime?
+  privacySettings Json?    // { showEmail, showLocation, showActivity }
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ── Follow (asymmetric social graph) ────────────────────────────────────
+
+model Follow {
+  id          String   @id @default(uuid())
+  followerId  String   // User who follows
+  followedId  String   // User being followed
+  createdAt   DateTime @default(now())
+
+  follower User @relation("UserFollower", fields: [followerId], references: [id], onDelete: Cascade)
+  followed User @relation("UserFollowed", fields: [followedId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followedId])
+  @@index([followedId])
+  @@index([followerId])
+}
+
+// ── Friendship (symmetric, request-based) ──────────────────────────────
+
+model Friendship {
+  id             String           @id @default(uuid())
+  userAId        String           // Sender
+  userBId        String           // Receiver
+  status         FriendshipStatus @default(PENDING)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  userA User @relation("UserA", fields: [userAId], references: [id], onDelete: Cascade)
+  userB User @relation("UserB", fields: [userBId], references: [id], onDelete: Cascade)
+
+  @@unique([userAId, userBId])
+  @@index([userBId, status])
+  @@index([userAId, status])
+}
+
+// ── Blocking ────────────────────────────────────────────────────────────
+
+model BlockedUser {
+  id           String   @id @default(uuid())
+  blockedById  String   // User who blocks
+  blockedUserId String  // User being blocked
+  createdAt    DateTime @default(now())
+
+  blockedBy  User @relation("BlockedBy", fields: [blockedById], references: [id], onDelete: Cascade)
+  blockedUser User @relation("BlockedUser", fields: [blockedUserId], references: [id], onDelete: Cascade)
+
+  @@unique([blockedById, blockedUserId])
+}
+
+// ── Post Likes ─────────────────────────────────────────────────────────
+
+model PostLike {
+  id        String   @id @default(uuid())
+  postId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  post CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([postId])
+  @@index([userId])
+}
+
+// ── Comment Likes ──────────────────────────────────────────────────────
+
+model CommentLike {
+  id        String   @id @default(uuid())
+  commentId String
+  userId    String
+  createdAt DateTime @default(now())
+
+  comment CommunityComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([commentId, userId])
+  @@index([commentId])
+  @@index([userId])
+}
+
+// ── Mentions ────────────────────────────────────────────────────────────
+
+model Mention {
+  id          String           @id @default(uuid())
+  entityType  MentionEntityType
+  entityId    String           // ID of post, comment, or message
+  userId      String           // User who was mentioned
+  mentionedBy String           // ID of user who made the mention
+  createdAt   DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([entityType, entityId])
+}
+
+// ── Conversations (DMs) ────────────────────────────────────────────────
+
+model Conversation {
+  id         String   @id @default(uuid())
+  name       String?  // Optional group chat name
+  isGroup    Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  participants ConversationParticipant[]
+  messages     Message[]
+
+  @@index([updatedAt])
+}
+
+model ConversationParticipant {
+  id             String   @id @default(uuid())
+  conversationId String
+  userId         String
+  lastReadAt     DateTime @default(now())
+  isArchived     Boolean  @default(false)
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+}
+
+model Message {
+  id             String      @id @default(uuid())
+  conversationId String
+  senderId       String
+  type           MessageType @default(TEXT)
+  content        String
+  attachmentUrl  String?
+  createdAt      DateTime    @default(now())
+  editedAt       DateTime?
+
+  conversation Conversation     @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User             @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  reads        MessageRead[]
+
+  @@index([conversationId, createdAt])
+}
+
+model MessageRead {
+  id        String   @id @default(uuid())
+  messageId String
+  userId    String
+  readAt    DateTime @default(now())
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+  @@index([userId])
+}
+
+// ── Community Groups ────────────────────────────────────────────────────
+
+model CommunityGroup {
+  id          String         @id @default(uuid())
+  name        String
+  slug        String         @unique
+  description String?
+  avatar      String?
+  coverImage  String?
+  visibility  GroupVisibility @default(PUBLIC)
+  creatorId   String
+  memberCount Int            @default(0)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  creator  User                    @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  members  CommunityGroupMember[]
+  groupPosts CommunityGroupPost[]
+  posts    CommunityPost[]
+  events   Event[]
+
+  @@index([slug])
+  @@index([visibility, memberCount])
+}
+
+model CommunityGroupMember {
+  id        String                     @id @default(uuid())
+  groupId   String
+  userId    String
+  role      CommunityGroupRole         @default(MEMBER)
+  status    CommunityGroupMemberStatus @default(ACTIVE)
+  joinedAt  DateTime                   @default(now())
+
+  group CommunityGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+  @@index([userId])
+}
+
+// ── Community Group Posts & Comments ───────────────────────────────────
+
+model CommunityGroupPost {
+  id        String   @id @default(uuid())
+  groupId   String
+  authorId  String
+  content   String
+  imageUrls String[] @default([])
+  isPinned  Boolean  @default(false)
+  isEdited  Boolean  @default(false)
+  editedAt  DateTime?
+  createdAt DateTime @default(now())
+
+  group    CommunityGroup            @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  author   User                      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments CommunityGroupComment[]
+
+  @@index([groupId, createdAt])
+  @@index([authorId])
+}
+
+model CommunityGroupComment {
+  id        String   @id @default(uuid())
+  postId    String
+  authorId  String
+  content   String
+  createdAt DateTime @default(now())
+
+  post   CommunityGroupPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author User               @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([postId, createdAt])
+}
+
+// ── Events ──────────────────────────────────────────────────────────────
+
+model Event {
+  id          String      @id @default(uuid())
+  title       String
+  slug        String      @unique
+  description String?
+  type        EventType   @default(ONLINE)
+  status      EventStatus @default(UPCOMING)
+  location    String?     // URL for online, address for in-person
+  startDate   DateTime
+  endDate     DateTime?
+  coverImage  String?
+  maxAttendees Int?
+  isFeatured  Boolean     @default(false)
+  creatorId   String
+  groupId     String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  creator User        @relation("EventCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  group   CommunityGroup? @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  rsvps   EventRSVP[]
+
+  @@index([startDate])
+  @@index([groupId, startDate])
+  @@index([status, startDate])
+  @@index([slug])
+}
+
+model EventRSVP {
+  id        String      @id @default(uuid())
+  eventId   String
+  userId    String
+  status    RSVPStatus  @default(GOING)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
+  @@index([userId])
+  @@index([eventId, status])
+}
+
+// ── Job Board ───────────────────────────────────────────────────────────
+
+model JobListing {
+  id            String          @id @default(uuid())
+  title         String
+  company       String
+  slug          String          @unique
+  description   String
+  type          JobType         @default(FULL_TIME)
+  status        JobStatus       @default(OPEN)
+  location      String?
+  isRemote      Boolean         @default(false)
+  salaryRange   String?
+  requirements  String[]        @default([])
+  applicationUrl String?
+  contactEmail  String?
+  postedById    String
+  applicantCount Int            @default(0)
+  expiresAt     DateTime?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  postedBy     User             @relation(fields: [postedById], references: [id], onDelete: Cascade)
+  applications JobApplication[]
+
+  @@index([status, createdAt])
+  @@index([postedById])
+  @@index([slug])
+}
+
+model JobApplication {
+  id          String            @id @default(uuid())
+  jobId       String
+  applicantId String
+  status      ApplicationStatus @default(SUBMITTED)
+  coverLetter String?
+  resumeUrl   String?
+  notes       String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  job       JobListing @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  applicant User       @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+
+  @@unique([jobId, applicantId])
+  @@index([applicantId])
+  @@index([status])
+}
+
+// ── Online Store ────────────────────────────────────────────────────────
+
+model Product {
+  id          String      @id @default(uuid())
+  title       String
+  slug        String      @unique
+  description String
+  type        ProductType @default(DIGITAL)
+  price       Float
+  compareAt   Float?      // Original price for sale display
+  currency    String      @default("USD")
+  images      String[]    @default([])
+  stock       Int         @default(0)
+  isPublished Boolean     @default(false)
+  metadata    Json?       // Course ID for course products, file URL for digital
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  orders  StoreOrderItem[]
+  reviews StoreReview[]
+
+  @@index([type, isPublished])
+  @@index([slug])
+}
+
+model StoreOrder {
+  id        String          @id @default(uuid())
+  userId    String
+  status    StoreOrderStatus @default(PENDING)
+  totalAmount Float
+  currency  String          @default("USD")
+  stripePaymentIntentId String?
+  paidAt    DateTime?
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  user  User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items StoreOrderItem[]
+
+  @@index([userId, createdAt])
+  @@index([stripePaymentIntentId])
+}
+
+model StoreOrderItem {
+  id        String @id @default(uuid())
+  orderId   String
+  productId String
+  quantity  Int    @default(1)
+  unitPrice Float
+  totalPrice Float
+
+  order   StoreOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([orderId, productId])
+}
+
+model StoreReview {
+  id        String   @id @default(uuid())
+  productId String
+  userId    String
+  rating    Int      // 1-5
+  body      String?
+  createdAt DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, userId])
+  @@index([productId])
+}
+
+// ── Activity Feed (fanout-on-write) ────────────────────────────────────
+
+model FeedItem {
+  id         String       @id @default(uuid())
+  ownerId    String       // The user whose feed this belongs to
+  actorId    String       // The user who performed the action
+  type       FeedItemType
+  entityType String       // "Post", "Comment", "Event", "Group", "Friendship", "Job", "Product"
+  entityId   String       // ID of the entity
+  metadata   Json?        // Optional: preview text, counts, etc.
+  createdAt  DateTime     @default(now())
+
+  owner User @relation("FeedOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  actor User @relation("FeedActor", fields: [actorId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId, createdAt])
+  @@index([actorId])
+}
+
+// ── Search ──────────────────────────────────────────────────────────────
+
+model SearchQuery {
+  id        String   @id @default(uuid())
+  userId    String
+  term      String
+  results   Int      @default(0) // Number of results returned
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

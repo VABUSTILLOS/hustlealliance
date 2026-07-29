@@ -1,4 +1,5 @@
 import prisma from '@/lib/db/prisma';
+import { Prisma } from '@/lib/generated/prisma/client';
 import { sendEmail } from '@/lib/email/resend';
 import {
   courseCompletionEmail,
@@ -18,7 +19,22 @@ type NotificationType =
   | 'COURSE_EXPIRING'
   | 'LIVE_CLASS_REMINDER'
   | 'QUIZ_PASSED'
-  | 'XP_MILESTONE';
+  | 'XP_MILESTONE'
+  // ── Community social types ──
+  | 'FOLLOWED'
+  | 'POST_LIKED'
+  | 'COMMENT_LIKED'
+  | 'COMMENTED'
+  | 'MENTIONED'
+  | 'FRIEND_REQUEST'
+  | 'FRIEND_ACCEPTED'
+  | 'GROUP_INVITE'
+  | 'GROUP_JOIN_REQUEST'
+  | 'GROUP_POST'
+  | 'EVENT_INVITE'
+  | 'EVENT_REMINDER'
+  | 'NEW_MESSAGE'
+  | 'JOB_APPLICATION_UPDATE';
 
 interface CreateNotificationParams {
   userId: string;
@@ -26,6 +42,7 @@ interface CreateNotificationParams {
   type: NotificationType;
   title: string;
   body: string;
+  sourceId?: string;
   metadata?: Record<string, unknown>;
   sendEmailNow?: boolean;
   emailHtml?: string;
@@ -41,7 +58,8 @@ export async function createNotification(params: CreateNotificationParams) {
       type,
       title,
       body,
-      metadata: (metadata ?? {}) as any,
+      sourceId: params.sourceId ?? null,
+      metadata: (metadata ?? Prisma.JsonNull) as Prisma.InputJsonValue,
     },
   });
 
@@ -204,5 +222,134 @@ export async function notifyLiveClassReminder(
     metadata: { classTitle, meetingUrl },
     sendEmailNow: true,
     emailHtml: html,
+  });
+}
+
+// ─── Community social notification helpers ──────────────────────────
+
+export async function notifyFollowed(
+  userId: string, userEmail: string,
+  followerName: string, followerUsername: string,
+) {
+  return createNotification({
+    userId, userEmail,
+    type: 'FOLLOWED',
+    title: 'New follower',
+    body: `${followerName} started following you.`,
+    sourceId: followerUsername,
+    metadata: { followerName, followerUsername },
+  });
+}
+
+export async function notifyPostLiked(
+  userId: string, userEmail: string,
+  likerName: string, postId: string, preview: string,
+) {
+  return createNotification({
+    userId, userEmail,
+    type: 'POST_LIKED',
+    title: 'Post liked',
+    body: `${likerName} liked your post.`,
+    sourceId: postId,
+    metadata: { likerName, postId, preview: preview.slice(0, 100) },
+  });
+}
+
+export async function notifyCommentAdded(
+  userId: string, userEmail: string,
+  commenterName: string, postId: string, commentPreview: string,
+) {
+  return createNotification({
+    userId, userEmail,
+    type: 'COMMENTED',
+    title: 'New comment',
+    body: `${commenterName} commented on your post.`,
+    sourceId: postId,
+    metadata: { commenterName, postId, preview: commentPreview.slice(0, 100) },
+  });
+}
+
+export async function notifyMentioned(
+  userId: string, userEmail: string,
+  mentionedByName: string, entityId: string, entityType: string,
+) {
+  return createNotification({
+    userId, userEmail,
+    type: 'MENTIONED',
+    title: 'You were mentioned',
+    body: `${mentionedByName} mentioned you in a ${entityType}.`,
+    sourceId: entityId,
+    metadata: { mentionedByName, entityId, entityType },
+  });
+}
+
+export async function notifyFriendRequest(
+  userId: string, userEmail: string,
+  requesterName: string, friendshipId: string,
+) {
+  return createNotification({
+    userId, userEmail,
+    type: 'FRIEND_REQUEST',
+    title: 'Friend request',
+    body: `${requesterName} sent you a friend request.`,
+    sourceId: friendshipId,
+    metadata: { requesterName, friendshipId },
+  });
+}
+
+export async function notifyFriendAccepted(
+  userId: string, userEmail: string,
+  friendName: string,
+) {
+  return createNotification({
+    userId, userEmail,
+    type: 'FRIEND_ACCEPTED',
+    title: 'Friend request accepted',
+    body: `${friendName} accepted your friend request.`,
+    metadata: { friendName },
+  });
+}
+
+export async function notifyGroupInvite(
+  userId: string, userEmail: string,
+  inviterName: string, groupName: string, groupId: string,
+) {
+  return createNotification({
+    userId, userEmail,
+    type: 'GROUP_INVITE',
+    title: 'Group invitation',
+    body: `${inviterName} invited you to join "${groupName}".`,
+    sourceId: groupId,
+    metadata: { inviterName, groupName, groupId },
+  });
+}
+
+export async function notifyNewMessage(
+  userId: string, userEmail: string,
+  senderName: string, conversationId: string, preview: string,
+) {
+  return createNotification({
+    userId, userEmail,
+    type: 'NEW_MESSAGE',
+    title: senderName,
+    body: preview.slice(0, 150),
+    sourceId: conversationId,
+    metadata: { senderName, conversationId },
+  });
+}
+
+export async function notifyEventReminder(
+  userId: string, userEmail: string,
+  eventTitle: string, eventId: string, startDate: Date,
+) {
+  return createNotification({
+    userId, userEmail,
+    type: 'EVENT_REMINDER',
+    title: 'Event coming up',
+    body: `"${eventTitle}" starts soon.`,
+    sourceId: eventId,
+    metadata: { eventTitle, eventId, startDate },
+    sendEmailNow: true,
+    emailHtml: `<p>Your event <strong>${eventTitle}</strong> is coming up!</p>`,
   });
 }
