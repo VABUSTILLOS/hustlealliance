@@ -8,6 +8,7 @@
 import 'dotenv/config';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../lib/generated/prisma/client';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import {
   random, pick, pickN, pickWeighted, sliceRandom, randInt, randFloat,
   randomDate, randomDateBiased, weekdayDate, burstDates, dateNear, startOfDay,
@@ -25,24 +26,16 @@ const adapter = new PrismaPg({
 });
 const prisma = new PrismaClient({ adapter });
 
-// Service-role client for bypassing RLS on CourseStudyGroup tables (Phase 7)
-function createServiceRoleClient(): PrismaClient | null {
+// Supabase service-role client for bypassing RLS on CourseStudyGroup tables (Phase 7)
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://yftgdtdvmvvqyzcdntge.supabase.co';
+
+function createServiceRoleClient(): SupabaseClient | null {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!key || key.startsWith('[') || key.length < 20) {
     console.warn('   ⚠️  SUPABASE_SERVICE_ROLE_KEY not available or masked, RLS bypass disabled');
     return null;
   }
-  try {
-    const dbUrl = new URL(process.env.DATABASE_URL || '');
-    dbUrl.password = key;
-    // Keep username as-is — it contains the Supabase project ref (tenant ID)
-    const serviceAdapter = new PrismaPg({
-      connectionString: dbUrl.toString().replace('connect_timeout=0', 'connect_timeout=30'),
-    });
-    return new PrismaClient({ adapter: serviceAdapter });
-  } catch {
-    return null;
-  }
+  return createClient(SUPABASE_URL, key, { auth: { persistSession: false } });
 }
 
 const NOW = Date.now();
@@ -379,43 +372,58 @@ async function main() {
   console.log(`   ✅ ${totalRSVPs} RSVPs created`);
   }
 
-  // ── PHASE 7: Course Study Groups (bypasses RLS via service_role) ─────────
+  // ── PHASE 7: Course Study Groups (via Supabase REST API, bypasses RLS) ────
   console.log('\n📦 Phase 7: Creating CourseStudyGroups...');
   try {
-    const servicePrisma = createServiceRoleClient();
-    if (!servicePrisma) {
+    const supabase = createServiceRoleClient();
+    if (!supabase) {
       console.warn('   ⚠️  Phase 7 skipped: SUPABASE_SERVICE_ROLE_KEY not available');
     } else {
       const courses = await prisma.course.findMany({ where: { status: 'PUBLISHED' } });
       console.log(`   Found ${courses.length} published courses`);
 
       for (const course of courses) {
-        const existing = await servicePrisma.courseStudyGroup.findUnique({ where: { courseId: course.id } });
+        // Check if study group already exists (idempotent)
+        const { data: existing } = await supabase
+          .from('CourseStudyGroup')
+          .select('id')
+          .eq('courseId', course.id)
+          .maybeSingle();
+
         if (existing) {
           console.log(`   ⏭️  Study group exists for ${course.slug}, skipping`);
           continue;
         }
 
-        const group = await servicePrisma.courseStudyGroup.create({
-          data: {
+        // Create the study group
+        const { data: group, error: createErr } = await supabase
+          .from('CourseStudyGroup')
+          .insert({
             courseId: course.id,
             description: `Study group for ${course.title}. Collaborate, ask questions, and share resources with your cohort.`,
-          },
-        });
+          })
+          .select('id')
+          .single();
+
+        if (createErr || !group) {
+          console.warn(`   ⚠️  Failed to create group for ${course.slug}: ${createErr?.message}`);
+          continue;
+        }
 
         // Add members (8-30)
         const memberCount = randInt(8, 30);
         const memberIds = pickN(userIds, memberCount);
         const memberDates = sequentialDates(memberCount, SEED_WINDOW, 1);
 
-        await servicePrisma.courseGroupMember.createMany({
-          data: memberIds.map((userId, i) => ({
-            groupId: group.id,
-            userId,
-            joinedAt: memberDates[i],
-          })),
-          skipDuplicates: true,
-        });
+        const memberRows = memberIds.map((userId, i) => ({
+          groupId: group.id,
+          userId,
+          joinedAt: memberDates[i].toISOString(),
+        }));
+        // Insert in batches (Supabase REST API has limits)
+        for (const batch of chunk(memberRows, 50)) {
+          await supabase.from('CourseGroupMember').insert(batch);
+        }
 
         // Add group posts (10-30)
         const postCount = randInt(10, 30);
@@ -424,30 +432,35 @@ async function main() {
           const content = fillTemplate(pick(groupPostTemplates));
           const createdAt = weekdayDate(SEED_WINDOW, 0);
 
-          await servicePrisma.courseGroupPost.create({
-            data: { groupId: group.id, authorId, content, createdAt },
+          await supabase.from('CourseGroupPost').insert({
+            groupId: group.id,
+            authorId,
+            content,
+            createdAt: createdAt.toISOString(),
           });
         }
 
         // Add group files (3-8)
         const fileCount = randInt(3, 8);
-        const fileRecords = Array.from({ length: fileCount }, () => ({
+        const fileNames = [
+          'study-guide-module-1.pdf', 'practice-questions.pdf', 'cheat-sheet.pdf',
+          'additional-resources.pdf', 'workshop-notes.pdf', 'group-project-brief.pdf',
+          'exam-prep-guide.pdf', 'case-studies.pdf',
+        ];
+        const fileRows = Array.from({ length: fileCount }, () => ({
           groupId: group.id,
           uploaderId: pick(heroIds),
-          fileName: pick([
-            'study-guide-module-1.pdf', 'practice-questions.pdf', 'cheat-sheet.pdf',
-            'additional-resources.pdf', 'workshop-notes.pdf', 'group-project-brief.pdf',
-            'exam-prep-guide.pdf', 'case-studies.pdf',
-          ]),
+          fileName: pick(fileNames),
           fileUrl: 'https://example.com/files/placeholder.pdf',
           fileSize: randInt(100_000, 5_000_000),
           mimeType: 'application/pdf',
         }));
+        for (const batch of chunk(fileRows, 50)) {
+          await supabase.from('CourseGroupFile').insert(batch);
+        }
 
-        await servicePrisma.courseGroupFile.createMany({ data: fileRecords });
         console.log(`   ✅ ${course.slug}: ${memberCount} members, ${postCount} posts, ${fileCount} files`);
       }
-      await servicePrisma.$disconnect();
       console.log(`   ✅ Study groups populated`);
     }
   } catch (e: any) {
