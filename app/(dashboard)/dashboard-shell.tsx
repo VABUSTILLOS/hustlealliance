@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import clsx from 'clsx';
@@ -22,6 +22,11 @@ const GamificationWidgetLazy = dynamic(
 
 const GlobalAudioPlayerLazy = dynamic(
   () => import('@/app/components/ResourceViewer/GlobalAudioPlayer').then((m) => ({ default: m.GlobalAudioPlayer })),
+  { ssr: false }
+);
+
+const SearchModal = dynamic(
+  () => import('@/app/(dashboard)/components/SearchModal').then((m) => ({ default: m.SearchModal })),
   { ssr: false }
 );
 
@@ -51,6 +56,19 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const user = useCurrentUser();
   const { t } = useTranslation();
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  // Global Cmd+K / Ctrl+K to open search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const sidebarLinks = [
     { label: t.nav.dashboard, href: '/dashboard', icon: (
@@ -108,6 +126,16 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             Hustle Alliance
           </span>
         </Link>
+
+        {/* Search trigger */}
+        <button
+          onClick={() => setSearchOpen(true)}
+          className="mx-3 my-2 flex items-center gap-2 px-4 py-2 rounded-xl text-sm text-muted hover:text-foreground hover:bg-surface-light transition-all duration-200 border border-dashed border-[var(--color-border-subtle)] hover:border-accent/30"
+        >
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <span className="flex-1 text-left">Search...</span>
+          <kbd className="px-1.5 py-0.5 text-[10px] font-mono rounded bg-[var(--color-surface-light)] text-muted">⌘K</kbd>
+        </button>
 
         {/* Nav */}
         <nav className="flex-1 px-3 py-6 space-y-1">
@@ -177,6 +205,9 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
       {/* ── Mobile Bottom Tab Bar (swipeable) ── */}
       <MobileBottomNav items={mobileLinks} />
+
+      {/* ── Global Search Modal ── */}
+      <SearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
     </div>
     </ReactQueryProvider>
   );
