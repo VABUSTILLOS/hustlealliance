@@ -129,7 +129,7 @@ async function main() {
   const existingPosts = await prisma.communityPost.count();
   let totalPosts: number;
   let postIds: string[];
-  let postData: Array<{ id: string; authorId: string; createdAt: Date; space: string }>;
+  let postData: Array<{ id: string; authorId: string; createdAt: Date; space: string | null }>;
 
   if (existingPosts > 50) {
     console.log(`   ⏭️  ${existingPosts} posts already exist, loading from DB...`);
