@@ -280,6 +280,7 @@ model User {
 
   // ── NEW: Events ──
   eventRSVPs         EventRSVP[]
+  eventDiscussions   EventDiscussion[]
   createdEvents      Event[]               @relation("EventCreator")
 
   // ── NEW: Jobs ──
@@ -1113,7 +1114,8 @@ model Event {
 
   creator User        @relation("EventCreator", fields: [creatorId], references: [id], onDelete: Cascade)
   group   CommunityGroup? @relation(fields: [groupId], references: [id], onDelete: SetNull)
-  rsvps   EventRSVP[]
+  rsvps        EventRSVP[]
+  discussions  EventDiscussion[]
 
   @@index([startDate])
   @@index([groupId, startDate])
@@ -1135,6 +1137,23 @@ model EventRSVP {
   @@unique([eventId, userId])
   @@index([userId])
   @@index([eventId, status])
+}
+
+// ── Event Discussions ──────────────────────────────────────────────────
+
+model EventDiscussion {
+  id        String   @id @default(uuid())
+  eventId   String
+  userId    String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([eventId, createdAt])
+  @@index([userId])
 }
 
 // ── Job Board ───────────────────────────────────────────────────────────
