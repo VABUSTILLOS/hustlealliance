@@ -25,7 +25,7 @@ export function SearchInput({
   className = '',
 }: SearchInputProps) {
   const [localValue, setLocalValue] = useState(value);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Sync external value

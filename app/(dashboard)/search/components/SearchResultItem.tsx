@@ -5,7 +5,7 @@ import Image from 'next/image';
 import type { SearchResult } from '@/lib/db/search';
 
 const TYPE_CONFIG: Record<string, {
-  icon: JSX.Element;
+  icon: React.ReactNode;
   label: string;
   getHref: (id: string) => string;
 }> = {

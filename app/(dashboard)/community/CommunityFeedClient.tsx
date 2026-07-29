@@ -8,7 +8,6 @@ import { LazyMotionDiv, LazyAnimatePresence } from '@/lib/framer/lazy-motion';
 import { useCommunityFeed } from './useCommunityFeed';
 import { PostCard } from './components/PostCard';
 import type { GetCommunityPostsResult, TrendingTopic } from '@/lib/db/community';
-import type { Comment } from '@/lib/data/community';
 
 const SortControls = dynamic(() => import('./SortControls').then((m) => ({ default: m.SortControls })));
 const CommentTreeSection = lazy(() => import('./CommentTree'));
@@ -22,13 +21,11 @@ interface CommunityFeedClientProps {
 
 export function CommunityFeedClient({ initialData, trending }: CommunityFeedClientProps) {
   const toggleLike = useStore((s) => s.toggleLike);
-  const addComment = useStore((s) => s.addComment);
   const user = useCurrentUser();
   const joinedSpaces = useStore((s) => s.joinedSpaces);
 
   const [sort, setSort] = useState<SortMode>('latest');
   const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
-  const [commentTexts, setCommentTexts] = useState<Record<string, string>>({});
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
 
   // React Query with server-provided initial data
@@ -64,23 +61,6 @@ export function CommunityFeedClient({ initialData, trending }: CommunityFeedClie
       else next.add(postId);
       return next;
     });
-  };
-
-  const handleCommentTextChange = (postId: string, text: string) => {
-    setCommentTexts((prev) => ({ ...prev, [postId]: text }));
-  };
-
-  const handleAddComment = (postId: string) => {
-    const text = commentTexts[postId]?.trim();
-    if (!text) return;
-    const comment: Comment = {
-      id: crypto.randomUUID(),
-      author: { username: user?.username ?? 'member', name: user?.name ?? 'Member', avatar: user?.avatar ?? 'https://api.dicebear.com/9.x/initials/svg?seed=User' },
-      text,
-      timestamp: 'Just now',
-    };
-    addComment(postId, comment);
-    setCommentTexts((prev) => ({ ...prev, [postId]: '' }));
   };
 
   const handleToggleLike = (postId: string) => {
@@ -165,9 +145,6 @@ export function CommunityFeedClient({ initialData, trending }: CommunityFeedClie
                       }>
                         <CommentTreeSection
                           postId={post.id}
-                          commentText={commentTexts[post.id] || ''}
-                          onCommentTextChange={(text) => handleCommentTextChange(post.id, text)}
-                          onAddComment={() => handleAddComment(post.id)}
                         />
                       </Suspense>
                     ) : undefined

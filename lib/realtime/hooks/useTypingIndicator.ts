@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { subscribeToTyping, broadcastTyping, unsubscribe } from "@/lib/realtime/supabase";
-import { updateTypingIndicator } from "@/lib/db/messages";
 
 interface UseTypingIndicatorOptions {
   conversationId: string;
@@ -70,10 +69,6 @@ export function useTypingIndicator({
     lastBroadcastRef.current = now;
 
     broadcastTyping(conversationId, userId);
-    // Also update DB for persistence
-    updateTypingIndicator(conversationId, userId).catch(() => {
-      // Silently fail — typying indicator is best-effort
-    });
   }, [conversationId, userId]);
 
   return {
