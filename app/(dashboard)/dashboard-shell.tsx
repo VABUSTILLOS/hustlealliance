@@ -13,6 +13,8 @@ import { ReactQueryProvider } from '@/lib/hooks/queryClient';
 import MobileBottomNav from '@/app/components/MobileBottomNav';
 import dynamic from 'next/dynamic';
 
+import { NotificationBell } from '@/app/(dashboard)/notifications/components/NotificationBell';
+
 const GamificationWidgetLazy = dynamic(
   () => import('@/app/components/GamificationWidget'),
   { ssr: false }
@@ -156,7 +158,11 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* ── Main content ────────────────────── */}
-      <main className="lg:ml-64 pb-20 lg:pb-0">
+      <main className="lg:ml-64 pb-20 lg:pb-0 relative">
+        {/* Notification bell — fixed top-right */}
+        <div className="absolute top-4 right-4 z-30">
+          <NotificationBell />
+        </div>
         <PageTransition>
           {children}
         </PageTransition>
