@@ -276,3 +276,126 @@ export const getPostDetailCached = cache(
     };
   },
 );
+
+// ── Community Member types ──
+
+export interface CommunityMemberItem {
+  id: string;
+  name: string;
+  username: string | null;
+  avatar: string | null;
+  role: string;
+  membershipTier: string;
+  headline: string | null;
+  location: string | null;
+  industries: string[];
+  skills: string[];
+  yearsExperience: number | null;
+  postCount: number;
+  commentCount: number;
+  joinedAt: string;
+}
+
+export interface GetCommunityMembersOpts {
+  sort?: 'activity' | 'newest' | 'name';
+  role?: string;
+  tier?: string;
+  search?: string;
+  cursor?: string;
+  limit?: number;
+}
+
+export interface GetCommunityMembersResult {
+  items: CommunityMemberItem[];
+  hasMore: boolean;
+  nextCursor: string | null;
+  total: number;
+}
+
+export const getCommunityMembers = cache(
+  async (opts: GetCommunityMembersOpts = {}): Promise<GetCommunityMembersResult> => {
+    const { sort = 'activity', role, tier, search, cursor, limit = 24 } = opts;
+    const take = limit + 1;
+
+    const where: Record<string, unknown> = {};
+    if (role) where.role = role.toUpperCase();
+    if (tier) where.membershipTier = tier.toUpperCase();
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { username: { contains: search, mode: 'insensitive' } },
+        { profile: { headline: { contains: search, mode: 'insensitive' } } },
+      ];
+    }
+
+    let orderBy: any;
+    switch (sort) {
+      case 'newest':
+        orderBy = { createdAt: 'desc' };
+        break;
+      case 'name':
+        orderBy = { name: 'asc' };
+        break;
+      case 'activity':
+      default:
+        orderBy = { posts: { _count: 'desc' } };
+        break;
+    }
+
+    const [users, total] = await Promise.all([
+      prisma.user.findMany({
+        where,
+        take,
+        ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
+        orderBy,
+        select: {
+          id: true,
+          name: true,
+          username: true,
+          avatar: true,
+          role: true,
+          membershipTier: true,
+          createdAt: true,
+          profile: {
+            select: {
+              headline: true,
+              location: true,
+              industries: true,
+              skills: true,
+              yearsExperience: true,
+            },
+          },
+          _count: {
+            select: { posts: true, comments: true },
+          },
+        },
+      }),
+      prisma.user.count({ where }),
+    ]);
+
+    const hasMore = users.length > limit;
+    const items = (hasMore ? users.slice(0, limit) : users).map((u: any) => ({
+      id: u.id,
+      name: u.name,
+      username: u.username,
+      avatar: u.avatar,
+      role: u.role,
+      membershipTier: u.membershipTier,
+      headline: u.profile?.headline ?? null,
+      location: u.profile?.location ?? null,
+      industries: u.profile?.industries ?? [],
+      skills: u.profile?.skills ?? [],
+      yearsExperience: u.profile?.yearsExperience ?? null,
+      postCount: u._count.posts,
+      commentCount: u._count.comments,
+      joinedAt: u.createdAt.toISOString(),
+    }));
+
+    return {
+      items,
+      hasMore,
+      nextCursor: hasMore ? items[items.length - 1]?.id ?? null : null,
+      total,
+    };
+  },
+);

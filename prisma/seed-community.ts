@@ -74,7 +74,7 @@ async function main() {
     // Upsert handles existing users from main seed
     const user = await prisma.user.upsert({
       where: { email: u.email },
-      update: { membershipTier: u.membershipTier },
+      update: { membershipTier: u.membershipTier, avatar: u.avatar },
       create: {
         email: u.email,
         name: u.name,
@@ -310,8 +310,10 @@ async function main() {
     const id = cuid();
     eventIds.push(id);
 
-    await prisma.event.create({
-      data: {
+    await prisma.event.upsert({
+      where: { slug },
+      update: { coverImage: pick(postImages), isFeatured: random() < 0.15, description: fillTemplate(template.description), status },
+      create: {
         id,
         title,
         slug,
@@ -328,7 +330,19 @@ async function main() {
       },
     });
   }
-  console.log(`   ✅ ${totalEvents} events created`);
+  console.log(`   ✅ ${totalEvents} events created/updated with cover images`);
+
+  // Fix existing events that lack coverImage (from older seed runs)
+  const orphanEvents = await prisma.event.findMany({ where: { coverImage: null }, select: { id: true } });
+  if (orphanEvents.length > 0) {
+   console.log(`   🔧 Fixing ${orphanEvents.length} existing events without cover images...`);
+   for (const evt of orphanEvents) {
+     await prisma.event.update({
+       where: { id: evt.id },
+       data: { coverImage: pick(postImages) },
+     }).catch(() => {});
+   }
+  }
   }
 
   // ── PHASE 6: Event RSVPs ───────────────────────────────────────────────────
