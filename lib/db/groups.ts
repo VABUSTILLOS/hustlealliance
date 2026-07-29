@@ -12,34 +12,29 @@ export async function createGroup(params: {
   visibility?: GroupVisibility;
   creatorId: string;
 }) {
-  const [group] = await prisma.$transaction([
-    prisma.communityGroup.create({
-      data: {
-        name: params.name,
-        slug: params.slug,
-        description: params.description ?? null,
-        avatar: params.avatar ?? null,
-        coverImage: params.coverImage ?? null,
-        visibility: params.visibility ?? "PUBLIC",
-        creatorId: params.creatorId,
-        members: {
-          create: {
-            userId: params.creatorId,
-            role: "OWNER",
-            status: "ACTIVE",
-          },
+  const group = await prisma.communityGroup.create({
+    data: {
+      name: params.name,
+      slug: params.slug,
+      description: params.description ?? null,
+      avatar: params.avatar ?? null,
+      coverImage: params.coverImage ?? null,
+      visibility: params.visibility ?? "PUBLIC",
+      creatorId: params.creatorId,
+      memberCount: 1,
+      members: {
+        create: {
+          userId: params.creatorId,
+          role: "OWNER",
+          status: "ACTIVE",
         },
       },
-      include: {
-        creator: { select: { id: true, name: true, username: true, avatar: true } },
-        _count: { select: { members: true } },
-      },
-    }),
-    prisma.communityGroup.update({
-      where: { id: params.creatorId },
-      data: { memberCount: 1 },
-    }),
-  ]);
+    },
+    include: {
+      creator: { select: { id: true, name: true, username: true, avatar: true } },
+      _count: { select: { members: true } },
+    },
+  });
   return group;
 }
 
@@ -107,6 +102,31 @@ export async function deleteGroup(id: string) {
   return prisma.communityGroup.delete({ where: { id } });
 }
 
+export async function getGroupStats(groupId: string) {
+  const [group, activeToday] = await Promise.all([
+    prisma.communityGroup.findUnique({
+      where: { id: groupId },
+      select: {
+        memberCount: true,
+        _count: { select: { groupPosts: true } },
+      },
+    }),
+    prisma.communityGroupMember.count({
+      where: {
+        groupId,
+        status: "ACTIVE",
+        joinedAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+      },
+    }),
+  ]);
+
+  return {
+    memberCount: group?.memberCount ?? 0,
+    postCount: group?._count.groupPosts ?? 0,
+    activeToday,
+  };
+}
+
 // ── Membership ──────────────────────────────────────────────────────────
 
 export async function joinGroup(groupId: string, userId: string) {
@@ -129,7 +149,45 @@ export async function joinGroup(groupId: string, userId: string) {
 }
 
 export async function leaveGroup(groupId: string, userId: string) {
-  const [membership] = await prisma.$transaction([
+  // Check if user is the last admin/owner — reassign if needed
+  const membership = await prisma.communityGroupMember.findUnique({
+    where: { groupId_userId: { groupId, userId } },
+  });
+  if (!membership) throw new Error("Not a member");
+
+  const isAdmin = membership.role === "OWNER" || membership.role === "ADMIN";
+
+  if (isAdmin) {
+    const adminCount = await prisma.communityGroupMember.count({
+      where: {
+        groupId,
+        status: "ACTIVE",
+        role: { in: ["OWNER", "ADMIN"] },
+      },
+    });
+
+    if (adminCount <= 1) {
+      // Find oldest active member to promote
+      const nextAdmin = await prisma.communityGroupMember.findFirst({
+        where: {
+          groupId,
+          status: "ACTIVE",
+          userId: { not: userId },
+        },
+        orderBy: { joinedAt: "asc" },
+      });
+
+      if (nextAdmin) {
+        await prisma.communityGroupMember.update({
+          where: { id: nextAdmin.id },
+          data: { role: "OWNER" },
+        });
+      }
+      // If no other members, group becomes ownerless — allowed, group can be deleted
+    }
+  }
+
+  const [removed] = await prisma.$transaction([
     prisma.communityGroupMember.delete({
       where: { groupId_userId: { groupId, userId } },
     }),
@@ -138,7 +196,25 @@ export async function leaveGroup(groupId: string, userId: string) {
       data: { memberCount: { decrement: 1 } },
     }),
   ]);
-  return membership;
+  return removed;
+}
+
+export async function removeMember(groupId: string, targetUserId: string) {
+  const member = await prisma.communityGroupMember.findUnique({
+    where: { groupId_userId: { groupId, userId: targetUserId } },
+  });
+  if (!member) throw new Error("Member not found");
+
+  const [removed] = await prisma.$transaction([
+    prisma.communityGroupMember.delete({
+      where: { groupId_userId: { groupId, userId: targetUserId } },
+    }),
+    prisma.communityGroup.update({
+      where: { id: groupId },
+      data: { memberCount: { decrement: 1 } },
+    }),
+  ]);
+  return removed;
 }
 
 export async function updateMemberRole(
@@ -232,5 +308,82 @@ export async function getGroupPosts(groupId: string, limit = 20, cursor?: string
     take: limit,
     ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
     orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
+  });
+}
+
+// Alias for getGroupPosts
+export const getGroupFeed = getGroupPosts;
+
+// ── Invites ─────────────────────────────────────────────────────────────
+
+export async function inviteToGroup(groupId: string, inviteeId: string) {
+  const existing = await prisma.communityGroupMember.findUnique({
+    where: { groupId_userId: { groupId, userId: inviteeId } },
+  });
+  if (existing) throw new Error("User is already a member or has a pending invite");
+
+  return prisma.communityGroupMember.create({
+    data: { groupId, userId: inviteeId, role: "MEMBER", status: "INVITED" },
+    include: {
+      group: { select: { id: true, name: true, slug: true, avatar: true } },
+      user: { select: { id: true, name: true, username: true, avatar: true } },
+    },
+  });
+}
+
+export async function acceptGroupInvite(memberId: string, userId: string) {
+  const member = await prisma.communityGroupMember.findUnique({ where: { id: memberId } });
+  if (!member || member.userId !== userId) throw new Error("Invite not found");
+  if (member.status !== "INVITED") throw new Error("Invite already processed");
+
+  const [updated] = await prisma.$transaction([
+    prisma.communityGroupMember.update({
+      where: { id: memberId },
+      data: { status: "ACTIVE", joinedAt: new Date() },
+      include: {
+        group: { select: { id: true, name: true, slug: true, avatar: true } },
+      },
+    }),
+    prisma.communityGroup.update({
+      where: { id: member.groupId },
+      data: { memberCount: { increment: 1 } },
+    }),
+  ]);
+  return updated;
+}
+
+export async function rejectGroupInvite(memberId: string) {
+  const member = await prisma.communityGroupMember.findUnique({ where: { id: memberId } });
+  if (!member) throw new Error("Invite not found");
+
+  return prisma.communityGroupMember.delete({ where: { id: memberId } });
+}
+
+export async function getGroupInvites(userId: string) {
+  return prisma.communityGroupMember.findMany({
+    where: { userId, status: "INVITED" },
+    include: {
+      group: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          avatar: true,
+          description: true,
+          memberCount: true,
+        },
+      },
+    },
+    orderBy: { joinedAt: "desc" },
+  });
+}
+
+export async function getPendingMembers(groupId: string) {
+  return prisma.communityGroupMember.findMany({
+    where: { groupId, status: { in: ["REQUESTED", "INVITED"] } },
+    include: {
+      user: { select: { id: true, name: true, username: true, avatar: true } },
+    },
+    orderBy: { joinedAt: "asc" },
   });
 }
