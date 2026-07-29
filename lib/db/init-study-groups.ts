@@ -54,19 +54,19 @@ export async function ensureStudyGroupTables(): Promise<void> {
       `CREATE TABLE IF NOT EXISTS "CourseStudyGroup" ("id" TEXT NOT NULL, "courseId" TEXT NOT NULL, "description" TEXT, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "CourseStudyGroup_pkey" PRIMARY KEY ("id"))`,
       `CREATE UNIQUE INDEX IF NOT EXISTS "CourseStudyGroup_courseId_key" ON "CourseStudyGroup"("courseId")`,
       `ALTER TABLE "CourseStudyGroup" ADD CONSTRAINT IF NOT EXISTS "CourseStudyGroup_courseId_fkey" FOREIGN KEY ("courseId") REFERENCES "Course"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
-      `CREATE TABLE IF NOT EXISTS "GroupMember" ("id" TEXT NOT NULL, "groupId" TEXT NOT NULL, "userId" TEXT NOT NULL, "joinedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "GroupMember_pkey" PRIMARY KEY ("id"))`,
-      `CREATE UNIQUE INDEX IF NOT EXISTS "GroupMember_groupId_userId_key" ON "GroupMember"("groupId", "userId")`,
-      `ALTER TABLE "GroupMember" ADD CONSTRAINT IF NOT EXISTS "GroupMember_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "CourseStudyGroup"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
-      `ALTER TABLE "GroupMember" ADD CONSTRAINT IF NOT EXISTS "GroupMember_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
-      `CREATE TABLE IF NOT EXISTS "GroupPost" ("id" TEXT NOT NULL, "groupId" TEXT NOT NULL, "authorId" TEXT NOT NULL, "content" TEXT NOT NULL, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "GroupPost_pkey" PRIMARY KEY ("id"))`,
-      `ALTER TABLE "GroupPost" ADD CONSTRAINT IF NOT EXISTS "GroupPost_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "CourseStudyGroup"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
-      `ALTER TABLE "GroupPost" ADD CONSTRAINT IF NOT EXISTS "GroupPost_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
-      `CREATE TABLE IF NOT EXISTS "GroupReply" ("id" TEXT NOT NULL, "postId" TEXT NOT NULL, "authorId" TEXT NOT NULL, "content" TEXT NOT NULL, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "GroupReply_pkey" PRIMARY KEY ("id"))`,
-      `ALTER TABLE "GroupReply" ADD CONSTRAINT IF NOT EXISTS "GroupReply_postId_fkey" FOREIGN KEY ("postId") REFERENCES "GroupPost"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
-      `ALTER TABLE "GroupReply" ADD CONSTRAINT IF NOT EXISTS "GroupReply_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
-      `CREATE TABLE IF NOT EXISTS "GroupFile" ("id" TEXT NOT NULL, "groupId" TEXT NOT NULL, "uploaderId" TEXT NOT NULL, "fileName" TEXT NOT NULL, "fileUrl" TEXT NOT NULL, "fileSize" INTEGER NOT NULL, "mimeType" TEXT NOT NULL, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "GroupFile_pkey" PRIMARY KEY ("id"))`,
-      `ALTER TABLE "GroupFile" ADD CONSTRAINT IF NOT EXISTS "GroupFile_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "CourseStudyGroup"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
-      `ALTER TABLE "GroupFile" ADD CONSTRAINT IF NOT EXISTS "GroupFile_uploaderId_fkey" FOREIGN KEY ("uploaderId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
+      `CREATE TABLE IF NOT EXISTS "CourseGroupMember" ("id" TEXT NOT NULL, "groupId" TEXT NOT NULL, "userId" TEXT NOT NULL, "joinedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "CourseGroupMember_pkey" PRIMARY KEY ("id"))`,
+      `CREATE UNIQUE INDEX IF NOT EXISTS "CourseGroupMember_groupId_userId_key" ON "CourseGroupMember"("groupId", "userId")`,
+      `ALTER TABLE "CourseGroupMember" ADD CONSTRAINT IF NOT EXISTS "CourseGroupMember_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "CourseStudyGroup"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
+      `ALTER TABLE "CourseGroupMember" ADD CONSTRAINT IF NOT EXISTS "CourseGroupMember_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
+      `CREATE TABLE IF NOT EXISTS "CourseGroupPost" ("id" TEXT NOT NULL, "groupId" TEXT NOT NULL, "authorId" TEXT NOT NULL, "content" TEXT NOT NULL, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "CourseGroupPost_pkey" PRIMARY KEY ("id"))`,
+      `ALTER TABLE "CourseGroupPost" ADD CONSTRAINT IF NOT EXISTS "CourseGroupPost_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "CourseStudyGroup"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
+      `ALTER TABLE "CourseGroupPost" ADD CONSTRAINT IF NOT EXISTS "CourseGroupPost_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
+      `CREATE TABLE IF NOT EXISTS "CourseGroupReply" ("id" TEXT NOT NULL, "postId" TEXT NOT NULL, "authorId" TEXT NOT NULL, "content" TEXT NOT NULL, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "CourseGroupReply_pkey" PRIMARY KEY ("id"))`,
+      `ALTER TABLE "CourseGroupReply" ADD CONSTRAINT IF NOT EXISTS "CourseGroupReply_postId_fkey" FOREIGN KEY ("postId") REFERENCES "CourseGroupPost"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
+      `ALTER TABLE "CourseGroupReply" ADD CONSTRAINT IF NOT EXISTS "CourseGroupReply_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
+      `CREATE TABLE IF NOT EXISTS "CourseGroupFile" ("id" TEXT NOT NULL, "groupId" TEXT NOT NULL, "uploaderId" TEXT NOT NULL, "fileName" TEXT NOT NULL, "fileUrl" TEXT NOT NULL, "fileSize" INTEGER NOT NULL, "mimeType" TEXT NOT NULL, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "CourseGroupFile_pkey" PRIMARY KEY ("id"))`,
+      `ALTER TABLE "CourseGroupFile" ADD CONSTRAINT IF NOT EXISTS "CourseGroupFile_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "CourseStudyGroup"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
+      `ALTER TABLE "CourseGroupFile" ADD CONSTRAINT IF NOT EXISTS "CourseGroupFile_uploaderId_fkey" FOREIGN KEY ("uploaderId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
     ];
 
     for (const sql of statements) {
@@ -81,7 +81,7 @@ export async function ensureStudyGroupTables(): Promise<void> {
 
     // Disable RLS on study group tables so all authenticated users can read/write
     // (site is in open pre-paywall mode)
-    const rlsTables = ['CourseStudyGroup', 'GroupMember', 'GroupPost', 'GroupReply', 'GroupFile'];
+    const rlsTables = ['CourseStudyGroup', 'CourseGroupMember', 'CourseGroupPost', 'CourseGroupReply', 'CourseGroupFile'];
     for (const table of rlsTables) {
       try {
         await pool.query(`ALTER TABLE "${table}" DISABLE ROW LEVEL SECURITY`);

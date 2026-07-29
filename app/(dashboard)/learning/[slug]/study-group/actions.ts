@@ -84,7 +84,7 @@ export async function ensureGroupMembership(email: string, courseSlug: string) {
 
     // Ensure membership
     await pool.query(
-      `INSERT INTO "GroupMember" (id, "groupId", "userId", "joinedAt") VALUES ($1, $2, $3, NOW()) ON CONFLICT ("groupId", "userId") DO NOTHING`,
+      `INSERT INTO "CourseGroupMember" (id, "groupId", "userId", "joinedAt") VALUES ($1, $2, $3, NOW()) ON CONFLICT ("groupId", "userId") DO NOTHING`,
       [cuid(), groupId, uid]
     );
   } finally {
@@ -119,7 +119,7 @@ export async function createGroupPost(
     const postId = cuid();
     const now = new Date();
     await pool.query(
-      `INSERT INTO "GroupPost" (id, "groupId", "authorId", content, "createdAt", "updatedAt") VALUES ($1, $2, $3, $4, $5, $5)`,
+      `INSERT INTO "CourseGroupPost" (id, "groupId", "authorId", content, "createdAt", "updatedAt") VALUES ($1, $2, $3, $4, $5, $5)`,
       [postId, groupId, uid, content.trim(), now]
     );
 
@@ -161,7 +161,7 @@ export async function createGroupReply(
     const replyId = cuid();
     const now = new Date();
     await pool.query(
-      `INSERT INTO "GroupReply" (id, "postId", "authorId", content, "createdAt") VALUES ($1, $2, $3, $4, $5)`,
+      `INSERT INTO "CourseGroupReply" (id, "postId", "authorId", content, "createdAt") VALUES ($1, $2, $3, $4, $5)`,
       [replyId, postId, uid, content.trim(), now]
     );
 
@@ -229,7 +229,7 @@ export async function uploadGroupFile(
 
     const fileId = cuid();
     await pool.query(
-      `INSERT INTO "GroupFile" (id, "groupId", "uploaderId", "fileName", "fileUrl", "fileSize", "mimeType", "createdAt") VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
+      `INSERT INTO "CourseGroupFile" (id, "groupId", "uploaderId", "fileName", "fileUrl", "fileSize", "mimeType", "createdAt") VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
       [fileId, groupId, uid, file.name, publicUrl, file.size, file.type]
     );
 

@@ -372,7 +372,7 @@ async function main() {
 
     try {
       // Try disabling RLS first (may fail if not table owner, that's OK)
-      const rlsTables = ['CourseStudyGroup', 'GroupMember', 'GroupPost', 'GroupReply', 'GroupFile'];
+      const rlsTables = ['CourseStudyGroup', 'CourseGroupMember', 'CourseGroupPost', 'CourseGroupReply', 'CourseGroupFile'];
       for (const table of rlsTables) {
         try {
           await pool.query(`ALTER TABLE "${table}" DISABLE ROW LEVEL SECURITY`);
@@ -386,7 +386,7 @@ async function main() {
       console.log(`   Found ${courses.length} published courses`);
 
       const { rows: existingGroups } = await pool.query(
-        `SELECT cg.*, (SELECT COUNT(*) FROM "GroupMember" WHERE "groupId" = cg.id) as member_count, (SELECT COUNT(*) FROM "GroupPost" WHERE "groupId" = cg.id) as post_count FROM "CourseStudyGroup" cg`
+        `SELECT cg.*, (SELECT COUNT(*) FROM "CourseGroupMember" WHERE "groupId" = cg.id) as member_count, (SELECT COUNT(*) FROM "CourseGroupPost" WHERE "groupId" = cg.id) as post_count FROM "CourseStudyGroup" cg`
       );
 
       let totalMembers = 0;
@@ -414,7 +414,7 @@ async function main() {
         const existingMemberCount = existingGroup ? parseInt(existingGroup.member_count) : 0;
         if (existingMemberCount < 8) {
           const { rows: existingMembers } = await pool.query(
-            `SELECT "userId" FROM "GroupMember" WHERE "groupId" = $1`, [groupId]
+            `SELECT "userId" FROM "CourseGroupMember" WHERE "groupId" = $1`, [groupId]
           );
           const existingMemberIds = existingMembers.map((m: any) => m.userId);
           const availableIds = userIds.filter(u => !existingMemberIds.includes(u));
@@ -423,7 +423,7 @@ async function main() {
           const memberDates = sequentialDates(newMemberIds.length, SEED_WINDOW, 1);
           for (let i = 0; i < newMemberIds.length; i++) {
             await pool.query(
-              `INSERT INTO "GroupMember" (id, "groupId", "userId", "joinedAt") VALUES ($1, $2, $3, $4) ON CONFLICT ("groupId", "userId") DO NOTHING`,
+              `INSERT INTO "CourseGroupMember" (id, "groupId", "userId", "joinedAt") VALUES ($1, $2, $3, $4) ON CONFLICT ("groupId", "userId") DO NOTHING`,
               [cuid(), groupId, newMemberIds[i], memberDates[i]]
             );
           }
@@ -433,7 +433,7 @@ async function main() {
         const existingPostCount = existingGroup ? parseInt(existingGroup.post_count) : 0;
         if (existingPostCount < 10) {
           const { rows: allMembers } = await pool.query(
-            `SELECT "userId" FROM "GroupMember" WHERE "groupId" = $1`, [groupId]
+            `SELECT "userId" FROM "CourseGroupMember" WHERE "groupId" = $1`, [groupId]
           );
           const allMemberIds = allMembers.map((m: any) => m.userId);
           const postCount = randInt(15, 35);
@@ -443,7 +443,7 @@ async function main() {
             const createdAt = weekdayDate(SEED_WINDOW, 0);
             const postId = cuid();
             await pool.query(
-              `INSERT INTO "GroupPost" (id, "groupId", "authorId", content, "createdAt", "updatedAt") VALUES ($1, $2, $3, $4, $5, $5)`,
+              `INSERT INTO "CourseGroupPost" (id, "groupId", "authorId", content, "createdAt", "updatedAt") VALUES ($1, $2, $3, $4, $5, $5)`,
               [postId, groupId, authorId, content, createdAt]
             );
             const replyCount = randInt(0, 5);
@@ -451,7 +451,7 @@ async function main() {
               const replyDates = burstDates(new Date(createdAt), replyCount, 72);
               for (let ri = 0; ri < replyCount; ri++) {
                 await pool.query(
-                  `INSERT INTO "GroupReply" (id, "postId", "authorId", content, "createdAt") VALUES ($1, $2, $3, $4, $5)`,
+                  `INSERT INTO "CourseGroupReply" (id, "postId", "authorId", content, "createdAt") VALUES ($1, $2, $3, $4, $5)`,
                   [cuid(), postId, pick(allMemberIds.length > 0 ? allMemberIds : userIds), fillTemplate(pick(commentTemplates)), replyDates[ri]]
                 );
               }
@@ -462,7 +462,7 @@ async function main() {
         }
 
         const { rows: fileCountRows } = await pool.query(
-          `SELECT COUNT(*) as cnt FROM "GroupFile" WHERE "groupId" = $1`, [groupId]
+          `SELECT COUNT(*) as cnt FROM "CourseGroupFile" WHERE "groupId" = $1`, [groupId]
         );
         const existingFileCount = parseInt(fileCountRows[0].cnt);
         if (existingFileCount < 3) {
@@ -474,7 +474,7 @@ async function main() {
           const fileCount = randInt(5, 10);
           for (let f = 0; f < fileCount; f++) {
             await pool.query(
-              `INSERT INTO "GroupFile" (id, "groupId", "uploaderId", "fileName", "fileUrl", "fileSize", "mimeType", "createdAt") VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
+              `INSERT INTO "CourseGroupFile" (id, "groupId", "uploaderId", "fileName", "fileUrl", "fileSize", "mimeType", "createdAt") VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
               [cuid(), groupId, pick(heroIds), pick(fileNames), 'https://example.com/files/placeholder.pdf', randInt(100_000, 5_000_000), 'application/pdf']
             );
           }
