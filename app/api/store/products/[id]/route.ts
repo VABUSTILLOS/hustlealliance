@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getProductBySlug, getProductById, updateProduct, deleteProduct } from "@/lib/db/store";
+import { getProductBySlug, getProductById, updateProductSimple, deleteProduct } from "@/lib/db/store";
 import { getCurrentUser } from "@/lib/auth/user";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -19,7 +19,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   try {
     const { id } = await params;
     const body = await req.json();
-    const product = await updateProduct(id, body);
+    const product = await updateProductSimple(id, body);
     return NextResponse.json(product);
   } catch (err) {
     return NextResponse.json({ error: (err as Error).message }, { status: 500 });
@@ -31,7 +31,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
     const { id } = await params;
-    await deleteProduct(id);
+    await deleteProduct(id, user.id);
     return NextResponse.json({ success: true });
   } catch (err) {
     return NextResponse.json({ error: (err as Error).message }, { status: 500 });

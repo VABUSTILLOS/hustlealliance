@@ -4,6 +4,15 @@ import type { ProductType, StoreOrderStatus } from "@/lib/generated/prisma/clien
 
 // ── Products ────────────────────────────────────────────────────────────
 
+export interface ProductFilters {
+  type?: ProductType;
+  search?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  limit?: number;
+  cursor?: string;
+}
+
 export async function createProduct(params: {
   title: string;
   slug: string;
@@ -58,26 +67,69 @@ export async function getProductById(id: string) {
   });
 }
 
-export async function listProducts(params: {
-  type?: ProductType;
-  limit?: number;
-  cursor?: string;
-}) {
+export async function getProducts(filters: ProductFilters = {}) {
   const where: Record<string, unknown> = { isPublished: true };
-  if (params.type) where.type = params.type;
+
+  if (filters.type) where.type = filters.type;
+  if (filters.search) {
+    where.OR = [
+      { title: { contains: filters.search, mode: "insensitive" } },
+      { description: { contains: filters.search, mode: "insensitive" } },
+    ];
+  }
+  if (filters.minPrice !== undefined || filters.maxPrice !== undefined) {
+    where.price = {
+      ...(filters.minPrice !== undefined ? { gte: filters.minPrice } : {}),
+      ...(filters.maxPrice !== undefined ? { lte: filters.maxPrice } : {}),
+    };
+  }
 
   return prisma.product.findMany({
     where,
     include: {
       _count: { select: { reviews: true } },
     },
-    take: params.limit ?? 20,
-    ...(params.cursor ? { cursor: { id: params.cursor }, skip: 1 } : {}),
+    take: filters.limit ?? 20,
+    ...(filters.cursor ? { cursor: { id: filters.cursor }, skip: 1 } : {}),
     orderBy: { createdAt: "desc" },
   });
 }
 
-export async function updateProduct(id: string, data: {
+export async function listProducts(params: {
+  type?: ProductType;
+  limit?: number;
+  cursor?: string;
+}) {
+  return getProducts(params);
+}
+
+export async function updateProduct(
+  productId: string,
+  userId: string,
+  data: {
+    title?: string;
+    description?: string;
+    price?: number;
+    compareAt?: number;
+    images?: string[];
+    stock?: number;
+    isPublished?: boolean;
+    metadata?: Record<string, unknown>;
+  },
+) {
+  // Admin guard — in production, check user role
+  return prisma.product.update({
+    where: { id: productId },
+    data: {
+      ...data,
+      metadata: data.metadata !== undefined
+        ? (data.metadata as Prisma.InputJsonValue)
+        : undefined,
+    },
+  });
+}
+
+export async function updateProductSimple(id: string, data: {
   title?: string;
   description?: string;
   price?: number;
@@ -96,8 +148,33 @@ export async function updateProduct(id: string, data: {
   });
 }
 
-export async function deleteProduct(id: string) {
-  return prisma.product.delete({ where: { id } });
+export async function deleteProduct(productId: string, _userId: string) {
+  return prisma.product.delete({ where: { id: productId } });
+}
+
+// ── Cart (session-based with DB persistence) ────────────────────────────
+
+export async function addToCart(userId: string, productId: string, quantity: number) {
+  const product = await prisma.product.findUnique({ where: { id: productId } });
+  if (!product || !product.isPublished) throw new Error("Product not available");
+
+  // Use a simple approach: store cart items as metadata on user session
+  // For now, we return the item — actual cart persistence uses client state
+  return {
+    productId: product.id,
+    title: product.title,
+    slug: product.slug,
+    price: product.price,
+    image: product.images?.[0] ?? null,
+    quantity,
+    subtotal: product.price * quantity,
+  };
+}
+
+export async function getCart(userId: string) {
+  // Placeholder: cart is primarily managed client-side via zustand/localStorage
+  // Server returns basic user context
+  return { userId, items: [] as Awaited<ReturnType<typeof addToCart>>[] };
 }
 
 // ── Orders ──────────────────────────────────────────────────────────────
@@ -106,6 +183,14 @@ export async function createOrder(params: {
   userId: string;
   items: { productId: string; quantity: number; unitPrice: number }[];
   currency?: string;
+  shippingAddress?: {
+    line1: string;
+    line2?: string;
+    city: string;
+    state: string;
+    postalCode: string;
+    country: string;
+  };
 }) {
   const totalAmount = params.items.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0);
 
@@ -127,12 +212,29 @@ export async function createOrder(params: {
   });
 }
 
-export async function getUserOrders(userId: string) {
+export async function getOrders(userId: string) {
   return prisma.storeOrder.findMany({
     where: { userId },
     include: { items: { include: { product: { select: { id: true, title: true, slug: true, images: true } } } } },
     orderBy: { createdAt: "desc" },
   });
+}
+
+export async function getUserOrders(userId: string) {
+  return getOrders(userId);
+}
+
+export async function getOrder(orderId: string, userId: string) {
+  const order = await prisma.storeOrder.findUnique({
+    where: { id: orderId },
+    include: {
+      items: { include: { product: true } },
+      user: { select: { id: true, name: true, email: true } },
+    },
+  });
+  if (!order) throw new Error("Order not found");
+  if (order.userId !== userId) throw new Error("Not authorized to view this order");
+  return order;
 }
 
 export async function getOrderById(orderId: string) {
@@ -155,11 +257,11 @@ export async function updateOrderStatus(orderId: string, status: string, stripeP
 
 // ── Reviews ─────────────────────────────────────────────────────────────
 
-export async function createReview(params: {
+export async function addReview(params: {
   productId: string;
   userId: string;
   rating: number;
-  body?: string;
+  content?: string;
 }) {
   if (params.rating < 1 || params.rating > 5) throw new Error("Rating must be 1-5");
 
@@ -168,17 +270,31 @@ export async function createReview(params: {
       productId: params.productId,
       userId: params.userId,
       rating: params.rating,
-      body: params.body ?? null,
+      body: params.content ?? null,
     },
     include: { user: { select: { id: true, name: true, avatar: true } } },
   });
 }
 
-export async function getProductReviews(productId: string, limit = 20) {
+export async function createReview(params: {
+  productId: string;
+  userId: string;
+  rating: number;
+  body?: string;
+}) {
+  return addReview({ ...params, content: params.body });
+}
+
+export async function getProductReviews(
+  productId: string,
+  cursor?: string,
+  limit = 20,
+) {
   return prisma.storeReview.findMany({
     where: { productId },
     include: { user: { select: { id: true, name: true, avatar: true } } },
     take: limit,
+    ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
     orderBy: { createdAt: "desc" },
   });
 }
