@@ -19,7 +19,7 @@ export interface FeedItem {
   };
 }
 
-export function usePersonalFeed() {
+export function usePersonalFeed({ enabled = true }: { enabled?: boolean } = {}) {
   return useInfiniteQuery<FeedItem[]>({
     queryKey: ["personal-feed"],
     queryFn: async ({ pageParam }) => {
@@ -37,6 +37,7 @@ export function usePersonalFeed() {
     },
     staleTime: 30_000,
     gcTime: 5 * 60_000,
+    enabled,
   });
 }
 
@@ -55,7 +56,7 @@ export interface GlobalFeedPost {
   _count: { likes: number; comments: number };
 }
 
-export function useGlobalFeed() {
+export function useGlobalFeed({ enabled = true }: { enabled?: boolean } = {}) {
   return useInfiniteQuery<GlobalFeedPost[]>({
     queryKey: ["global-feed"],
     queryFn: async ({ pageParam }) => {
@@ -73,5 +74,6 @@ export function useGlobalFeed() {
     },
     staleTime: 30_000,
     gcTime: 5 * 60_000,
+    enabled,
   });
 }

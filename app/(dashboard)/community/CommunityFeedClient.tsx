@@ -32,12 +32,12 @@ export function CommunityFeedClient({ initialData, trending, activeTab }: Commun
   const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
 
-  // ── Personal Feed (FeedItem table) ──
-  const personalFeed = usePersonalFeed();
+  // ── Personal Feed (FeedItem table) — only when tab is active ──
+  const personalFeed = usePersonalFeed({ enabled: activeTab === 'personal' });
   const personalItems = personalFeed.data?.pages.flat() ?? [];
 
-  // ── Global Feed (CommunityPost table, public) ──
-  const globalFeed = useGlobalFeed();
+  // ── Global Feed (CommunityPost table, public) — only when tab is active ──
+  const globalFeed = useGlobalFeed({ enabled: activeTab === 'global' });
 
   // ── Spaces / Community Feed ──
   const communityFeed = useCommunityFeed({
