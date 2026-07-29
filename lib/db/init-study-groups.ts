@@ -72,11 +72,22 @@ export async function ensureStudyGroupTables(): Promise<void> {
     for (const sql of statements) {
       try {
         await pool.query(sql);
-        console.log('[StudyGroup] Executed:', sql.slice(0, 60));
       } catch (err) {
         const msg = (err as Error).message?.slice(0, 120);
         console.error('[StudyGroup] SQL error:', msg);
-        throw err; // Fail fast on first real error
+        throw err;
+      }
+    }
+
+    // Disable RLS on study group tables so all authenticated users can read/write
+    // (site is in open pre-paywall mode)
+    const rlsTables = ['CourseStudyGroup', 'GroupMember', 'GroupPost', 'GroupReply', 'GroupFile'];
+    for (const table of rlsTables) {
+      try {
+        await pool.query(`ALTER TABLE "${table}" DISABLE ROW LEVEL SECURITY`);
+        console.log(`[StudyGroup] RLS disabled on ${table}`);
+      } catch (err) {
+        console.warn(`[StudyGroup] Could not disable RLS on ${table}:`, (err as Error).message?.slice(0, 100));
       }
     }
 

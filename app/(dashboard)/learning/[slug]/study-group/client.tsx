@@ -35,10 +35,39 @@ export function StudyGroupClient({
   group,
 }: {
   slug: string;
-  group: NonNullable<StudyGroupWithMembers>;
+  group: StudyGroupWithMembers | null;
 }) {
   const emailRef = useRef(getEmailFromStorage());
-  const memberCount = (group.members ?? []).length;
+  const memberCount = (group?.members ?? []).length;
+
+  if (!group) {
+    return (
+      <div className="min-h-screen">
+        <div className="border-b border-[var(--color-border-subtle)] bg-[var(--color-surface)]">
+          <div className="px-4 sm:px-6 lg:px-8 py-4 max-w-7xl mx-auto">
+            <div className="flex items-center gap-2 text-sm text-muted mb-1">
+              <Link href="/learning" className="hover:text-accent transition-colors">Learning</Link>
+              <span>/</span>
+              <Link href={`/learning/${slug}`} className="hover:text-accent transition-colors">Course</Link>
+              <span>/</span>
+              <span className="text-foreground font-medium">Study Group</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="font-heading font-bold text-2xl text-foreground">Study Group</h1>
+                <p className="text-muted text-sm mt-1">0 members</p>
+              </div>
+              <Link href={`/learning/${slug}`} className="text-sm text-accent hover:underline">← Back to course</Link>
+            </div>
+          </div>
+        </div>
+        <div className="p-8 text-center text-muted">
+          <p className="text-lg">Study group coming soon!</p>
+          <p className="text-sm mt-2">This course&apos;s study group hasn&apos;t been created yet.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">

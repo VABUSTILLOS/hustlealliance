@@ -28,11 +28,10 @@ export default async function StudyGroupPage({
       );
     }
 
-    // Upsert study group
-    const raw = await prisma.courseStudyGroup.upsert({
+    // Find existing study group — seed script creates these at build time.
+    // Use findUnique instead of upsert to avoid RLS INSERT permission errors.
+    let raw = await prisma.courseStudyGroup.findUnique({
       where: { courseId: course.id },
-      create: { courseId: course.id, description: null },
-      update: {},
       include: {
         members: {
           include: {
@@ -66,6 +65,10 @@ export default async function StudyGroupPage({
         },
       },
     });
+
+    if (!raw) {
+      return <StudyGroupClient slug={slug} group={null} />;
+    }
 
     // Serialize to plain JSON to break any shared object references
     // (Prisma adapters can return the same User object in multiple includes,
