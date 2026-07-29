@@ -1,5 +1,9 @@
 import { CommunityHeader } from './CommunityHeader';
 import { getTrendingTopics } from '@/lib/db/community';
+import { PostFeedSkeleton } from './PostFeedSkeleton';
+import { CommunitySidebar } from './CommunitySidebar';
+import { PostFeedServer } from './PostFeedServer';
+import { Suspense } from 'react';
 import type { FeedTab } from './FeedTabs';
 
 export const dynamic = 'force-dynamic';
@@ -18,9 +22,15 @@ export default async function CommunityPage({
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-8 max-w-7xl mx-auto">
       <CommunityHeader />
-      <div className="p-8 bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border-subtle)]">
-        <p className="text-[var(--color-foreground)] font-heading text-lg">Community page loading...</p>
-        <p className="text-[var(--color-muted)] text-sm mt-2">Tab: {initialTab} | Trending topics: {trending.length}</p>
+      <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex-1 min-w-0">
+          <Suspense fallback={<PostFeedSkeleton />}>
+            <PostFeedServer trending={trending} initialTab={initialTab} />
+          </Suspense>
+        </div>
+        <aside className="hidden lg:block w-80 shrink-0">
+          <CommunitySidebar trending={trending} />
+        </aside>
       </div>
     </div>
   );
