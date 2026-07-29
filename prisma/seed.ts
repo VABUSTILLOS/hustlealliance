@@ -111,9 +111,11 @@ async function main() {
     prisma.category.upsert({ where: { slug: 'marketing' }, update: {}, create: { name: 'Marketing', slug: 'marketing', description: 'Growth marketing strategies for bootstrapped startups' } }),
     prisma.category.upsert({ where: { slug: 'product' }, update: {}, create: { name: 'Product', slug: 'product', description: 'Product-led growth and development strategies' } }),
     prisma.category.upsert({ where: { slug: 'leadership' }, update: {}, create: { name: 'Leadership', slug: 'leadership', description: 'Leadership and team building for founders' } }),
+    prisma.category.upsert({ where: { slug: 'sales' }, update: {}, create: { name: 'Sales', slug: 'sales', description: 'B2B sales, negotiation, and closing deals' } }),
+    prisma.category.upsert({ where: { slug: 'finance' }, update: {}, create: { name: 'Finance', slug: 'finance', description: 'Financial modeling, metrics, and runway management' } }),
   ]);
 
-  const [catFundraising, catMarketing, catProduct, catLeadership] = categories;
+  const [catFundraising, catMarketing, catProduct, catLeadership, catSales, catFinance] = categories;
   console.log('✅ Categories created');
 
   // ==================== COURSES ====================
@@ -250,7 +252,7 @@ async function main() {
       studentCount: 521,
       categoryId: catLeadership.id,
       instructorId: sarah.id,
-      communitySpaceSlug: 'leader-circle',
+      communitySpaceSlug: 'saas-founders',
       thumbnail: 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=800&h=500&fit=crop',
       modules: [
         {
@@ -275,6 +277,251 @@ async function main() {
             { title: 'Delegation & Empowerment', slug: 'delegation', durationMinutes: 20, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## Delegate or die\n\nWork yourself out of every job. Empower your team.' },
             { title: 'Building a Leadership Team', slug: 'leadership-team', durationMinutes: 22, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## From founder-led to team-led\n\nHiring VPs and building executive alignment.' },
             { title: 'Founder Wellness & Resilience', slug: 'founder-wellness', durationMinutes: 15, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## You are your startup\'s most important asset\n\nTherapy, exercise, sleep — they\'re part of the job.' },
+          ],
+        },
+      ],
+    },
+    {
+      title: 'Sales for Founders',
+      slug: 'sales-for-founders',
+      tagline: 'Close your first 50 deals',
+      description: 'Learn founder-led sales from prospecting to close. Master cold outreach, discovery calls, objection handling, and negotiation — without feeling like a salesperson.',
+      difficulty: 'BEGINNER' as const,
+      accessLevel: 'FREE' as const,
+      durationWeeks: 4,
+      totalMinutes: 225,
+      studentCount: 736,
+      categoryId: catSales.id,
+      instructorId: marcus.id,
+      communitySpaceSlug: 'saas-founders',
+      thumbnail: 'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=800&h=500&fit=crop',
+      modules: [
+        {
+          title: 'Foundations of Founder-Led Sales',
+          lessons: [
+            { title: 'Why Founders Must Sell First', slug: 'founder-sells-first', durationMinutes: 14, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## Nobody sells your product better than you\n\nBefore hiring a sales team, you need to master the craft yourself. This is how you discover what actually resonates.' },
+            { title: 'Building Your Ideal Customer Profile', slug: 'icp-building', durationMinutes: 18, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## Don\'t sell to everyone\n\nDefine your ICP with precision: firmographics, pain points, budget, and buying authority.' },
+            { title: 'The Founder\'s Sales Stack', slug: 'sales-stack', durationMinutes: 16, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## Tools don\'t sell — but they help\n\nCRM, email sequencing, LinkedIn automation, and call recording. The lean founder\'s toolkit.' },
+          ],
+        },
+        {
+          title: 'Outbound Prospecting',
+          lessons: [
+            { title: 'Cold Outreach That Gets Replies', slug: 'cold-outreach', durationMinutes: 22, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## The art of the cold email\n\nSubject lines that get opened. Bodies that get replies. Timing that matters.' },
+            { title: 'LinkedIn & Social Selling', slug: 'social-selling', durationMinutes: 18, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## Build relationships before you pitch\n\nContent → Connection → Conversation → Close. The 4 C\'s of social selling.' },
+            { title: 'Referral Engine', slug: 'referral-engine', durationMinutes: 15, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## Your happiest customers are your best salespeople\n\nHow to systematically generate warm introductions.' },
+          ],
+        },
+        {
+          title: 'Closing & Negotiation',
+          lessons: [
+            { title: 'Running Killer Discovery Calls', slug: 'discovery-calls', durationMinutes: 20, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## Ask, don\'t tell\n\nThe best sales calls are 80% listening. Master the MEDDIC framework.' },
+            { title: 'Objection Handling Playbook', slug: 'objection-handling', durationMinutes: 22, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## Every objection is a question in disguise\n\nPrice, timing, competition, authority — scripted responses for every scenario.' },
+            { title: 'Negotiation Mastery', slug: 'negotiation-mastery', durationMinutes: 25, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## Win-win or no deal\n\nAnchoring, concessions, and when to walk away. Based on Chris Voss\'s FBI negotiation tactics.' },
+          ],
+        },
+      ],
+    },
+    {
+      title: 'Startup Finance 101',
+      slug: 'startup-finance-101',
+      tagline: 'Master your startup\'s financial health',
+      description: 'Go from spreadsheet-phobic to financially fluent. Learn to build financial models, manage runway, understand cap tables, and communicate with investors about the numbers that matter.',
+      difficulty: 'INTERMEDIATE' as const,
+      accessLevel: 'BASIC' as const,
+      durationWeeks: 5,
+      totalMinutes: 270,
+      studentCount: 512,
+      categoryId: catFinance.id,
+      instructorId: devon.id,
+      communitySpaceSlug: 'fundraising-hub',
+      thumbnail: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&h=500&fit=crop',
+      modules: [
+        {
+          title: 'Financial Foundations',
+          lessons: [
+            { title: 'Startup Accounting 101', slug: 'accounting-101', durationMinutes: 18, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## Debits, credits, and why they matter\n\nRevenue recognition, accrual vs cash basis, and the three financial statements.' },
+            { title: 'Unit Economics Demystified', slug: 'unit-economics', durationMinutes: 22, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## CAC, LTV, and everything in between\n\nHow to calculate, track, and optimize your key unit economics.' },
+            { title: 'Building Your First Financial Model', slug: 'first-financial-model', durationMinutes: 30, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## From zero to a working model\n\nStep-by-step: revenue projections, headcount planning, expense forecasting. Template included.' },
+          ],
+        },
+        {
+          title: 'Metrics & KPIs',
+          lessons: [
+            { title: 'SaaS Metrics That Matter', slug: 'saas-metrics', durationMinutes: 20, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## MRR, ARR, Churn, NRR, GRR, Burn Multiple\n\nWhich metrics investors actually care about and how to improve them.' },
+            { title: 'Building Investor Dashboards', slug: 'investor-dashboards', durationMinutes: 18, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## Speak the language of investors\n\nHow to present your numbers in a way that builds confidence.' },
+            { title: 'Runway & Cash Management', slug: 'runway-management', durationMinutes: 16, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## Cash is oxygen\n\nExtending runway, managing burn rate, and knowing when to raise vs. when to cut.' },
+          ],
+        },
+        {
+          title: 'Cap Tables & Fundraising Math',
+          lessons: [
+            { title: 'Cap Table Fundamentals', slug: 'cap-table-basics', durationMinutes: 22, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## Who owns what and why\n\nAuthorized shares, outstanding shares, option pools, and dilution — explained simply.' },
+            { title: 'Valuation & Deal Terms', slug: 'valuation-deal-terms', durationMinutes: 24, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## Pre-money, post-money, and liquidation preferences\n\nHow term sheet math actually works with real examples.' },
+            { title: 'Tax & Compliance for Startups', slug: 'tax-compliance', durationMinutes: 20, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## Don\'t let the IRS kill your startup\n\nEntity selection, R&D tax credits, 409A valuations, and common tax pitfalls.' },
+          ],
+        },
+      ],
+    },
+    {
+      title: 'AI Tools for Founders',
+      slug: 'ai-tools-for-founders',
+      tagline: '10x your productivity with AI',
+      description: 'Practical AI for founders who don\'t code. Learn to leverage ChatGPT, Claude, Midjourney, and 20+ AI tools across marketing, sales, product, and operations.',
+      difficulty: 'BEGINNER' as const,
+      accessLevel: 'FREE' as const,
+      durationWeeks: 3,
+      totalMinutes: 168,
+      studentCount: 1089,
+      categoryId: catProduct.id,
+      instructorId: devon.id,
+      communitySpaceSlug: 'ai-ml-builders',
+      thumbnail: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&h=500&fit=crop',
+      modules: [
+        {
+          title: 'AI Fundamentals for Founders',
+          lessons: [
+            { title: 'What AI Can (and Can\'t) Do Today', slug: 'ai-capabilities', durationMinutes: 16, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## Cut through the hype\n\nLLMs, image generation, code assistants — what\'s production-ready and what\'s still research.' },
+            { title: 'Prompt Engineering for Founders', slug: 'prompt-engineering', durationMinutes: 20, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## The single most important skill of 2024\n\nChain-of-thought, few-shot, role prompting — templates for every business task.' },
+            { title: 'Building Your AI Stack', slug: 'ai-stack', durationMinutes: 14, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## The 10 tools every founder needs\n\nFrom ChatGPT Teams to Claude Projects to Perplexity — build your AI toolkit.' },
+          ],
+        },
+        {
+          title: 'AI for Marketing & Content',
+          lessons: [
+            { title: 'AI-Powered Content Creation', slug: 'ai-content', durationMinutes: 18, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## Blog posts, social content, and newsletters at 10x speed\n\nUsing AI as your first draft writer — with your voice and expertise.' },
+            { title: 'AI for SEO & Market Research', slug: 'ai-seo-research', durationMinutes: 16, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## Keyword research, competitor analysis, and content gaps\n\nHow Perplexity and ChatGPT can replace expensive research tools.' },
+            { title: 'AI Design & Brand Assets', slug: 'ai-design', durationMinutes: 15, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## From Midjourney to Canva AI\n\nGenerate logos, social graphics, pitch deck slides, and ad creatives in minutes.' },
+          ],
+        },
+        {
+          title: 'AI for Operations & Product',
+          lessons: [
+            { title: 'AI for Customer Support', slug: 'ai-support', durationMinutes: 18, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## Chatbots that actually work\n\nBuild a knowledge base, train custom GPTs, and automate 80% of support tickets.' },
+            { title: 'AI-Assisted Product Development', slug: 'ai-product-dev', durationMinutes: 20, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## From PRD to prototype faster\n\nUsing AI for spec writing, wireframing, user story generation, and even no-code MVPs.' },
+            { title: 'Automating Back-Office with AI', slug: 'ai-backoffice', durationMinutes: 16, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## HR, legal, accounting, and operations\n\nAI tools that replace 3 headcount for early-stage startups.' },
+          ],
+        },
+      ],
+    },
+    {
+      title: 'Design Thinking for Startups',
+      slug: 'design-thinking',
+      tagline: 'Build products people love',
+      description: 'Learn the human-centered design process that powers Apple, Airbnb, and Stripe. From user research to prototyping to usability testing — without a design background.',
+      difficulty: 'INTERMEDIATE' as const,
+      accessLevel: 'BASIC' as const,
+      durationWeeks: 4,
+      totalMinutes: 232,
+      studentCount: 394,
+      categoryId: catProduct.id,
+      instructorId: priya.id,
+      communitySpaceSlug: 'saas-founders',
+      thumbnail: 'https://images.unsplash.com/photo-1545235617-9465d2a55698?w=800&h=500&fit=crop',
+      modules: [
+        {
+          title: 'Empathize & Define',
+          lessons: [
+            { title: 'Introduction to Design Thinking', slug: 'intro-design-thinking', durationMinutes: 14, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## Design is not how it looks — it\'s how it works\n\nThe 5-stage design thinking process and how it applies to startups.' },
+            { title: 'User Research on a Budget', slug: 'user-research', durationMinutes: 22, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## You are not your user\n\nInterviews, surveys, observation, and analytics — how to understand real user needs without a research team.' },
+            { title: 'Defining the Problem Statement', slug: 'problem-statement', durationMinutes: 18, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## A problem well-stated is half-solved\n\nHow to frame problems, create personas, and write Jobs-to-be-Done statements.' },
+          ],
+        },
+        {
+          title: 'Ideate & Prototype',
+          lessons: [
+            { title: 'Brainstorming That Actually Works', slug: 'brainstorming', durationMinutes: 20, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## Quantity over quality (at first)\n\nBrainwriting, crazy 8s, SCAMPER, and other ideation techniques that get results.' },
+            { title: 'Rapid Prototyping', slug: 'rapid-prototyping', durationMinutes: 24, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## From idea to clickable prototype in hours\n\nPaper prototypes, wireframes, and high-fidelity mockups with Figma. No design skills required.' },
+          ],
+        },
+        {
+          title: 'Test & Iterate',
+          lessons: [
+            { title: 'Usability Testing 101', slug: 'usability-testing', durationMinutes: 22, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## Watch users break your product\n\n5-user rule, think-aloud protocol, and how to run tests remotely with real users.' },
+            { title: 'Iterating with Data', slug: 'iterating-data', durationMinutes: 20, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## Kill your darlings\n\nHow to prioritize feedback, run A/B tests, and make data-driven design decisions.' },
+            { title: 'Building a Design Culture', slug: 'design-culture', durationMinutes: 18, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## Design is everyone\'s job\n\nHow to embed design thinking into your startup\'s DNA — even with zero designers on staff.' },
+          ],
+        },
+      ],
+    },
+    {
+      title: 'Remote Leadership',
+      slug: 'remote-leadership',
+      tagline: 'Build and scale distributed teams',
+      description: 'Master the art of leading remote and hybrid teams. Covers async communication, remote culture, distributed hiring, and keeping teams aligned across time zones.',
+      difficulty: 'ADVANCED' as const,
+      accessLevel: 'PRO' as const,
+      durationWeeks: 5,
+      totalMinutes: 278,
+      studentCount: 287,
+      categoryId: catLeadership.id,
+      instructorId: sarah.id,
+      communitySpaceSlug: 'saas-founders',
+      thumbnail: 'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&h=500&fit=crop',
+      modules: [
+        {
+          title: 'Remote-First Mindset',
+          lessons: [
+            { title: 'Remote vs. Hybrid vs. Office', slug: 'remote-models', durationMinutes: 18, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## Pick your model and commit\n\nThe pros and cons of each approach. Why "hybrid with optional remote" is the worst of both worlds.' },
+            { title: 'Async Communication Mastery', slug: 'async-communication', durationMinutes: 22, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## Default to async\n\nWriting-first culture, decision memos, and when to actually schedule a meeting.' },
+            { title: 'Remote Tooling & Infrastructure', slug: 'remote-tooling', durationMinutes: 16, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## The digital HQ\n\nSlack/Teams, Notion/Confluence, Loom, Miro, and the tools that make remote work actually work.' },
+          ],
+        },
+        {
+          title: 'Building Remote Culture',
+          lessons: [
+            { title: 'Culture Without a Water Cooler', slug: 'remote-culture', durationMinutes: 20, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## Intentional culture > accidental culture\n\nHow to build connection, trust, and belonging when nobody shares a physical space.' },
+            { title: 'Running Effective Remote Meetings', slug: 'remote-meetings', durationMinutes: 18, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## Most meetings should be emails\n\nThe 6 types of meetings worth having, and how to run each one flawlessly on Zoom.' },
+            { title: 'Remote Onboarding That Works', slug: 'remote-onboarding', durationMinutes: 22, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## First 90 days, fully remote\n\nStructured onboarding plans, buddy systems, and making new hires feel welcome from day one.' },
+          ],
+        },
+        {
+          title: 'Distributed Team Management',
+          lessons: [
+            { title: 'Hiring Across Borders', slug: 'global-hiring', durationMinutes: 24, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## The world is your talent pool\n\nEORs, contractors, compliance, and compensation strategies for global teams.' },
+            { title: 'Performance Management at Scale', slug: 'remote-performance', durationMinutes: 20, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## Measure outcomes, not hours\n\nOKRs, 360 reviews, and career development frameworks for distributed teams.' },
+            { title: 'Avoiding Burnout in Remote Teams', slug: 'remote-burnout', durationMinutes: 18, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## The always-on trap\n\nSetting boundaries, modeling healthy behavior, and building sustainable remote work practices.' },
+          ],
+        },
+      ],
+    },
+    {
+      title: 'Content Marketing Mastery',
+      slug: 'content-marketing-mastery',
+      tagline: 'Build an audience that grows your startup',
+      description: 'Learn to create content that attracts, converts, and retains customers. Covers blogging, newsletters, social media, podcasts, and video — all on a bootstrap budget.',
+      difficulty: 'BEGINNER' as const,
+      accessLevel: 'FREE' as const,
+      durationWeeks: 6,
+      totalMinutes: 310,
+      studentCount: 847,
+      categoryId: catMarketing.id,
+      instructorId: priya.id,
+      communitySpaceSlug: 'growth-hacking',
+      thumbnail: 'https://images.unsplash.com/photo-1432821596592-e2c18b78144f?w=800&h=500&fit=crop',
+      modules: [
+        {
+          title: 'Content Strategy Foundations',
+          lessons: [
+            { title: 'Why Content Marketing Wins', slug: 'why-content', durationMinutes: 16, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## Content compounds\n\nHow content marketing beats paid ads over time. The flywheel: content → traffic → trust → customers.' },
+            { title: 'Defining Your Content Niche', slug: 'content-niche', durationMinutes: 18, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## Be the best answer on the internet for one thing\n\nHow to find your unique angle, voice, and positioning in a crowded content landscape.' },
+            { title: 'Building a Content Calendar', slug: 'content-calendar', durationMinutes: 20, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## Consistency beats intensity\n\nHow to plan, batch, and schedule content so you never miss a publishing date.' },
+          ],
+        },
+        {
+          title: 'Written Content',
+          lessons: [
+            { title: 'SEO Blogging That Ranks', slug: 'seo-blogging', durationMinutes: 22, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## Write for humans, optimize for Google\n\nKeyword research, content briefs, on-page SEO, and link-building strategies.' },
+            { title: 'Newsletter Growth Strategies', slug: 'newsletter-growth', durationMinutes: 20, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## Email is still the highest-ROI channel\n\nGrowth loops, referral programs, cross-promotions, and monetization strategies.' },
+            { title: 'Writing for Social Media', slug: 'social-writing', durationMinutes: 18, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## Threads, hooks, and formats that work\n\nTwitter/X, LinkedIn, and Instagram — platform-specific writing strategies.' },
+          ],
+        },
+        {
+          title: 'Multimedia Content',
+          lessons: [
+            { title: 'Podcasting for Founders', slug: 'podcasting', durationMinutes: 24, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## Your voice is your brand\n\nEquipment, editing, distribution, and how to book great guests — all on a bootstrap budget.' },
+            { title: 'Video Content That Converts', slug: 'video-content', durationMinutes: 26, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## YouTube is the second largest search engine\n\nTalking-head videos, tutorials, shorts, and live streams — which formats work for B2B startups.' },
+            { title: 'Repurposing & Distribution', slug: 'content-repurposing', durationMinutes: 18, videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', content: '## Create once, publish everywhere\n\nHow to turn one blog post into 20+ pieces of content across every platform.' },
           ],
         },
       ],

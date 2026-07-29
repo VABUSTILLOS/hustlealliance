@@ -324,6 +324,7 @@ async function main() {
         maxAttendees: template.maxAttendees,
         creatorId: hostId,
         isFeatured: random() < 0.15,
+        coverImage: pick(postImages),
       },
     });
   }
@@ -359,93 +360,131 @@ async function main() {
   console.log(`   ✅ ${totalRSVPs} RSVPs created`);
   }
 
-  // ── PHASE 7: Course Study Groups (disable RLS, insert, re-enable) ────────
+  // ── PHASE 7: Course Study Groups (disable RLS, populate all groups) ────────
   console.log('\n📦 Phase 7: Creating CourseStudyGroups...');
   try {
-    // Count existing — if any study groups exist, skip (idempotent)
-    const existingCount = await prisma.$queryRawUnsafe<{ count: bigint }[]>(
-      `SELECT COUNT(*)::bigint FROM "CourseStudyGroup"`
-    );
-    if (Number(existingCount[0].count) > 0) {
-      console.log(`   ⏭️  ${existingCount[0].count} study groups already exist, skipping`);
-    } else {
-      // Temporarily disable RLS on study group tables
-      console.log('   🔓 Disabling RLS on CourseStudyGroup tables...');
-      await prisma.$executeRawUnsafe(`ALTER TABLE "CourseStudyGroup" DISABLE ROW LEVEL SECURITY`);
-      await prisma.$executeRawUnsafe(`ALTER TABLE "CourseGroupMember" DISABLE ROW LEVEL SECURITY`);
-      await prisma.$executeRawUnsafe(`ALTER TABLE "CourseGroupPost" DISABLE ROW LEVEL SECURITY`);
-      await prisma.$executeRawUnsafe(`ALTER TABLE "CourseGroupFile" DISABLE ROW LEVEL SECURITY`);
+    // Temporarily disable RLS on study group tables
+    console.log('   🔓 Disabling RLS on CourseStudyGroup tables...');
+    await prisma.$executeRawUnsafe(`ALTER TABLE "CourseStudyGroup" DISABLE ROW LEVEL SECURITY`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "CourseGroupMember" DISABLE ROW LEVEL SECURITY`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "CourseGroupPost" DISABLE ROW LEVEL SECURITY`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "CourseGroupFile" DISABLE ROW LEVEL SECURITY`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "CourseGroupReply" DISABLE ROW LEVEL SECURITY`);
 
-      try {
-        const courses = await prisma.course.findMany({ where: { status: 'PUBLISHED' } });
-        console.log(`   Found ${courses.length} published courses`);
+    try {
+      const courses = await prisma.course.findMany({ where: { status: 'PUBLISHED' } });
+      console.log(`   Found ${courses.length} published courses`);
 
-        let totalMembers = 0;
-        let totalPosts = 0;
-        let totalFiles = 0;
+      // Find existing groups and their member counts
+      const existingGroups = await prisma.courseStudyGroup.findMany({
+        include: { _count: { select: { members: true, posts: true } } },
+      });
+      const existingCourseIds = new Set(existingGroups.map(g => g.courseId));
 
-        for (const course of courses) {
+      let totalMembers = 0;
+      let totalPosts = 0;
+      let totalReplies = 0;
+      let totalFiles = 0;
+
+      for (const course of courses) {
+        const existingGroup = existingGroups.find(g => g.courseId === course.id);
+
+        let groupId: string;
+        if (existingGroup) {
+          groupId = existingGroup.id;
+          console.log(`   📚 ${course.title}: existing group (${existingGroup._count.members} members, ${existingGroup._count.posts} posts)`);
+        } else {
           const group = await prisma.courseStudyGroup.create({
             data: {
               courseId: course.id,
               description: `Study group for ${course.title}. Collaborate, ask questions, and share resources with your cohort.`,
             },
           });
+          groupId = group.id;
+          console.log(`   📚 ${course.title}: new group created`);
+        }
 
-          // Add members (8-30)
-          const memberCount = randInt(8, 30);
-          const memberIds = pickN(userIds, memberCount);
-          const memberDates = sequentialDates(memberCount, SEED_WINDOW, 1);
+        // Add members if group has fewer than 8
+        const existingMemberCount = existingGroup?._count.members ?? 0;
+        if (existingMemberCount < 8) {
+          const memberCount = randInt(12, 35);
+          const existingMemberIds = existingGroup
+            ? (await prisma.courseGroupMember.findMany({ where: { groupId }, select: { userId: true } })).map(m => m.userId)
+            : [];
+          const availableIds = userIds.filter(u => !existingMemberIds.includes(u));
+          const newMemberIds = pickN(availableIds, Math.min(memberCount, availableIds.length));
+          const memberDates = sequentialDates(newMemberIds.length, SEED_WINDOW, 1);
 
-          await prisma.courseGroupMember.createMany({
-            data: memberIds.map((userId, i) => ({
-              groupId: group.id, userId, joinedAt: memberDates[i],
-            })),
-            skipDuplicates: true,
-          });
+          const memberChunks = chunk(newMemberIds.map((userId, i) => ({
+            groupId, userId, joinedAt: memberDates[i],
+          })), 50);
+          for (const m of memberChunks) {
+            await prisma.courseGroupMember.createMany({ data: m, skipDuplicates: true });
+          }
+          totalMembers += newMemberIds.length;
+        }
 
-          // Add group posts (10-30)
-          const postCount = randInt(10, 30);
+        // Add posts if group has fewer than 10
+        const existingPostCount = existingGroup?._count.posts ?? 0;
+        if (existingPostCount < 10) {
+          const allMemberIds = (await prisma.courseGroupMember.findMany({ where: { groupId }, select: { userId: true } })).map(m => m.userId);
+          const postCount = randInt(15, 35);
           for (let p = 0; p < postCount; p++) {
-            const authorId = pick(memberIds);
+            const authorId = pick(allMemberIds.length > 0 ? allMemberIds : userIds);
             const content = fillTemplate(pick(groupPostTemplates));
             const createdAt = weekdayDate(SEED_WINDOW, 0);
-            await prisma.courseGroupPost.create({
-              data: { groupId: group.id, authorId, content, createdAt },
+            const post = await prisma.courseGroupPost.create({
+              data: { groupId, authorId, content, createdAt },
             });
-          }
 
-          // Add group files (3-8)
-          const fileCount = randInt(3, 8);
+            // Add 0-5 replies per post
+            const replyCount = randInt(0, 5);
+            if (replyCount > 0) {
+              const replyDates = burstDates(createdAt, replyCount, 72); // within 3 days
+              const replyRows = Array.from({ length: replyCount }, (_, ri) => ({
+                postId: post.id,
+                authorId: pick(allMemberIds.length > 0 ? allMemberIds : userIds),
+                content: fillTemplate(pick(commentTemplates)),
+                createdAt: replyDates[ri],
+              }));
+              await prisma.courseGroupReply.createMany({ data: replyRows });
+              totalReplies += replyCount;
+            }
+          }
+          totalPosts += postCount;
+        }
+
+        // Add files if group has fewer than 3
+        const existingFileCount = await prisma.courseGroupFile.count({ where: { groupId } });
+        if (existingFileCount < 3) {
           const fileNames = [
             'study-guide-module-1.pdf', 'practice-questions.pdf', 'cheat-sheet.pdf',
             'additional-resources.pdf', 'workshop-notes.pdf', 'group-project-brief.pdf',
             'exam-prep-guide.pdf', 'case-studies.pdf',
           ];
+          const fileCount = randInt(5, 10);
           const fileRows = Array.from({ length: fileCount }, () => ({
-            groupId: group.id,
+            groupId,
             uploaderId: pick(heroIds),
             fileName: pick(fileNames),
             fileUrl: 'https://example.com/files/placeholder.pdf',
             fileSize: randInt(100_000, 5_000_000),
             mimeType: 'application/pdf',
           }));
-          await prisma.courseGroupFile.createMany({ data: fileRows });
-
-          totalMembers += memberCount;
-          totalPosts += postCount;
+          await prisma.courseGroupFile.createMany({ data: fileRows, skipDuplicates: true });
           totalFiles += fileCount;
         }
-
-        console.log(`   ✅ Study groups: ${courses.length} groups, ${totalMembers} members, ${totalPosts} posts, ${totalFiles} files`);
-      } finally {
-        // Always re-enable RLS
-        console.log('   🔒 Re-enabling RLS on CourseStudyGroup tables...');
-        await prisma.$executeRawUnsafe(`ALTER TABLE "CourseStudyGroup" ENABLE ROW LEVEL SECURITY`);
-        await prisma.$executeRawUnsafe(`ALTER TABLE "CourseGroupMember" ENABLE ROW LEVEL SECURITY`);
-        await prisma.$executeRawUnsafe(`ALTER TABLE "CourseGroupPost" ENABLE ROW LEVEL SECURITY`);
-        await prisma.$executeRawUnsafe(`ALTER TABLE "CourseGroupFile" ENABLE ROW LEVEL SECURITY`);
       }
+
+      console.log(`   ✅ Study groups: ${courses.length} groups, ${totalMembers} new members, ${totalPosts} new posts, ${totalReplies} replies, ${totalFiles} new files`);
+    } finally {
+      // Always re-enable RLS
+      console.log('   🔒 Re-enabling RLS on CourseStudyGroup tables...');
+      await prisma.$executeRawUnsafe(`ALTER TABLE "CourseStudyGroup" ENABLE ROW LEVEL SECURITY`);
+      await prisma.$executeRawUnsafe(`ALTER TABLE "CourseGroupMember" ENABLE ROW LEVEL SECURITY`);
+      await prisma.$executeRawUnsafe(`ALTER TABLE "CourseGroupPost" ENABLE ROW LEVEL SECURITY`);
+      await prisma.$executeRawUnsafe(`ALTER TABLE "CourseGroupFile" ENABLE ROW LEVEL SECURITY`);
+      await prisma.$executeRawUnsafe(`ALTER TABLE "CourseGroupReply" ENABLE ROW LEVEL SECURITY`);
     }
   } catch (e: any) {
     console.warn(`   ⚠️  Phase 7 skipped (${e.code || 'error'}): ${e.message?.slice(0, 150)}`);
