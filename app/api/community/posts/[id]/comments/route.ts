@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db/prisma";
 import { getCurrentUser } from "@/lib/auth/user";
 import { notifyCommentAdded } from "@/lib/notifications/service";
+import { fanoutToFollowers } from "@/lib/db/feed";
 
 export async function GET(
   _req: NextRequest,
@@ -75,6 +76,15 @@ export async function POST(
         content.slice(0, 100)
       ).catch(() => {});
     }
+
+    // Fanout COMMENT_CREATED to followers
+    fanoutToFollowers({
+      actorId: user.id,
+      type: "COMMENT_CREATED",
+      entityType: "Comment",
+      entityId: comment.id,
+      metadata: { postId, preview: content.slice(0, 150) },
+    }).catch(() => {});
 
     return NextResponse.json(comment, { status: 201 });
   } catch (err) {

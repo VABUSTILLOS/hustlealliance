@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createPost, getFeedPosts } from "@/lib/db/posts";
-import { fanoutToFollowers } from "@/lib/db/feed";
+import { fanoutToFollowers, fanoutToGroupMembers } from "@/lib/db/feed";
 import { getCurrentUser } from "@/lib/auth/user";
 import { extractMentions } from "@/lib/mentions/parser";
 import { notifyMentioned } from "@/lib/notifications/service";
@@ -63,8 +63,17 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Fanout to followers for global visibility posts
-    if (post.visibility === "PUBLIC" && !post.groupId) {
+    // Fanout: group posts → group members; public posts → followers
+    if (post.groupId) {
+      fanoutToGroupMembers({
+        groupId: post.groupId,
+        actorId: user.id,
+        type: "POST_CREATED",
+        entityType: "Post",
+        entityId: post.id,
+        metadata: { preview: post.content.slice(0, 150) },
+      }).catch(() => {});
+    } else if (post.visibility === "PUBLIC") {
       fanoutToFollowers({
         actorId: user.id,
         type: "POST_CREATED",

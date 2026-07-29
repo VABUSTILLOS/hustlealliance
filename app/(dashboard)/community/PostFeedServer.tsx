@@ -1,11 +1,9 @@
 import { getCommunityPosts, getTrendingTopics } from '@/lib/db/community';
-import { CommunityFeedClient } from './CommunityFeedClient';
+import { CommunityTabsWrapper } from './CommunityTabsWrapper';
+import type { TrendingTopic } from '@/lib/db/community';
 
-export async function PostFeedServer() {
-  const [data, trending] = await Promise.all([
-    getCommunityPosts({ sort: 'latest', limit: 20 }),
-    getTrendingTopics(5),
-  ]);
+export async function PostFeedServer({ trending }: { trending: TrendingTopic[] }) {
+  const data = await getCommunityPosts({ sort: 'latest', limit: 20 });
 
-  return <CommunityFeedClient initialData={data} trending={trending} />;
+  return <CommunityTabsWrapper initialData={data} trending={trending} />;
 }

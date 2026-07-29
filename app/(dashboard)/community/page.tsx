@@ -1,6 +1,5 @@
 import { Suspense } from 'react';
 import { CommunityHeader } from './CommunityHeader';
-import { PostCreator } from './PostCreator';
 import { PostFeedServer } from './PostFeedServer';
 import { PostFeedSkeleton } from './PostFeedSkeleton';
 import { CommunitySidebar } from './CommunitySidebar';
@@ -17,9 +16,8 @@ export default async function CommunityPage() {
         {/* Main content */}
         <div className="flex-1 min-w-0">
           <CommunityHeader />
-          <PostCreator />
           <Suspense fallback={<PostFeedSkeleton />}>
-            <PostFeedServer />
+            <PostFeedServer trending={trending} />
           </Suspense>
         </div>
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { followUser, unfollowUser, getFollowers, getFollowing } from "@/lib/db/social";
 import { getCurrentUser } from "@/lib/auth/user";
+import prisma from "@/lib/db/prisma";
 
 // GET /api/social/followers?userId=...&limit=20&cursor=...
 export async function GET(req: NextRequest) {
@@ -28,6 +29,18 @@ export async function POST(req: NextRequest) {
   try {
     const { followedId } = await req.json();
     await followUser(user.id, followedId);
+
+    // Insert feed item for the followed user
+    prisma.feedItem.create({
+      data: {
+        ownerId: followedId,
+        actorId: user.id,
+        type: "USER_FOLLOWED",
+        entityType: "User",
+        entityId: user.id,
+      },
+    }).catch(() => {});
+
     return NextResponse.json({ following: true }, { status: 201 });
   } catch (err) {
     return NextResponse.json({ error: (err as Error).message }, { status: 500 });

@@ -8,10 +8,11 @@ interface UseCommunityFeedOpts {
   space?: string;
   limit?: number;
   initialData?: { pages: GetCommunityPostsResult[]; pageParams: (string | undefined)[] };
+  enabled?: boolean;
 }
 
 export function useCommunityFeed(opts: UseCommunityFeedOpts = {}) {
-  const { sort = 'latest', space, limit = 20, initialData } = opts;
+  const { sort = 'latest', space, limit = 20, initialData, enabled = true } = opts;
 
   return useInfiniteQuery<GetCommunityPostsResult>({
     queryKey: ['community-feed', { sort, space }],
@@ -31,5 +32,6 @@ export function useCommunityFeed(opts: UseCommunityFeedOpts = {}) {
     staleTime: 30_000,
     gcTime: 5 * 60_000,
     initialData,
+    enabled,
   });
 }
