@@ -6,7 +6,6 @@
 // Idempotent: uses upsert/createMany with skipDuplicates throughout
 
 import 'dotenv/config';
-import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../lib/generated/prisma/client';
 import {
@@ -361,110 +360,126 @@ async function main() {
   console.log(`   ✅ ${totalRSVPs} RSVPs created`);
   }
 
-  // ── PHASE 7: Course Study Groups (raw pg Pool to bypass RLS) ───────────────
+  // ── PHASE 7: Course Study Groups (Supabase REST API with service_role) ───
   console.log('\n📦 Phase 7: Creating CourseStudyGroups...');
   try {
-    const pool = new Pool({
-      connectionString: (process.env.DATABASE_URL || '').replace('connect_timeout=0', 'connect_timeout=30'),
-      max: 1,
-      connectionTimeoutMillis: 30000,
-    });
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://yftgdtdvmvvqyzcdntge.supabase.co';
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!serviceKey) {
+      console.warn('   ⚠️  SUPABASE_SERVICE_ROLE_KEY not available, skipping Phase 7');
+    } else {
+      const supabaseHeaders = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${serviceKey}`,
+        'apikey': serviceKey,
+      };
 
-    try {
-      // Try disabling RLS first (may fail if not table owner, that's OK)
-      const rlsTables = ['CourseStudyGroup', 'CourseGroupMember', 'CourseGroupPost', 'CourseGroupReply', 'CourseGroupFile'];
-      for (const table of rlsTables) {
-        try {
-          await pool.query(`ALTER TABLE "${table}" DISABLE ROW LEVEL SECURITY`);
-          console.log(`   🔓 RLS disabled on ${table}`);
-        } catch { /* fine */ }
-      }
-
-      const { rows: courses } = await pool.query(
-        `SELECT id, title FROM "Course" WHERE status = 'PUBLISHED'`
-      );
+      // Use Prisma only for reads (SELECT works with RLS), then REST API for writes
+      const courses = await prisma.course.findMany({ where: { status: 'PUBLISHED' } });
       console.log(`   Found ${courses.length} published courses`);
 
-      const { rows: existingGroups } = await pool.query(
-        `SELECT cg.*, (SELECT COUNT(*) FROM "CourseGroupMember" WHERE "groupId" = cg.id) as member_count, (SELECT COUNT(*) FROM "CourseGroupPost" WHERE "groupId" = cg.id) as post_count FROM "CourseStudyGroup" cg`
-      );
+      const existingGroups = await prisma.courseStudyGroup.findMany({
+        include: { _count: { select: { members: true, posts: true } } },
+      });
 
-      let totalMembers = 0;
-      let totalPosts = 0;
-      let totalReplies = 0;
-      let totalFiles = 0;
+      let totalMembers = 0, totalPosts = 0, totalReplies = 0, totalFiles = 0;
 
       for (const course of courses) {
-        const existingGroup = existingGroups.find((g: any) => g.courseId === course.id);
+        const existingGroup = existingGroups.find(g => g.courseId === course.id);
 
         let groupId: string;
         if (existingGroup) {
           groupId = existingGroup.id;
-          console.log(`   📚 ${course.title}: existing group (${existingGroup.member_count} members, ${existingGroup.post_count} posts)`);
+          console.log(`   📚 ${course.title}: existing group (${existingGroup._count.members} members, ${existingGroup._count.posts} posts)`);
         } else {
           const gid = cuid();
-          await pool.query(
-            `INSERT INTO "CourseStudyGroup" (id, "courseId", description, "createdAt", "updatedAt") VALUES ($1, $2, $3, NOW(), NOW())`,
-            [gid, course.id, `Study group for ${course.title}. Collaborate, ask questions, and share resources with your cohort.`]
-          );
+          const resp = await fetch(`${supabaseUrl}/rest/v1/CourseStudyGroup`, {
+            method: 'POST',
+            headers: { ...supabaseHeaders, Prefer: 'return=minimal' },
+            body: JSON.stringify({
+              id: gid, courseId: course.id,
+              description: `Study group for ${course.title}. Collaborate, ask questions, and share resources with your cohort.`,
+              createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+            }),
+          });
+          if (!resp.ok) {
+            console.warn(`   ⚠️  Failed to create group for ${course.title}: ${resp.status}`);
+            continue;
+          }
           groupId = gid;
           console.log(`   📚 ${course.title}: new group created`);
         }
 
-        const existingMemberCount = existingGroup ? parseInt(existingGroup.member_count) : 0;
+        const existingMemberCount = existingGroup?._count.members ?? 0;
         if (existingMemberCount < 8) {
-          const { rows: existingMembers } = await pool.query(
-            `SELECT "userId" FROM "CourseGroupMember" WHERE "groupId" = $1`, [groupId]
-          );
-          const existingMemberIds = existingMembers.map((m: any) => m.userId);
+          const existingMemberIds = existingGroup
+            ? (await prisma.courseGroupMember.findMany({ where: { groupId }, select: { userId: true } })).map(m => m.userId)
+            : [];
           const availableIds = userIds.filter(u => !existingMemberIds.includes(u));
           const memberCount = Math.min(randInt(12, 35), availableIds.length);
           const newMemberIds = pickN(availableIds, memberCount);
           const memberDates = sequentialDates(newMemberIds.length, SEED_WINDOW, 1);
-          for (let i = 0; i < newMemberIds.length; i++) {
-            await pool.query(
-              `INSERT INTO "CourseGroupMember" (id, "groupId", "userId", "joinedAt") VALUES ($1, $2, $3, $4) ON CONFLICT ("groupId", "userId") DO NOTHING`,
-              [cuid(), groupId, newMemberIds[i], memberDates[i]]
-            );
+
+          const memberChunks = chunk(newMemberIds.map((userId, i) => ({
+            id: cuid(), groupId, userId, joinedAt: memberDates[i].toISOString(),
+          })), 25);
+
+          for (const chunkItems of memberChunks) {
+            const resp = await fetch(`${supabaseUrl}/rest/v1/CourseGroupMember`, {
+              method: 'POST',
+              headers: { ...supabaseHeaders, Prefer: 'resolution=ignore-duplicates' },
+              body: JSON.stringify(chunkItems),
+            });
+            if (!resp.ok) {
+              console.warn(`   ⚠️  Failed to add members: ${resp.status} ${await resp.text().then(t => t.slice(0, 100))}`);
+            }
           }
           totalMembers += newMemberIds.length;
         }
 
-        const existingPostCount = existingGroup ? parseInt(existingGroup.post_count) : 0;
+        const existingPostCount = existingGroup?._count.posts ?? 0;
         if (existingPostCount < 10) {
-          const { rows: allMembers } = await pool.query(
-            `SELECT "userId" FROM "CourseGroupMember" WHERE "groupId" = $1`, [groupId]
-          );
-          const allMemberIds = allMembers.map((m: any) => m.userId);
+          const allMemberIds = (await prisma.courseGroupMember.findMany({ where: { groupId }, select: { userId: true } })).map(m => m.userId);
           const postCount = randInt(15, 35);
+
           for (let p = 0; p < postCount; p++) {
             const authorId = pick(allMemberIds.length > 0 ? allMemberIds : userIds);
             const content = fillTemplate(pick(groupPostTemplates));
             const createdAt = weekdayDate(SEED_WINDOW, 0);
             const postId = cuid();
-            await pool.query(
-              `INSERT INTO "CourseGroupPost" (id, "groupId", "authorId", content, "createdAt", "updatedAt") VALUES ($1, $2, $3, $4, $5, $5)`,
-              [postId, groupId, authorId, content, createdAt]
-            );
-            const replyCount = randInt(0, 5);
-            if (replyCount > 0) {
-              const replyDates = burstDates(new Date(createdAt), replyCount, 72);
-              for (let ri = 0; ri < replyCount; ri++) {
-                await pool.query(
-                  `INSERT INTO "CourseGroupReply" (id, "postId", "authorId", content, "createdAt") VALUES ($1, $2, $3, $4, $5)`,
-                  [cuid(), postId, pick(allMemberIds.length > 0 ? allMemberIds : userIds), fillTemplate(pick(commentTemplates)), replyDates[ri]]
-                );
+
+            const postResp = await fetch(`${supabaseUrl}/rest/v1/CourseGroupPost`, {
+              method: 'POST',
+              headers: { ...supabaseHeaders, Prefer: 'return=minimal' },
+              body: JSON.stringify({
+                id: postId, groupId, authorId, content,
+                createdAt: createdAt.toISOString(), updatedAt: createdAt.toISOString(),
+              }),
+            });
+
+            if (postResp.ok) {
+              const replyCount = randInt(0, 5);
+              if (replyCount > 0) {
+                const replyDates = burstDates(new Date(createdAt), replyCount, 72);
+                const replyRows = Array.from({ length: replyCount }, (_, ri) => ({
+                  id: cuid(), postId,
+                  authorId: pick(allMemberIds.length > 0 ? allMemberIds : userIds),
+                  content: fillTemplate(pick(commentTemplates)),
+                  createdAt: replyDates[ri].toISOString(),
+                }));
+                await fetch(`${supabaseUrl}/rest/v1/CourseGroupReply`, {
+                  method: 'POST',
+                  headers: { ...supabaseHeaders, 'Prefer': 'resolution=ignore-duplicates' },
+                  body: JSON.stringify(replyRows),
+                });
+                totalReplies += replyCount;
               }
-              totalReplies += replyCount;
             }
           }
           totalPosts += postCount;
         }
 
-        const { rows: fileCountRows } = await pool.query(
-          `SELECT COUNT(*) as cnt FROM "CourseGroupFile" WHERE "groupId" = $1`, [groupId]
-        );
-        const existingFileCount = parseInt(fileCountRows[0].cnt);
+        const existingFileCount = await prisma.courseGroupFile.count({ where: { groupId } });
         if (existingFileCount < 3) {
           const fileNames = [
             'study-guide-module-1.pdf', 'practice-questions.pdf', 'cheat-sheet.pdf',
@@ -472,19 +487,22 @@ async function main() {
             'exam-prep-guide.pdf', 'case-studies.pdf',
           ];
           const fileCount = randInt(5, 10);
-          for (let f = 0; f < fileCount; f++) {
-            await pool.query(
-              `INSERT INTO "CourseGroupFile" (id, "groupId", "uploaderId", "fileName", "fileUrl", "fileSize", "mimeType", "createdAt") VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
-              [cuid(), groupId, pick(heroIds), pick(fileNames), 'https://example.com/files/placeholder.pdf', randInt(100_000, 5_000_000), 'application/pdf']
-            );
-          }
+          const fileRows = Array.from({ length: fileCount }, () => ({
+            id: cuid(), groupId, uploaderId: pick(heroIds),
+            fileName: pick(fileNames), fileUrl: 'https://example.com/files/placeholder.pdf',
+            fileSize: randInt(100_000, 5_000_000), mimeType: 'application/pdf',
+            createdAt: new Date().toISOString(),
+          }));
+          await fetch(`${supabaseUrl}/rest/v1/CourseGroupFile`, {
+            method: 'POST',
+            headers: { ...supabaseHeaders, 'Prefer': 'resolution=ignore-duplicates' },
+            body: JSON.stringify(fileRows),
+          });
           totalFiles += fileCount;
         }
       }
 
       console.log(`   ✅ Study groups: ${courses.length} groups, ${totalMembers} new members, ${totalPosts} new posts, ${totalReplies} replies, ${totalFiles} new files`);
-    } finally {
-      await pool.end();
     }
   } catch (e: any) {
     console.warn(`   ⚠️  Phase 7 skipped (${e.code || 'error'}): ${e.message?.slice(0, 150)}`);
