@@ -117,11 +117,7 @@ async function main() {
 
   // ── PHASE 2: Community Posts (200-400 posts) ──────────────────────────────
   console.log('\n📦 Phase 2: Creating CommunityPosts...');
-  const totalPosts = randInt(250, 400);
-  const postIds: string[] = [];
-  const postData: Array<{ id: string; authorId: string; createdAt: Date; space: string }> = [];
 
-  // Post distribution: hero users create more posts (weights higher)
   const heroIds = heroUsers.map(u => usernameToId[u.username]).filter(Boolean);
   const memberIds = memberUsers.map(u => usernameToId[u.username]).filter(Boolean);
   const noviceIds = noviceUsers.map(u => usernameToId[u.username]).filter(Boolean);
@@ -129,33 +125,62 @@ async function main() {
   const spaceSlugs = seedSpaces.map(s => s.slug);
   const spaceWeights = [8, 5, 4, 6, 5, 3, 5, 4, 3, 3]; // Match member activity
 
-  for (let i = 0; i < totalPosts; i++) {
-    // Pick author with bias: 30% hero, 55% member, 15% novice
-    const authorPool = random() < 0.3 ? heroIds :
-                      random() < 0.85 ? memberIds : noviceIds;
-    const authorId = pick(authorPool);
+  // Skip if already seeded — load existing data instead
+  const existingPosts = await prisma.communityPost.count();
+  let totalPosts: number;
+  let postIds: string[];
+  let postData: Array<{ id: string; authorId: string; createdAt: Date; space: string }>;
 
-    const template = pick(postTemplates);
-    const content = fillTemplate(template.content);
-    const space = pickWeighted(spaceSlugs, spaceWeights);
-    const createdAt = weekdayDate(SEED_WINDOW, 0);
-    const id = cuid();
-
-    postIds.push(id);
-    postData.push({ id, authorId, createdAt, space });
-
-    const imageUrls = template.hasImage && random() < 0.6
-      ? [pick(postImages)]
-      : [];
-
-    await prisma.communityPost.create({
-      data: { id, authorId, content, space, imageUrls, createdAt, visibility: 'PUBLIC' },
+  if (existingPosts > 50) {
+    console.log(`   ⏭️  ${existingPosts} posts already exist, loading from DB...`);
+    const dbPosts = await prisma.communityPost.findMany({
+      select: { id: true, authorId: true, createdAt: true, space: true },
+      take: 1000,
     });
+    totalPosts = dbPosts.length;
+    postIds = dbPosts.map(p => p.id);
+    postData = dbPosts;
+  } else {
+    totalPosts = randInt(250, 400);
+    postIds = [];
+    postData = [];
+
+    for (let i = 0; i < totalPosts; i++) {
+      const authorPool = random() < 0.3 ? heroIds :
+                        random() < 0.85 ? memberIds : noviceIds;
+      const authorId = pick(authorPool);
+
+      const template = pick(postTemplates);
+      const content = fillTemplate(template.content);
+      const space = pickWeighted(spaceSlugs, spaceWeights);
+      const createdAt = weekdayDate(SEED_WINDOW, 0);
+      const id = cuid();
+
+      postIds.push(id);
+      postData.push({ id, authorId, createdAt, space });
+
+      const imageUrls = template.hasImage && random() < 0.6
+        ? [pick(postImages)]
+        : [];
+
+      await prisma.communityPost.create({
+        data: { id, authorId, content, space, imageUrls, createdAt, visibility: 'PUBLIC' },
+      });
+    }
+    console.log(`   ✅ ${totalPosts} posts created`);
   }
-  console.log(`   ✅ ${totalPosts} posts created`);
 
   // ── PHASE 3: Community Comments (500-1000) ─────────────────────────────────
   console.log('\n📦 Phase 3: Creating CommunityComments...');
+
+  const existingComments = await prisma.communityComment.count();
+  let totalComments = 0;
+  const commentData: Array<{ postId: string; authorId: string; createdAt: Date }> = [];
+
+  if (existingComments > 50) {
+    console.log(`   ⏭️  ${existingComments} comments already exist, skipping Phase 3`);
+    totalComments = existingComments;
+  } else {
 
   // Posts sorted by creation date (old ones get more comments)
   const postsByDate = [...postData].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
@@ -164,9 +189,6 @@ async function main() {
   const popCutoff = Math.floor(postsByDate.length * 0.2);
   const popularPosts = postsByDate.slice(0, popCutoff);
   const normalPosts = postsByDate.slice(popCutoff);
-
-  let totalComments = 0;
-  const commentData: Array<{ postId: string; authorId: string; createdAt: Date }> = [];
 
   // Comments on popular posts
   for (const post of popularPosts) {
@@ -203,10 +225,18 @@ async function main() {
     }
   }
   console.log(`   ✅ ${totalComments} comments created`);
+  }
 
   // ── PHASE 4: Post Likes (3-25 per post) ───────────────────────────────────
   console.log('\n📦 Phase 4: Creating PostLikes...');
+
+  const existingLikes = await prisma.postLike.count();
   let totalLikes = 0;
+
+  if (existingLikes > 50) {
+    console.log(`   ⏭️  ${existingLikes} likes already exist, skipping Phase 4`);
+    totalLikes = existingLikes;
+  } else {
 
   for (const post of postData) {
     const likesCount = randInt(3, 25);
@@ -227,9 +257,21 @@ async function main() {
     totalLikes += likeRecords.length;
   }
   console.log(`   ✅ ${totalLikes} likes created`);
+  }
 
   // ── PHASE 5: Events (30-50: PAST + LIVE + UPCOMING) ────────────────────────
   console.log('\n📦 Phase 5: Creating Events...');
+
+  const existingEvents = await prisma.event.count();
+  let totalEvents: number;
+  let eventIds: string[];
+
+  if (existingEvents > 5) {
+    console.log(`   ⏭️  ${existingEvents} events already exist, loading from DB...`);
+    const dbEvents = await prisma.event.findMany({ select: { id: true }, take: 100 });
+    totalEvents = dbEvents.length;
+    eventIds = dbEvents.map(e => e.id);
+  } else {
 
   // Fetch host user IDs (unique usernames from event templates)
   const hostUsernames = eventTemplates.map(e => e.hostUsername).filter((v, i, a) => a.indexOf(v) === i);
@@ -238,8 +280,8 @@ async function main() {
     if (usernameToId[uname]) hostIds[uname] = usernameToId[uname];
   }
 
-  const totalEvents = randInt(30, 50);
-  const eventIds: string[] = [];
+  totalEvents = randInt(30, 50);
+  eventIds = [];
 
   for (let i = 0; i < totalEvents; i++) {
     const template = pick(eventTemplates);
@@ -247,21 +289,20 @@ async function main() {
     const title = fillTemplate(template.title);
     const slug = slugify(title) + '-' + randInt(1, 999);
 
-    // Event timing: PAST (45%), UPCOMING (45%), LIVE (10%)
     let status: 'ENDED' | 'UPCOMING' | 'LIVE';
     let startDate: Date;
 
     const r = random();
     if (r < 0.45) {
       status = 'ENDED';
-      startDate = weekdayDate(SEED_WINDOW, 7); // 1 week to 6 months ago
+      startDate = weekdayDate(SEED_WINDOW, 7);
     } else if (r < 0.9) {
       status = 'UPCOMING';
       startDate = new Date(NOW + randInt(1, 30) * MS_DAY);
       startDate.setHours(randInt(9, 17), randInt(0, 59), 0, 0);
     } else {
       status = 'LIVE';
-      startDate = new Date(NOW - randInt(1, 4) * 3_600_000); // 1-4 hours ago
+      startDate = new Date(NOW - randInt(1, 4) * 3_600_000);
     }
 
     const endDate = new Date(startDate.getTime() + randInt(60, 120) * 60_000);
@@ -287,10 +328,18 @@ async function main() {
     });
   }
   console.log(`   ✅ ${totalEvents} events created`);
+  }
 
   // ── PHASE 6: Event RSVPs ───────────────────────────────────────────────────
   console.log('\n📦 Phase 6: Creating EventRSVPs...');
+
+  const existingRSVPs = await prisma.eventRSVP.count();
   let totalRSVPs = 0;
+
+  if (existingRSVPs > 50) {
+    console.log(`   ⏭️  ${existingRSVPs} RSVPs already exist, skipping Phase 6`);
+    totalRSVPs = existingRSVPs;
+  } else {
 
   for (const eventId of eventIds) {
     const rsvpCount = randInt(5, 40);
@@ -308,6 +357,7 @@ async function main() {
     totalRSVPs += rsvpRecords.length;
   }
   console.log(`   ✅ ${totalRSVPs} RSVPs created`);
+  }
 
   // ── PHASE 7: Course Study Groups ───────────────────────────────────────────
   console.log('\n📦 Phase 7: Creating CourseStudyGroups...');
