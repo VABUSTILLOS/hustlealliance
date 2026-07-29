@@ -35,7 +35,7 @@ function createServiceRoleClient(): PrismaClient | null {
   try {
     const dbUrl = new URL(process.env.DATABASE_URL || '');
     dbUrl.password = key;
-    dbUrl.username = 'postgres';
+    // Keep username as-is — it contains the Supabase project ref (tenant ID)
     const serviceAdapter = new PrismaPg({
       connectionString: dbUrl.toString().replace('connect_timeout=0', 'connect_timeout=30'),
     });
