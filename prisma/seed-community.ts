@@ -25,6 +25,26 @@ const adapter = new PrismaPg({
 });
 const prisma = new PrismaClient({ adapter });
 
+// Service-role client for bypassing RLS on CourseStudyGroup tables (Phase 7)
+function createServiceRoleClient(): PrismaClient | null {
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!key || key.startsWith('[') || key.length < 20) {
+    console.warn('   ⚠️  SUPABASE_SERVICE_ROLE_KEY not available or masked, RLS bypass disabled');
+    return null;
+  }
+  try {
+    const dbUrl = new URL(process.env.DATABASE_URL || '');
+    dbUrl.password = key;
+    dbUrl.username = 'postgres';
+    const serviceAdapter = new PrismaPg({
+      connectionString: dbUrl.toString().replace('connect_timeout=0', 'connect_timeout=30'),
+    });
+    return new PrismaClient({ adapter: serviceAdapter });
+  } catch {
+    return null;
+  }
+}
+
 const NOW = Date.now();
 const MS_DAY = 86_400_000;
 const SEED_WINDOW = 180; // 6 months
@@ -359,75 +379,79 @@ async function main() {
   console.log(`   ✅ ${totalRSVPs} RSVPs created`);
   }
 
-  // ── PHASE 7: Course Study Groups ───────────────────────────────────────────
+  // ── PHASE 7: Course Study Groups (bypasses RLS via service_role) ─────────
   console.log('\n📦 Phase 7: Creating CourseStudyGroups...');
   try {
-    // Fetch existing courses
-    const courses = await prisma.course.findMany({ where: { status: 'PUBLISHED' } });
-    console.log(`   Found ${courses.length} published courses`);
+    const servicePrisma = createServiceRoleClient();
+    if (!servicePrisma) {
+      console.warn('   ⚠️  Phase 7 skipped: SUPABASE_SERVICE_ROLE_KEY not available');
+    } else {
+      const courses = await prisma.course.findMany({ where: { status: 'PUBLISHED' } });
+      console.log(`   Found ${courses.length} published courses`);
 
-    for (const course of courses) {
-      // Check if study group already exists (idempotent)
-      const existing = await prisma.courseStudyGroup.findUnique({ where: { courseId: course.id } });
-      if (existing) {
-        console.log(`   ⏭️  Study group exists for ${course.slug}, skipping`);
-        continue;
-      }
+      for (const course of courses) {
+        const existing = await servicePrisma.courseStudyGroup.findUnique({ where: { courseId: course.id } });
+        if (existing) {
+          console.log(`   ⏭️  Study group exists for ${course.slug}, skipping`);
+          continue;
+        }
 
-      const group = await prisma.courseStudyGroup.create({
-        data: {
-          courseId: course.id,
-          description: `Study group for ${course.title}. Collaborate, ask questions, and share resources with your cohort.`,
-        },
-      });
-
-      // Add members (8-30)
-      const memberCount = randInt(8, 30);
-      const memberIds = pickN(userIds, memberCount);
-      const memberDates = sequentialDates(memberCount, SEED_WINDOW, 1);
-
-      await prisma.courseGroupMember.createMany({
-        data: memberIds.map((userId, i) => ({
-          groupId: group.id,
-          userId,
-          joinedAt: memberDates[i],
-        })),
-        skipDuplicates: true,
-      });
-
-      // Add group posts (10-30)
-      const postCount = randInt(10, 30);
-      for (let p = 0; p < postCount; p++) {
-        const authorId = pick(memberIds);
-        const content = fillTemplate(pick(groupPostTemplates));
-        const createdAt = weekdayDate(SEED_WINDOW, 0);
-
-        await prisma.courseGroupPost.create({
-          data: { groupId: group.id, authorId, content, createdAt },
+        const group = await servicePrisma.courseStudyGroup.create({
+          data: {
+            courseId: course.id,
+            description: `Study group for ${course.title}. Collaborate, ask questions, and share resources with your cohort.`,
+          },
         });
+
+        // Add members (8-30)
+        const memberCount = randInt(8, 30);
+        const memberIds = pickN(userIds, memberCount);
+        const memberDates = sequentialDates(memberCount, SEED_WINDOW, 1);
+
+        await servicePrisma.courseGroupMember.createMany({
+          data: memberIds.map((userId, i) => ({
+            groupId: group.id,
+            userId,
+            joinedAt: memberDates[i],
+          })),
+          skipDuplicates: true,
+        });
+
+        // Add group posts (10-30)
+        const postCount = randInt(10, 30);
+        for (let p = 0; p < postCount; p++) {
+          const authorId = pick(memberIds);
+          const content = fillTemplate(pick(groupPostTemplates));
+          const createdAt = weekdayDate(SEED_WINDOW, 0);
+
+          await servicePrisma.courseGroupPost.create({
+            data: { groupId: group.id, authorId, content, createdAt },
+          });
+        }
+
+        // Add group files (3-8)
+        const fileCount = randInt(3, 8);
+        const fileRecords = Array.from({ length: fileCount }, () => ({
+          groupId: group.id,
+          uploaderId: pick(heroIds),
+          fileName: pick([
+            'study-guide-module-1.pdf', 'practice-questions.pdf', 'cheat-sheet.pdf',
+            'additional-resources.pdf', 'workshop-notes.pdf', 'group-project-brief.pdf',
+            'exam-prep-guide.pdf', 'case-studies.pdf',
+          ]),
+          fileUrl: 'https://example.com/files/placeholder.pdf',
+          fileSize: randInt(100_000, 5_000_000),
+          mimeType: 'application/pdf',
+        }));
+
+        await servicePrisma.courseGroupFile.createMany({ data: fileRecords });
+        console.log(`   ✅ ${course.slug}: ${memberCount} members, ${postCount} posts, ${fileCount} files`);
       }
-
-      // Add group files (3-8)
-      const fileCount = randInt(3, 8);
-      const fileRecords = Array.from({ length: fileCount }, () => ({
-        groupId: group.id,
-        uploaderId: pick(heroIds),
-        fileName: pick([
-          'study-guide-module-1.pdf', 'practice-questions.pdf', 'cheat-sheet.pdf',
-          'additional-resources.pdf', 'workshop-notes.pdf', 'group-project-brief.pdf',
-          'exam-prep-guide.pdf', 'case-studies.pdf',
-        ]),
-        fileUrl: 'https://example.com/files/placeholder.pdf',
-        fileSize: randInt(100_000, 5_000_000),
-        mimeType: 'application/pdf',
-      }));
-
-      await prisma.courseGroupFile.createMany({ data: fileRecords });
-      console.log(`   ✅ ${course.slug}: ${memberCount} members, ${postCount} posts, ${fileCount} files`);
+      await servicePrisma.$disconnect();
+      console.log(`   ✅ Study groups populated`);
     }
-    console.log(`   ✅ Study groups populated`);
   } catch (e: any) {
-    console.warn(`   ⚠️  Phase 7 skipped (permission/RLS): ${e.message?.slice(0, 150)}`);
+    console.warn(`   ⚠️  Phase 7 skipped (${e.code || 'error'}): ${e.message?.slice(0, 150)}`);
   }
 
   // ── PHASE 8: XP Transactions (20-80 per active user) ──────────────────────
