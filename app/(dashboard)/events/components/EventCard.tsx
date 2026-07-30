@@ -29,11 +29,26 @@ function RSVPStatusBadge({ status }: { status: string }) {
   );
 }
 
+const DEFAULT_EVENT_IMAGES = [
+  "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=400&fit=crop",
+  "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?w=800&h=400&fit=crop",
+  "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=800&h=400&fit=crop",
+  "https://images.unsplash.com/photo-1511578314322-379afb476865?w=800&h=400&fit=crop",
+  "https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=800&h=400&fit=crop",
+];
+
+function getDefaultImage(slug: string) {
+  let hash = 0;
+  for (let i = 0; i < slug.length; i++) hash = ((hash << 5) - hash + slug.charCodeAt(i)) | 0;
+  return DEFAULT_EVENT_IMAGES[Math.abs(hash) % DEFAULT_EVENT_IMAGES.length];
+}
+
 export default function EventCard({ event }: { event: EventCard }) {
   const { t } = useTranslation();
   const startDate = new Date(event.startDate);
   const month = startDate.toLocaleString("en-US", { month: "short" });
   const day = startDate.getDate();
+  const coverSrc = event.coverImage || getDefaultImage(event.slug);
 
   return (
     <Link
@@ -42,34 +57,24 @@ export default function EventCard({ event }: { event: EventCard }) {
     >
       {/* Cover image */}
       <div className="relative h-40 bg-gradient-to-br from-accent/20 to-accent/5 overflow-hidden">
-        {event.coverImage ? (
-          <Image
-            src={event.coverImage}
-            alt={event.title}
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-        ) : (
-          <div className="flex items-center justify-center h-full">
-            {/* Date badge */}
-            <div className="absolute top-3 left-3 bg-white dark:bg-gray-900 rounded-lg px-2 py-1 text-center shadow-md">
-              <div className="text-xs font-bold text-accent uppercase">{month}</div>
-              <div className="text-lg font-bold text-foreground leading-tight">{day}</div>
-            </div>
-          </div>
-        )}
+        <Image
+          src={coverSrc}
+          alt={event.title}
+          fill
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          className="object-cover group-hover:scale-105 transition-transform duration-300"
+        />
+        {/* Date badge */}
+        <div className="absolute top-3 left-3 bg-white dark:bg-gray-900 rounded-lg px-2 py-1 text-center shadow-md">
+          <div className="text-xs font-bold text-accent uppercase">{month}</div>
+          <div className="text-lg font-bold text-foreground leading-tight">{day}</div>
+        </div>
         {/* Type badge */}
         <div className="absolute top-3 right-3">
           <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-black/50 text-white backdrop-blur-sm">
             {event.type === "ONLINE" ? "🎥 Online" : event.type === "IN_PERSON" ? "📍 In Person" : "🔄 Hybrid"}
           </span>
         </div>
-        {!event.coverImage && (
-          <div className="absolute top-3 left-3 bg-white dark:bg-gray-900 rounded-lg px-2 py-1 text-center shadow-md">
-            <div className="text-xs font-bold text-accent uppercase">{month}</div>
-            <div className="text-lg font-bold text-foreground leading-tight">{day}</div>
-          </div>
-        )}
       </div>
 
       {/* Content */}

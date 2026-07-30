@@ -22,8 +22,23 @@ function formatTime(dateStr: string, endDateStr: string | null) {
   return `${startTime} – ${end.toLocaleTimeString("en-US", fmt)}`;
 }
 
+const DEFAULT_EVENT_IMAGES = [
+  "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200&h=600&fit=crop",
+  "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?w=1200&h=600&fit=crop",
+  "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=1200&h=600&fit=crop",
+  "https://images.unsplash.com/photo-1511578314322-379afb476865?w=1200&h=600&fit=crop",
+  "https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=1200&h=600&fit=crop",
+];
+
+function getDefaultImage(slug: string) {
+  let hash = 0;
+  for (let i = 0; i < slug.length; i++) hash = ((hash << 5) - hash + slug.charCodeAt(i)) | 0;
+  return DEFAULT_EVENT_IMAGES[Math.abs(hash) % DEFAULT_EVENT_IMAGES.length];
+}
+
 export default function EventHeader({ event }: { event: EventDetail }) {
   const { t } = useTranslation();
+  const coverSrc = event.coverImage || getDefaultImage(event.slug);
 
   const statusBadge: Record<string, { label: string; color: string }> = {
     UPCOMING: { label: t.events?.statusLabels?.UPCOMING ?? "Upcoming", color: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" },
@@ -41,10 +56,8 @@ export default function EventHeader({ event }: { event: EventDetail }) {
     <div className="relative overflow-hidden rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border-subtle)]">
       {/* Cover */}
       <div className="relative h-48 sm:h-64 bg-gradient-to-br from-accent/30 to-accent/5">
-        {event.coverImage && (
-          <Image src={event.coverImage} alt={event.title} fill className="object-cover" priority />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+        <Image src={coverSrc} alt={event.title} fill className="object-cover" priority sizes="100vw" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
       </div>
 
       {/* Content overlay */}
