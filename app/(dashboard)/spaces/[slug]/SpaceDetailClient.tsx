@@ -142,7 +142,7 @@ export function SpaceDetailClient({
               )}
               {post.imageUrls.length > 0 && (
                 <div className="relative w-full aspect-[16/9] rounded-xl overflow-hidden mb-3">
-                  <Image src={post.imageUrls[0]} alt="" fill className="object-cover" sizes="(max-width: 640px) 100vw, 700px" />
+                  <Image src={post.imageUrls[0]} alt="" fill unoptimized className="object-cover" sizes="(max-width: 640px) 100vw, 700px" />
                 </div>
               )}
               <div className="text-foreground-muted text-sm mb-3 blog-content" dangerouslySetInnerHTML={{ __html: renderBlogContent(post.content) }} />
