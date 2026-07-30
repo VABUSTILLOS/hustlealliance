@@ -22,31 +22,8 @@ function formatTime(dateStr: string, endDateStr: string | null) {
   return `${startTime} – ${end.toLocaleTimeString("en-US", fmt)}`;
 }
 
-const DEFAULT_EVENT_IMAGES = [
-  "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?w=1200&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=1200&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1511578314322-379afb476865?w=1200&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=1200&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1200&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1531058020387-3be344556be6?w=1200&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1528605248644-14dd04022da1?w=1200&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1200&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1200&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1556761175-b413da4baf72?w=1200&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=1200&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1559223607-a43c990c692c?w=1200&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1531545514256-b1400bc00f31?w=1200&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=1200&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1558403194-611308249627?w=1200&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=1200&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=1200&h=600&fit=crop",
-];
-
 function getDefaultImage(slug: string) {
-  let hash = 0;
-  for (let i = 0; i < slug.length; i++) hash = ((hash << 5) - hash + slug.charCodeAt(i)) | 0;
-  return DEFAULT_EVENT_IMAGES[Math.abs(hash) % DEFAULT_EVENT_IMAGES.length];
+  return `https://picsum.photos/seed/${slug}/1200/600.webp`;
 }
 
 export default function EventHeader({ event }: { event: EventDetail }) {
