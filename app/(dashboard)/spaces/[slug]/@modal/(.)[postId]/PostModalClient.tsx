@@ -29,14 +29,25 @@ export function PostModal({
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const scrollY = useRef(0);
   const [mounted, setMounted] = useState(false);
-  const [scrollProgress, setScrollProgress] = useState(0);
+  const progressBarRef = useRef<HTMLDivElement | null>(null);
+  const ticking = useRef(false);
 
-  // ── Track internal scroll via React onScroll — window is locked ───────────
+  // ── rAF-throttled scroll → direct DOM scaleX (zero React re-renders) ──────
   const handleScroll = useCallback((e: UIEvent<HTMLDivElement>) => {
+    if (ticking.current) return;
+    ticking.current = true;
+
     const target = e.currentTarget;
-    const scrollable = target.scrollHeight - target.clientHeight;
-    const pct = scrollable > 0 ? Math.min((target.scrollTop / scrollable) * 100, 100) : 0;
-    setScrollProgress(pct);
+    requestAnimationFrame(() => {
+      const scrollable = target.scrollHeight - target.clientHeight;
+      const progress = scrollable > 0
+        ? Math.min(Math.max(target.scrollTop / scrollable, 0), 1)
+        : 0;
+      if (progressBarRef.current) {
+        progressBarRef.current.style.transform = `scaleX(${progress})`;
+      }
+      ticking.current = false;
+    });
   }, []);
 
   // ── Mount guard — prevents SSR/client DOM mismatch flash ──────────────────
@@ -105,14 +116,13 @@ export function PostModal({
                      border-l border-surface-light shadow-2xl
                      overflow-y-auto overscroll-contain will-change-transform"
         >
-          {/* Reading progress bar — sticky at panel top, above the header */}
+          {/* Reading progress bar — GPU-accelerated scaleX, zero-re-render */}
           <div className="sticky top-0 z-30 h-1 bg-surface-light">
-            <motion.div
-              className="h-full bg-accent"
-              style={{ width: `${scrollProgress}%` }}
-              animate={{ opacity: scrollProgress > 99 ? 0 : 1 }}
-              transition={{ duration: 0.1 }}
-            />
+           <div
+             ref={progressBarRef}
+             className="h-full bg-accent origin-left will-change-transform"
+             style={{ transform: "scaleX(0)" }}
+           />
           </div>
 
           {/* Sticky header */}
