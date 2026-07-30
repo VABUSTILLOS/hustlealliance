@@ -60,8 +60,8 @@
 </div>
 
 <script>
-// Load multiple avatars dynamically
-const seeds = ['marcuschen','sarahjohnson','davidkim','alexrivera','jamesthompson'];
+// Load multiple avatars dynamically - FIXED: handlers BEFORE src
+const seeds = ['marcuschen','aishab','alexk','davidl','admin'];
 const container = document.getElementById('multi-avatars');
 seeds.forEach(seed => {
   const div = document.createElement('div');
@@ -72,10 +72,11 @@ seeds.forEach(seed => {
   const av = document.createElement('div');
   av.className = 'av-container';
   const img = document.createElement('img');
-  img.src = '/images/avatars/' + seed + '.svg';
   img.alt = seed;
+  // Set handlers BEFORE src to avoid race condition
   img.onload = () => { label.textContent = seed + ' ✅'; };
-  img.onerror = () => { label.textContent = seed + ' ❌'; };
+  img.onerror = () => { label.textContent = seed + ' ❌ (HTTP ' + (img.naturalWidth === 0 ? 'error' : 'ok') + ')'; };
+  img.src = '/images/avatars/' + seed + '.svg';
   av.appendChild(img);
   div.appendChild(av);
   div.appendChild(label);
