@@ -61,13 +61,14 @@ export function PostModal({
   return (
     <ScrollContainerContext.Provider value={scrollRef}>
       <div className="fixed inset-0 z-50 flex justify-end">
-        {/* Backdrop overlay — fades in, blocks touch bleed on iOS */}
+        {/* Backdrop overlay — fades in, GPU-accelerated, blocks touch bleed on iOS */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.25 }}
-          className="absolute inset-0 bg-black/60 backdrop-blur-sm touch-none"
+          transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+          className="absolute inset-0 bg-black/60 backdrop-blur-sm touch-none
+                     will-change-[opacity]"
           onClick={dismiss}
         />
 
@@ -77,10 +78,10 @@ export function PostModal({
           initial={{ x: "100%" }}
           animate={{ x: 0 }}
           exit={{ x: "100%" }}
-          transition={{ type: "spring", damping: 28, stiffness: 260 }}
-          className="relative w-full md:w-[720px] h-full bg-surface
+          transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+          className="relative w-full md:max-w-[720px] h-full bg-surface
                      border-l border-surface-light shadow-2xl
-                     overflow-y-auto overscroll-contain"
+                     overflow-y-auto overscroll-contain will-change-transform"
         >
           {/* Fixed header with back-arrow close button */}
           <div
