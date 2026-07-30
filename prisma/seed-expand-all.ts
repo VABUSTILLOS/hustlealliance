@@ -80,7 +80,7 @@ El seguro gubernamental (PROSOFIPO) cubre hasta 25,000 UDIS (~$6,500 USD a tasas
 
 Para fundadores y emprendedores en México, el ecosistema SOFIPO es una herramienta subutilizada. No reemplazará los retornos de capital, pero como estrategia de gestión de efectivo, supera dramáticamente a la banca tradicional.`,
     excerpt: 'How to build a laddered 14%+ yield portfolio using Mexican SOFIPOs — strategy, tax optimization, and real portfolio returns.',
-    image: 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=800&q=80&fm=webp&fit=crop&auto=compress',
+    image: 'https://picsum.photos/id/778/800/600.webp',
   },
   {
     space: 'wealth-and-investments',
@@ -145,7 +145,7 @@ Mantener capital denominado en USD es una cobertura natural contra la depreciaci
 
 Esto no es asesoría legal — contrata un abogado fiscal transfronterizo. Pero como marco para pensar en la riqueza fundadora en un contexto binacional, esta estructura ha funcionado para mí y varios otros fundadores basados en México que he asesorado.`,
     excerpt: 'Navigating dual-jurisdiction equity: Delaware C-corp + Mexican tax resident. Structures, secondary sales, and estate planning for binational founders.',
-    image: 'https://images.unsplash.com/photo-1559526324-4b87b5e6b2c7?w=800&q=80&fm=webp&fit=crop&auto=compress',
+    image: 'https://picsum.photos/id/460/800/600.webp',
   },
 
   // ═══════════════════════════════════════════════════
@@ -232,7 +232,7 @@ Después de 6 meses ejecutando este sistema:
 
 El aprendizaje más grande: la retención no es una función — es un sistema operativo. Necesitas disparadores, scoring y puntos de contacto humano en momentos específicos del viaje del cliente. Automatiza la detección, pero mantén la intervención personal.`,
     excerpt: 'The exact retention interventions that cut monthly churn from 12% to 4%: Loom videos, health scoring, and community-based switching costs.',
-    image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80&fm=webp&fit=crop&auto=compress',
+    image: 'https://picsum.photos/id/16/800/600.webp',
   },
   {
     space: 'building-the-machine',
@@ -355,7 +355,7 @@ Nuestros datos: 40% de respuestas positivas llegaron después del primer seguimi
 
 El cold outreach no está muerto — el cold outreach perezoso está muerto. Cuando pasas 5 minutos investigando cada prospecto y escribes como un ser humano, la gente responde. La barra está tan baja que el esfuerzo básico parece extraordinario.`,
     excerpt: 'The exact research process, templates, and follow-up sequence that delivered 14% positive reply rates from 4,000 cold emails.',
-    image: 'https://images.unsplash.com/photo-1596526131083-e8c633c948d2?w=800&q=80&fm=webp&fit=crop&auto=compress',
+    image: 'https://picsum.photos/id/125/800/600.webp',
   },
 
   // ═══════════════════════════════════════════════════
@@ -448,7 +448,7 @@ Si estás registrado bajo RESICO (Régimen Simplificado de Confianza), hay una c
 
 El SAT se ha vuelto agresivo con la validación automatizada. Esto ya no es un checkbox de cumplimiento — es un riesgo central de operaciones de negocio.`,
     excerpt: 'CFDI 4.0 is rejecting invoices at record rates. A complete guide to the new requirements, RESICO traps, and practical compliance steps for Mexican businesses.',
-    image: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&q=80&fm=webp&fit=crop&auto=compress',
+    image: 'https://picsum.photos/id/947/800/600.webp',
   },
   {
     space: 'mexico-operations',
@@ -521,7 +521,7 @@ Especifica la ciudad para resolución de disputas. Si vives en CDMX y el cliente
 
 La lección clave: si un cliente mexicano se niega a firmar un contrato, aléjate. La "confianza" que reemplaza contratos en la cultura de negocios mexicana desaparece en el momento que hay dinero en juego. Una inversión legal de $2,000 previno lo que podría haber sido una batalla de cobranza de $15,000.`,
     excerpt: 'Why verbal agreements fail in Mexico. The 7 essential clauses every freelance contract needs, vetted by a Mexican labor attorney.',
-    image: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&q=80&fm=webp&fit=crop&auto=compress',
+    image: 'https://picsum.photos/id/1020/800/600.webp',
   },
 
   // ═══════════════════════════════════════════════════
@@ -590,7 +590,7 @@ The Firing Squad funciona porque el feedback es: (a) de tu audiencia objetivo re
 
 El Squad nos ahorró 6 meses de iterar en la dirección equivocada.`,
     excerpt: '47 people tried to break our MVP. The 4 critical findings that reshaped our product, onboarding, and pricing.',
-    image: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&q=80&fm=webp&fit=crop&auto=compress',
+    image: 'https://picsum.photos/id/971/800/600.webp',
   },
   {
     space: 'the-firing-squad',
@@ -683,7 +683,7 @@ Después de implementar las tres soluciones durante 2 semanas:
 
 El Squad no solo encontró bugs — identificó patrones de diseño UX que eran invisibles para nosotros porque estábamos demasiado cerca del producto. Si tienes más del 20% de abandono en cualquier paso de tu funnel, publícalo aquí. Alguien verá lo que te estás perdiendo.`,
     excerpt: 'Our 42% signup-to-activation dropout dissected by 31 reviewers. The 3 UX fixes that took it to 79% activation.',
-    image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80&fm=webp&fit=crop&auto=compress',
+    image: 'https://picsum.photos/id/195/800/600.webp',
   },
 
   // ═══════════════════════════════════════════════════
@@ -712,7 +712,7 @@ Stack async-first: Documentos de Notion con ventanas de revisión de 72 horas pa
 
 Resultados: Horas de reunión por persona bajaron de 14 a 5.5. Velocidad de decisión se duplicó. Satisfacción subió de 6.8 a 8.4. Cadencia de despliegue: 1.2 a 2.8 releases por semana.`,
     excerpt: 'A 5-person startup applied Amazon\'s Two-Pizza Rule. The meeting audit, 4 new rules, and async-first stack that cut meeting hours by 60% and doubled shipping cadence.',
-    image: 'https://images.unsplash.com/photo-1512758017271-d7b84c2113f1?w=800&q=80&fm=webp&fit=crop&auto=compress',
+    image: 'https://picsum.photos/id/824/800/600.webp',
   },
   {
     space: 'scaling-and-systems',
@@ -741,7 +741,7 @@ Fase 4 — SLAs: Primera respuesta bajo 4 horas, resolución bajo 24 horas para 
 
 Después de 90 días: Tiempo de primera respuesta 2.1 horas, 72% de resolución el mismo día, 94% CSAT. Mi tiempo en soporte bajó de 15 a 2 horas/semana. Costo total: $950/mes. La lección: documenta antes de delegar.`,
     excerpt: 'How to scale support from solo founder to a 3-person team in 90 days. The documentation-first approach, $800/month hire, and stack that cut founder support time by 87%.',
-    image: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&q=80&fm=webp&fit=crop&auto=compress',
+    image: 'https://picsum.photos/id/761/800/600.webp',
   },
 
   // ═══════════════════════════════════════════════════
@@ -772,7 +772,7 @@ La Secuencia: Día 1 — email inicial personalizado. Día 4 — caso de estudio
 
 Resultados: 2,000 emails en 8 semanas. 62 respuestas positivas (3.1%). 28 llamadas de descubrimiento. 6 demos calificados. 2 deals cerrados ($24K y $18K ACV). Costo total: $458. Ingreso generado: $42,000 ARR. ROI: 91x.`,
     excerpt: '2,000 hyper-targeted cold emails, 3.1% reply rate, 6 demos, 2 closed deals. The research process, 5-touch sequence, and 91x ROI breakdown.',
-    image: 'https://images.unsplash.com/photo-1557200134-90327ee9fafa?w=800&q=80&fm=webp&fit=crop&auto=compress',
+    image: 'https://picsum.photos/id/989/800/600.webp',
   },
   {
     space: 'the-acquisition-machine',
@@ -801,7 +801,7 @@ El Nuevo Diseño: Layout de dos columnas (Starter vs Pro), Enterprise en pestañ
 
 Resultados: Visitante-a-prueba 2.8% → 4.1%. Prueba-a-pago 18% → 22%. Ingreso promedio $67 → $73. Leads Enterprise 4/mes → 6.5/mes. Un experimento de $500 generó un estimado de $120,000 en ARR adicional.`,
     excerpt: 'The data-driven pricing page redesign that increased conversion by 47%. Heatmaps, decoy pricing, and why we removed the "Most Popular" badge.',
-    image: 'https://images.unsplash.com/photo-1553729459-afe8e5ef4d49?w=800&q=80&fm=webp&fit=crop&auto=compress',
+    image: 'https://picsum.photos/id/301/800/600.webp',
   },
 
   // ═══════════════════════════════════════════════════
@@ -846,7 +846,7 @@ El Scorecard — 6 Ejes, Puntuación 1-10:
 
 Umbrales: 70+ = luz verde. 50-69 = MVP en 2 semanas. Abajo de 50 = mátalo. Lo más difícil es puntuar honestamente cuando estás emocionalmente invertido.`,
     excerpt: 'The 6-axis validation scorecard that saved $12K. Real examples: AI resume optimizer (34/100) killed vs. SaaS analytics (78/100) launched to $5K MRR.',
-    image: 'https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=800&q=80&fm=webp&fit=crop&auto=compress',
+    image: 'https://picsum.photos/id/863/800/600.webp',
   },
   {
     space: 'the-idea-vault',
@@ -891,7 +891,7 @@ Banderas Rojas: Quiere discutir equity antes de construir. Tiene "una idea" que 
 
 Encontré a mi cofundador a través de esta comunidad — contribuyó con un pull request antes de que habláramos de trabajar juntos. Esa es la señal.`,
     excerpt: 'After 47 coffee meetings and one near-disaster: the 5-dimension framework for evaluating technical co-founders, plus the red flags most founders miss.',
-    image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&q=80&fm=webp&fit=crop&auto=compress',
+    image: 'https://picsum.photos/id/196/800/600.webp',
   },
 
   // ═══════════════════════════════════════════════════
@@ -940,7 +940,7 @@ Tres meses de Whoop confirmaron: Sueño bajo 6 horas baja productividad 40%. Eje
 
 El intercambio: dormido a las 9:30 PM, vida social recibe golpe. Pero la alternativa — trabajar en horario EE.UU. desde México — significaba producción 60% menor. Las mañanas son tu ventaja competitiva.`,
     excerpt: 'Building a US-focused company from Mexico City: the time zone calculus, the 5 AM deep work architecture, and Whoop data that proves the system works.',
-    image: 'https://images.unsplash.com/photo-1504439904031-93ded9f93e4a?w=800&q=80&fm=webp&fit=crop&auto=compress',
+    image: 'https://picsum.photos/id/495/800/600.webp',
   },
   {
     space: 'the-fire',
@@ -984,7 +984,7 @@ Impacto en negocio: MRR $34K → $52K (+53%). Posts 4 → 12. Funcionalidades 3 
 
 Ahora: máx 2 bebidas, nunca 2 días seguidos, nunca antes de mañana importante. Los datos me mantienen honesto. No puedes gestionar lo que no mides.`,
     excerpt: '90 days of Whoop data: alcohol cost me 54 min of REM sleep, 30% HRV, and 2.6 focus points. The 100-day experiment that transformed sleep and business.',
-    image: 'https://images.unsplash.com/photo-1541781774459-bb2af2b05f55?w=800&q=80&fm=webp&fit=crop&auto=compress',
+    image: 'https://picsum.photos/id/306/800/600.webp',
   },
 
   // ═══════════════════════════════════════════════════
@@ -1035,7 +1035,7 @@ Costo: Local ~$134/mes vs. $400/mes API. Punto de equilibrio: 9 meses. Valor rea
 
 Si gastas $200+/mes en API con M3 Max o equivalente (48GB+ RAM), la configuración local es obvia. La brecha se cierra rápido.`,
     excerpt: 'Qwen 2.5 32B vs. GPT-4 on 7 coding tasks. 42 tok/s local speed, cost comparison, and when local LLMs are production-ready.',
-    image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&q=80&fm=webp&fit=crop&auto=compress',
+    image: 'https://picsum.photos/id/380/800/600.webp',
   },
   {
     space: 'ai-power',
@@ -1092,7 +1092,7 @@ Los 6 Principios:
 
 Resultados: JSON parseable 72% → 99.2%. Tiempo de respuesta 4.2s → 1.8s. Timeout 8% → 0.1%. Alucinación 12% → 0.3%.`,
     excerpt: '40 iterations to the perfect Edge Function prompt. 6 principles that took JSON parseability from 72% to 99.2% and cut response time by 57%.',
-    image: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=800&q=80&fm=webp&fit=crop&auto=compress',
+    image: 'https://picsum.photos/id/17/800/600.webp',
   },
 
   // ═══════════════════════════════════════════════════
@@ -1136,7 +1136,7 @@ Patrón 3 — "Onboarding confuso" (18%): Arreglamos con checklist guiado, reduc
 
 Impacto financiero: Churn mensual de 14% a 8.2%. En 12 meses, $180K en ARR retenido. La encuesta costó cero más que una automatización de email y la disposición a escuchar.`,
     excerpt: 'A 3-question exit survey to 200 churned accounts revealed 3 fixable patterns. Churn dropped from 14% to 8.2%, saving $180K in ARR.',
-    image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80&fm=webp&fit=crop&auto=compress',
+    image: 'https://picsum.photos/id/67/800/600.webp',
   },
   {
     space: 'saas-founders',
@@ -1187,7 +1187,7 @@ El beneficio oculto: Clientes anuales tienen 40% menos churn. LTV saltó de $686
 
 Idea clave: 30% de descuento en precio anual es más barato que adquirir un cliente de reemplazo a precio completo. Y en SaaS, el churn anual siempre es genuinamente menor.`,
     excerpt: 'How moving 61% of customers to annual plans cut CAC payback from 11 months to 2 months and boosted LTV from $686 to $1,114.',
-    image: 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=800&q=80&fm=webp&fit=crop&auto=compress',
+    image: 'https://picsum.photos/id/558/800/600.webp',
   },
   // WOMEN IN TECH (36 short posts remain)
   {
@@ -1225,7 +1225,7 @@ La parte difícil: 47 reuniones. 14 sí, 33 no. Rastree cada "no" — principalm
 
 A otras mujeres construyendo en tech: tu producto es tu mejor argumento. Envía primero, recauda segundo.`,
     excerpt: '47 investor meetings, 14 yesses, $220K raised. The technical credibility playbook, the advisory board tactic that flipped 4 nos, and why demo-first beats slides.',
-    image: 'https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=800&q=80&fm=webp&fit=crop&auto=compress',
+    image: 'https://picsum.photos/id/346/800/600.webp',
   },
   {
     space: 'women-in-tech',
@@ -1276,7 +1276,7 @@ Qué funcionó: (1) Screening ciego y entrevistas estructuradas. (2) Revisiones 
 
 No se trató de "iniciativas de mujeres" — fue gestión de ingeniería rigurosa. Cuando construyes sistemas que funcionan para todos, los datos hablan.`,
     excerpt: '3 years of retention data: 87.5% women retention vs. 55% industry average. The 5 engineering management practices that made the difference.',
-    image: 'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&q=80&fm=webp&fit=crop&auto=compress',
+    image: 'https://picsum.photos/id/388/800/600.webp',
   },
   // CLIMATE TECH (24 short posts remain)
   {
@@ -1306,7 +1306,7 @@ Paso 4 — Comercializar: Badge "SaaS Carbono-Neutral" en página de precios. Po
 
 $183/año por neutralidad de carbono. Menos que nuestra factura mensual de AWS. Si construyes SaaS — mide este mes, reduce este trimestre, compensa este año.`,
     excerpt: '18 metric tons to carbon-neutral for $183/year. The Climatiq+Patch stack, the 32% reduction playbook, and how it won 3 enterprise deals.',
-    image: 'https://images.unsplash.com/photo-1497435334941-8c899ee9e8e9?w=800&q=80&fm=webp&fit=crop&auto=compress',
+    image: 'https://picsum.photos/id/1022/800/600.webp',
   },
   {
     space: 'climate-tech',
@@ -1343,7 +1343,7 @@ Día 15-21 — Consolidación: 8 microservicios a 2 instancias monolito con rép
 
 Estado final: Latencia 340ms → 98ms. AWS $3,200 → $1,440/mes. Carbono: 60% de reducción. Ahorro: $21,120/año. Más rápido es más verde.`,
     excerpt: 'The optimization sprint that cut API latency 71% and carbon emissions 60%. Query audit, Cloudflare edge caching, and why faster code IS greener code.',
-    image: 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=800&q=80&fm=webp&fit=crop&auto=compress',
+    image: 'https://picsum.photos/id/9/800/600.webp',
   },
   // AI/ML BUILDERS (51 short posts remain)
   {
@@ -1385,7 +1385,7 @@ Alternativas: GPU cloud APIs → $14,000/mes. Serverless GPU → $8,000/mes. Bar
 
 La ventaja de costo 35× viene de comprometer hardware. Si tus patrones de inferencia son predecibles, bare-metal gana siempre. Serverless es para cargas impredecibles.`,
     excerpt: '10M inference requests/day for $400/month vs. $14K on cloud APIs. The vLLM, AWQ, and Vast.ai stack that delivers 35× cost advantage.',
-    image: 'https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=800&q=80&fm=webp&fit=crop&auto=compress',
+    image: 'https://picsum.photos/id/886/800/600.webp',
   },
   {
     space: 'ai-ml-builders',
@@ -1422,7 +1422,7 @@ Métrica 6 — Latencia End-to-End: Objetivo: <2 segundos. Solución: chunks má
 
 Ejecuta estas 6 métricas antes de lanzar cualquier producto RAG. La diferencia entre un desastre alucinante y una función de IA confiable son estos números.`,
     excerpt: '80% of RAG pipelines fail on chunking, retrieval evaluation, or context utilization. The 6 metrics that separate hallucination garbage from reliable AI.',
-    image: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=800&q=80&fm=webp&fit=crop&auto=compress',
+    image: 'https://picsum.photos/id/998/800/600.webp',
   },
   // FUNDRAISING HUB (34 short posts remain)
   {
@@ -1468,7 +1468,7 @@ La página más importante: churn por cohorte. 9 de 12 inversionistas la abriero
 
 Term sheet llegó 11 días después. Inversionista líder: "El data room más organizado que hemos visto en etapa semilla."`,
     excerpt: 'The 5-section data room that secured a term sheet in 11 days. What investors opened first (churn by cohort), what we excluded, and the tools we used.',
-    image: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&q=80&fm=webp&fit=crop&auto=compress',
+    image: 'https://picsum.photos/id/463/800/600.webp',
   },
   {
     space: 'fundraising-hub',
@@ -1505,7 +1505,7 @@ Por qué funcionó: Los ángeles apuestan por founder-market fit. Cuando hago de
 
 Tres inversionistas dijeron: "Nunca invertí sin ver un deck. Pero después de ver el producto y esta conversación, no necesito uno." Preparé 40 horas para esas 8 reuniones — pero en conocer mi producto y mercado, no diseñando slides.`,
     excerpt: '8 coffee meetings, 8 demos, $500K raised. The 3 artifacts (memo, live demo, founder reads page) that replaced the pitch deck entirely.',
-    image: 'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=800&q=80&fm=webp&fit=crop&auto=compress',
+    image: 'https://picsum.photos/id/77/800/600.webp',
   },
   // CREATOR ECONOMY (15 short posts remain)
   {
@@ -1535,7 +1535,7 @@ Meses 11-14 — SEO Flywheel (5,000→10,000): Reutilicé contenido del newslett
 
 Resultado: 10K subs, 42% apertura, $3,500/mes en patrocinios. 12 horas/semana. El activo de crecimiento más sostenible que he construido.`,
     excerpt: '0 to 10,000 subscribers in 14 months with $0 ad spend. The 4-phase playbook: seed audience, content-market fit, cross-promotion engine, and SEO flywheel.',
-    image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&q=80&fm=webp&fit=crop&auto=compress',
+    image: 'https://picsum.photos/id/118/800/600.webp',
   },
   {
     space: 'creator-economy',
@@ -1564,7 +1564,7 @@ Stack: Notion (gestión), Loom (actualizaciones async), Slack (comms), Stripe (f
 
 12 meses después: $20K/mes en consultoría de 2 clientes, ambos originados de contenido. El pipeline contenido→confianza→consultoría es el camino de monetización más subestimado para fundadores técnicos.`,
     excerpt: 'A 14-tweet thread → 85K impressions → $12K/month retainer. The content-to-consulting pipeline: exact funnel, deliverables stack, and 12-month results.',
-    image: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&q=80&fm=webp&fit=crop&auto=compress',
+    image: 'https://picsum.photos/id/540/800/600.webp',
   },
   // GROWTH HACKING (20 short posts remain)
   {
@@ -1598,7 +1598,7 @@ La psicología: Escasez, prueba social, reciprocidad, pertenencia.
 
 Métrica clave: Conversión a pago del 43% porque pasamos 8 semanas educando e involucrando a la audiencia antes de pedir dinero.`,
     excerpt: '4,200 waitlist signups before the MVP existed. The referral leaderboard, the 8-week onboarding email sequence, and how 43% converted to paid on Day 1.',
-    image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80&fm=webp&fit=crop&auto=compress',
+    image: 'https://picsum.photos/id/487/800/600.webp',
   },
   {
     space: 'growth-hacking',
@@ -1627,7 +1627,7 @@ Mes 9-12 — Optimización de Conversión: CTAs contextuales en cada post. Pági
 
 Resultados: 50K visitantes orgánicos mensuales. 1,200 pruebas/mes. 240 conversiones a pago/mes. CAC desde SEO: $0. SEO es el único canal donde tu inversión se compone. Cada post que escribas en 2025 generará tráfico en 2027.`,
     excerpt: '0 to 50K monthly organic visitors in 12 months. The pillar-cluster strategy, data-study backlink play, and 12% trial conversion rate breakdown.',
-    image: 'https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?w=800&q=80&fm=webp&fit=crop&auto=compress',
+    image: 'https://picsum.photos/id/534/800/600.webp',
   },
   // BOOTSTRAPPERS (28 short posts remain)
   {
@@ -1665,7 +1665,7 @@ Día de renuncia: SaaS a $2,800 MRR. Brecha: $1,400/mes. Fondo: $104,000. Runway
 
 El modelo que todo aspirante a bootstrapper necesita: calcula tu brecha, construye 2+ años de runway, negocia transición, mide mensualmente. El miedo es ausencia de datos.`,
     excerpt: 'The spreadsheet that made quitting a $180K job rational. 12-month financial model, the part-time transition negotiation, and 74 months of calculated runway.',
-    image: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&q=80&fm=webp&fit=crop&auto=compress',
+    image: 'https://picsum.photos/id/627/800/600.webp',
   },
   {
     space: 'bootstrappers',
@@ -1702,7 +1702,7 @@ Resultados reales: Signups cayeron 35%. Ingreso por cliente nuevo se triplicó. 
 
 La lección: El precio es un filtro, no solo un número. $19 filtra personas que valoran tu producto en $19. $59 filtra personas que lo valoran en $59. Sube tus precios.`,
     excerpt: 'How raising prices from $19 to $59/month 3×\'d revenue with 37% fewer customers. The hidden costs of underpricing and the math that proves "charge more" works.',
-    image: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800&q=80&fm=webp&fit=crop&auto=compress',
+    image: 'https://picsum.photos/id/342/800/600.webp',
   },
   // HEALTH TECH (25 short posts remain)
   {
@@ -1742,7 +1742,7 @@ El Cronograma: 2 semanas. Semana 1: infraestructura. Semana 2: políticas y entr
 
 El mayor error: sobreconstruir cumplimiento antes de tener clientes. Implementa el stack mínimo viable, consigue 10 clientes, itera. HIPAA es un proceso, no un proyecto.`,
     excerpt: 'HIPAA compliance for $348/month. The 5-tool stack (Aptible, Vanta, Paubox, DocketHealth, Notion), the 2-week timeline, and why you\'re overbuilding compliance.',
-    image: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&q=80&fm=webp&fit=crop&auto=compress',
+    image: 'https://picsum.photos/id/258/800/600.webp',
   },
   {
     space: 'health-tech',
@@ -1773,7 +1773,7 @@ El Punto de Escalamiento: El pico 4:00-4:15 PM maneja 40% de citas. Arquitectura
 
 Restricción inesperada: Regulaciones estatales de telemedicina. Algunos estados requieren consentimiento grabado. Esto creó ramificaciones condicionales que tomaron 3× más desarrollo que la infraestructura de video.`,
     excerpt: 'Architecture decisions for 5,000 concurrent telemedicine calls. Daily.co for WebRTC, PostgreSQL partitioning, the 4:00 PM scaling challenge, and per-state compliance.',
-    image: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&q=80&fm=webp&fit=crop&auto=compress',
+    image: 'https://picsum.photos/id/853/800/600.webp',
   },
   // FINTECH BUILDERS (19 short posts remain)
   {
@@ -1807,7 +1807,7 @@ Arquitectura: Webhook Codat → Postgres → dbt → analytics → dashboards Me
 
 La lección: la dificultad no es el protocolo API — es la capa de normalización de datos. Dos APIs bien elegidas con normalización robusta superan 20 APIs con integración superficial.`,
     excerpt: '3 failed open banking POCs (Plaid, MX, direct bank APIs) and the Codat+Plaid hybrid that delivered 92% data coverage. The data normalization layer is everything.',
-    image: 'https://images.unsplash.com/photo-1559526324-4b87b5e9e4b4?w=800&q=80&fm=webp&fit=crop&auto=compress',
+    image: 'https://picsum.photos/id/592/800/600.webp',
   },
   {
     space: 'fintech-builders',
@@ -1844,7 +1844,7 @@ Total: $8,400. Firmas tradicionales: $30K-80K. La diferencia: implementación pr
 
 Resultado: 3 deals enterprise cerrados en 60 días — $84K ARR nuevo. ROI: $8,400 → $84,000 en 60 días. Mejor inversión de marketing jamás hecha.`,
     excerpt: 'SOC 2 Type II for $8,400 instead of $30K+. The freelance auditor approach, the 12-gap readiness assessment, and the $84K ROI in 60 days.',
-    image: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=800&q=80&fm=webp&fit=crop&auto=compress',
+    image: 'https://picsum.photos/id/648/800/600.webp',
   },
 ];
 
