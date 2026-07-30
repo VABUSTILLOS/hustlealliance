@@ -21,6 +21,7 @@ async function fetchLeaderboard(period: string): Promise<LeaderboardEntry[]> {
   const res = await fetch(`/api/leaderboard?period=${period}`);
   if (!res.ok) throw new Error('Failed to load leaderboard');
   const data = await res.json();
+  console.log('Leaderboard Data:', data.entries, 'period:', period);
   return data.entries || [];
 }
 

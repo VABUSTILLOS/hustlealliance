@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
+import { normalizeAvatarUrl } from '@/lib/utils/avatar';
 
 // GET /api/leaderboard?period=weekly|monthly
 export async function GET(request: NextRequest) {
@@ -27,7 +28,8 @@ export async function GET(request: NextRequest) {
     const userIds = xpAgg.map((x) => x.userId);
 
     // Fetch user profiles + streaks in parallel.
-    // Strictly exclude users without a real uploaded profile photo.
+    // The DB stores external URLs (DiceBear, Unsplash) — we normalize them to
+    // local JPEG portraits below and filter out users with no real photo.
     const [users, streaks, badges] = await Promise.all([
       prisma.user.findMany({
         where: {
@@ -47,7 +49,20 @@ export async function GET(request: NextRequest) {
       }),
     ]);
 
-    const userMap = new Map(users.map((u) => [u.id, u]));
+    // Build a map of userId → normalized avatar URL (local JPEG path).
+    // Users whose avatar doesn't resolve to a local photo are excluded.
+    const userMap = new Map<string, { name: string; avatar: string; username: string | null }>();
+    for (const u of users) {
+      const normalized = normalizeAvatarUrl(u.avatar);
+      if (normalized && normalized.startsWith('/')) {
+        userMap.set(u.id, {
+          name: u.name,
+          avatar: normalized,
+          username: u.username,
+        });
+      }
+    }
+
     const streakMap = new Map(streaks.map((s) => [s.userId, s.currentStreak]));
     const badgeMap = new Map<string, { icon: string; name: string }[]>();
     for (const b of badges) {
@@ -55,9 +70,9 @@ export async function GET(request: NextRequest) {
       badgeMap.get(b.userId)!.push({ icon: b.badge.icon, name: b.badge.name });
     }
 
-    // Sort by XP descending, build entries, and filter to users with real avatars.
+    // Sort by XP descending, build entries, and filter to users with real local photos.
     // Ranks are reassigned after filtering to ensure sequential ordering.
-    const entries = xpAgg
+    const rawEntries = xpAgg
       .sort((a, b) => (b._sum.amount ?? 0) - (a._sum.amount ?? 0))
       .slice(0, 20)
       .map((x) => {
@@ -67,14 +82,18 @@ export async function GET(request: NextRequest) {
         return {
           username: u.username ?? x.userId,
           name: u.name,
-          avatar: u.avatar!,
+          avatar: u.avatar,
           xp: x._sum.amount ?? 0,
           streak: streakMap.get(x.userId) ?? 0,
           badges: userBadges,
         };
       })
-      .filter((e): e is NonNullable<typeof e> => e !== null)
-      .map((e, i) => ({ rank: i + 1, ...e }));
+      .filter((e): e is NonNullable<typeof e> => e !== null);
+
+    const entries = rawEntries.map((e, i) => ({ rank: i + 1, ...e }));
+
+    console.log('[GET /api/leaderboard] period=%s rawUsers=%d normalizedUsers=%d entries=%d',
+      period, users.length, userMap.size, entries.length);
 
     return NextResponse.json(
       { entries, period },
