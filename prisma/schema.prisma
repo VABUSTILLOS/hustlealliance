@@ -706,6 +706,8 @@ model CommunityPost {
   editedAt   DateTime?
   isDeleted  Boolean        @default(false)
   deletedAt  DateTime?
+  locale     String         @default("en")
+  excerpt    String?
   visibility PostVisibility @default(PUBLIC)
   groupId    String?
   group      CommunityGroup? @relation(fields: [groupId], references: [id], onDelete: SetNull)

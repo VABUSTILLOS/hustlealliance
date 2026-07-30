@@ -10,6 +10,31 @@ import type { Space } from '@/lib/data/spaces';
 import type { GetCommunityPostsResult } from '@/lib/db/community';
 import { useCommunityFeed } from '../../community/useCommunityFeed';
 
+function renderBlogContent(content: string): string {
+  // Split off the title line (## Title) if present
+  let title = '';
+  let body = content;
+  const titleMatch = content.match(/^## (.+)\n\n/);
+  if (titleMatch) {
+    title = `<h3 class="font-heading font-bold text-foreground text-base mb-2">${titleMatch[1]}</h3>`;
+    body = content.slice(titleMatch[0].length);
+  }
+  // Basic markdown: **bold**, paragraphs
+  const html = body
+    .split('\n\n')
+    .filter(Boolean)
+    .map((p) => {
+      const trimmed = p.trim();
+      if (trimmed.startsWith('**') && trimmed.includes('**')) {
+        // Sub-heading
+        return `<h4 class="font-heading font-bold text-foreground text-sm mt-3 mb-1">${trimmed.replace(/\*\*/g, '')}</h4>`;
+      }
+      return `<p class="mb-2 leading-relaxed">${trimmed.replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold text-foreground">$1</strong>')}</p>`;
+    })
+    .join('');
+  return title + html;
+}
+
 export function SpaceDetailClient({
   slug,
   space,
@@ -103,15 +128,24 @@ export function SpaceDetailClient({
                     <p className="font-mono text-[10px] text-muted">@{post.author.username}</p>
                     <span className="text-muted text-[10px]">•</span>
                     <p className="text-muted text-[10px]">{new Date(post.createdAt).toLocaleDateString()}</p>
+                    {post.locale && (
+                      <>
+                        <span className="text-muted text-[10px]">•</span>
+                        <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-accent/10 text-accent uppercase">{post.locale}</span>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
-              <p className="text-foreground-muted text-sm mb-3">{post.content}</p>
+              {post.excerpt && (
+                <p className="text-muted text-xs mb-2 italic leading-relaxed">{post.excerpt}</p>
+              )}
               {post.imageUrls.length > 0 && (
-                <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden mb-3">
+                <div className="relative w-full aspect-[16/9] rounded-xl overflow-hidden mb-3">
                   <Image src={post.imageUrls[0]} alt="" fill className="object-cover" sizes="(max-width: 640px) 100vw, 700px" />
                 </div>
               )}
+              <div className="text-foreground-muted text-sm mb-3 blog-content" dangerouslySetInnerHTML={{ __html: renderBlogContent(post.content) }} />
               <div className="flex items-center gap-4 text-xs font-mono text-muted">
                 <span>❤️ {post.likeCount}</span>
                 <span>💬 {post.commentCount}</span>

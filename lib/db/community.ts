@@ -15,6 +15,8 @@ export interface CommunityPostItem {
   id: string;
   author: CommunityPostAuthor;
   content: string;
+  excerpt: string | null;
+  locale: string;
   space: string | null;
   createdAt: string;
   commentCount: number;
@@ -37,6 +39,7 @@ export interface GetCommunityPostsOpts {
   cursor?: string;
   limit?: number;
   space?: string;
+  locale?: string;
 }
 
 export interface GetCommunityPostsResult {
@@ -53,13 +56,14 @@ export interface GetCommunityPostsResult {
  */
 export const getCommunityPosts = cache(
   async (opts: GetCommunityPostsOpts = {}): Promise<GetCommunityPostsResult> => {
-    const { sort = 'latest', cursor, limit = 20, space } = opts;
+    const { sort = 'latest', cursor, limit = 20, space, locale } = opts;
 
     // Fetch limit+1 to determine if there are more items
     const take = limit + 1;
 
     const where: Record<string, unknown> = { isDeleted: false };
     if (space) where.space = space;
+    if (locale) where.locale = locale;
 
     const posts = await prisma.communityPost.findMany({
       where,
@@ -87,6 +91,8 @@ export const getCommunityPosts = cache(
         avatar: normalizeAvatarUrl(post.author.avatar),
       },
       content: post.content,
+      excerpt: post.excerpt,
+      locale: post.locale,
       space: post.space,
       createdAt: post.createdAt.toISOString(),
       commentCount: post._count.comments,
@@ -213,6 +219,8 @@ export const getPinnedPosts = cache(
         avatar: normalizeAvatarUrl(post.author.avatar),
       },
       content: post.content,
+      excerpt: post.excerpt,
+      locale: post.locale,
       space: post.space,
       createdAt: post.createdAt.toISOString(),
       commentCount: post._count.comments,
@@ -231,6 +239,8 @@ export interface PostDetail {
   id: string;
   author: CommunityPostAuthor;
   content: string;
+  excerpt: string | null;
+  locale: string;
   space: string | null;
   imageUrls: string[];
   isPinned: boolean;
@@ -264,6 +274,8 @@ export const getPostDetailCached = cache(
         avatar: normalizeAvatarUrl(post.author.avatar),
       },
       content: post.content,
+      excerpt: post.excerpt,
+      locale: post.locale,
       space: post.space,
       imageUrls: post.imageUrls,
       isPinned: post.isPinned,

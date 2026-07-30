@@ -130,6 +130,8 @@ export function CommunityFeedClient({ initialData, trending, activeTab }: Commun
       shareCount: 0,
       isPinned: false,
       isEdited: false,
+      excerpt: null as string | null,
+      locale: 'en',
       imageUrls: [] as string[],
       author: {
         id: p.author.id,

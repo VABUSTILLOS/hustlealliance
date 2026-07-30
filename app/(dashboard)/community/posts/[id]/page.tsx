@@ -50,6 +50,8 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
     id: post.id,
     author: post.author,
     content: post.content,
+    excerpt: post.excerpt,
+    locale: post.locale,
     space: post.space,
     createdAt: post.createdAt,
     commentCount: post.commentCount,
