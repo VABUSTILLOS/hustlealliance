@@ -5,29 +5,37 @@ import { getInitialsAvatarUrl } from '@/lib/utils/avatar';
 export interface Badge {
   id: string;
   name: string;
+  nameEs: string;
   description: string;
+  descriptionEs: string;
   icon: string;
   category: 'learning' | 'streak' | 'social' | 'milestone';
   requirement: number; // e.g., X lessons, Y streak days, Z posts
 }
 
+/** Get locale-aware badge name and description */
+export function getBadgeLocale(badge: Badge, locale: 'en' | 'es'): { name: string; description: string } {
+  if (locale === 'es') return { name: badge.nameEs, description: badge.descriptionEs };
+  return { name: badge.name, description: badge.description };
+}
+
 export const badges: Badge[] = [
-  { id: 'first-lesson', name: 'First Step', description: 'Complete your first lesson', icon: '👣', category: 'learning', requirement: 1 },
-  { id: 'first-path', name: 'Pathfinder', description: 'Complete your first learning path', icon: '🗺️', category: 'learning', requirement: 100 },
-  { id: '5-lessons', name: 'Quick Learner', description: 'Complete 5 lessons', icon: '📚', category: 'learning', requirement: 5 },
-  { id: '10-lessons', name: 'Knowledge Seeker', description: 'Complete 10 lessons', icon: '🧠', category: 'learning', requirement: 10 },
-  { id: '25-lessons', name: 'Scholar', description: 'Complete 25 lessons', icon: '🎓', category: 'learning', requirement: 25 },
-  { id: '3-day-streak', name: 'Warming Up', description: '3-day learning streak', icon: '🔥', category: 'streak', requirement: 3 },
-  { id: '7-day-streak', name: 'On Fire', description: '7-day learning streak', icon: '🔥', category: 'streak', requirement: 7 },
-  { id: '14-day-streak', name: 'Unstoppable', description: '14-day learning streak', icon: '🌋', category: 'streak', requirement: 14 },
-  { id: '30-day-streak', name: 'Legendary', description: '30-day learning streak', icon: '👑', category: 'streak', requirement: 30 },
-  { id: 'first-post', name: 'First Words', description: 'Post in the community', icon: '💬', category: 'social', requirement: 1 },
-  { id: '10-posts', name: 'Conversationalist', description: 'Make 10 community posts', icon: '🗣️', category: 'social', requirement: 10 },
-  { id: 'first-cheer', name: 'Cheerleader', description: 'Cheer a lesson for the first time', icon: '👏', category: 'social', requirement: 1 },
-  { id: 'social-butterfly', name: 'Social Butterfly', description: '50 community interactions', icon: '🦋', category: 'social', requirement: 50 },
-  { id: '100-xp', name: 'Centurion', description: 'Earn 100 XP', icon: '⚡', category: 'milestone', requirement: 100 },
-  { id: '500-xp', name: 'Power User', description: 'Earn 500 XP', icon: '💪', category: 'milestone', requirement: 500 },
-  { id: '1000-xp', name: 'Grandmaster', description: 'Earn 1,000 XP', icon: '🏆', category: 'milestone', requirement: 1000 },
+  { id: 'first-lesson', name: 'First Step', nameEs: 'Primer Paso', description: 'Complete your first lesson', descriptionEs: 'Completa tu primera lección', icon: '👣', category: 'learning', requirement: 1 },
+  { id: 'first-path', name: 'Pathfinder', nameEs: 'Explorador', description: 'Complete your first learning path', descriptionEs: 'Completa tu primera ruta de aprendizaje', icon: '🗺️', category: 'learning', requirement: 100 },
+  { id: '5-lessons', name: 'Quick Learner', nameEs: 'Aprendiz Veloz', description: 'Complete 5 lessons', descriptionEs: 'Completa 5 lecciones', icon: '📚', category: 'learning', requirement: 5 },
+  { id: '10-lessons', name: 'Knowledge Seeker', nameEs: 'Buscador de Conocimiento', description: 'Complete 10 lessons', descriptionEs: 'Completa 10 lecciones', icon: '🧠', category: 'learning', requirement: 10 },
+  { id: '25-lessons', name: 'Scholar', nameEs: 'Erudito', description: 'Complete 25 lessons', descriptionEs: 'Completa 25 lecciones', icon: '🎓', category: 'learning', requirement: 25 },
+  { id: '3-day-streak', name: 'Warming Up', nameEs: 'Calentando', description: '3-day learning streak', descriptionEs: 'Racha de 3 días de aprendizaje', icon: '🔥', category: 'streak', requirement: 3 },
+  { id: '7-day-streak', name: 'On Fire', nameEs: 'Encendido', description: '7-day learning streak', descriptionEs: 'Racha de 7 días de aprendizaje', icon: '🔥', category: 'streak', requirement: 7 },
+  { id: '14-day-streak', name: 'Unstoppable', nameEs: 'Imparable', description: '14-day learning streak', descriptionEs: 'Racha de 14 días de aprendizaje', icon: '🌋', category: 'streak', requirement: 14 },
+  { id: '30-day-streak', name: 'Legendary', nameEs: 'Legendario', description: '30-day learning streak', descriptionEs: 'Racha de 30 días de aprendizaje', icon: '👑', category: 'streak', requirement: 30 },
+  { id: 'first-post', name: 'First Words', nameEs: 'Primeras Palabras', description: 'Post in the community', descriptionEs: 'Publica en la comunidad', icon: '💬', category: 'social', requirement: 1 },
+  { id: '10-posts', name: 'Conversationalist', nameEs: 'Conversador', description: 'Make 10 community posts', descriptionEs: 'Haz 10 publicaciones en la comunidad', icon: '🗣️', category: 'social', requirement: 10 },
+  { id: 'first-cheer', name: 'Cheerleader', nameEs: 'Animador', description: 'Cheer a lesson for the first time', descriptionEs: 'Anima una lección por primera vez', icon: '👏', category: 'social', requirement: 1 },
+  { id: 'social-butterfly', name: 'Social Butterfly', nameEs: 'Mariposa Social', description: '50 community interactions', descriptionEs: '50 interacciones en la comunidad', icon: '🦋', category: 'social', requirement: 50 },
+  { id: '100-xp', name: 'Centurion', nameEs: 'Centurión', description: 'Earn 100 XP', descriptionEs: 'Gana 100 XP', icon: '⚡', category: 'milestone', requirement: 100 },
+  { id: '500-xp', name: 'Power User', nameEs: 'Usuario Avanzado', description: 'Earn 500 XP', descriptionEs: 'Gana 500 XP', icon: '💪', category: 'milestone', requirement: 500 },
+  { id: '1000-xp', name: 'Grandmaster', nameEs: 'Gran Maestro', description: 'Earn 1,000 XP', descriptionEs: 'Gana 1,000 XP', icon: '🏆', category: 'milestone', requirement: 1000 },
 ];
 
 // XP earning rules

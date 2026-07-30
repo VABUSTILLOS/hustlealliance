@@ -1,6 +1,7 @@
 'use client';
 
 import { useNotificationSettings, useUpdateNotificationSettings } from '@/app/(dashboard)/notifications/hooks/useNotifications';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 interface CategoryToggle {
   key: string;
@@ -31,6 +32,7 @@ const BROWSER_CATEGORIES: CategoryToggle[] = [
 ];
 
 export function NotificationSettings() {
+  const { t } = useTranslation();
   const { data: prefs, isLoading } = useNotificationSettings();
   const updateSettings = useUpdateNotificationSettings();
 
@@ -53,7 +55,7 @@ export function NotificationSettings() {
     <div className="space-y-8">
       {/* Email notifications */}
       <div>
-        <h3 className="text-foreground font-heading font-bold text-base mb-4">Email Notifications</h3>
+        <h3 className="text-foreground font-heading font-bold text-base mb-4">{t.notifications.sectionEmailNotifications}</h3>
         <div className="space-y-2">
           {EMAIL_CATEGORIES.map((cat) => {
             const enabled = prefs?.[cat.key] ?? true;
@@ -88,7 +90,7 @@ export function NotificationSettings() {
 
       {/* Browser notifications */}
       <div>
-        <h3 className="text-foreground font-heading font-bold text-base mb-4">In-App Notifications</h3>
+        <h3 className="text-foreground font-heading font-bold text-base mb-4">{t.notifications.sectionInAppNotifications}</h3>
         <div className="space-y-2">
           {BROWSER_CATEGORIES.map((cat) => {
             const enabled = prefs?.[cat.key] ?? true;
@@ -122,7 +124,7 @@ export function NotificationSettings() {
       </div>
 
       {updateSettings.isSuccess && (
-        <p className="text-sm text-green-400">Preferences saved!</p>
+        <p className="text-sm text-green-400">{t.notifications.successPreferencesSaved}</p>
       )}
     </div>
   );

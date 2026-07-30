@@ -1,4 +1,7 @@
+"use client";
+
 import { Minus, Plus, Trash2 } from "lucide-react";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export interface CartItemData {
   productId: string;
@@ -17,13 +20,15 @@ interface CartItemProps {
 }
 
 export function CartItem({ item, onUpdateQuantity, onRemove }: CartItemProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="flex items-center gap-4 py-4 border-b last:border-b-0">
       <div className="w-20 h-20 flex-shrink-0 rounded-lg bg-gray-100 overflow-hidden">
         {item.image ? (
           <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
         ) : (
-          <div className="flex items-center justify-center h-full text-gray-400 text-xs">No img</div>
+          <div className="flex items-center justify-center h-full text-gray-400 text-xs">{t.store.noImageAvailable}</div>
         )}
       </div>
 

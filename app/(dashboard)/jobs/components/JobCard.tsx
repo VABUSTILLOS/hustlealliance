@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { MapPin, Clock, Briefcase, Building2 } from "lucide-react";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 import type { JobListing } from "@/lib/generated/prisma/client";
 
 const TYPE_BADGE: Record<string, string> = {
@@ -10,21 +13,21 @@ const TYPE_BADGE: Record<string, string> = {
   CO_FOUNDER: "bg-yellow-100 text-yellow-800",
 };
 
-const TYPE_LABEL: Record<string, string> = {
-  FULL_TIME: "Full Time",
-  PART_TIME: "Part Time",
-  CONTRACT: "Contract",
-  INTERNSHIP: "Internship",
-  CO_FOUNDER: "Co-Founder",
-};
-
 type JobWithMeta = JobListing & {
   postedBy: { id: string; name: string; avatar: string | null };
   _count: { applications: number };
 };
 
 export function JobCard({ job }: { job: JobWithMeta }) {
-  const timeAgo = getTimeAgo(new Date(job.createdAt));
+  const { t } = useTranslation();
+  const typeLabels: Record<string, string> = {
+    FULL_TIME: t.jobs.jobTypeFullTime,
+    PART_TIME: t.jobs.jobTypePartTime,
+    CONTRACT: t.jobs.jobTypeContract,
+    INTERNSHIP: t.jobs.jobTypeInternship,
+    CO_FOUNDER: t.jobs.jobTypeCoFounder,
+  };
+  const timeAgo = getTimeAgo(new Date(job.createdAt), t.jobs);
 
   return (
     <Link
@@ -46,7 +49,7 @@ export function JobCard({ job }: { job: JobWithMeta }) {
           </div>
         </div>
         <span className={`flex-shrink-0 text-xs font-medium px-2.5 py-0.5 rounded-full ${TYPE_BADGE[job.type] || "bg-gray-100 text-gray-800"}`}>
-          {TYPE_LABEL[job.type] || job.type}
+          {typeLabels[job.type] || job.type}
         </span>
       </div>
 
@@ -60,7 +63,7 @@ export function JobCard({ job }: { job: JobWithMeta }) {
         {job.isRemote && (
           <span className="flex items-center gap-1 text-green-600">
             <Briefcase className="w-3.5 h-3.5" />
-            Remote
+            {t.jobs.remote}
           </span>
         )}
         {job.salaryRange && (
@@ -73,20 +76,28 @@ export function JobCard({ job }: { job: JobWithMeta }) {
           <Clock className="w-3 h-3" />
           {timeAgo}
         </span>
-        <span>{job._count.applications} application{job._count.applications !== 1 ? "s" : ""}</span>
+        <span>{job._count.applications} {t.jobs.applicationCountLabel}</span>
       </div>
     </Link>
   );
 }
 
-function getTimeAgo(date: Date): string {
+function getTimeAgo(
+  date: Date,
+  jobsTranslations: {
+    timeJustNow: string;
+    timeMinutesAgo: string;
+    timeHoursAgo: string;
+    timeDaysAgo: string;
+  },
+): string {
   const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
-  if (seconds < 60) return "Just now";
+  if (seconds < 60) return jobsTranslations.timeJustNow;
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
+  if (minutes < 60) return jobsTranslations.timeMinutesAgo.replace("{n}", String(minutes));
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) return jobsTranslations.timeHoursAgo.replace("{n}", String(hours));
   const days = Math.floor(hours / 24);
-  if (days < 30) return `${days}d ago`;
+  if (days < 30) return jobsTranslations.timeDaysAgo.replace("{n}", String(days));
   return date.toLocaleDateString();
 }

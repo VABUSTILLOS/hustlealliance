@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { useEffect } from 'react';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 export default function DashboardError({
   error,
@@ -10,6 +11,8 @@ export default function DashboardError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const { t } = useTranslation();
+
   useEffect(() => {
     console.error('Dashboard section error:', error);
   }, [error]);
@@ -23,10 +26,10 @@ export default function DashboardError({
       >
         <div className="text-6xl mb-4">⚠️</div>
         <h2 className="text-2xl font-heading font-bold text-foreground mb-2">
-          Something went wrong
+          {t.general.dashboardErrorTitle}
         </h2>
         <p className="text-muted text-sm mb-6">
-          This section couldn&apos;t load. It might be a temporary glitch — try again.
+          {t.general.dashboardErrorMessage}
         </p>
         <button
           onClick={reset}
@@ -36,7 +39,7 @@ export default function DashboardError({
             <polyline points="23 4 23 10 17 10" />
             <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10" />
           </svg>
-          Try Again
+          {t.general.dashboardButtonTryAgain}
         </button>
       </motion.div>
     </div>

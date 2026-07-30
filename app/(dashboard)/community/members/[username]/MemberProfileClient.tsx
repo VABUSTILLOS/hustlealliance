@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import type { MemberProfile } from '@/lib/db/community';
 import { toggleFollow, addToList, createList, getLists, removeFromList } from './actions';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 const tierBadgeClass: Record<string, string> = {
   PRO: 'bg-[var(--color-accent)] text-white',
@@ -21,6 +22,7 @@ export function MemberProfileClient({
   currentUserId?: string;
 }) {
   const router = useRouter();
+  const { t } = useTranslation();
   const [following, setFollowing] = useState(initialFollowing);
   const [followerCount, setFollowerCount] = useState(profile.followerCount);
   const [showListModal, setShowListModal] = useState(false);
@@ -49,20 +51,20 @@ export function MemberProfileClient({
     if (!currentUserId || loading) return;
     setLoading(true);
     await addToList(currentUserId, profile.id, listId, listNote || undefined);
-    setAddedMessage('Added to list!');
+    setAddedMessage(`✓ ${t.community.addToListTitle}`);
     setTimeout(() => { setAddedMessage(''); setShowListModal(false); setListNote(''); }, 1500);
     setLoading(false);
-  }, [currentUserId, profile.id, listNote, loading]);
+  }, [currentUserId, profile.id, listNote, loading, t.community.addToListTitle]);
 
   const handleCreateAndAdd = useCallback(async () => {
     if (!currentUserId || !newListName.trim() || loading) return;
     setLoading(true);
     const listId = await createList(currentUserId, newListName.trim());
     await addToList(currentUserId, profile.id, listId, listNote || undefined);
-    setAddedMessage(`Created "${newListName}" and added!`);
+    setAddedMessage(`✓ ${t.community.createAndAdd}: "${newListName}"`);
     setTimeout(() => { setAddedMessage(''); setShowListModal(false); setNewListName(''); setListNote(''); }, 1500);
     setLoading(false);
-  }, [currentUserId, profile.id, newListName, listNote, loading]);
+  }, [currentUserId, profile.id, newListName, listNote, loading, t.community.createAndAdd]);
 
   const isOwnProfile = currentUserId === profile.id;
 
@@ -93,7 +95,7 @@ export function MemberProfileClient({
               </span>
               {profile.role !== 'STUDENT' && (
                 <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-[var(--color-accent)]/10 text-[var(--color-accent)]">
-                  {profile.role === 'INSTRUCTOR' ? 'Instructor' : 'Admin'}
+                  {profile.role === 'INSTRUCTOR' ? t.community.roleInstructor : t.community.roleAdmin}
                 </span>
               )}
             </div>
@@ -107,27 +109,27 @@ export function MemberProfileClient({
 
             <div className="flex items-center gap-4 mt-3 text-xs text-[var(--color-muted)] font-mono">
               {profile.location && <span>📍 {profile.location}</span>}
-              {profile.yearsExperience && <span>🕐 {profile.yearsExperience}y exp</span>}
-              <span>Joined {new Date(profile.joinedAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
+              {profile.yearsExperience && <span>🕐 {profile.yearsExperience}{t.community.yearsExperience}</span>}
+              <span>{t.community.joined} {new Date(profile.joinedAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
             </div>
 
             {/* Stats */}
             <div className="flex items-center gap-6 mt-4 text-sm">
               <div className="text-center">
                 <span className="font-display text-lg text-[var(--color-foreground)]">{followerCount}</span>
-                <span className="block text-[10px] text-[var(--color-muted)] font-mono uppercase">Followers</span>
+                <span className="block text-[10px] text-[var(--color-muted)] font-mono uppercase">{t.community.statsFollowers}</span>
               </div>
               <div className="text-center">
                 <span className="font-display text-lg text-[var(--color-foreground)]">{profile.followingCount}</span>
-                <span className="block text-[10px] text-[var(--color-muted)] font-mono uppercase">Following</span>
+                <span className="block text-[10px] text-[var(--color-muted)] font-mono uppercase">{t.community.statsFollowing}</span>
               </div>
               <div className="text-center">
                 <span className="font-display text-lg text-[var(--color-foreground)]">{profile.postCount}</span>
-                <span className="block text-[10px] text-[var(--color-muted)] font-mono uppercase">Posts</span>
+                <span className="block text-[10px] text-[var(--color-muted)] font-mono uppercase">{t.community.statsPosts}</span>
               </div>
               <div className="text-center">
                 <span className="font-display text-lg text-[var(--color-foreground)]">{profile.commentCount}</span>
-                <span className="block text-[10px] text-[var(--color-muted)] font-mono uppercase">Comments</span>
+                <span className="block text-[10px] text-[var(--color-muted)] font-mono uppercase">{t.community.commentsLabel}</span>
               </div>
             </div>
           </div>
@@ -143,13 +145,13 @@ export function MemberProfileClient({
                     : 'bg-[var(--color-accent)] text-white hover:opacity-90'
                 }`}
               >
-                {following ? 'Following' : 'Follow'}
+                {following ? t.community.following : t.community.follow}
               </button>
               <button
                 onClick={openListModal}
                 className="px-6 py-2.5 rounded-xl font-mono text-sm font-bold bg-[var(--color-surface-light)] text-[var(--color-foreground-muted)] border border-[var(--color-border-subtle)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] transition-all"
               >
-                + Add to List
+                {t.community.addToList}
               </button>
             </div>
           )}
@@ -162,7 +164,7 @@ export function MemberProfileClient({
           {/* Bio */}
           {profile.bio && (
             <section className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-6">
-              <h2 className="font-heading font-bold text-sm uppercase tracking-wider text-[var(--color-muted)] mb-3">About</h2>
+              <h2 className="font-heading font-bold text-sm uppercase tracking-wider text-[var(--color-muted)] mb-3">{t.community.about}</h2>
               <p className="text-[var(--color-foreground)] leading-relaxed">{profile.bio}</p>
             </section>
           )}
@@ -170,7 +172,7 @@ export function MemberProfileClient({
           {/* Business Info */}
           {profile.businessInfo && (
             <section className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-6">
-              <h2 className="font-heading font-bold text-sm uppercase tracking-wider text-[var(--color-muted)] mb-3">Business</h2>
+              <h2 className="font-heading font-bold text-sm uppercase tracking-wider text-[var(--color-muted)] mb-3">{t.community.business}</h2>
               <p className="text-[var(--color-foreground)] leading-relaxed">{profile.businessInfo}</p>
             </section>
           )}
@@ -178,7 +180,7 @@ export function MemberProfileClient({
           {/* Can Help With */}
           {profile.canHelpWith.length > 0 && (
             <section className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-6">
-              <h2 className="font-heading font-bold text-sm uppercase tracking-wider text-[var(--color-muted)] mb-3">Can Help With</h2>
+              <h2 className="font-heading font-bold text-sm uppercase tracking-wider text-[var(--color-muted)] mb-3">{t.community.canHelpWith}</h2>
               <div className="flex flex-wrap gap-2">
                 {profile.canHelpWith.map((item) => (
                   <span key={item} className="px-3 py-1.5 rounded-lg bg-[var(--color-accent)]/10 text-[var(--color-accent)] text-sm font-mono">
@@ -192,7 +194,7 @@ export function MemberProfileClient({
           {/* Looking For */}
           {profile.lookingFor.length > 0 && (
             <section className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-6">
-              <h2 className="font-heading font-bold text-sm uppercase tracking-wider text-[var(--color-muted)] mb-3">Looking For</h2>
+              <h2 className="font-heading font-bold text-sm uppercase tracking-wider text-[var(--color-muted)] mb-3">{t.community.lookingFor}</h2>
               <div className="flex flex-wrap gap-2">
                 {profile.lookingFor.map((item) => (
                   <span key={item} className="px-3 py-1.5 rounded-lg bg-[var(--color-surface-light)] text-[var(--color-foreground-muted)] text-sm font-mono border border-[var(--color-border-subtle)]">
@@ -206,9 +208,9 @@ export function MemberProfileClient({
           {/* Opportunities */}
           {profile.hasOpportunities && (
             <section className="bg-[var(--color-surface)] border border-[var(--color-accent)]/30 rounded-2xl p-6">
-              <h2 className="font-heading font-bold text-sm uppercase tracking-wider text-[var(--color-accent)] mb-3">💼 Open to Opportunities</h2>
+              <h2 className="font-heading font-bold text-sm uppercase tracking-wider text-[var(--color-accent)] mb-3">{t.community.openToOpportunities}</h2>
               <p className="text-[var(--color-foreground-muted)] text-sm">
-                {profile.name} has indicated they have job or business opportunities available. Reach out to connect!
+                {t.community.opportunitiesMessage.replace('{name}', profile.name)}
               </p>
             </section>
           )}
@@ -216,9 +218,9 @@ export function MemberProfileClient({
           {/* Marketplace */}
           {profile.marketplaceSeller && (
             <section className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-6">
-              <h2 className="font-heading font-bold text-sm uppercase tracking-wider text-[var(--color-muted)] mb-3">🛍️ Marketplace Seller</h2>
+              <h2 className="font-heading font-bold text-sm uppercase tracking-wider text-[var(--color-muted)] mb-3">{t.community.marketplaceSeller}</h2>
               <p className="text-[var(--color-foreground-muted)] text-sm">
-                {profile.name} has active listings on the Hustle Alliance Marketplace.
+                {t.community.marketplaceSellerMessage.replace('{name}', profile.name)}
               </p>
             </section>
           )}
@@ -229,7 +231,7 @@ export function MemberProfileClient({
           {/* Industries */}
           {profile.industries.length > 0 && (
             <div className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-5">
-              <h3 className="font-heading font-bold text-xs uppercase tracking-wider text-[var(--color-muted)] mb-3">Industries</h3>
+              <h3 className="font-heading font-bold text-xs uppercase tracking-wider text-[var(--color-muted)] mb-3">{t.community.industries}</h3>
               <div className="flex flex-wrap gap-1.5">
                 {profile.industries.map((ind) => (
                   <span key={ind} className="px-2 py-1 rounded-md bg-[var(--color-surface-light)] text-[var(--color-foreground-muted)] text-xs font-mono">
@@ -243,7 +245,7 @@ export function MemberProfileClient({
           {/* Skills */}
           {profile.skills.length > 0 && (
             <div className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-5">
-              <h3 className="font-heading font-bold text-xs uppercase tracking-wider text-[var(--color-muted)] mb-3">Skills</h3>
+              <h3 className="font-heading font-bold text-xs uppercase tracking-wider text-[var(--color-muted)] mb-3">{t.community.skills}</h3>
               <div className="flex flex-wrap gap-1.5">
                 {profile.skills.map((skill) => (
                   <span key={skill} className="px-2 py-1 rounded-md bg-[var(--color-surface-light)] text-[var(--color-foreground-muted)] text-xs font-mono">
@@ -257,7 +259,7 @@ export function MemberProfileClient({
           {/* Interests */}
           {profile.interests.length > 0 && (
             <div className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-5">
-              <h3 className="font-heading font-bold text-xs uppercase tracking-wider text-[var(--color-muted)] mb-3">Interests</h3>
+              <h3 className="font-heading font-bold text-xs uppercase tracking-wider text-[var(--color-muted)] mb-3">{t.community.interests}</h3>
               <div className="flex flex-wrap gap-1.5">
                 {profile.interests.map((interest) => (
                   <span key={interest} className="px-2 py-1 rounded-md bg-[var(--color-surface-light)] text-[var(--color-foreground-muted)] text-xs font-mono">
@@ -271,7 +273,7 @@ export function MemberProfileClient({
           {/* Social Links */}
           {profile.socialLinks && Object.keys(profile.socialLinks).length > 0 && (
             <div className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-5">
-              <h3 className="font-heading font-bold text-xs uppercase tracking-wider text-[var(--color-muted)] mb-3">Links</h3>
+              <h3 className="font-heading font-bold text-xs uppercase tracking-wider text-[var(--color-muted)] mb-3">{t.community.links}</h3>
               <div className="space-y-1.5">
                 {Object.entries(profile.socialLinks).map(([platform, url]) => (
                   <a
@@ -290,7 +292,7 @@ export function MemberProfileClient({
 
           {profile.website && (
             <div className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-5">
-              <h3 className="font-heading font-bold text-xs uppercase tracking-wider text-[var(--color-muted)] mb-3">Website</h3>
+              <h3 className="font-heading font-bold text-xs uppercase tracking-wider text-[var(--color-muted)] mb-3">{t.community.links}</h3>
               <a
                 href={profile.website}
                 target="_blank"
@@ -308,8 +310,8 @@ export function MemberProfileClient({
       {showListModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowListModal(false)}>
           <div className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-6 w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
-            <h3 className="font-heading font-bold text-lg text-[var(--color-foreground)] mb-1">Add to List</h3>
-            <p className="text-xs text-[var(--color-muted)] font-mono mb-4">Add {profile.name} to one of your lists</p>
+            <h3 className="font-heading font-bold text-lg text-[var(--color-foreground)] mb-1">{t.community.addToListTitle}</h3>
+            <p className="text-xs text-[var(--color-muted)] font-mono mb-4">{t.community.addToListDescription.replace('{name}', profile.name)}</p>
 
             {addedMessage ? (
               <p className="text-[var(--color-accent)] text-sm font-mono py-4 text-center">{addedMessage}</p>
@@ -318,7 +320,7 @@ export function MemberProfileClient({
                 {/* Note */}
                 <input
                   type="text"
-                  placeholder="Optional note..."
+                  placeholder={t.community.optionalNotePlaceholder}
                   value={listNote}
                   onChange={(e) => setListNote(e.target.value)}
                   className="w-full px-3 py-2 mb-3 rounded-lg bg-[var(--color-surface-light)] border border-[var(--color-border-subtle)] text-sm text-[var(--color-foreground)] font-mono placeholder:text-[var(--color-muted)] focus:outline-none focus:border-[var(--color-accent)]"
@@ -335,7 +337,7 @@ export function MemberProfileClient({
                         className="w-full text-left px-3 py-2 rounded-lg hover:bg-[var(--color-surface-light)] transition-colors flex justify-between items-center"
                       >
                         <span className="text-sm text-[var(--color-foreground)] font-mono">{list.name}</span>
-                        <span className="text-[10px] text-[var(--color-muted)] font-mono">{list._count.items} members</span>
+                        <span className="text-[10px] text-[var(--color-muted)] font-mono">{list._count.items} {t.community.statsMembers.toLowerCase()}</span>
                       </button>
                     ))}
                   </div>
@@ -345,7 +347,7 @@ export function MemberProfileClient({
                 <div className="flex gap-2">
                   <input
                     type="text"
-                    placeholder="New list name..."
+                    placeholder={t.community.newListNamePlaceholder}
                     value={newListName}
                     onChange={(e) => setNewListName(e.target.value)}
                     className="flex-1 px-3 py-2 rounded-lg bg-[var(--color-surface-light)] border border-[var(--color-border-subtle)] text-sm text-[var(--color-foreground)] font-mono placeholder:text-[var(--color-muted)] focus:outline-none focus:border-[var(--color-accent)]"
@@ -355,7 +357,7 @@ export function MemberProfileClient({
                     disabled={!newListName.trim() || loading}
                     className="px-4 py-2 rounded-lg bg-[var(--color-accent)] text-white text-sm font-mono font-bold disabled:opacity-50 transition-opacity"
                   >
-                    Create + Add
+                    {loading ? t.community.loading : t.community.createAndAdd}
                   </button>
                 </div>
               </>
@@ -365,7 +367,7 @@ export function MemberProfileClient({
               onClick={() => setShowListModal(false)}
               className="w-full mt-4 py-2 text-xs font-mono text-[var(--color-muted)] hover:text-[var(--color-foreground)] transition-colors"
             >
-              Close
+              {t.community.close}
             </button>
           </div>
         </div>

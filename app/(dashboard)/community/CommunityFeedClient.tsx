@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { useStore } from '@/lib/store/useStore';
 import { useCurrentUser } from '@/lib/hooks/useCurrentUser';
 import { LazyMotionDiv, LazyAnimatePresence } from '@/lib/framer/lazy-motion';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { useCommunityFeed } from './useCommunityFeed';
 import { usePersonalFeed, useGlobalFeed } from './hooks/useFeeds';
 import { PostCard } from './components/PostCard';
@@ -24,6 +25,7 @@ interface CommunityFeedClientProps {
 }
 
 export function CommunityFeedClient({ initialData, trending, activeTab }: CommunityFeedClientProps) {
+  const { t } = useTranslation();
   const toggleLike = useStore((s) => s.toggleLike);
   const user = useCurrentUser();
   const joinedSpaces = useStore((s) => s.joinedSpaces);
@@ -32,14 +34,11 @@ export function CommunityFeedClient({ initialData, trending, activeTab }: Commun
   const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
 
-  // ── Personal Feed (FeedItem table) — only when tab is active ──
   const personalFeed = usePersonalFeed({ enabled: activeTab === 'personal' });
   const personalItems = personalFeed.data?.pages.flat() ?? [];
 
-  // ── Global Feed (CommunityPost table, public) — only when tab is active ──
   const globalFeed = useGlobalFeed({ enabled: activeTab === 'global' });
 
-  // ── Spaces / Community Feed ──
   const communityFeed = useCommunityFeed({
     sort: sort === 'my-spaces' ? 'latest' : sort,
     initialData: activeTab === 'spaces' ? { pages: [initialData], pageParams: [undefined] } : undefined,
@@ -48,7 +47,6 @@ export function CommunityFeedClient({ initialData, trending, activeTab }: Commun
 
   const posts = communityFeed.data?.pages.flatMap((page) => page.items) ?? (activeTab === 'spaces' ? initialData.items : []);
 
-  // Client-side sort/filter
   const sorted = [...posts].sort((a, b) => {
     if (sort === 'popular') return b.commentCount - a.commentCount;
     return 0;
@@ -77,7 +75,6 @@ export function CommunityFeedClient({ initialData, trending, activeTab }: Commun
     toggleLike(postId);
   };
 
-  // ── Render: Personal Feed ──
   if (activeTab === 'personal') {
     return (
       <>
@@ -90,9 +87,9 @@ export function CommunityFeedClient({ initialData, trending, activeTab }: Commun
         ) : personalItems.length === 0 ? (
           <LazyMotionDiv initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center py-16">
             <div className="text-6xl mb-4">👤</div>
-            <h2 className="font-display text-2xl text-[var(--color-foreground)] uppercase mb-3">Your feed is empty</h2>
+            <h2 className="font-display text-2xl text-[var(--color-foreground)] uppercase mb-3">{t.community.personalFeedEmpty}</h2>
             <p className="text-[var(--color-foreground-muted)] text-sm max-w-md mx-auto">
-              Follow other founders to see their activity here.
+              {t.community.personalFeedEmptyDesc}
             </p>
           </LazyMotionDiv>
         ) : (
@@ -107,7 +104,7 @@ export function CommunityFeedClient({ initialData, trending, activeTab }: Commun
                   disabled={personalFeed.isFetchingNextPage}
                   className="px-6 py-2 bg-surface border border-surface-light rounded-xl text-muted font-mono text-sm hover:border-accent/30 hover:text-accent transition-all disabled:opacity-50"
                 >
-                  {personalFeed.isFetchingNextPage ? 'Loading...' : 'Load More'}
+                  {personalFeed.isFetchingNextPage ? t.community.loading : t.community.loadMore}
                 </button>
               </div>
             )}
@@ -117,7 +114,6 @@ export function CommunityFeedClient({ initialData, trending, activeTab }: Commun
     );
   }
 
-  // ── Render: Global Feed ──
   if (activeTab === 'global') {
     const globalPages = globalFeed.data?.pages ?? [];
     const globalPosts = globalPages.flat().map((p) => ({
@@ -152,9 +148,9 @@ export function CommunityFeedClient({ initialData, trending, activeTab }: Commun
         ) : globalPosts.length === 0 ? (
           <LazyMotionDiv initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center py-16">
             <div className="text-6xl mb-4">🌍</div>
-            <h2 className="font-display text-2xl text-[var(--color-foreground)] uppercase mb-3">No global posts yet</h2>
+            <h2 className="font-display text-2xl text-[var(--color-foreground)] uppercase mb-3">{t.community.globalPostsEmpty}</h2>
             <p className="text-[var(--color-foreground-muted)] text-sm max-w-md mx-auto">
-              Be the first to share something with the world!
+              {t.community.globalPostsEmptyDesc}
             </p>
           </LazyMotionDiv>
         ) : (
@@ -195,7 +191,7 @@ export function CommunityFeedClient({ initialData, trending, activeTab }: Commun
                   disabled={globalFeed.isFetchingNextPage}
                   className="px-6 py-2 bg-surface border border-surface-light rounded-xl text-muted font-mono text-sm hover:border-accent/30 hover:text-accent transition-all disabled:opacity-50"
                 >
-                  {globalFeed.isFetchingNextPage ? 'Loading...' : 'Load More'}
+                  {globalFeed.isFetchingNextPage ? t.community.loading : t.community.loadMore}
                 </button>
               </div>
             )}
@@ -205,7 +201,6 @@ export function CommunityFeedClient({ initialData, trending, activeTab }: Commun
     );
   }
 
-  // ── Render: Spaces Feed (default) ──
   return (
     <>
       <Suspense fallback={
@@ -221,16 +216,16 @@ export function CommunityFeedClient({ initialData, trending, activeTab }: Commun
       {trending.length > 0 && (
         <div className="flex items-center gap-2 mb-6 overflow-x-auto scrollbar-none">
           <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--color-muted)] shrink-0">
-            🔥 Trending
+            {t.community.trending}
           </span>
-          {trending.map((t) => (
+          {trending.map((topic) => (
             <button
-              key={t.space}
+              key={topic.space}
               onClick={() => setSort('latest')}
               className="shrink-0 px-3 py-1.5 rounded-full text-xs font-mono bg-[var(--color-surface-light)] text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-accent)]/20 transition-colors border border-[var(--color-border-subtle)]"
             >
-              {t.space}
-              <span className="ml-1.5 text-[var(--color-muted)]">{t.postCount}</span>
+              {topic.space}
+              <span className="ml-1.5 text-[var(--color-muted)]">{topic.postCount}</span>
             </button>
           ))}
         </div>
@@ -240,12 +235,10 @@ export function CommunityFeedClient({ initialData, trending, activeTab }: Commun
         <LazyMotionDiv initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center py-16 px-4">
           <div className="text-6xl mb-4">💬</div>
           <h2 className="font-display text-2xl text-[var(--color-foreground)] uppercase mb-3">
-            {sort === 'my-spaces' ? 'No posts in your spaces yet' : 'No posts yet'}
+            {sort === 'my-spaces' ? t.community.spacePostsEmpty : t.community.postsEmpty}
           </h2>
           <p className="text-[var(--color-foreground-muted)] text-sm mb-6 max-w-md mx-auto">
-            {sort === 'my-spaces'
-              ? 'Join a space to see posts from other founders.'
-              : 'Be the first to share something with the community!'}
+            {sort === 'my-spaces' ? t.community.spacePostsEmptyDesc : t.community.postsEmptyDesc}
           </p>
         </LazyMotionDiv>
       ) : (
@@ -289,7 +282,7 @@ export function CommunityFeedClient({ initialData, trending, activeTab }: Commun
             disabled={communityFeed.isFetchingNextPage}
             className="px-6 py-2 bg-surface border border-surface-light rounded-xl text-muted font-mono text-sm hover:border-accent/30 hover:text-accent transition-all disabled:opacity-50"
           >
-            {communityFeed.isFetchingNextPage ? 'Loading...' : 'Load More'}
+            {communityFeed.isFetchingNextPage ? t.community.loading : t.community.loadMore}
           </button>
         </LazyMotionDiv>
       )}

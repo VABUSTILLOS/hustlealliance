@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ShoppingCart, CreditCard } from "lucide-react";
 import { CartItem, type CartItemData } from "../components/CartItem";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 function loadCart(): CartItemData[] {
   if (typeof window === "undefined") return [];
@@ -17,6 +18,7 @@ function loadCart(): CartItemData[] {
 }
 
 export default function CartPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [cart, setCart] = useState<CartItemData[]>(loadCart);
   const [checkingOut, setCheckingOut] = useState(false);
@@ -69,7 +71,7 @@ export default function CartPage() {
       window.dispatchEvent(new Event("cart-updated"));
       router.push(`/store/orders`);
     } catch {
-      alert("Checkout failed. Please try again.");
+      alert(t.store.errorCheckoutFailed);
     } finally {
       setCheckingOut(false);
     }
@@ -79,13 +81,13 @@ export default function CartPage() {
     return (
       <div className="px-4 sm:px-6 lg:px-8 py-8 max-w-2xl mx-auto text-center">
         <ShoppingCart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-        <h1 className="text-2xl font-bold text-gray-900">Your cart is empty</h1>
-        <p className="text-gray-500 mt-1 mb-6">Browse the store and add some items!</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t.store.emptyCartTitle}</h1>
+        <p className="text-gray-500 mt-1 mb-6">{t.store.emptyCartHelp}</p>
         <Link
           href="/store"
           className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors"
         >
-          Continue Shopping
+          {t.store.buttonContinueShopping}
         </Link>
       </div>
     );
@@ -98,12 +100,12 @@ export default function CartPage() {
         className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-6"
       >
         <ArrowLeft className="w-4 h-4" />
-        Continue Shopping
+        {t.store.buttonContinueShopping}
       </Link>
 
       <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2 mb-6">
         <ShoppingCart className="w-6 h-6 text-blue-600" />
-        Shopping Cart ({cart.length} item{cart.length !== 1 ? "s" : ""})
+        {t.store.cartTitle.replace("{count}", String(cart.length))}
       </h1>
 
       <div className="bg-white rounded-2xl border shadow-sm">
@@ -120,7 +122,7 @@ export default function CartPage() {
 
         <div className="border-t p-4 sm:p-6 bg-gray-50 rounded-b-2xl">
           <div className="flex items-center justify-between mb-4">
-            <span className="text-gray-600">Subtotal</span>
+            <span className="text-gray-600">{t.store.subtotal}</span>
             <span className="text-lg font-semibold text-gray-900">
               ${subtotal.toFixed(2)}
             </span>
@@ -132,11 +134,11 @@ export default function CartPage() {
             className="w-full flex items-center justify-center gap-2 px-6 py-3 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors disabled:opacity-50"
           >
             <CreditCard className="w-4 h-4" />
-            {checkingOut ? "Processing..." : `Checkout — $${subtotal.toFixed(2)}`}
+            {checkingOut ? t.store.buttonProcessing : `${t.store.buttonCheckout} — $${subtotal.toFixed(2)}`}
           </button>
 
           <p className="mt-3 text-xs text-gray-400 text-center">
-            Payments powered by Stripe (integration coming soon). This is a demo checkout.
+            {t.store.stripeNote}
           </p>
         </div>
       </div>

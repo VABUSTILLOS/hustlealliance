@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 type Instructor = { id: string; name: string; email: string };
 type Category = { id: string; name: string; slug: string };
 
 export default function NewCoursePage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [instructors, setInstructors] = useState<Instructor[]>([]);
@@ -58,10 +60,10 @@ export default function NewCoursePage() {
         const data = await res.json();
         router.push(`/admin/courses/${data.course.id}`);
       } else {
-        alert('Failed to create course');
+        alert(t.admin.courses.form.failedCreate);
       }
     } catch {
-      alert('Error creating course');
+      alert(t.admin.courses.form.errorCreate);
     } finally {
       setSaving(false);
     }
@@ -72,38 +74,38 @@ export default function NewCoursePage() {
 
   return (
     <div className="p-4 md:p-8 max-w-3xl">
-      <h1 className="text-2xl font-heading font-bold text-foreground mb-8">Create New Course</h1>
+      <h1 className="text-2xl font-heading font-bold text-foreground mb-8">{t.admin.courses.createNew}</h1>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className={labelClass}>Title *</label>
+            <label className={labelClass}>{t.admin.courses.form.title} *</label>
             <input name="title" value={form.title} onChange={handleChange} className={inputClass} required />
           </div>
           <div>
-            <label className={labelClass}>Slug *</label>
-            <input name="slug" value={form.slug} onChange={handleChange} className={inputClass} placeholder="my-course-slug" required />
+            <label className={labelClass}>{t.admin.courses.form.slug} *</label>
+            <input name="slug" value={form.slug} onChange={handleChange} className={inputClass} placeholder={t.admin.courses.form.slugPlaceholder} required />
           </div>
         </div>
 
         <div>
-          <label className={labelClass}>Tagline</label>
+          <label className={labelClass}>{t.admin.courses.form.tagline}</label>
           <input name="tagline" value={form.tagline} onChange={handleChange} className={inputClass} />
         </div>
 
         <div>
-          <label className={labelClass}>Description</label>
+          <label className={labelClass}>{t.admin.courses.form.description}</label>
           <textarea name="description" value={form.description} onChange={handleChange} className={inputClass} rows={4} />
         </div>
 
         <div>
-          <label className={labelClass}>Thumbnail URL</label>
-          <input name="thumbnail" value={form.thumbnail} onChange={handleChange} className={inputClass} placeholder="https://..." />
+          <label className={labelClass}>{t.admin.courses.form.thumbnail}</label>
+          <input name="thumbnail" value={form.thumbnail} onChange={handleChange} className={inputClass} placeholder={t.admin.courses.form.thumbnailPlaceholder} />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
-            <label className={labelClass}>Difficulty</label>
+            <label className={labelClass}>{t.admin.courses.form.difficulty}</label>
             <select name="difficulty" value={form.difficulty} onChange={handleChange} className={inputClass}>
               <option value="BEGINNER">Beginner</option>
               <option value="INTERMEDIATE">Intermediate</option>
@@ -111,7 +113,7 @@ export default function NewCoursePage() {
             </select>
           </div>
           <div>
-            <label className={labelClass}>Access Level</label>
+            <label className={labelClass}>{t.admin.courses.form.accessLevel}</label>
             <select name="accessLevel" value={form.accessLevel} onChange={handleChange} className={inputClass}>
               <option value="FREE">Free</option>
               <option value="BASIC">Basic</option>
@@ -119,32 +121,32 @@ export default function NewCoursePage() {
             </select>
           </div>
           <div>
-            <label className={labelClass}>Price (USD)</label>
+            <label className={labelClass}>{t.admin.courses.form.price}</label>
             <input name="price" type="number" value={form.price} onChange={handleChange} className={inputClass} min={0} />
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
-            <label className={labelClass}>Category</label>
+            <label className={labelClass}>{t.admin.courses.form.category}</label>
             <select name="categoryId" value={form.categoryId} onChange={handleChange} className={inputClass}>
-              <option value="">None</option>
+              <option value="">{t.admin.common.none}</option>
               {categories.map((c) => (
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}
             </select>
           </div>
           <div>
-            <label className={labelClass}>Instructor</label>
+            <label className={labelClass}>{t.admin.courses.form.instructor}</label>
             <select name="instructorId" value={form.instructorId} onChange={handleChange} className={inputClass}>
-              <option value="">None</option>
+              <option value="">{t.admin.common.none}</option>
               {instructors.map((i) => (
                 <option key={i.id} value={i.id}>{i.name || i.email}</option>
               ))}
             </select>
           </div>
           <div>
-            <label className={labelClass}>Status</label>
+            <label className={labelClass}>{t.admin.courses.form.status}</label>
             <select name="status" value={form.status} onChange={handleChange} className={inputClass}>
               <option value="DRAFT">Draft</option>
               <option value="PUBLISHED">Published</option>
@@ -159,14 +161,14 @@ export default function NewCoursePage() {
             disabled={saving}
             className="px-6 py-2.5 bg-accent text-white rounded-xl font-medium text-sm hover:bg-accent/90 transition-colors disabled:opacity-50"
           >
-            {saving ? 'Creating...' : 'Create Course'}
+            {saving ? t.admin.courses.form.creating : t.admin.courses.form.createCourse}
           </button>
           <button
             type="button"
             onClick={() => router.back()}
             className="px-6 py-2.5 bg-surface border border-surface-light text-muted rounded-xl font-medium text-sm hover:text-foreground transition-colors"
           >
-            Cancel
+            {t.admin.courses.form.cancel}
           </button>
         </div>
       </form>

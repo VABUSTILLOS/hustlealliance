@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
 import { memberProfiles, currentUser } from '@/lib/data/users';
-import { learningPaths } from '@/lib/data/learning-paths';
+import { learningPaths, getLearningPathLocale } from '@/lib/data/learning-paths';
 import { spaces as allSpaces } from '@/lib/data/spaces';
 import { useStore } from '@/lib/store/useStore';
 import { useCurrentUser } from '@/lib/hooks/useCurrentUser';
@@ -17,7 +17,7 @@ export default function MemberProfilePage({
   params: Promise<{ username: string }>;
 }) {
   const { username } = use(params);
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const realUser = useCurrentUser();
   const profile = memberProfiles[username];
   const posts = useStore((s) => s.posts);
@@ -40,7 +40,9 @@ export default function MemberProfilePage({
     : false;
   const memberPosts = posts.filter((p) => p.author.username === profile.username);
   const memberSpaces = allSpaces.filter((s) => joinedSpaces.includes(s.slug));
-  const completedPaths = learningPaths.filter((lp) => profile.completedPaths.includes(lp.slug));
+  const completedPaths = learningPaths
+    .filter((lp) => profile.completedPaths.includes(lp.slug))
+    .map((lp) => getLearningPathLocale(lp, locale));
 
   const handleSendMessage = () => {
     if (messageText.trim()) {

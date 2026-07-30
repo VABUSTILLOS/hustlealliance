@@ -2,6 +2,7 @@
 
 import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 type Student = {
   userId: string;
@@ -18,6 +19,7 @@ type Student = {
 
 export default function CourseStudentsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const { t } = useTranslation();
   const [data, setData] = useState<{ course: { title: string }; students: Student[] } | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -29,32 +31,32 @@ export default function CourseStudentsPage({ params }: { params: Promise<{ id: s
       .finally(() => setLoading(false));
   }, [id]);
 
-  if (loading) return <div className="p-8 text-muted">Loading...</div>;
-  if (!data) return <div className="p-8 text-muted">Course not found.</div>;
+  if (loading) return <div className="p-8 text-muted">{t.general.loading}</div>;
+  if (!data) return <div className="p-8 text-muted">{t.general.courseNotFound}</div>;
 
   return (
     <div className="p-4 md:p-8">
       <div className="flex items-center gap-4 mb-8">
-        <Link href="/instructor" className="text-muted hover:text-foreground">← Back</Link>
+        <Link href="/instructor" className="text-muted hover:text-foreground">{t.instructor.courses.back}</Link>
         <div>
           <h1 className="text-2xl font-heading font-bold text-foreground">{data.course.title}</h1>
-          <p className="text-muted text-sm">{data.students.length} students enrolled</p>
+          <p className="text-muted text-sm">{t.instructor.courses.studentsEnrolled.replace('{count}', String(data.students.length))}</p>
         </div>
       </div>
 
       {data.students.length === 0 ? (
-        <div className="glass-card p-8 text-center text-muted">No students enrolled yet.</div>
+        <div className="glass-card p-8 text-center text-muted">{t.instructor.courses.noStudents}</div>
       ) : (
         <div className="glass-card overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-muted text-left border-b border-surface-light">
-                <th className="p-4 font-medium">Student</th>
-                <th className="p-4 font-medium">Enrolled</th>
-                <th className="p-4 font-medium">Progress</th>
-                <th className="p-4 font-medium">Lessons</th>
-                <th className="p-4 font-medium">Last Active</th>
-                <th className="p-4 font-medium">Status</th>
+                <th className="p-4 font-medium">{t.instructor.courses.table.student}</th>
+                <th className="p-4 font-medium">{t.instructor.courses.table.enrolled}</th>
+                <th className="p-4 font-medium">{t.instructor.courses.table.progress}</th>
+                <th className="p-4 font-medium">{t.instructor.courses.table.lessons}</th>
+                <th className="p-4 font-medium">{t.instructor.courses.table.lastActive}</th>
+                <th className="p-4 font-medium">{t.instructor.courses.table.status}</th>
               </tr>
             </thead>
             <tbody>
@@ -80,11 +82,11 @@ export default function CourseStudentsPage({ params }: { params: Promise<{ id: s
                   <td className="p-4">
                     {s.completedAt ? (
                       <span className="px-2 py-0.5 rounded-full text-xs font-medium text-green-400 bg-green-400/10">
-                        Completed
+                        {t.general.completed}
                       </span>
                     ) : (
                       <span className="px-2 py-0.5 rounded-full text-xs font-medium text-blue-400 bg-blue-400/10">
-                        Active
+                        {t.general.active}
                       </span>
                     )}
                   </td>

@@ -106,7 +106,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   const mobileLinks = [
     ...sidebarLinks,
-    { label: 'Profile', href: user?.username ? `/member/${user.username}` : '/member/alexk', icon: (
+    { label: t.general.profile, href: user?.username ? `/member/${user.username}` : '/member/alexk', icon: (
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 4-7 8-7s8 3 8 7" /></svg>
     )},
   ];
@@ -124,7 +124,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             HA
           </div>
           <span className="font-heading font-bold text-foreground text-sm tracking-wide">
-            Hustle Alliance
+            {t.general.hustleAlliance}
           </span>
         </Link>
 
@@ -134,8 +134,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           className="mx-3 my-2 flex items-center gap-2 px-4 py-2 rounded-xl text-sm text-muted hover:text-foreground hover:bg-surface-light transition-all duration-200 border border-dashed border-[var(--color-border-subtle)] hover:border-accent/30"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <span className="flex-1 text-left">Search...</span>
-          <kbd className="px-1.5 py-0.5 text-[10px] font-mono rounded bg-[var(--color-surface-light)] text-muted">⌘K</kbd>
+          <span className="flex-1 text-left">{t.general.search}</span>
+          <kbd className="px-1.5 py-0.5 text-[10px] font-mono rounded bg-[var(--color-surface-light)] text-muted">{t.general.searchKbd}</kbd>
         </button>
 
         {/* Nav */}
@@ -165,13 +165,13 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-3 group mb-3">
             <Image
               src={user?.avatar ?? DEFAULT_AVATAR}
-              alt={user?.name ?? 'User'}
+              alt={user?.name ?? t.general.user}
               width={36}
               height={36}
               className="rounded-full border-2 border-white/10 object-cover"
             />
             <div className="flex-1 min-w-0">
-              <p className="text-foreground font-heading font-bold text-sm truncate">{user?.name ?? 'Member'}</p>
+              <p className="text-foreground font-heading font-bold text-sm truncate">{user?.name ?? t.general.member}</p>
               <p className="text-muted text-xs font-mono truncate">{user?.email ?? ''}</p>
             </div>
           </div>

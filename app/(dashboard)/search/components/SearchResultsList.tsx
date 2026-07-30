@@ -2,14 +2,7 @@
 
 import type { SearchResult } from '@/lib/db/search';
 import { SearchResultItem } from './SearchResultItem';
-
-const TYPE_LABELS: Record<string, string> = {
-  user: 'Members',
-  post: 'Posts',
-  group: 'Groups',
-  event: 'Events',
-  job: 'Jobs',
-};
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 const TYPE_ORDER = ['user', 'post', 'group', 'event', 'job'];
 
@@ -20,11 +13,20 @@ interface SearchResultsListProps {
 }
 
 export function SearchResultsList({ results, query, onSelect }: SearchResultsListProps) {
+  const { t } = useTranslation();
+  const typeLabels: Record<string, string> = {
+    user: t.search.typeLabelMembers,
+    post: t.search.typeLabelPosts,
+    group: t.search.typeLabelGroups,
+    event: t.search.typeLabelEvents,
+    job: t.search.typeLabelJobs,
+  };
+
   if (!results.length) {
     return (
       <div className="px-4 py-12 text-center">
         <p className="text-muted text-sm">
-          No results for &ldquo;<span className="font-medium text-foreground">{query}</span>&rdquo;
+          {t.search.noResultsFor} &ldquo;<span className="font-medium text-foreground">{query}</span>&rdquo;
         </p>
       </div>
     );
@@ -48,7 +50,7 @@ export function SearchResultsList({ results, query, onSelect }: SearchResultsLis
         return (
           <div key={type}>
             <div className="px-4 py-2 text-[11px] font-semibold text-muted uppercase tracking-wider">
-              {TYPE_LABELS[type] ?? type}
+              {typeLabels[type] ?? type}
               <span className="ml-1 text-[10px] font-normal">({items.length})</span>
             </div>
             {items.map((item) => (

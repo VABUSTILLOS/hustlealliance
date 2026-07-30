@@ -1,15 +1,7 @@
 'use client';
 
 import clsx from 'clsx';
-
-const FILTER_TABS = [
-  { key: 'all', label: 'All' },
-  { key: 'users', label: 'Members' },
-  { key: 'posts', label: 'Posts' },
-  { key: 'groups', label: 'Groups' },
-  { key: 'events', label: 'Events' },
-  { key: 'jobs', label: 'Jobs' },
-] as const;
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 interface SearchFiltersProps {
   active: string;
@@ -17,9 +9,19 @@ interface SearchFiltersProps {
 }
 
 export function SearchFilters({ active, onChange }: SearchFiltersProps) {
+  const { t } = useTranslation();
+  const filterTabs = [
+    { key: 'all', label: t.search.filterAll },
+    { key: 'users', label: t.search.filterMembers },
+    { key: 'posts', label: t.search.filterPosts },
+    { key: 'groups', label: t.search.filterGroups },
+    { key: 'events', label: t.search.filterEvents },
+    { key: 'jobs', label: t.search.filterJobs },
+  ] as const;
+
   return (
     <div className="flex gap-1 p-1 bg-[var(--color-surface)] rounded-xl border border-[var(--color-border-subtle)]">
-      {FILTER_TABS.map((tab) => (
+      {filterTabs.map((tab) => (
         <button
           key={tab.key}
           onClick={() => onChange(tab.key)}

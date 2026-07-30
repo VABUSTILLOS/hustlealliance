@@ -4,20 +4,21 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Plus, Loader2 } from "lucide-react";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 import { useCreateJob } from "../components/hooks/useJobs";
 
-const JOB_TYPES = [
-  { value: "FULL_TIME", label: "Full Time" },
-  { value: "PART_TIME", label: "Part Time" },
-  { value: "CONTRACT", label: "Contract" },
-  { value: "INTERNSHIP", label: "Internship" },
-  { value: "CO_FOUNDER", label: "Co-Founder" },
-];
-
 export default function CreateJobPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const createJob = useCreateJob();
   const [error, setError] = useState("");
+  const jobTypes = [
+    { value: "FULL_TIME", label: t.jobs.jobTypeFullTime },
+    { value: "PART_TIME", label: t.jobs.jobTypePartTime },
+    { value: "CONTRACT", label: t.jobs.jobTypeContract },
+    { value: "INTERNSHIP", label: t.jobs.jobTypeInternship },
+    { value: "CO_FOUNDER", label: t.jobs.jobTypeCoFounder },
+  ];
 
   const [form, setForm] = useState({
     title: "",
@@ -52,7 +53,7 @@ export default function CreateJobPage() {
     setError("");
 
     if (!form.title || !form.company || !form.description) {
-      setError("Title, company, and description are required");
+      setError(t.jobs.createValidationError);
       return;
     }
 
@@ -85,12 +86,12 @@ export default function CreateJobPage() {
         className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-6"
       >
         <ArrowLeft className="w-4 h-4" />
-        Back to jobs
+        {t.jobs.backToJobs}
       </Link>
 
       <h1 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
         <Plus className="w-6 h-6 text-blue-600" />
-        Post a Job
+        {t.jobs.postJobHeading}
       </h1>
 
       {error && (
@@ -100,23 +101,23 @@ export default function CreateJobPage() {
       <form onSubmit={handleSubmit} className="space-y-5 bg-white rounded-2xl border p-6 sm:p-8 shadow-sm">
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Job Title *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t.jobs.jobTitleLabel}</label>
             <input
               type="text"
               value={form.title}
               onChange={(e) => handleChange("title", e.target.value)}
-              placeholder="e.g., Senior Frontend Developer"
+              placeholder={t.jobs.jobTitlePlaceholder}
               className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Company *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t.jobs.companyLabel}</label>
             <input
               type="text"
               value={form.company}
               onChange={(e) => handleChange("company", e.target.value)}
-              placeholder="Your company name"
+              placeholder={t.jobs.companyPlaceholder}
               className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />
@@ -124,23 +125,23 @@ export default function CreateJobPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Slug</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t.jobs.slugLabel}</label>
           <input
             type="text"
             value={form.slug}
             onChange={(e) => handleChange("slug", e.target.value)}
-            placeholder="auto-generated-from-title"
+            placeholder={t.jobs.slugPlaceholder}
             className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t.jobs.descriptionLabel}</label>
           <textarea
             value={form.description}
             onChange={(e) => handleChange("description", e.target.value)}
             rows={6}
-            placeholder="Describe the role, responsibilities, and what you're looking for..."
+            placeholder={t.jobs.descriptionPlaceholder}
             className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
             required
           />
@@ -148,24 +149,24 @@ export default function CreateJobPage() {
 
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Job Type</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t.jobs.jobTypeLabel}</label>
             <select
               value={form.type}
               onChange={(e) => handleChange("type", e.target.value)}
               className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              {JOB_TYPES.map((t) => (
-                <option key={t.value} value={t.value}>{t.label}</option>
+              {jobTypes.map((jobType) => (
+                <option key={jobType.value} value={jobType.value}>{jobType.label}</option>
               ))}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t.jobs.locationLabel}</label>
             <input
               type="text"
               value={form.location}
               onChange={(e) => handleChange("location", e.target.value)}
-              placeholder="e.g., New York, NY"
+              placeholder={t.jobs.locationPlaceholder}
               className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -179,15 +180,15 @@ export default function CreateJobPage() {
               onChange={(e) => handleChange("isRemote", e.target.checked)}
               className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
             />
-            Remote position
+            {t.jobs.remotePositionCheckbox}
           </label>
           <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Salary Range</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t.jobs.salaryRangeLabel}</label>
             <input
               type="text"
               value={form.salaryRange}
               onChange={(e) => handleChange("salaryRange", e.target.value)}
-              placeholder="e.g., $80k - $120k"
+              placeholder={t.jobs.salaryRangePlaceholder}
               className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -195,35 +196,35 @@ export default function CreateJobPage() {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Requirements <span className="text-gray-400">(one per line)</span>
+            {t.jobs.requirementsHeading} <span className="text-gray-400">{t.jobs.requirementsHelper}</span>
           </label>
           <textarea
             value={form.requirements}
             onChange={(e) => handleChange("requirements", e.target.value)}
             rows={4}
-            placeholder="3+ years React experience&#10;TypeScript proficiency&#10;Experience with Next.js"
+            placeholder={t.jobs.requirementsPlaceholder}
             className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
           />
         </div>
 
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Application URL</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t.jobs.applicationUrlLabel}</label>
             <input
               type="url"
               value={form.applicationUrl}
               onChange={(e) => handleChange("applicationUrl", e.target.value)}
-              placeholder="External application link"
+              placeholder={t.jobs.applicationUrlPlaceholder}
               className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Contact Email</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t.jobs.contactEmailLabel}</label>
             <input
               type="email"
               value={form.contactEmail}
               onChange={(e) => handleChange("contactEmail", e.target.value)}
-              placeholder="hr@company.com"
+              placeholder={t.jobs.contactEmailPlaceholder}
               className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -238,12 +239,12 @@ export default function CreateJobPage() {
             {createJob.isPending ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Posting...
+                {t.jobs.postingButton}
               </>
             ) : (
               <>
                 <Plus className="w-4 h-4" />
-                Post Job
+                {t.jobs.postJobButton}
               </>
             )}
           </button>

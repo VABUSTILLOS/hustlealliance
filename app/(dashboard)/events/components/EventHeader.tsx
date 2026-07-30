@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { getInitialsAvatarUrl, DEFAULT_AVATAR } from '@/lib/utils/avatar';
+import { getInitialsAvatarUrl, normalizeAvatarUrl } from '@/lib/utils/avatar';
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import type { EventDetail } from "./hooks/useEvents";
 
@@ -92,7 +92,7 @@ export default function EventHeader({ event }: { event: EventDetail }) {
         {/* Host info */}
         <div className="flex items-center gap-3 mt-4 pt-4 border-t border-[var(--color-border-subtle)]">
           <Image
-            src={event.creator.avatar ?? DEFAULT_AVATAR}
+            src={normalizeAvatarUrl(event.creator.avatar) ?? getInitialsAvatarUrl(event.creator.name)}
             alt={event.creator.name}
             width={32}
             height={32}

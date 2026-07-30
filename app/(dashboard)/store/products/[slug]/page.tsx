@@ -7,8 +7,10 @@ import { ArrowLeft, ShoppingCart, Star, User } from "lucide-react";
 import { ProductGallery } from "../../components/ProductGallery";
 import { ReviewForm } from "../../components/ReviewForm";
 import { useProduct, useProductReviews, useAddReview } from "../../components/hooks/useStore";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export default function ProductDetailPage() {
+  const { t } = useTranslation();
   const params = useParams();
   const slug = params.slug as string;
   const { data: product, isLoading, error } = useProduct(slug);
@@ -42,9 +44,9 @@ export default function ProductDetailPage() {
   if (error || !product) {
     return (
       <div className="px-4 sm:px-6 lg:px-8 py-8 max-w-4xl mx-auto text-center">
-        <h2 className="text-xl font-semibold text-gray-900">Product not found</h2>
+        <h2 className="text-xl font-semibold text-gray-900">{t.store.productNotFoundTitle}</h2>
         <Link href="/store" className="text-blue-600 hover:underline mt-2 inline-block">
-          Back to store
+          {t.store.buttonBackToStore}
         </Link>
       </div>
     );
@@ -61,7 +63,7 @@ export default function ProductDetailPage() {
         className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-6"
       >
         <ArrowLeft className="w-4 h-4" />
-        Back to store
+        {t.store.buttonBackToStore}
       </Link>
 
       <div className="grid md:grid-cols-2 gap-8">
@@ -74,7 +76,7 @@ export default function ProductDetailPage() {
             <div className="flex items-center gap-1 mt-2">
               <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
               <span className="text-sm text-gray-600">
-                {avgRating.toFixed(1)} ({product._count?.reviews ?? 0} review{(product._count?.reviews ?? 0) !== 1 ? "s" : ""})
+                {avgRating.toFixed(1)} ({t.store.reviewsTitle.replace("{count}", String(product._count?.reviews ?? 0)).replace("Reviews", "").trim()})
               </span>
             </div>
           )}
@@ -94,13 +96,13 @@ export default function ProductDetailPage() {
 
           {product.type === "DIGITAL" && (
             <p className="mt-2 text-sm text-blue-600 bg-blue-50 inline-block px-2 py-1 rounded">
-              Digital Product — Instant delivery
+              {t.store.digitalProductLabel}
             </p>
           )}
 
           <div className="mt-6 space-y-4">
             <div className="flex items-center gap-3">
-              <label className="text-sm font-medium text-gray-700">Quantity:</label>
+              <label className="text-sm font-medium text-gray-700">{t.store.quantityLabel}</label>
               <div className="flex items-center border rounded-lg">
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -139,12 +141,12 @@ export default function ProductDetailPage() {
                 }
                 localStorage.setItem("ha-cart", JSON.stringify(cart));
                 window.dispatchEvent(new Event("cart-updated"));
-                alert("Added to cart!");
+                alert(t.store.successAddedToCart);
               }}
               className="w-full flex items-center justify-center gap-2 px-6 py-3 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors"
             >
               <ShoppingCart className="w-4 h-4" />
-              Add to Cart — ${(product.price * quantity).toFixed(2)}
+              {t.store.buttonAddToCart} — ${(product.price * quantity).toFixed(2)}
             </button>
           </div>
         </div>
@@ -154,14 +156,14 @@ export default function ProductDetailPage() {
       <div className="mt-12 border-t pt-8">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-semibold text-gray-900">
-            Reviews ({product._count?.reviews ?? 0})
+            {t.store.reviewsTitle.replace("{count}", String(product._count?.reviews ?? 0))}
           </h2>
           <button
             onClick={() => setShowReviewForm(!showReviewForm)}
             className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
           >
             <Star className="w-4 h-4" />
-            Write a Review
+            {t.store.buttonWriteReview}
           </button>
         </div>
 
@@ -203,7 +205,7 @@ export default function ProductDetailPage() {
             ))}
           </div>
         ) : (
-          <p className="text-gray-500 text-center py-6">No reviews yet. Be the first!</p>
+          <p className="text-gray-500 text-center py-6">{t.store.emptyReviewsState}</p>
         )}
       </div>
     </div>

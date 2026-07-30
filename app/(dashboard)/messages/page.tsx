@@ -4,11 +4,13 @@ import { useState, useCallback } from "react";
 import { useConversations } from "./components/hooks/useConversations";
 import { ConversationList } from "./components/ConversationList";
 import { NewMessageModal } from "./components/NewMessageModal";
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 // Mock user for dev — replace with actual auth hook
 const MOCK_USER_ID = "dev-user-id";
 
 export default function MessagesPage() {
+  const { t } = useTranslation();
   const [showNewMessage, setShowNewMessage] = useState(false);
 
   const {
@@ -43,9 +45,9 @@ export default function MessagesPage() {
       <div className="hidden flex-1 items-center justify-center lg:flex">
         <div className="text-center">
           <div className="mb-3 text-5xl">💬</div>
-          <h2 className="text-lg font-semibold">Select a conversation</h2>
+          <h2 className="text-lg font-semibold">{t.messages.selectConversation}</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Choose a conversation from the left or start a new one
+            {t.messages.chooseConversationHint}
           </p>
         </div>
       </div>

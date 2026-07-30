@@ -466,7 +466,9 @@ export const useStore = create<AppState>()(
         return {
           id: `path-${pathName.toLowerCase().replace(/\s+/g, '-')}`,
           name: `${pathName} Champion`,
+          nameEs: `Campeón de ${pathName}`,
           description: `Completed the ${pathName} learning path`,
+          descriptionEs: `Completaste la ruta de aprendizaje ${pathName}`,
           icon: '🏅',
           category: 'learning' as const,
           requirement: 100,

@@ -7,6 +7,7 @@ import { SearchInput } from '@/app/(dashboard)/search/components/SearchInput';
 import { SearchResultsList } from '@/app/(dashboard)/search/components/SearchResultsList';
 import { useSearch, useSearchSuggest } from '@/app/(dashboard)/search/components/hooks/useSearch';
 import { useLocalStorage } from '@/lib/hooks/useLocalStorage';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 // ── Types ─────────────────────────────────────────────────────────────
 
@@ -21,6 +22,7 @@ const MAX_RECENT = 5;
 // ── Component ─────────────────────────────────────────────────────────
 
 export function SearchModal({ isOpen, onClose }: SearchModalProps) {
+  const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const [activeQuery, setActiveQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -34,6 +36,13 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
 
   const results = searchData?.results ?? [];
   const suggestions = suggestData?.suggestions ?? [];
+  const suggestionTypeLabels: Record<string, string> = {
+    user: t.search.typeLabelMembers,
+    post: t.search.typeLabelPosts,
+    group: t.search.typeLabelGroups,
+    event: t.search.typeLabelEvents,
+    job: t.search.typeLabelJobs,
+  };
 
   // Reset on open/close
   useEffect(() => {
@@ -137,7 +146,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                   value={query}
                   onChange={setQuery}
                   onSubmit={handleSubmit}
-                  placeholder="Search members, posts, groups, events, jobs..."
+                  placeholder={t.search.modalPlaceholder}
                   autoFocus
                   className="border-0 shadow-none"
                 />
@@ -158,7 +167,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                 {showSuggestions && (
                   <div className="py-2">
                     <div className="px-4 py-2 text-[11px] font-semibold text-muted uppercase tracking-wider">
-                      Suggestions
+                      {t.search.suggestionsLabel}
                     </div>
                     {suggestions.map((s) => (
                       <button
@@ -171,7 +180,9 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                       >
                         <svg className="w-3.5 h-3.5 text-muted flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                         <span>{s.title}</span>
-                        <span className="text-[10px] text-muted ml-auto uppercase">{s.entityType}</span>
+                        <span className="text-[10px] text-muted ml-auto uppercase">
+                          {suggestionTypeLabels[s.entityType] ?? s.entityType}
+                        </span>
                       </button>
                     ))}
                   </div>
@@ -181,13 +192,13 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                   <div className="py-2">
                     <div className="px-4 py-2 flex items-center justify-between">
                       <span className="text-[11px] font-semibold text-muted uppercase tracking-wider">
-                        Recent Searches
+                        {t.search.recentSearchesLabel}
                       </span>
                       <button
                         onClick={() => setRecentSearches([])}
                         className="text-[10px] text-muted hover:text-accent transition-colors"
                       >
-                        Clear all
+                        {t.search.clearAllButton}
                       </button>
                     </div>
                     {recentSearches.map((term) => (
@@ -206,7 +217,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                 {showEmpty && (
                   <div className="px-4 py-12 text-center">
                     <p className="text-muted text-sm">
-                      No results for &ldquo;<span className="font-medium text-foreground">{query}</span>&rdquo;
+                      {t.search.noResultsFor} &ldquo;<span className="font-medium text-foreground">{query}</span>&rdquo;
                     </p>
                   </div>
                 )}
@@ -214,7 +225,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                 {query.length < 2 && !showRecents && (
                   <div className="px-4 py-12 text-center">
                     <p className="text-muted text-xs">
-                      Type to search across members, posts, groups, events, and jobs
+                      {t.search.typeToSearch}
                     </p>
                   </div>
                 )}
@@ -225,16 +236,16 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                 <div className="flex items-center gap-3">
                   <span className="flex items-center gap-1">
                     <kbd className="px-1.5 py-0.5 rounded bg-[var(--color-surface-light)] text-[10px] font-mono">↑↓</kbd>
-                    <span>Navigate</span>
+                    <span>{t.search.keyboardNavigate}</span>
                   </span>
                   <span className="flex items-center gap-1">
-                    <kbd className="px-1.5 py-0.5 rounded bg-[var(--color-surface-light)] text-[10px] font-mono">↵</kbd>
-                    <span>Search</span>
+                    <kbd className="px-1.5 py-0.5 rounded bg-[var(--color-surface-light)] text-[10px] font-mono">{t.general.searchKbd}</kbd>
+                    <span>{t.search.keyboardSearch}</span>
                   </span>
                 </div>
                 <span className="flex items-center gap-1">
                   <kbd className="px-1.5 py-0.5 rounded bg-[var(--color-surface-light)] text-[10px] font-mono">Esc</kbd>
-                  <span>Close</span>
+                  <span>{t.search.keyboardClose}</span>
                 </span>
               </div>
             </div>

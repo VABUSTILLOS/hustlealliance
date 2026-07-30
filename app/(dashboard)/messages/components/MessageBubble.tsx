@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslation } from '@/lib/i18n/useTranslation';
+
 interface MessageBubbleProps {
   content: string;
   createdAt: string;
@@ -19,6 +21,7 @@ export function MessageBubble({
   isRead,
   attachmentUrl,
 }: MessageBubbleProps) {
+  const { t } = useTranslation();
   return (
     <div className={`flex ${isOwn ? "justify-end" : "justify-start"} mb-3`}>
       <div className={`flex max-w-[75%] gap-2 ${isOwn ? "flex-row-reverse" : "flex-row"}`}>
@@ -57,7 +60,7 @@ export function MessageBubble({
                 {attachmentUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
                   <img
                     src={attachmentUrl}
-                    alt="attachment"
+                    alt={t.messages.attachment}
                     className="max-h-60 w-full object-cover"
                   />
                 ) : (
@@ -67,7 +70,7 @@ export function MessageBubble({
                     rel="noopener noreferrer"
                     className="flex items-center gap-2 rounded bg-background/20 px-3 py-2 text-xs underline"
                   >
-                    📎 Attachment
+                    📎 {t.messages.attachmentLabel}
                   </a>
                 )}
               </div>

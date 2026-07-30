@@ -2,26 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback } from 'react';
-
-const SORT_OPTIONS = [
-  { value: 'activity', label: 'Most Active' },
-  { value: 'newest', label: 'Newest' },
-  { value: 'name', label: 'Name A-Z' },
-];
-
-const ROLE_OPTIONS = [
-  { value: '', label: 'All Roles' },
-  { value: 'STUDENT', label: 'Members' },
-  { value: 'INSTRUCTOR', label: 'Instructors' },
-  { value: 'ADMIN', label: 'Admins' },
-];
-
-const TIER_OPTIONS = [
-  { value: '', label: 'All Tiers' },
-  { value: 'PRO', label: 'PRO' },
-  { value: 'BASIC', label: 'Basic' },
-  { value: 'FREE', label: 'Free' },
-];
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 interface MembersFiltersProps {
   initialSort?: string;
@@ -36,8 +17,29 @@ export function MembersFilters({
   initialTier,
   initialSearch,
 }: MembersFiltersProps) {
+  const { t } = useTranslation();
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  const sortOptions = [
+    { value: 'activity', label: t.community.sortActive },
+    { value: 'newest', label: t.community.sortNewest },
+    { value: 'name', label: t.community.sortName },
+  ];
+
+  const roleOptions = [
+    { value: '', label: t.community.rolesAll },
+    { value: 'STUDENT', label: t.community.rolesMembers },
+    { value: 'INSTRUCTOR', label: t.community.rolesInstructors },
+    { value: 'ADMIN', label: t.community.rolesAdmins },
+  ];
+
+  const tierOptions = [
+    { value: '', label: t.community.tiersAll },
+    { value: 'PRO', label: t.community.tierPro },
+    { value: 'BASIC', label: t.community.tierBasic },
+    { value: 'FREE', label: t.community.tierFree },
+  ];
 
   const updateParams = useCallback(
     (updates: Record<string, string>) => {
@@ -56,14 +58,12 @@ export function MembersFilters({
 
   return (
     <div className="flex flex-col sm:flex-row gap-3 mb-6">
-      {/* Search */}
       <input
         type="text"
-        placeholder="Search by name or headline..."
+        placeholder={t.community.searchPlaceholder}
         defaultValue={initialSearch || ''}
         onChange={(e) => {
           const value = e.target.value;
-          // Debounce-like: update on blur or after typing stops
           clearTimeout((e.target as any)._timeout);
           (e.target as any)._timeout = setTimeout(() => {
             updateParams({ search: value });
@@ -76,39 +76,36 @@ export function MembersFilters({
         className="flex-1 min-w-[200px] px-4 py-2 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border-subtle)] text-sm text-[var(--color-foreground)] placeholder:text-[var(--color-muted)] font-mono focus:outline-none focus:border-[var(--color-accent)] transition-colors"
       />
 
-      {/* Sort */}
       <select
         defaultValue={initialSort || 'activity'}
         onChange={(e) => updateParams({ sort: e.target.value })}
         className="px-4 py-2 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border-subtle)] text-sm text-[var(--color-foreground)] font-mono focus:outline-none focus:border-[var(--color-accent)] transition-colors cursor-pointer"
       >
-        {SORT_OPTIONS.map((opt) => (
+        {sortOptions.map((opt) => (
           <option key={opt.value} value={opt.value}>
             {opt.label}
           </option>
         ))}
       </select>
 
-      {/* Role filter */}
       <select
         defaultValue={initialRole || ''}
         onChange={(e) => updateParams({ role: e.target.value })}
         className="px-4 py-2 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border-subtle)] text-sm text-[var(--color-foreground)] font-mono focus:outline-none focus:border-[var(--color-accent)] transition-colors cursor-pointer"
       >
-        {ROLE_OPTIONS.map((opt) => (
+        {roleOptions.map((opt) => (
           <option key={opt.value} value={opt.value}>
             {opt.label}
           </option>
         ))}
       </select>
 
-      {/* Tier filter */}
       <select
         defaultValue={initialTier || ''}
         onChange={(e) => updateParams({ tier: e.target.value })}
         className="px-4 py-2 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border-subtle)] text-sm text-[var(--color-foreground)] font-mono focus:outline-none focus:border-[var(--color-accent)] transition-colors cursor-pointer"
       >
-        {TIER_OPTIONS.map((opt) => (
+        {tierOptions.map((opt) => (
           <option key={opt.value} value={opt.value}>
             {opt.label}
           </option>

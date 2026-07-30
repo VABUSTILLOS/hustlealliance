@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 type Stats = {
   totalUsers: number;
@@ -20,6 +21,7 @@ type Stats = {
 };
 
 export default function AdminPage() {
+  const { t } = useTranslation();
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -34,7 +36,7 @@ export default function AdminPage() {
   if (loading) {
     return (
       <div className="p-4 md:p-8">
-        <h1 className="text-2xl font-heading font-bold text-foreground mb-2">Admin Dashboard</h1>
+        <h1 className="text-2xl font-heading font-bold text-foreground mb-2">{t.admin.dashboard.title}</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="glass-card p-6 animate-pulse">
@@ -50,25 +52,25 @@ export default function AdminPage() {
   if (!stats) {
     return (
       <div className="p-4 md:p-8">
-        <h1 className="text-2xl font-heading font-bold text-foreground">Admin Dashboard</h1>
-        <p className="text-muted mt-4">Failed to load stats.</p>
+        <h1 className="text-2xl font-heading font-bold text-foreground">{t.admin.dashboard.title}</h1>
+        <p className="text-muted mt-4">{t.admin.dashboard.failedLoad}</p>
       </div>
     );
   }
 
   const statCards = [
-    { label: 'Total Users', value: stats.totalUsers.toLocaleString(), color: 'text-blue-400' },
-    { label: 'Total Courses', value: stats.totalCourses.toLocaleString(), color: 'text-green-400' },
-    { label: 'Enrollments', value: stats.totalEnrollments.toLocaleString(), color: 'text-purple-400' },
-    { label: 'Revenue', value: `$${(stats.totalRevenue / 100).toLocaleString()}`, color: 'text-accent' },
+    { label: t.admin.dashboard.totalUsers, value: stats.totalUsers.toLocaleString(), color: 'text-blue-400' },
+    { label: t.admin.dashboard.totalCourses, value: stats.totalCourses.toLocaleString(), color: 'text-green-400' },
+    { label: t.admin.dashboard.enrollments, value: stats.totalEnrollments.toLocaleString(), color: 'text-purple-400' },
+    { label: t.admin.dashboard.revenue, value: `$${(stats.totalRevenue / 100).toLocaleString()}`, color: 'text-accent' },
   ];
 
   return (
     <div className="p-4 md:p-8">
       <div className="flex items-center justify-between mb-4 md:mb-8">
         <div>
-          <h1 className="text-2xl font-heading font-bold text-foreground">Admin Dashboard</h1>
-          <p className="text-muted text-sm mt-1">Platform overview and quick stats</p>
+          <h1 className="text-2xl font-heading font-bold text-foreground">{t.admin.dashboard.title}</h1>
+          <p className="text-muted text-sm mt-1">{t.admin.dashboard.subtitle}</p>
         </div>
       </div>
 
@@ -85,7 +87,7 @@ export default function AdminPage() {
       {/* Role & Tier breakdowns */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
         <div className="glass-card p-6">
-          <h3 className="text-foreground font-heading font-bold mb-4">Users by Role</h3>
+          <h3 className="text-foreground font-heading font-bold mb-4">{t.admin.dashboard.usersByRole}</h3>
           <div className="space-y-2">
             {stats.usersByRole.map((r) => (
               <div key={r.role} className="flex justify-between items-center">
@@ -96,7 +98,7 @@ export default function AdminPage() {
           </div>
         </div>
         <div className="glass-card p-6">
-          <h3 className="text-foreground font-heading font-bold mb-4">Users by Tier</h3>
+          <h3 className="text-foreground font-heading font-bold mb-4">{t.admin.dashboard.usersByTier}</h3>
           <div className="space-y-2">
             {stats.usersByTier.map((t) => (
               <div key={t.tier} className="flex justify-between items-center">
@@ -110,15 +112,15 @@ export default function AdminPage() {
 
       {/* Recent enrollments */}
       <div className="glass-card p-6">
-        <h3 className="text-foreground font-heading font-bold mb-4">Recent Enrollments</h3>
+        <h3 className="text-foreground font-heading font-bold mb-4">{t.admin.dashboard.recentEnrollments}</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-muted text-left border-b border-surface-light">
-                <th className="pb-3 font-medium">User</th>
-                <th className="pb-3 font-medium">Course</th>
-                <th className="pb-3 font-medium">Date</th>
-                <th className="pb-3 font-medium">Progress</th>
+                <th className="pb-3 font-medium">{t.admin.enrollments.table.user}</th>
+                <th className="pb-3 font-medium">{t.admin.enrollments.table.course}</th>
+                <th className="pb-3 font-medium">{t.admin.enrollments.table.enrolled}</th>
+                <th className="pb-3 font-medium">{t.admin.enrollments.table.progress}</th>
               </tr>
             </thead>
             <tbody>

@@ -9,7 +9,7 @@ import { useStore } from '@/lib/store/useStore';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
 export default function SpacesPage() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const joinedSpaces = useStore((s) => s.joinedSpaces);
   const toggleJoinSpace = useStore((s) => s.toggleJoinSpace);
   const isSpaceJoined = useStore((s) => s.isSpaceJoined);
@@ -38,11 +38,12 @@ export default function SpacesPage() {
         >
           <div className="text-5xl mb-3">👥</div>
           <h2 className="font-display text-xl text-[var(--color-foreground)] uppercase mb-2">
-            Find your crew
+            {locale === 'es' ? 'Encuentra tu tribu' : 'Find your crew'}
           </h2>
           <p className="text-[var(--color-foreground-muted)] text-sm max-w-md mx-auto">
-            Spaces are where founders like you connect by industry, stage, or identity.
-            Join a few to see posts from people who get what you&apos;re building.
+            {locale === 'es'
+              ? 'Los espacios son donde fundadores como tú se conectan por industria, etapa o identidad. Únete a algunos para ver publicaciones de personas que entienden lo que estás construyendo.'
+              : 'Spaces are where founders like you connect by industry, stage, or identity. Join a few to see posts from people who get what you\'re building.'}
           </p>
         </motion.div>
       )}
@@ -69,7 +70,9 @@ export default function SpacesPage() {
                     <h3 className="font-heading font-bold text-foreground text-lg mb-1 group-hover:text-accent transition-colors">
                       {space.name}
                     </h3>
-                    <p className="text-muted text-sm mb-4 line-clamp-2">{space.description}</p>
+                    <p className="text-muted text-sm mb-4 line-clamp-2">
+                      {locale === 'es' ? space.descriptionEs : space.description}
+                    </p>
                     <div className="flex flex-wrap gap-2 mb-4">
                       {space.tags.map((tag) => (
                         <span key={tag} className="px-2 py-0.5 rounded-full bg-surface-light text-muted text-[10px] font-mono uppercase">

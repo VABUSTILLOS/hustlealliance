@@ -4,6 +4,7 @@ import type { NotificationItem } from '@/app/(dashboard)/notifications/hooks/use
 import { NotificationItemRow } from './NotificationItem';
 import { groupByDate } from '@/lib/utils/date';
 import { useMarkAsRead, useDeleteNotification } from '@/app/(dashboard)/notifications/hooks/useNotifications';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 interface NotificationListProps {
   notifications: NotificationItem[];
@@ -18,6 +19,7 @@ const GROUP_LABELS: Record<string, string> = {
 };
 
 export function NotificationList({ notifications, onMarkAllRead }: NotificationListProps) {
+  const { t } = useTranslation();
   const markAsRead = useMarkAsRead();
   const deleteNotification = useDeleteNotification();
 
@@ -38,8 +40,8 @@ export function NotificationList({ notifications, onMarkAllRead }: NotificationL
             <path d="M13.73 21a2 2 0 01-3.46 0" />
           </svg>
         </div>
-        <h3 className="text-foreground font-heading font-bold text-lg mb-1">No notifications yet</h3>
-        <p className="text-muted text-sm">When you get notifications, they&apos;ll show up here.</p>
+        <h3 className="text-foreground font-heading font-bold text-lg mb-1">{t.notifications.emptyState}</h3>
+        <p className="text-muted text-sm">{t.notifications.emptyStateHelp}</p>
       </div>
     );
   }
@@ -48,13 +50,13 @@ export function NotificationList({ notifications, onMarkAllRead }: NotificationL
     <div>
       {/* Header with mark all read */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-foreground font-heading font-bold text-lg">Notifications</h2>
+        <h2 className="text-foreground font-heading font-bold text-lg">{t.notifications.title}</h2>
         {notifications.some((n) => !n.read) && (
           <button
             onClick={onMarkAllRead}
             className="text-sm text-accent hover:text-accent/80 font-medium transition-colors"
           >
-            Mark all as read
+            {t.notifications.markAllRead}
           </button>
         )}
       </div>
@@ -82,7 +84,7 @@ export function NotificationList({ notifications, onMarkAllRead }: NotificationL
                     onClick={() => deleteNotification.mutate(n.id)}
                     className="text-[11px] text-muted hover:text-red-400 transition-colors"
                   >
-                    Dismiss
+                    {t.notifications.dismissButton}
                   </button>
                 </div>
               </div>

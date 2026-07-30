@@ -7,61 +7,63 @@ import clsx from 'clsx';
 import Image from 'next/image';
 import type { AuthUser } from '@/lib/auth/user';
 import MobileBottomNav from '@/app/components/MobileBottomNav';
-
-const adminLinks = [
-  {
-    label: 'Dashboard',
-    href: '/admin',
-    icon: (
-      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" />
-        <rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" />
-      </svg>
-    ),
-  },
-  {
-    label: 'Courses',
-    href: '/admin/courses',
-    icon: (
-      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" /><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" />
-      </svg>
-    ),
-  },
-  {
-    label: 'Users',
-    href: '/admin/users',
-    icon: (
-      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2" /><circle cx="9" cy="7" r="4" />
-        <path d="M23 21v-2a4 4 0 00-3-3.87" /><path d="M16 3.13a4 4 0 010 7.75" />
-      </svg>
-    ),
-  },
-  {
-    label: 'Enrollments',
-    href: '/admin/enrollments',
-    icon: (
-      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" />
-        <rect x="8" y="2" width="8" height="4" rx="1" /><path d="M9 14l2 2 4-4" />
-      </svg>
-    ),
-  },
-  {
-    label: 'Analytics',
-    href: '/admin/analytics',
-    icon: (
-      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" />
-        <line x1="6" y1="20" x2="6" y2="14" />
-      </svg>
-    ),
-  },
-];
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 export function AdminShell({ user, children }: { user: AuthUser; children: React.ReactNode }) {
   const pathname = usePathname();
+  const { t } = useTranslation();
+
+  const adminLinks = [
+    {
+      label: t.admin.nav.dashboard,
+      href: '/admin',
+      icon: (
+        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" />
+          <rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" />
+        </svg>
+      ),
+    },
+    {
+      label: t.admin.nav.courses,
+      href: '/admin/courses',
+      icon: (
+        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" /><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" />
+        </svg>
+      ),
+    },
+    {
+      label: t.admin.nav.users,
+      href: '/admin/users',
+      icon: (
+        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2" /><circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 00-3-3.87" /><path d="M16 3.13a4 4 0 010 7.75" />
+        </svg>
+      ),
+    },
+    {
+      label: t.admin.nav.enrollments,
+      href: '/admin/enrollments',
+      icon: (
+        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" />
+          <rect x="8" y="2" width="8" height="4" rx="1" /><path d="M9 14l2 2 4-4" />
+        </svg>
+      ),
+    },
+    {
+      label: t.admin.nav.analytics,
+      href: '/admin/analytics',
+      icon: (
+        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" />
+          <line x1="6" y1="20" x2="6" y2="14" />
+        </svg>
+      ),
+    },
+  ];
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/');
 
@@ -76,9 +78,9 @@ export function AdminShell({ user, children }: { user: AuthUser; children: React
           </div>
           <div>
             <span className="font-heading font-bold text-foreground text-sm tracking-wide block">
-              Hustle Alliance
+              {t.admin.sidebar.brand}
             </span>
-            <span className="text-muted text-[10px] uppercase tracking-wider">Admin Panel</span>
+            <span className="text-muted text-[10px] uppercase tracking-wider">{t.admin.sidebar.adminPanel}</span>
           </div>
         </Link>
 
@@ -127,7 +129,7 @@ export function AdminShell({ user, children }: { user: AuthUser; children: React
               <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
               <polyline points="9 22 9 12 15 12 15 22" />
             </svg>
-            Back to Site
+            {t.admin.sidebar.backToSite}
           </Link>
         </div>
       </aside>

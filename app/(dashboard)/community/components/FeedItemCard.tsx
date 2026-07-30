@@ -2,6 +2,7 @@
 
 import { memo } from 'react';
 import Link from 'next/link';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { FeedItem } from '../hooks/useFeeds';
 
 const TYPE_ICONS: Record<string, string> = {
@@ -18,27 +19,14 @@ const TYPE_ICONS: Record<string, string> = {
   PRODUCT_LISTED: '🛍️',
 };
 
-const TYPE_MESSAGES: Record<string, string> = {
-  POST_CREATED: 'shared a new post',
-  POST_LIKED: 'liked a post',
-  COMMENT_CREATED: 'commented on a post',
-  USER_FOLLOWED: 'started following you',
-  FRIEND_ACCEPTED: 'is now your friend',
-  GROUP_JOINED: 'joined a group',
-  EVENT_CREATED: 'created an event',
-  EVENT_RSVP: 'RSVP\'d to an event',
-  BADGE_EARNED: 'earned a badge',
-  JOB_POSTED: 'posted a job',
-  PRODUCT_LISTED: 'listed a product',
-};
-
 export const FeedItemCard = memo(function FeedItemCard({ item }: { item: FeedItem }) {
-  const actorName = item.actor?.name ?? 'Someone';
+  const { t, locale } = useTranslation();
+  const actorName = item.actor?.name ?? t.community.someone;
   const actorUsername = item.actor?.username;
   const icon = TYPE_ICONS[item.type] ?? '🔔';
-  const message = TYPE_MESSAGES[item.type] ?? 'did something';
+  const message = getTypeMessage(item.type, t);
   const preview = (item.metadata as Record<string, string> | undefined)?.preview;
-  const timeAgo = formatTimeAgo(item.createdAt);
+  const timeAgo = formatTimeAgo(item.createdAt, locale);
 
   return (
     <div className="flex items-start gap-3 p-4 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border-subtle)] hover:border-[var(--color-accent)]/20 transition-colors">
@@ -64,14 +52,48 @@ export const FeedItemCard = memo(function FeedItemCard({ item }: { item: FeedIte
   );
 });
 
-function formatTimeAgo(dateStr: string): string {
+function getTypeMessage(type: string, t: ReturnType<typeof useTranslation>['t']): string {
+  switch (type) {
+    case 'POST_CREATED':
+      return t.community.feedItem_sharedPost;
+    case 'POST_LIKED':
+      return t.community.feedItem_likedPost;
+    case 'COMMENT_CREATED':
+      return t.community.feedItem_commentedPost;
+    case 'USER_FOLLOWED':
+      return t.community.feedItem_startedFollowing;
+    case 'FRIEND_ACCEPTED':
+      return t.community.feedItem_isNowYourFriend;
+    case 'GROUP_JOINED':
+      return t.community.feedItem_joinedGroup;
+    case 'EVENT_CREATED':
+      return t.community.feedItem_createdEvent;
+    case 'EVENT_RSVP':
+      return t.community.feedItem_rsvpdEvent;
+    case 'BADGE_EARNED':
+      return t.community.feedItem_earnedBadge;
+    case 'JOB_POSTED':
+      return t.community.feedItem_postedJob;
+    case 'PRODUCT_LISTED':
+      return t.community.feedItem_listedProduct;
+    default:
+      return t.community.feedItemDidSomething;
+  }
+}
+
+function formatTimeAgo(dateStr: string, locale: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'just now';
-  if (mins < 60) return `${mins}m ago`;
+  const formatter = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+
+  if (mins < 1) return formatter.format(0, 'second');
+  if (mins < 60) return formatter.format(-mins, 'minute');
+
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) return formatter.format(-hours, 'hour');
+
   const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}d ago`;
-  return new Date(dateStr).toLocaleDateString();
+  if (days < 7) return formatter.format(-days, 'day');
+
+  return new Date(dateStr).toLocaleDateString(locale);
 }

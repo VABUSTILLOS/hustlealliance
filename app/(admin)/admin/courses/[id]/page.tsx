@@ -2,6 +2,7 @@
 
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 type Module_ = { id: string; title: string; sortOrder: number; lessons: Lesson_[] };
 type Lesson_ = {
@@ -20,6 +21,7 @@ type Category = { id: string; name: string; slug: string };
 export default function EditCoursePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
+  const { t } = useTranslation();
   const [course, setCourse] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -86,7 +88,7 @@ export default function EditCoursePage({ params }: { params: Promise<{ id: strin
   };
 
   const deleteModule = async (moduleId: string) => {
-    if (!confirm('Delete this module and all its lessons?')) return;
+    if (!confirm(t.admin.courses.edit.deleteModuleConfirm)) return;
     await fetch(`/api/admin/courses/${id}/modules?moduleId=${moduleId}`, { method: 'DELETE' });
     fetchCourse();
   };
@@ -104,85 +106,85 @@ export default function EditCoursePage({ params }: { params: Promise<{ id: strin
   };
 
   const deleteLesson = async (moduleId: string, lessonId: string) => {
-    if (!confirm('Delete this lesson?')) return;
+    if (!confirm(t.admin.courses.edit.deleteLessonConfirm)) return;
     await fetch(`/api/admin/courses/${id}/modules/${moduleId}/lessons?lessonId=${lessonId}`, { method: 'DELETE' });
     fetchCourse();
   };
 
   const inputClass = 'w-full px-3 py-2 bg-surface border border-surface-light rounded-lg text-foreground text-sm placeholder:text-muted focus:outline-none focus:border-accent transition-colors';
 
-  if (loading) return <div className="p-4 md:p-8 text-muted">Loading...</div>;
-  if (!course) return <div className="p-4 md:p-8 text-muted">Course not found.</div>;
+  if (loading) return <div className="p-4 md:p-8 text-muted">{t.general.loading}</div>;
+  if (!course) return <div className="p-4 md:p-8 text-muted">{t.general.courseNotFound}</div>;
   return (
     <div className="p-4 md:p-8 max-w-4xl">
       <div className="flex items-center gap-4 mb-4 md:mb-8">
         <button onClick={() => router.push('/admin/courses')} className="text-muted hover:text-foreground">
-          ← Back
+          {t.admin.common.back}
         </button>
-        <h1 className="text-2xl font-heading font-bold text-foreground">Edit: {course.title}</h1>
+        <h1 className="text-2xl font-heading font-bold text-foreground">{t.admin.courses.edit.title.replace('{title}', course.title)}</h1>
       </div>
 
       {/* Course details form */}
       <div className="glass-card p-6 mb-8">
-        <h2 className="text-lg font-heading font-bold text-foreground mb-4">Course Details</h2>
+        <h2 className="text-lg font-heading font-bold text-foreground mb-4">{t.admin.courses.edit.courseDetails}</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="text-xs text-muted mb-1 block">Title</label>
+            <label className="text-xs text-muted mb-1 block">{t.admin.courses.form.title}</label>
             <input defaultValue={course.title} onBlur={(e) => e.target.value !== course.title && updateField('title', e.target.value)} className={inputClass} />
           </div>
           <div>
-            <label className="text-xs text-muted mb-1 block">Slug</label>
+            <label className="text-xs text-muted mb-1 block">{t.admin.courses.form.slug}</label>
             <input defaultValue={course.slug} onBlur={(e) => e.target.value !== course.slug && updateField('slug', e.target.value)} className={inputClass} />
           </div>
           <div>
-            <label className="text-xs text-muted mb-1 block">Tagline</label>
+            <label className="text-xs text-muted mb-1 block">{t.admin.courses.form.tagline}</label>
             <input defaultValue={course.tagline || ''} onBlur={(e) => e.target.value !== (course.tagline || '') && updateField('tagline', e.target.value)} className={inputClass} />
           </div>
           <div>
-            <label className="text-xs text-muted mb-1 block">Thumbnail URL</label>
+            <label className="text-xs text-muted mb-1 block">{t.admin.courses.form.thumbnail}</label>
             <input defaultValue={course.thumbnail || ''} onBlur={(e) => e.target.value !== (course.thumbnail || '') && updateField('thumbnail', e.target.value)} className={inputClass} />
           </div>
           <div>
-            <label className="text-xs text-muted mb-1 block">Difficulty</label>
+            <label className="text-xs text-muted mb-1 block">{t.admin.courses.form.difficulty}</label>
             <select defaultValue={course.difficulty} onChange={(e) => updateField('difficulty', e.target.value)} className={inputClass}>
-              <option value="BEGINNER">Beginner</option>
-              <option value="INTERMEDIATE">Intermediate</option>
-              <option value="ADVANCED">Advanced</option>
+              <option value="BEGINNER">{t.admin.courses.form.options.beginner}</option>
+              <option value="INTERMEDIATE">{t.admin.courses.form.options.intermediate}</option>
+              <option value="ADVANCED">{t.admin.courses.form.options.advanced}</option>
             </select>
           </div>
           <div>
-            <label className="text-xs text-muted mb-1 block">Access Level</label>
+            <label className="text-xs text-muted mb-1 block">{t.admin.courses.form.accessLevel}</label>
             <select defaultValue={course.accessLevel} onChange={(e) => updateField('accessLevel', e.target.value)} className={inputClass}>
-              <option value="FREE">Free</option>
-              <option value="BASIC">Basic</option>
-              <option value="PRO">Pro</option>
+              <option value="FREE">{t.admin.courses.form.options.free}</option>
+              <option value="BASIC">{t.admin.courses.form.options.basic}</option>
+              <option value="PRO">{t.admin.courses.form.options.pro}</option>
             </select>
           </div>
           <div>
-            <label className="text-xs text-muted mb-1 block">Price (USD)</label>
+            <label className="text-xs text-muted mb-1 block">{t.admin.courses.form.price}</label>
             <input type="number" defaultValue={course.price || 0} onBlur={(e) => Number(e.target.value) !== (course.price || 0) && updateField('price', Number(e.target.value))} className={inputClass} />
           </div>
           <div>
-            <label className="text-xs text-muted mb-1 block">Status</label>
+            <label className="text-xs text-muted mb-1 block">{t.admin.courses.form.status}</label>
             <select defaultValue={course.status} onChange={(e) => updateField('status', e.target.value)} className={inputClass}>
-              <option value="DRAFT">Draft</option>
-              <option value="PUBLISHED">Published</option>
-              <option value="ARCHIVED">Archived</option>
+              <option value="DRAFT">{t.admin.courses.form.options.draft}</option>
+              <option value="PUBLISHED">{t.admin.courses.form.options.published}</option>
+              <option value="ARCHIVED">{t.admin.courses.form.options.archived}</option>
             </select>
           </div>
           <div>
-            <label className="text-xs text-muted mb-1 block">Category</label>
+            <label className="text-xs text-muted mb-1 block">{t.admin.courses.form.category}</label>
             <select defaultValue={course.categoryId || ''} onChange={(e) => updateField('categoryId', e.target.value || null)} className={inputClass}>
-              <option value="">None</option>
+              <option value="">{t.admin.common.none}</option>
               {categories.map((c) => (
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}
             </select>
           </div>
           <div>
-            <label className="text-xs text-muted mb-1 block">Instructor</label>
+            <label className="text-xs text-muted mb-1 block">{t.admin.courses.form.instructor}</label>
             <select defaultValue={course.instructorId || ''} onChange={(e) => updateField('instructorId', e.target.value || null)} className={inputClass}>
-              <option value="">None</option>
+              <option value="">{t.admin.common.none}</option>
               {instructors.map((i) => (
                 <option key={i.id} value={i.id}>{i.name || i.email}</option>
               ))}
@@ -190,17 +192,17 @@ export default function EditCoursePage({ params }: { params: Promise<{ id: strin
           </div>
         </div>
         <div className="mt-4">
-          <label className="text-xs text-muted mb-1 block">Description</label>
+          <label className="text-xs text-muted mb-1 block">{t.admin.courses.form.description}</label>
           <textarea defaultValue={course.description || ''} onBlur={(e) => e.target.value !== (course.description || '') && updateField('description', e.target.value)} className={inputClass} rows={4} />
         </div>
-        {saving && <p className="text-accent text-xs mt-2">Saving...</p>}
+        {saving && <p className="text-accent text-xs mt-2">{t.admin.courses.edit.saving}</p>}
       </div>
 
       {/* Modules & Lessons */}
       <div className="glass-card p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-heading font-bold text-foreground">Modules & Lessons</h2>
-          <span className="text-muted text-xs">{course.modules?.length || 0} modules</span>
+          <h2 className="text-lg font-heading font-bold text-foreground">{t.admin.courses.edit.modulesLessons}</h2>
+          <span className="text-muted text-xs">{t.admin.courses.edit.modulesCount.replace('{count}', String(course.modules?.length || 0))}</span>
         </div>
 
         {/* Add module */}
@@ -208,18 +210,18 @@ export default function EditCoursePage({ params }: { params: Promise<{ id: strin
           <input
             value={newModuleTitle}
             onChange={(e) => setNewModuleTitle(e.target.value)}
-            placeholder="New module title..."
+            placeholder={t.admin.courses.edit.newModulePlaceholder}
             className={`${inputClass} flex-1`}
             onKeyDown={(e) => e.key === 'Enter' && addModule()}
           />
           <button onClick={addModule} className="px-4 py-2 bg-accent text-white rounded-lg text-sm font-medium hover:bg-accent/90">
-            Add Module
+            {t.admin.courses.edit.addModule}
           </button>
         </div>
 
         {/* Module list */}
         {!course.modules?.length ? (
-          <p className="text-muted text-sm text-center py-4">No modules yet. Add one above.</p>
+          <p className="text-muted text-sm text-center py-4">{t.admin.courses.edit.noModules}</p>
         ) : (
           <div className="space-y-4">
             {(course.modules as Module_[]).map((mod) => (
@@ -233,9 +235,9 @@ export default function EditCoursePage({ params }: { params: Promise<{ id: strin
                       <polyline points="9 18 15 12 9 6" />
                     </svg>
                     {mod.title}
-                    <span className="text-muted text-xs">({mod.lessons?.length || 0} lessons)</span>
+                    <span className="text-muted text-xs">{t.admin.courses.edit.lessonsCount.replace('{count}', String(mod.lessons?.length || 0))}</span>
                   </button>
-                  <button onClick={() => deleteModule(mod.id)} className="text-xs text-red-400 hover:text-red-300">Delete</button>
+                  <button onClick={() => deleteModule(mod.id)} className="text-xs text-red-400 hover:text-red-300">{t.admin.common.delete}</button>
                 </div>
 
                 {expandedModule === mod.id && (
@@ -249,9 +251,9 @@ export default function EditCoursePage({ params }: { params: Promise<{ id: strin
                             <p className="text-foreground text-sm">{lesson.title}</p>
                             <p className="text-muted text-[10px]">{lesson.lessonType} · {lesson.durationMinutes}min · /{lesson.slug}</p>
                           </div>
-                          {lesson.isPreview && <span className="px-1.5 py-0.5 bg-accent/10 text-accent text-[10px] rounded">Preview</span>}
+                          {lesson.isPreview && <span className="px-1.5 py-0.5 bg-accent/10 text-accent text-[10px] rounded">{t.admin.courses.edit.preview}</span>}
                         </div>
-                        <button onClick={() => deleteLesson(mod.id, lesson.id)} className="text-xs text-red-400 hover:text-red-300">Delete</button>
+                        <button onClick={() => deleteLesson(mod.id, lesson.id)} className="text-xs text-red-400 hover:text-red-300">{t.admin.common.delete}</button>
                       </div>
                     ))}
 
@@ -260,17 +262,17 @@ export default function EditCoursePage({ params }: { params: Promise<{ id: strin
                       <input
                         value={newLessonData[mod.id]?.title || ''}
                         onChange={(e) => setNewLessonData((prev) => ({ ...prev, [mod.id]: { ...prev[mod.id], title: e.target.value, slug: prev[mod.id]?.slug || '' } }))}
-                        placeholder="Lesson title"
+                        placeholder={t.admin.courses.edit.lessonTitlePlaceholder}
                         className={`${inputClass} flex-1`}
                       />
                       <input
                         value={newLessonData[mod.id]?.slug || ''}
                         onChange={(e) => setNewLessonData((prev) => ({ ...prev, [mod.id]: { ...prev[mod.id], slug: e.target.value, title: prev[mod.id]?.title || '' } }))}
-                        placeholder="lesson-slug"
+                        placeholder={t.admin.courses.edit.lessonSlugPlaceholder}
                         className={`${inputClass} w-40`}
                       />
                       <button onClick={() => addLesson(mod.id)} className="px-4 py-2 bg-accent text-white rounded-lg text-sm font-medium hover:bg-accent/90">
-                        Add
+                        {t.admin.courses.edit.add}
                       </button>
                     </div>
                   </div>

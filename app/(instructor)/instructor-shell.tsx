@@ -7,31 +7,33 @@ import clsx from 'clsx';
 import Image from 'next/image';
 import type { AuthUser } from '@/lib/auth/user';
 import MobileBottomNav from '@/app/components/MobileBottomNav';
-
-const instructorLinks = [
-  {
-    label: 'Overview',
-    href: '/instructor',
-    icon: (
-      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" />
-        <rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" />
-      </svg>
-    ),
-  },
-  {
-    label: 'Live Classes',
-    href: '/instructor/live-classes',
-    icon: (
-      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <polygon points="23 7 16 12 23 17 23 7" /><rect x="1" y="5" width="15" height="14" rx="2" />
-      </svg>
-    ),
-  },
-];
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 export function InstructorShell({ user, children }: { user: AuthUser; children: React.ReactNode }) {
   const pathname = usePathname();
+  const { t } = useTranslation();
+
+  const instructorLinks = [
+    {
+      label: t.instructor.nav.overview,
+      href: '/instructor',
+      icon: (
+        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" />
+          <rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" />
+        </svg>
+      ),
+    },
+    {
+      label: t.instructor.nav.liveClasses,
+      href: '/instructor/live-classes',
+      icon: (
+        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polygon points="23 7 16 12 23 17 23 7" /><rect x="1" y="5" width="15" height="14" rx="2" />
+        </svg>
+      ),
+    },
+  ];
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/');
 
@@ -46,9 +48,9 @@ export function InstructorShell({ user, children }: { user: AuthUser; children: 
           </div>
           <div>
             <span className="font-heading font-bold text-foreground text-sm tracking-wide block">
-              Hustle Alliance
+              {t.instructor.sidebar.brand}
             </span>
-            <span className="text-muted text-[10px] uppercase tracking-wider">Instructor</span>
+            <span className="text-muted text-[10px] uppercase tracking-wider">{t.instructor.sidebar.role}</span>
           </div>
         </Link>
 
@@ -97,7 +99,7 @@ export function InstructorShell({ user, children }: { user: AuthUser; children: 
               <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
               <polyline points="9 22 9 12 15 12 15 22" />
             </svg>
-            Back to Site
+            {t.instructor.sidebar.backToSite}
           </Link>
         </div>
       </aside>

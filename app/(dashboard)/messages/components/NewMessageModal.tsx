@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { UserSearchInput } from "./UserSearchInput";
 import { useRouter } from "next/navigation";
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 interface NewMessageModalProps {
   isOpen: boolean;
@@ -18,6 +19,7 @@ interface UserResult {
 }
 
 export function NewMessageModal({ isOpen, onClose, userId }: NewMessageModalProps) {
+  const { t } = useTranslation();
   const router = useRouter();
   const [isCreating, setIsCreating] = useState(false);
 
@@ -48,7 +50,7 @@ export function NewMessageModal({ isOpen, onClose, userId }: NewMessageModalProp
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="w-full max-w-md rounded-xl border bg-background p-6 shadow-xl">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">New Message</h2>
+          <h2 className="text-lg font-semibold">{t.messages.newMessage}</h2>
           <button
             onClick={onClose}
             className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-muted"
@@ -59,18 +61,18 @@ export function NewMessageModal({ isOpen, onClose, userId }: NewMessageModalProp
 
         <div className="mb-2">
           <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-            Search for a user
+            {t.messages.searchForUser}
           </label>
           <UserSearchInput
             onSelect={handleSelectUser}
-            placeholder="Type a name..."
+            placeholder={t.messages.typeNamePlaceholder}
             excludeIds={[userId]}
           />
         </div>
 
         {isCreating && (
           <p className="mt-2 text-center text-xs text-muted-foreground">
-            Creating conversation...
+            {t.messages.creatingConversation}
           </p>
         )}
       </div>

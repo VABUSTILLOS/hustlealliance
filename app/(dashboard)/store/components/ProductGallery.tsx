@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 interface ProductGalleryProps {
   images: string[];
@@ -9,12 +10,13 @@ interface ProductGalleryProps {
 }
 
 export function ProductGallery({ images, title }: ProductGalleryProps) {
+  const { t } = useTranslation();
   const [activeIndex, setActiveIndex] = useState(0);
 
   if (images.length === 0) {
     return (
       <div className="aspect-square bg-gray-100 rounded-xl flex items-center justify-center">
-        <span className="text-gray-400 text-sm">No image available</span>
+        <span className="text-gray-400 text-sm">{t.store.noImageAvailable}</span>
       </div>
     );
   }

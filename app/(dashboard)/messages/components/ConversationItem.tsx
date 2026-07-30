@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { ConversationItem } from "@/lib/db/messages";
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 interface ConversationItemProps {
   conversation: ConversationItem;
@@ -10,10 +11,11 @@ interface ConversationItemProps {
 }
 
 export function ConversationItem({ conversation, isActive, userId }: ConversationItemProps) {
+  const { t } = useTranslation();
   // For 1-on-1 conversations, show the other user's name
   // For groups, show the group name
   const displayName = (() => {
-    if (conversation.isGroup) return conversation.name || "Group Chat";
+    if (conversation.isGroup) return conversation.name || t.messages.groupChat;
     const other = conversation.participants.find((p) => p.user.id !== userId);
     return other?.user.name || other?.user.username || "Unknown";
   })();
@@ -30,11 +32,11 @@ export function ConversationItem({ conversation, isActive, userId }: Conversatio
     ? conversation.lastMessage.content.length > 40
       ? conversation.lastMessage.content.slice(0, 40) + "..."
       : conversation.lastMessage.content
-    : "No messages yet";
+    : t.messages.noMessagesYet;
 
   const timestamp = conversation.lastMessage
-    ? formatTime(conversation.lastMessage.createdAt)
-    : formatTime(conversation.createdAt);
+    ? formatTime(conversation.lastMessage.createdAt, t.messages.yesterday)
+    : formatTime(conversation.createdAt, t.messages.yesterday);
 
   return (
     <Link
@@ -86,7 +88,7 @@ export function ConversationItem({ conversation, isActive, userId }: Conversatio
   );
 }
 
-function formatTime(isoString: string): string {
+function formatTime(isoString: string, yesterdayLabel: string): string {
   const date = new Date(isoString);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
@@ -95,7 +97,7 @@ function formatTime(isoString: string): string {
   if (diffDays === 0) {
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   }
-  if (diffDays === 1) return "Yesterday";
+  if (diffDays === 1) return yesterdayLabel;
   if (diffDays < 7) return date.toLocaleDateString([], { weekday: "short" });
   return date.toLocaleDateString([], { month: "short", day: "numeric" });
 }

@@ -2,16 +2,8 @@
 
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 import type { JobType } from "@/lib/generated/prisma/client";
-
-const JOB_TYPES: { value: JobType | ""; label: string }[] = [
-  { value: "", label: "All Types" },
-  { value: "FULL_TIME", label: "Full Time" },
-  { value: "PART_TIME", label: "Part Time" },
-  { value: "CONTRACT", label: "Contract" },
-  { value: "INTERNSHIP", label: "Internship" },
-  { value: "CO_FOUNDER", label: "Co-Founder" },
-];
 
 export interface JobFilterValues {
   search: string;
@@ -26,7 +18,16 @@ interface JobFiltersProps {
 }
 
 export function JobFilters({ filters, onChange }: JobFiltersProps) {
+  const { t } = useTranslation();
   const [showFilters, setShowFilters] = useState(false);
+  const jobTypes: { value: JobType | ""; label: string }[] = [
+    { value: "", label: t.jobs.allTypesFilter },
+    { value: "FULL_TIME", label: t.jobs.jobTypeFullTime },
+    { value: "PART_TIME", label: t.jobs.jobTypePartTime },
+    { value: "CONTRACT", label: t.jobs.jobTypeContract },
+    { value: "INTERNSHIP", label: t.jobs.jobTypeInternship },
+    { value: "CO_FOUNDER", label: t.jobs.jobTypeCoFounder },
+  ];
 
   const update = (patch: Partial<JobFilterValues>) => {
     onChange({ ...filters, ...patch });
@@ -45,7 +46,7 @@ export function JobFilters({ filters, onChange }: JobFiltersProps) {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             type="text"
-            placeholder="Search jobs..."
+            placeholder={t.jobs.searchPlaceholder}
             value={filters.search}
             onChange={(e) => update({ search: e.target.value })}
             className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -60,7 +61,7 @@ export function JobFilters({ filters, onChange }: JobFiltersProps) {
           }`}
         >
           <SlidersHorizontal className="w-4 h-4" />
-          Filters
+          {t.jobs.filtersButton}
           {hasActiveFilters && (
             <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
           )}
@@ -74,14 +75,14 @@ export function JobFilters({ filters, onChange }: JobFiltersProps) {
             onChange={(e) => update({ type: e.target.value })}
             className="px-3 py-2 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            {JOB_TYPES.map((t) => (
-              <option key={t.value} value={t.value}>{t.label}</option>
+            {jobTypes.map((jobType) => (
+              <option key={jobType.value} value={jobType.value}>{jobType.label}</option>
             ))}
           </select>
 
           <input
             type="text"
-            placeholder="Location..."
+            placeholder={t.jobs.locationPlaceholder}
             value={filters.location}
             onChange={(e) => update({ location: e.target.value })}
             className="px-3 py-2 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -94,7 +95,7 @@ export function JobFilters({ filters, onChange }: JobFiltersProps) {
               onChange={(e) => update({ isRemote: e.target.checked })}
               className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
             />
-            Remote Only
+            {t.jobs.remoteOnlyFilter}
           </label>
 
           {hasActiveFilters && (
@@ -103,7 +104,7 @@ export function JobFilters({ filters, onChange }: JobFiltersProps) {
               className="flex items-center gap-1 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
             >
               <X className="w-3.5 h-3.5" />
-              Clear
+              {t.jobs.clearFiltersButton}
             </button>
           )}
         </div>

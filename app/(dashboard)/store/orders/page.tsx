@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ArrowLeft, Package, Clock, CheckCircle, XCircle, RefreshCw } from "lucide-react";
 import { useOrders } from "../components/hooks/useStore";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 const STATUS_ICONS: Record<string, React.ReactNode> = {
   PENDING: <Clock className="w-4 h-4" />,
@@ -29,6 +30,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export default function OrdersPage() {
+  const { t } = useTranslation();
   const { data: orders, isLoading, error } = useOrders();
 
   return (
@@ -38,15 +40,15 @@ export default function OrdersPage() {
         className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-6"
       >
         <ArrowLeft className="w-4 h-4" />
-        Back to store
+        {t.store.buttonBackToStore}
       </Link>
 
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
           <Package className="w-6 h-6 text-blue-600" />
-          Order History
+          {t.store.orderHistoryTitle}
         </h1>
-        <p className="text-gray-500 mt-1">View your past purchases and order status</p>
+        <p className="text-gray-500 mt-1">{t.store.orderHistorySubtitle}</p>
       </div>
 
       {isLoading && (
@@ -59,20 +61,20 @@ export default function OrdersPage() {
 
       {error && (
         <div className="p-4 bg-red-50 text-red-700 rounded-lg">
-          Failed to load orders. Please try again.
+          {t.store.errorFailedToLoadOrders}
         </div>
       )}
 
       {orders?.length === 0 && !isLoading && (
         <div className="text-center py-12 bg-white rounded-2xl border">
           <Package className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-          <h3 className="text-lg font-medium text-gray-900">No orders yet</h3>
-          <p className="text-gray-500 mt-1 mb-4">Start shopping to see your order history</p>
+          <h3 className="text-lg font-medium text-gray-900">{t.store.emptyOrdersTitle}</h3>
+          <p className="text-gray-500 mt-1 mb-4">{t.store.emptyOrdersHelp}</p>
           <Link
             href="/store"
             className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
           >
-            Browse Store
+            {t.store.buttonBrowseStore}
           </Link>
         </div>
       )}
@@ -118,7 +120,7 @@ export default function OrdersPage() {
 
               <div className="mt-3 pt-3 border-t flex items-center justify-between">
                 <span className="text-sm text-gray-600">
-                  {(order.items as Array<Record<string, unknown>>)?.length ?? 0} item{((order.items as Array<unknown>)?.length ?? 0) !== 1 ? "s" : ""}
+                  {`${(order.items as Array<Record<string, unknown>>)?.length ?? 0} ${t.store.itemsLabel.replace("(s)", ((order.items as Array<unknown>)?.length ?? 0) !== 1 ? "s" : "")}`}
                 </span>
                 <span className="font-semibold text-gray-900">
                   ${Number(order.totalAmount).toFixed(2)} {order.currency as string || "USD"}

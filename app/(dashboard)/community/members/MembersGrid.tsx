@@ -1,12 +1,17 @@
+'use client';
+
 import type { CommunityMemberItem } from '@/lib/db/community';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { MemberCard } from './MemberCard';
 
 export function MembersGrid({ members }: { members: CommunityMemberItem[] }) {
+  const { t } = useTranslation();
+
   if (members.length === 0) {
     return (
       <div className="py-20 text-center">
         <p className="text-lg text-[var(--color-foreground-muted)] font-mono">
-          No members found matching your filters.
+          {t.community.noMembersFound}
         </p>
       </div>
     );

@@ -4,8 +4,10 @@ import { useNotifications, useMarkAllRead } from './hooks/useNotifications';
 import { NotificationList } from './components/NotificationList';
 import { NotificationSettings } from './components/NotificationSettings';
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 export default function NotificationsPage() {
+  const { t } = useTranslation();
   const [tab, setTab] = useState<'all' | 'settings'>('all');
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useNotifications(20);
   const markAllRead = useMarkAllRead();
@@ -45,7 +47,7 @@ export default function NotificationsPage() {
               : 'text-muted hover:text-foreground'
           }`}
         >
-          All Notifications
+          {t.notifications.tabAllNotifications}
         </button>
         <button
           onClick={() => setTab('settings')}
@@ -55,7 +57,7 @@ export default function NotificationsPage() {
               : 'text-muted hover:text-foreground'
           }`}
         >
-          Settings
+          {t.notifications.tabSettings}
         </button>
       </div>
 
@@ -81,7 +83,7 @@ export default function NotificationsPage() {
                   {isFetchingNextPage ? (
                     <div className="inline-block w-5 h-5 border-2 border-muted border-t-accent rounded-full animate-spin" />
                   ) : (
-                    <span className="text-sm text-muted">Load more</span>
+                    <span className="text-sm text-muted">{t.notifications.loadMore}</span>
                   )}
                 </div>
               )}

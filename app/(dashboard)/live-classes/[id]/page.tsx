@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useLiveClassPresence } from '@/lib/hooks/useLiveClassPresence';
 import { getInitialsAvatarUrl, DEFAULT_AVATAR } from '@/lib/utils/avatar';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 interface LiveClassDetail {
   id: string;
@@ -24,6 +25,7 @@ interface LiveClassDetail {
 }
 
 export default function LiveClassPage({ params }: { params: Promise<{ id: string }> }) {
+  const { t } = useTranslation();
   const { id } = use(params);
 
   const [liveClass, setLiveClass] = useState<LiveClassDetail | null>(null);
@@ -39,19 +41,19 @@ export default function LiveClassPage({ params }: { params: Promise<{ id: string
     async function fetchClass() {
       try {
         const res = await fetch(`/api/live-classes/${id}`);
-        if (!res.ok) throw new Error('Failed to load');
+        if (!res.ok) throw new Error(t.instructor.liveClasses.errorFailedToLoad);
         const data = await res.json();
         setLiveClass(data.class);
         setIsRegistered(data.isRegistered);
         setRegistrationId(data.registrationId);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load live class');
+        setError(err instanceof Error ? err.message : t.instructor.liveClasses.errorFailedToLoad);
       } finally {
         setLoading(false);
       }
     }
     fetchClass();
-  }, [id]);
+  }, [id, t]);
 
   const handleRegister = async () => {
     // Always allow registration — the Founder profile is set as default for unauthenticated visitors
@@ -63,10 +65,10 @@ export default function LiveClassPage({ params }: { params: Promise<{ id: string
         setIsRegistered(true);
         setRegistrationId(data.registration.id);
       } else {
-        setError(data.error || 'Registration failed');
+        setError(data.error || t.instructor.liveClasses.errorFailedToLoad);
       }
     } catch {
-      setError('Registration failed');
+      setError(t.instructor.liveClasses.errorFailedToLoad);
     } finally {
       setRegistering(false);
     }
@@ -83,9 +85,9 @@ export default function LiveClassPage({ params }: { params: Promise<{ id: string
   if (error || !liveClass) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-        <p className="text-red-400">{error || 'Live class not found'}</p>
+        <p className="text-red-400">{error || t.instructor.liveClasses.errorNotFound}</p>
         <Link href="/dashboard" className="text-primary-400 hover:underline">
-          Back to dashboard
+          {t.instructor.liveClasses.buttonBackToDashboard}
         </Link>
       </div>
     );
@@ -100,20 +102,20 @@ export default function LiveClassPage({ params }: { params: Promise<{ id: string
     liveClass._count.registrations >= liveClass.maxAttendees;
 
   const statusBadge = isLive
-    ? '🔴 Live now'
+    ? t.instructor.liveClasses.status.live
     : isPast
-    ? '✅ Ended'
-    : '📅 Upcoming';
+    ? t.instructor.liveClasses.status.completed
+    : t.instructor.liveClasses.status.scheduled;
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
       {/* Breadcrumb */}
       <nav className="text-sm text-white/60">
         <Link href="/dashboard" className="hover:text-white/80">
-          Dashboard
+          {t.instructor.liveClasses.breadcrumbDashboard}
         </Link>
         <span className="mx-2">/</span>
-        <span className="text-white/80">Live Class</span>
+        <span className="text-white/80">{t.instructor.liveClasses.breadcrumbLiveClass}</span>
       </nav>
 
       {/* Header */}
@@ -151,11 +153,11 @@ export default function LiveClassPage({ params }: { params: Promise<{ id: string
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-green-600 hover:bg-green-500 text-white font-semibold transition-colors"
                 >
-                  🎥 Join Now
+                  {t.instructor.liveClasses.buttonJoinNow}
                 </a>
               ) : isRegistered ? (
                 <span className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary-500/30 text-primary-200">
-                  ✅ Registered
+                  {t.instructor.liveClasses.statusRegistered}
                 </span>
               ) : (
                 <button
@@ -164,10 +166,10 @@ export default function LiveClassPage({ params }: { params: Promise<{ id: string
                   className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary-600 hover:bg-primary-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold transition-colors"
                 >
                   {isFull
-                    ? 'Class Full'
+                    ? t.instructor.liveClasses.statusClassFull
                     : registering
-                    ? 'Registering...'
-                    : 'Register Now'}
+                    ? t.instructor.liveClasses.buttonRegistering
+                    : t.instructor.liveClasses.buttonRegisterNow}
                 </button>
               )}
             </div>
@@ -183,21 +185,21 @@ export default function LiveClassPage({ params }: { params: Promise<{ id: string
           transition={{ delay: 0.1 }}
           className="glass-card p-6 rounded-2xl space-y-4"
         >
-          <h2 className="text-lg font-semibold">📋 Details</h2>
+          <h2 className="text-lg font-semibold">{t.instructor.liveClasses.sectionDetails}</h2>
           <div className="space-y-3 text-sm">
             <div className="flex justify-between">
-              <span className="text-white/60">Platform</span>
+              <span className="text-white/60">{t.instructor.liveClasses.labelPlatform}</span>
               <span>{liveClass.platform}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-white/60">Starts</span>
+              <span className="text-white/60">{t.instructor.liveClasses.labelStarts}</span>
               <span>
                 {startsAt.toLocaleDateString('en-US', {
                   weekday: 'long',
                   month: 'short',
                   day: 'numeric',
-                })}{' '}
-                at{' '}
+                })}
+                {', '}
                 {startsAt.toLocaleTimeString('en-US', {
                   hour: 'numeric',
                   minute: '2-digit',
@@ -205,7 +207,7 @@ export default function LiveClassPage({ params }: { params: Promise<{ id: string
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-white/60">Ends</span>
+              <span className="text-white/60">{t.instructor.liveClasses.labelEnds}</span>
               <span>
                 {endsAt.toLocaleTimeString('en-US', {
                   hour: 'numeric',
@@ -215,7 +217,7 @@ export default function LiveClassPage({ params }: { params: Promise<{ id: string
             </div>
             {liveClass.maxAttendees && (
               <div className="flex justify-between">
-                <span className="text-white/60">Capacity</span>
+                <span className="text-white/60">{t.instructor.liveClasses.labelCapacity}</span>
                 <span>
                   {liveClass._count.registrations} / {liveClass.maxAttendees}
                 </span>
@@ -230,7 +232,7 @@ export default function LiveClassPage({ params }: { params: Promise<{ id: string
           transition={{ delay: 0.15 }}
           className="glass-card p-6 rounded-2xl space-y-4"
         >
-          <h2 className="text-lg font-semibold">👤 Instructor</h2>
+          <h2 className="text-lg font-semibold">{t.instructor.liveClasses.sectionInstructor}</h2>
           <div className="flex items-center gap-3">
             <Image
               src={
@@ -246,7 +248,10 @@ export default function LiveClassPage({ params }: { params: Promise<{ id: string
           </div>
 
           <h2 className="text-lg font-semibold pt-2">
-            👥 Attendees ({attendees.length + (isRegistered ? 1 : 0)})
+            {t.instructor.liveClasses.sectionAttendees.replace(
+              '{count}',
+              String(attendees.length + (isRegistered ? 1 : 0)),
+            )}
           </h2>
           <div className="flex flex-wrap gap-2">
             {attendees.map((a) => (
@@ -264,7 +269,7 @@ export default function LiveClassPage({ params }: { params: Promise<{ id: string
               />
             ))}
             {attendees.length === 0 && (
-              <p className="text-sm text-white/50">Be the first to join!</p>
+              <p className="text-sm text-white/50">{t.instructor.liveClasses.emptyAttendeesState}</p>
             )}
           </div>
         </motion.div>

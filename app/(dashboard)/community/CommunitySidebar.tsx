@@ -1,24 +1,26 @@
 import Link from "next/link";
 import type { TrendingTopic } from "@/lib/db/community";
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 interface CommunitySidebarProps {
   trending: TrendingTopic[];
 }
 
 export function CommunitySidebar({ trending }: CommunitySidebarProps) {
+  const { t } = useTranslation();
+
   const links = [
-    { label: "Groups", href: "/community/groups", icon: "👥" },
-    { label: "Events", href: "/community/events", icon: "📅" },
-    { label: "Messages", href: "/community/messages", icon: "💬" },
-    { label: "Members", href: "/community/members", icon: "🙋" },
+    { label: t.community.sidebarGroups, href: "/community/groups", icon: "👥" },
+    { label: t.community.sidebarEvents, href: "/community/events", icon: "📅" },
+    { label: t.community.sidebarMessages, href: "/community/messages", icon: "💬" },
+    { label: t.community.sidebarMembers, href: "/community/members", icon: "🙋" },
   ];
 
   return (
     <aside className="space-y-6">
-      {/* Quick links */}
       <div className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-5">
         <h3 className="font-heading font-bold text-[var(--color-foreground)] text-sm mb-4 uppercase tracking-wider">
-          Quick Links
+          {t.community.quickLinks}
         </h3>
         <nav className="space-y-1">
           {links.map((link) => (
@@ -34,24 +36,23 @@ export function CommunitySidebar({ trending }: CommunitySidebarProps) {
         </nav>
       </div>
 
-      {/* Trending */}
       {trending.length > 0 && (
         <div className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-5">
           <h3 className="font-heading font-bold text-[var(--color-foreground)] text-sm mb-4 uppercase tracking-wider">
-            🔥 Trending Spaces
+            {t.community.trendingSpaces}
           </h3>
           <div className="space-y-2">
-            {trending.map((t) => (
+            {trending.map((topic) => (
               <Link
-                key={t.space}
-                href={`/spaces/${t.space}`}
+                key={topic.space}
+                href={`/spaces/${topic.space}`}
                 className="flex items-center justify-between px-3 py-2 rounded-xl hover:bg-[var(--color-surface-light)] transition-colors"
               >
                 <span className="text-sm text-[var(--color-foreground-muted)] font-mono">
-                  {t.space}
+                  {topic.space}
                 </span>
                 <span className="text-xs text-[var(--color-muted)] font-mono">
-                  {t.postCount} posts
+                  {topic.postCount} {t.community.postsLabel}
                 </span>
               </Link>
             ))}
@@ -59,34 +60,33 @@ export function CommunitySidebar({ trending }: CommunitySidebarProps) {
         </div>
       )}
 
-      {/* Community stats card */}
       <div className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-5">
         <h3 className="font-heading font-bold text-[var(--color-foreground)] text-sm mb-4 uppercase tracking-wider">
-          Community Stats
+          {t.community.communityStats}
         </h3>
         <div className="grid grid-cols-2 gap-3">
           <div className="bg-[var(--color-surface-light)] rounded-xl p-3 text-center">
             <p className="font-display text-xl text-[var(--color-accent)]">2.4k</p>
             <p className="text-[10px] text-[var(--color-muted)] font-mono uppercase mt-1">
-              Members
+              {t.community.statsMembers}
             </p>
           </div>
           <div className="bg-[var(--color-surface-light)] rounded-xl p-3 text-center">
             <p className="font-display text-xl text-[var(--color-accent)]">180+</p>
             <p className="text-[10px] text-[var(--color-muted)] font-mono uppercase mt-1">
-              Guides
+              {t.community.statsGuides}
             </p>
           </div>
           <div className="bg-[var(--color-surface-light)] rounded-xl p-3 text-center">
             <p className="font-display text-xl text-[var(--color-accent)]">12</p>
             <p className="text-[10px] text-[var(--color-muted)] font-mono uppercase mt-1">
-              Spaces
+              {t.community.statsSpaces}
             </p>
           </div>
           <div className="bg-[var(--color-surface-light)] rounded-xl p-3 text-center">
             <p className="font-display text-xl text-[var(--color-accent)]">24/7</p>
             <p className="text-[10px] text-[var(--color-muted)] font-mono uppercase mt-1">
-              Support
+              {t.community.support}
             </p>
           </div>
         </div>

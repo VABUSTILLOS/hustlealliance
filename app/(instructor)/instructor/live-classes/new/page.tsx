@@ -1,10 +1,12 @@
 'use client';
 
 import { Suspense } from 'react';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 export default function NewLiveClassPage() {
+  const { t } = useTranslation();
   return (
-    <Suspense fallback={<div className="p-8 text-muted">Loading form...</div>}>
+    <Suspense fallback={<div className="p-8 text-muted">{t.instructor.liveClasses.loadingForm}</div>}>
       <LiveClassForm />
     </Suspense>
   );
@@ -19,6 +21,7 @@ function LiveClassForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const existingId = searchParams.get('id');
+  const { t } = useTranslation();
 
   const [courses, setCourses] = useState<CourseOption[]>([]);
   const [loading, setLoading] = useState(false);
@@ -92,7 +95,7 @@ function LiveClassForm() {
     if (res.ok) {
       router.push('/instructor/live-classes');
     } else {
-      alert('Failed to save. Check all fields.');
+      alert(t.instructor.liveClasses.form.failedSave);
     }
 
     setLoading(false);
@@ -101,43 +104,43 @@ function LiveClassForm() {
   return (
     <div className="p-4 md:p-8 max-w-2xl">
       <h1 className="text-2xl font-heading font-bold text-foreground mb-8">
-        {existingId ? 'Edit Live Class' : 'New Live Class'}
+        {existingId ? t.instructor.liveClasses.editTitle : t.instructor.liveClasses.newTitle}
       </h1>
 
       <form onSubmit={handleSubmit} className="space-y-6 glass-card p-6">
         {/* Title */}
         <div>
-          <label className="block text-sm font-medium text-foreground mb-2">Class Title</label>
+          <label className="block text-sm font-medium text-foreground mb-2">{t.instructor.liveClasses.form.classTitle}</label>
           <input
             type="text"
             required
             value={form.title}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
             className="w-full p-3 bg-surface-light border border-white/5 rounded-lg text-foreground placeholder:text-muted"
-            placeholder="e.g. Advanced React Patterns — Session 3"
+            placeholder={t.instructor.liveClasses.form.titlePlaceholder}
           />
         </div>
 
         {/* Description */}
         <div>
-          <label className="block text-sm font-medium text-foreground mb-2">Description</label>
+          <label className="block text-sm font-medium text-foreground mb-2">{t.instructor.liveClasses.form.description}</label>
           <textarea
             value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
             className="w-full p-3 bg-surface-light border border-white/5 rounded-lg text-foreground placeholder:text-muted h-24"
-            placeholder="What will you cover in this session?"
+            placeholder={t.instructor.liveClasses.form.descPlaceholder}
           />
         </div>
 
         {/* Course */}
         <div>
-          <label className="block text-sm font-medium text-foreground mb-2">Course (optional)</label>
+          <label className="block text-sm font-medium text-foreground mb-2">{t.instructor.liveClasses.form.course}</label>
           <select
             value={form.courseId}
             onChange={(e) => setForm({ ...form, courseId: e.target.value })}
             className="w-full p-3 bg-surface-light border border-white/5 rounded-lg text-foreground"
           >
-            <option value="">No course association</option>
+            <option value="">{t.instructor.liveClasses.form.noCourse}</option>
             {courses.map((c) => (
               <option key={c.id} value={c.id}>{c.title}</option>
             ))}
@@ -147,7 +150,7 @@ function LiveClassForm() {
         {/* Date/Time */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-foreground mb-2">Start Time</label>
+            <label className="block text-sm font-medium text-foreground mb-2">{t.instructor.liveClasses.form.startTime}</label>
             <input
               type="datetime-local"
               required
@@ -157,7 +160,7 @@ function LiveClassForm() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-foreground mb-2">End Time</label>
+            <label className="block text-sm font-medium text-foreground mb-2">{t.instructor.liveClasses.form.endTime}</label>
             <input
               type="datetime-local"
               value={form.endsAt}
@@ -170,54 +173,54 @@ function LiveClassForm() {
         {/* Platform & URL */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-foreground mb-2">Platform</label>
+            <label className="block text-sm font-medium text-foreground mb-2">{t.instructor.liveClasses.form.platform}</label>
             <select
               value={form.platform}
               onChange={(e) => setForm({ ...form, platform: e.target.value })}
               className="w-full p-3 bg-surface-light border border-white/5 rounded-lg text-foreground"
             >
-              <option value="zoom">Zoom</option>
-              <option value="google-meet">Google Meet</option>
-              <option value="microsoft-teams">Microsoft Teams</option>
-              <option value="other">Other</option>
+              <option value="zoom">{t.instructor.liveClasses.platform.zoom}</option>
+              <option value="google-meet">{t.instructor.liveClasses.platform.googleMeet}</option>
+              <option value="microsoft-teams">{t.instructor.liveClasses.platform.microsoftTeams}</option>
+              <option value="other">{t.instructor.liveClasses.platform.other}</option>
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-foreground mb-2">Meeting URL</label>
+            <label className="block text-sm font-medium text-foreground mb-2">{t.instructor.liveClasses.form.meetingUrl}</label>
             <input
               type="url"
               value={form.meetingUrl}
               onChange={(e) => setForm({ ...form, meetingUrl: e.target.value })}
               className="w-full p-3 bg-surface-light border border-white/5 rounded-lg text-foreground placeholder:text-muted"
-              placeholder="https://zoom.us/j/..."
+              placeholder={t.instructor.liveClasses.form.urlPlaceholder}
             />
           </div>
         </div>
 
         {/* Max attendees */}
         <div>
-          <label className="block text-sm font-medium text-foreground mb-2">Max Attendees</label>
+          <label className="block text-sm font-medium text-foreground mb-2">{t.instructor.liveClasses.form.maxAttendees}</label>
           <input
             type="number"
             value={form.maxAttendees}
             onChange={(e) => setForm({ ...form, maxAttendees: e.target.value })}
             className="w-full p-3 bg-surface-light border border-white/5 rounded-lg text-foreground"
-            placeholder="Leave blank for unlimited"
+            placeholder={t.instructor.liveClasses.form.unlimited}
           />
         </div>
 
         {/* Status */}
         <div>
-          <label className="block text-sm font-medium text-foreground mb-2">Status</label>
+          <label className="block text-sm font-medium text-foreground mb-2">{t.instructor.liveClasses.form.status}</label>
           <select
             value={form.status}
             onChange={(e) => setForm({ ...form, status: e.target.value })}
             className="w-full p-3 bg-surface-light border border-white/5 rounded-lg text-foreground"
           >
-            <option value="SCHEDULED">Scheduled</option>
-            <option value="LIVE">Live Now</option>
-            <option value="COMPLETED">Completed</option>
-            <option value="CANCELLED">Cancelled</option>
+            <option value="SCHEDULED">{t.instructor.liveClasses.status.scheduled}</option>
+            <option value="LIVE">{t.instructor.liveClasses.status.live}</option>
+            <option value="COMPLETED">{t.instructor.liveClasses.status.completed}</option>
+            <option value="CANCELLED">{t.instructor.liveClasses.status.cancelled}</option>
           </select>
         </div>
 
@@ -228,14 +231,14 @@ function LiveClassForm() {
             disabled={loading}
             className="px-6 py-3 bg-accent text-white rounded-lg font-medium hover:bg-accent/80 disabled:opacity-50 transition-colors"
           >
-            {loading ? 'Saving...' : existingId ? 'Update Class' : 'Create Class'}
+            {loading ? t.instructor.liveClasses.saving : existingId ? t.instructor.liveClasses.updateClass : t.instructor.liveClasses.createClass}
           </button>
           <button
             type="button"
             onClick={() => router.back()}
             className="px-6 py-3 bg-surface-light text-muted rounded-lg hover:text-foreground transition-colors"
           >
-            Cancel
+            {t.instructor.liveClasses.cancel}
           </button>
         </div>
       </form>

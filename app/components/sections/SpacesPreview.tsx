@@ -7,7 +7,7 @@ import { spaces } from '@/lib/data/spaces';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
 export default function SpacesPreview() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const previewSpaces = spaces.slice(0, 4);
 
   const container = {
@@ -87,7 +87,7 @@ export default function SpacesPreview() {
                     {space.name}
                   </h3>
                   <p className="text-[var(--color-foreground-dim)] text-xs mt-1.5 line-clamp-2">
-                    {space.description}
+                    {locale === 'es' ? space.descriptionEs : space.description}
                   </p>
                   {/* Tags */}
                   <div className="flex items-center gap-1.5 mt-3 flex-wrap">

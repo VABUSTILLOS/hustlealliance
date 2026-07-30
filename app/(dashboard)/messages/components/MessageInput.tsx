@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 interface MessageInputProps {
   onSend: (content: string) => void;
@@ -13,10 +14,12 @@ export function MessageInput({
   onSend,
   onTyping,
   disabled,
-  placeholder = "Type a message...",
+  placeholder,
 }: MessageInputProps) {
+  const { t } = useTranslation();
   const [content, setContent] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const messagePlaceholder = placeholder ?? t.messages.typeMessagePlaceholder;
 
   // Auto-resize textarea
   useEffect(() => {
@@ -54,7 +57,8 @@ export function MessageInput({
       <button
         type="button"
         className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-muted"
-        title="Attach file"
+        title={t.messages.attachFile}
+        aria-label={t.messages.attachFile}
         disabled={disabled}
       >
         📎
@@ -65,7 +69,7 @@ export function MessageInput({
         value={content}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
-        placeholder={placeholder}
+        placeholder={messagePlaceholder}
         disabled={disabled}
         rows={1}
         className="max-h-[120px] min-h-[36px] flex-1 resize-none rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 disabled:opacity-50"

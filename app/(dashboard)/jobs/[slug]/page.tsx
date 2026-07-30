@@ -6,8 +6,10 @@ import { useState } from "react";
 import { ArrowLeft, MapPin, Briefcase, Clock, Building2, Share2, Send } from "lucide-react";
 import { useJob, useApplyToJob } from "../components/hooks/useJobs";
 import { ApplicationForm } from "../components/ApplicationForm";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export default function JobDetailPage() {
+  const { t } = useTranslation();
   const params = useParams();
   const slug = params.slug as string;
   const { data: job, isLoading, error } = useJob(slug);
@@ -24,7 +26,7 @@ export default function JobDetailPage() {
     if (navigator.share) {
       await navigator.share({
         title: job.title,
-        text: `Check out this job: ${job.title} at ${job.company}`,
+        text: `${job.title} — ${job.company}`,
         url: window.location.href,
       });
     } else {
@@ -44,20 +46,20 @@ export default function JobDetailPage() {
   if (error || !job) {
     return (
       <div className="px-4 sm:px-6 lg:px-8 py-8 max-w-3xl mx-auto text-center">
-        <h2 className="text-xl font-semibold text-gray-900">Job not found</h2>
+        <h2 className="text-xl font-semibold text-gray-900">{t.jobs.jobNotFound}</h2>
         <Link href="/jobs" className="text-blue-600 hover:underline mt-2 inline-block">
-          Back to jobs board
+          {t.jobs.backToJobsBoard}
         </Link>
       </div>
     );
   }
 
   const TYPE_LABEL: Record<string, string> = {
-    FULL_TIME: "Full Time",
-    PART_TIME: "Part Time",
-    CONTRACT: "Contract",
-    INTERNSHIP: "Internship",
-    CO_FOUNDER: "Co-Founder",
+    FULL_TIME: t.jobs.jobTypeFullTime,
+    PART_TIME: t.jobs.jobTypePartTime,
+    CONTRACT: t.jobs.jobTypeContract,
+    INTERNSHIP: t.jobs.jobTypeInternship,
+    CO_FOUNDER: t.jobs.jobTypeCoFounder,
   };
 
   return (
@@ -67,7 +69,7 @@ export default function JobDetailPage() {
         className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-6"
       >
         <ArrowLeft className="w-4 h-4" />
-        Back to jobs
+        {t.jobs.backToJobs}
       </Link>
 
       <div className="bg-white rounded-2xl border shadow-sm overflow-hidden">
@@ -101,7 +103,7 @@ export default function JobDetailPage() {
             {job.isRemote && (
               <span className="flex items-center gap-1.5 text-green-600">
                 <Briefcase className="w-4 h-4" />
-                Remote
+                {t.jobs.remote}
               </span>
             )}
             {job.salaryRange && (
@@ -111,24 +113,24 @@ export default function JobDetailPage() {
             )}
             <span className="flex items-center gap-1.5">
               <Clock className="w-4 h-4" />
-              Posted {new Date(job.createdAt).toLocaleDateString()}
+              {t.jobs.postedLabel} {new Date(job.createdAt).toLocaleDateString()}
             </span>
             <span className="flex items-center gap-1.5">
               <Send className="w-4 h-4" />
-              {job._count?.applications ?? 0} application{(job._count?.applications ?? 0) !== 1 ? "s" : ""}
+              {job._count?.applications ?? 0} {t.jobs.applicationCountLabel}
             </span>
           </div>
         </div>
 
         <div className="border-t p-6 sm:p-8">
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">Description</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-3">{t.jobs.descriptionHeading}</h2>
           <div className="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap">
             {job.description}
           </div>
 
           {job.requirements?.length > 0 && (
             <>
-              <h3 className="text-base font-semibold text-gray-900 mt-6 mb-2">Requirements</h3>
+              <h3 className="text-base font-semibold text-gray-900 mt-6 mb-2">{t.jobs.requirementsHeading}</h3>
               <ul className="list-disc list-inside space-y-1 text-gray-700">
                 {job.requirements.map((req: string, i: number) => (
                   <li key={i}>{req}</li>
@@ -145,15 +147,15 @@ export default function JobDetailPage() {
               className="flex-1 flex items-center justify-center gap-2 px-6 py-3 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors"
             >
               <Send className="w-4 h-4" />
-              Apply Now
+              {t.jobs.applyNowButton}
             </button>
           ) : applied ? (
             <div className="flex-1 flex items-center justify-center px-6 py-3 text-sm font-medium text-green-700 bg-green-50 border border-green-200 rounded-xl">
-              ✓ Application Submitted
+              {t.jobs.applicationSubmitted}
             </div>
           ) : (
             <div className="flex-1 flex items-center justify-center px-6 py-3 text-sm font-medium text-gray-500 bg-gray-100 rounded-xl">
-              Applications Closed
+              {t.jobs.applicationsClosed}
             </div>
           )}
           <button
@@ -161,7 +163,7 @@ export default function JobDetailPage() {
             className="flex items-center justify-center gap-2 px-6 py-3 text-sm font-medium text-gray-700 bg-white border hover:bg-gray-50 rounded-xl transition-colors"
           >
             <Share2 className="w-4 h-4" />
-            Share
+            {t.jobs.shareButton}
           </button>
         </div>
       </div>
@@ -175,12 +177,12 @@ export default function JobDetailPage() {
 
       {/* Related jobs section placeholder */}
       <div className="mt-8">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">More from {job.company}</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">{t.jobs.moreFromCompany} {job.company}</h3>
         <Link
           href={`/jobs?search=${encodeURIComponent(job.company)}`}
           className="text-sm text-blue-600 hover:underline"
         >
-          View all jobs from {job.company} →
+          {t.jobs.viewAllJobsFrom} {job.company} →
         </Link>
       </div>
     </div>

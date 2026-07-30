@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 type Course = {
   id: string;
@@ -19,6 +20,7 @@ type Course = {
 };
 
 export default function AdminCoursesPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [courses, setCourses] = useState<Course[]>([]);
   const [total, setTotal] = useState(0);
@@ -45,7 +47,7 @@ export default function AdminCoursesPage() {
   useEffect(() => { fetchCourses(); }, [search, statusFilter]);
 
   const handleDelete = async (id: string, title: string) => {
-    if (!confirm(`Delete "${title}"? This cannot be undone.`)) return;
+    if (!confirm(t.admin.courses.deleteConfirm.replace('{title}', title))) return;
     await fetch(`/api/admin/courses/${id}`, { method: 'DELETE' });
     fetchCourses();
   };
@@ -60,14 +62,14 @@ export default function AdminCoursesPage() {
     <div className="p-4 md:p-8">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-heading font-bold text-foreground">Courses</h1>
-          <p className="text-muted text-sm mt-1">{total} total courses</p>
+          <h1 className="text-2xl font-heading font-bold text-foreground">{t.admin.courses.title}</h1>
+          <p className="text-muted text-sm mt-1">{t.admin.courses.totalCourses.replace('{total}', String(total))}</p>
         </div>
         <Link
           href="/admin/courses/new"
           className="px-4 py-2.5 bg-accent text-white rounded-xl font-medium text-sm hover:bg-accent/90 transition-colors"
         >
-          + New Course
+          {t.admin.courses.newCourse}
         </Link>
       </div>
 
@@ -75,7 +77,7 @@ export default function AdminCoursesPage() {
       <div className="flex gap-3 mb-6">
         <input
           type="text"
-          placeholder="Search courses..."
+          placeholder={t.admin.courses.searchPlaceholder}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="flex-1 max-w-xs px-4 py-2 bg-surface border border-surface-light rounded-xl text-foreground text-sm placeholder:text-muted focus:outline-none focus:border-accent"
@@ -85,30 +87,30 @@ export default function AdminCoursesPage() {
           onChange={(e) => setStatusFilter(e.target.value)}
           className="px-4 py-2 bg-surface border border-surface-light rounded-xl text-foreground text-sm focus:outline-none focus:border-accent"
         >
-          <option value="">All Status</option>
-          <option value="PUBLISHED">Published</option>
-          <option value="DRAFT">Draft</option>
-          <option value="ARCHIVED">Archived</option>
+          <option value="">{t.admin.courses.filterAllStatus}</option>
+          <option value="PUBLISHED">{t.admin.courses.filterPublished}</option>
+          <option value="DRAFT">{t.admin.courses.filterDraft}</option>
+          <option value="ARCHIVED">{t.admin.courses.filterArchived}</option>
         </select>
       </div>
 
       {/* Table */}
       {loading ? (
-        <div className="glass-card p-8 text-center text-muted">Loading...</div>
+        <div className="glass-card p-8 text-center text-muted">{t.admin.common.loading}</div>
       ) : courses.length === 0 ? (
-        <div className="glass-card p-8 text-center text-muted">No courses found.</div>
+        <div className="glass-card p-8 text-center text-muted">{t.admin.courses.noCourses}</div>
       ) : (
         <div className="glass-card overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-muted text-left border-b border-surface-light">
-                <th className="p-4 font-medium">Title</th>
-                <th className="p-4 font-medium">Status</th>
-                <th className="p-4 font-medium">Difficulty</th>
-                <th className="p-4 font-medium">Access</th>
-                <th className="p-4 font-medium">Enrollments</th>
-                <th className="p-4 font-medium">Price</th>
-                <th className="p-4 font-medium">Actions</th>
+                <th className="p-4 font-medium">{t.admin.courses.table.title}</th>
+                <th className="p-4 font-medium">{t.admin.courses.table.status}</th>
+                <th className="p-4 font-medium">{t.admin.courses.table.difficulty}</th>
+                <th className="p-4 font-medium">{t.admin.courses.table.access}</th>
+                <th className="p-4 font-medium">{t.admin.courses.table.enrollments}</th>
+                <th className="p-4 font-medium">{t.admin.courses.table.price}</th>
+                <th className="p-4 font-medium">{t.admin.courses.table.actions}</th>
               </tr>
             </thead>
             <tbody>
@@ -133,13 +135,13 @@ export default function AdminCoursesPage() {
                         onClick={() => router.push(`/admin/courses/${c.id}`)}
                         className="px-3 py-1.5 text-xs rounded-lg bg-surface-light text-foreground hover:bg-accent/10 transition-colors"
                       >
-                        Edit
+                        {t.admin.common.edit}
                       </button>
                       <button
                         onClick={() => handleDelete(c.id, c.title)}
                         className="px-3 py-1.5 text-xs rounded-lg bg-red-400/10 text-red-400 hover:bg-red-400/20 transition-colors"
                       >
-                        Delete
+                        {t.admin.common.delete}
                       </button>
                     </div>
                   </td>

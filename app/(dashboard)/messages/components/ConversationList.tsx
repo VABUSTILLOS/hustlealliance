@@ -2,6 +2,7 @@
 
 import { ConversationItem } from "./ConversationItem";
 import type { ConversationItem as ConversationItemType } from "@/lib/db/messages";
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 interface ConversationListProps {
   conversations: ConversationItemType[];
@@ -22,6 +23,7 @@ export function ConversationList({
   onLoadMore,
   onNewMessage,
 }: ConversationListProps) {
+  const { t } = useTranslation();
   if (isLoading) {
     return (
       <div className="space-y-2 p-2">
@@ -41,24 +43,24 @@ export function ConversationList({
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center justify-between border-b p-3">
-        <h2 className="text-lg font-semibold">Messages</h2>
+        <h2 className="text-lg font-semibold">{t.messages.messagesTitle}</h2>
         <button
           onClick={onNewMessage}
           className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
         >
-          New
+          {t.messages.newButton}
         </button>
       </div>
 
       <div className="flex-1 overflow-y-auto p-2">
         {conversations.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <p className="text-sm text-muted-foreground">No conversations yet</p>
+            <p className="text-sm text-muted-foreground">{t.messages.noConversationsYet}</p>
             <button
               onClick={onNewMessage}
               className="mt-3 text-sm text-primary hover:underline"
             >
-              Start a conversation
+              {t.messages.startConversation}
             </button>
           </div>
         ) : (
@@ -79,7 +81,7 @@ export function ConversationList({
             onClick={onLoadMore}
             className="mt-3 w-full rounded-md py-2 text-center text-xs text-muted-foreground hover:text-foreground"
           >
-            Load more
+            {t.messages.loadMore}
           </button>
         )}
       </div>

@@ -5,18 +5,20 @@ import Link from "next/link";
 import { ShoppingBag, Search, ShoppingCart } from "lucide-react";
 import { ProductCard } from "./components/ProductCard";
 import { useStoreProducts } from "./components/hooks/useStore";
-
-const PRODUCT_TYPES = [
-  { value: "", label: "All" },
-  { value: "DIGITAL", label: "Digital" },
-  { value: "PHYSICAL", label: "Physical" },
-  { value: "COURSE", label: "Courses" },
-  { value: "MEMBERSHIP", label: "Memberships" },
-];
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export default function StorePage() {
+  const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
+
+  const PRODUCT_TYPES = [
+    { value: "", label: t.store.filterAll },
+    { value: "DIGITAL", label: t.store.filterDigital },
+    { value: "PHYSICAL", label: t.store.filterPhysical },
+    { value: "COURSE", label: t.store.filterCourses },
+    { value: "MEMBERSHIP", label: t.store.filterMemberships },
+  ];
   const { data: products, isLoading, error } = useStoreProducts({
     search: search || undefined,
     type: typeFilter || undefined,
@@ -28,24 +30,24 @@ export default function StorePage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
             <ShoppingBag className="w-6 h-6 text-blue-600" />
-            Store
+            {t.store.pageTitle}
           </h1>
-          <p className="text-gray-500 mt-1">Tools, resources, and gear from the community</p>
+          <p className="text-gray-500 mt-1">{t.store.pageSubtitle}</p>
         </div>
         <Link
           href="/store/cart"
           className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
         >
           <ShoppingCart className="w-4 h-4" />
-          Cart
+          {t.store.buttonCart}
         </Link>
       </div>
 
       {/* Featured Banner */}
       <div className="mb-8 p-6 sm:p-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl text-white">
-        <h2 className="text-xl sm:text-2xl font-bold">Founder Essentials</h2>
+        <h2 className="text-xl sm:text-2xl font-bold">{t.store.bannerTitle}</h2>
         <p className="mt-1 text-blue-100 max-w-md">
-          Discover tools, templates, and resources trusted by 2,400+ founders in the Alliance.
+          {t.store.bannerSubtitle}
         </p>
       </div>
 
@@ -55,7 +57,7 @@ export default function StorePage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             type="text"
-            placeholder="Search products..."
+            placeholder={t.store.placeholderSearch}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -89,15 +91,15 @@ export default function StorePage() {
 
       {error && (
         <div className="p-4 bg-red-50 text-red-700 rounded-lg">
-          Failed to load products. Please try again.
+          {t.store.errorFailedToLoad}
         </div>
       )}
 
       {products?.length === 0 && !isLoading && (
         <div className="text-center py-12">
           <ShoppingBag className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-          <h3 className="text-lg font-medium text-gray-900">No products found</h3>
-          <p className="text-gray-500 mt-1">Try adjusting your search or filters</p>
+          <h3 className="text-lg font-medium text-gray-900">{t.store.emptyStateTitle}</h3>
+          <p className="text-gray-500 mt-1">{t.store.emptyStateHelp}</p>
         </div>
       )}
 

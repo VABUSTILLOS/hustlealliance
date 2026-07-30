@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 interface UserResult {
   id: string;
@@ -17,15 +18,17 @@ interface UserSearchInputProps {
 
 export function UserSearchInput({
   onSelect,
-  placeholder = "Search users...",
+  placeholder,
   excludeIds = [],
 }: UserSearchInputProps) {
+  const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<UserResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const containerRef = useRef<HTMLDivElement>(null);
+  const searchPlaceholder = placeholder ?? t.messages.searchUsersPlaceholder;
 
   const searchUsers = useCallback(
     async (q: string) => {
@@ -83,16 +86,16 @@ export function UserSearchInput({
           setIsOpen(true);
         }}
         onFocus={() => setIsOpen(true)}
-        placeholder={placeholder}
+        placeholder={searchPlaceholder}
         className="w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20"
       />
 
       {isOpen && (results.length > 0 || isSearching || (query.length >= 2 && results.length === 0)) && (
         <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-60 overflow-y-auto rounded-lg border bg-background shadow-lg">
           {isSearching ? (
-            <div className="p-3 text-center text-xs text-muted-foreground">Searching...</div>
+            <div className="p-3 text-center text-xs text-muted-foreground">{t.messages.searching}</div>
           ) : results.length === 0 ? (
-            <div className="p-3 text-center text-xs text-muted-foreground">No users found</div>
+            <div className="p-3 text-center text-xs text-muted-foreground">{t.messages.noUsersFound}</div>
           ) : (
             results.map((user) => (
               <button

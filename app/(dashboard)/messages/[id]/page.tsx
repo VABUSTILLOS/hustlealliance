@@ -10,11 +10,13 @@ import { ConversationList } from "../components/ConversationList";
 import { ChatView } from "../components/ChatView";
 import { NewMessageModal } from "../components/NewMessageModal";
 import type { ConversationDetail } from "@/lib/db/messages";
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 // Mock user for dev
 const MOCK_USER_ID = "dev-user-id";
 
 export default function ConversationPage() {
+  const { t } = useTranslation();
   const params = useParams();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -26,7 +28,7 @@ export default function ConversationPage() {
     queryKey: ["conversation", conversationId],
     queryFn: async () => {
       const res = await fetch(`/api/messages/conversations/${conversationId}`);
-      if (!res.ok) throw new Error("Failed to fetch conversation");
+      if (!res.ok) throw new Error(t.messages.failedFetchConversation);
       return res.json();
     },
     enabled: !!conversationId,
@@ -68,7 +70,7 @@ export default function ConversationPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content }),
       });
-      if (!res.ok) throw new Error("Failed to send message");
+      if (!res.ok) throw new Error(t.messages.failedSendMessage);
       return res.json();
     },
     onSuccess: (newMessage) => {
@@ -127,12 +129,12 @@ export default function ConversationPage() {
     return (
       <div className="flex h-[calc(100vh-4rem)] items-center justify-center">
         <div className="text-center">
-          <p className="text-lg text-muted-foreground">Conversation not found</p>
+          <p className="text-lg text-muted-foreground">{t.messages.conversationNotFound}</p>
           <button
             onClick={() => router.push("/messages")}
             className="mt-3 text-sm text-primary hover:underline"
           >
-            Back to messages
+            {t.messages.backToMessages}
           </button>
         </div>
       </div>

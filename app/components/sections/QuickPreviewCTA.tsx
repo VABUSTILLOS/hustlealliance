@@ -2,12 +2,12 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { learningPaths } from '@/lib/data/learning-paths';
+import { learningPaths, getLearningPathLocale } from '@/lib/data/learning-paths';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
 export default function QuickPreviewCTA() {
-  const { t } = useTranslation();
-  const featuredPaths = learningPaths.slice(0, 3);
+  const { t, locale } = useTranslation();
+  const featuredPaths = learningPaths.slice(0, 3).map(p => getLearningPathLocale(p, locale));
 
   const container = {
     hidden: { opacity: 0 },

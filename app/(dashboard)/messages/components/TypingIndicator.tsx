@@ -1,18 +1,21 @@
 "use client";
 
+import { useTranslation } from '@/lib/i18n/useTranslation';
+
 interface TypingIndicatorProps {
   names: string[];
 }
 
 export function TypingIndicator({ names }: TypingIndicatorProps) {
+  const { t } = useTranslation();
   if (names.length === 0) return null;
 
   const text =
     names.length === 1
-      ? `${names[0]} is typing...`
+      ? `${names[0]} ${t.messages.isTyping}`
       : names.length === 2
-        ? `${names[0]} and ${names[1]} are typing...`
-        : "Several people are typing...";
+        ? `${names[0]}, ${names[1]} ${t.messages.areTyping}`
+        : t.messages.severalPeopleTyping;
 
   return (
     <div className="flex items-center gap-2 px-3 py-1.5 text-xs text-muted-foreground">

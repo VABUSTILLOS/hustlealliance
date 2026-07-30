@@ -4,9 +4,10 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import clsx from 'clsx';
 import { LazyMotionDiv } from '@/lib/framer/lazy-motion';
-import { getInitialsAvatarUrl, DEFAULT_AVATAR } from '@/lib/utils/avatar';
+import { getInitialsAvatarUrl } from '@/lib/utils/avatar';
 import { timeAgo } from '@/lib/utils/time';
 import type { CommunityPostItem } from '@/lib/db/community';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 interface PostCardProps {
   post: CommunityPostItem;
@@ -33,6 +34,7 @@ export function PostCard({
   onPin,
   commentChildren,
 }: PostCardProps) {
+  const { t, locale } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editText, setEditText] = useState(post.content);
@@ -46,6 +48,9 @@ export function PostCard({
 
   const isOwner = currentUserId === post.author.id;
   const isAdmin = currentUserRole === 'ADMIN';
+  const shareTimesLabel = locale === 'es'
+    ? (post.shareCount === 1 ? 'vez' : 'veces')
+    : (post.shareCount === 1 ? 'time' : 'times');
 
   // Close menu on click outside
   useEffect(() => {
@@ -73,47 +78,46 @@ export function PostCard({
       });
       if (!res.ok) {
         const data = await res.json();
-        alert(data.error || 'Failed to save');
+        alert(data.error || t.community.saveError);
         return;
       }
       setEditMode(false);
-      // Refresh handled by parent via query invalidation, or window reload
       window.location.reload();
     } catch {
-      alert('Failed to save');
+      alert(t.community.saveError);
     } finally {
       setIsSaving(false);
     }
-  }, [editText, post.id, post.content]);
+  }, [editText, post.id, post.content, t.community.saveError]);
 
   const handleDelete = useCallback(async () => {
-    if (!confirm('Delete this post? This action cannot be undone.')) return;
+    if (!confirm(t.community.deleteConfirm)) return;
     try {
       const res = await fetch(`/api/community/posts/${post.id}`, { method: 'DELETE' });
       if (!res.ok) {
         const data = await res.json();
-        alert(data.error || 'Failed to delete');
+        alert(data.error || t.community.deleteError);
         return;
       }
       onDelete?.();
     } catch {
-      alert('Failed to delete');
+      alert(t.community.deleteError);
     }
-  }, [post.id, onDelete]);
+  }, [onDelete, post.id, t.community.deleteConfirm, t.community.deleteError]);
 
   const handlePin = useCallback(async () => {
     try {
       const res = await fetch(`/api/community/posts/${post.id}/pin`, { method: 'PUT' });
       if (!res.ok) {
         const data = await res.json();
-        alert(data.error || 'Failed to toggle pin');
+        alert(data.error || t.community.pinError);
         return;
       }
       onPin?.();
     } catch {
-      alert('Failed to toggle pin');
+      alert(t.community.pinError);
     }
-  }, [post.id, onPin]);
+  }, [onPin, post.id, t.community.pinError]);
 
   const handleCopyLink = useCallback(async () => {
     const url = `${window.location.origin}/community/posts/${post.id}`;
@@ -122,7 +126,6 @@ export function PostCard({
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Fallback
       const input = document.createElement('input');
       input.value = url;
       document.body.appendChild(input);
@@ -143,18 +146,16 @@ export function PostCard({
       });
       if (!res.ok) {
         const data = await res.json();
-        alert(data.error || 'Failed to share');
+        alert(data.error || t.community.shareError);
         return;
       }
       setShareModalOpen(false);
       setShareComment('');
-
-      // Reload to reflect new share count
       window.location.reload();
     } catch {
-      alert('Failed to share');
+      alert(t.community.shareError);
     }
-  }, [post.id, shareComment]);
+  }, [post.id, shareComment, t.community.shareError]);
 
   const handleReport = useCallback(async () => {
     if (!reportReason.trim()) return;
@@ -166,15 +167,15 @@ export function PostCard({
       });
       if (!res.ok) {
         const data = await res.json();
-        alert(data.error || 'Failed to report');
+        alert(data.error || t.community.reportError);
         return;
       }
       setReportModalOpen(false);
       setReportReason('');
     } catch {
-      alert('Failed to report');
+      alert(t.community.reportError);
     }
-  }, [post.id, reportReason]);
+  }, [post.id, reportReason, t.community.reportError]);
 
   return (
     <LazyMotionDiv
@@ -183,7 +184,6 @@ export function PostCard({
       exit={{ opacity: 0, y: -12 }}
       className="bg-surface border border-surface-light rounded-2xl p-5 relative"
     >
-      {/* Pin indicator */}
       {post.isPinned && (
         <div className="absolute top-3 right-3">
           <svg className="w-4 h-4 text-accent" viewBox="0 0 24 24" fill="currentColor">
@@ -192,7 +192,6 @@ export function PostCard({
         </div>
       )}
 
-      {/* Author row */}
       <div className="flex items-center gap-3 mb-3">
         <Image
           src={post.author.avatar ?? getInitialsAvatarUrl(post.author.name)}
@@ -208,7 +207,7 @@ export function PostCard({
             <span className="text-muted text-[10px]">·</span>
             <p className="font-mono text-[10px] text-muted">{timeAgo(post.createdAt)}</p>
             {post.isEdited && (
-              <span className="font-mono text-[10px] text-muted">(edited)</span>
+              <span className="font-mono text-[10px] text-muted">{t.community.edited}</span>
             )}
           </div>
         </div>
@@ -219,7 +218,6 @@ export function PostCard({
         )}
       </div>
 
-      {/* Content */}
       {editMode ? (
         <div className="mb-3 space-y-2">
           <textarea
@@ -234,13 +232,16 @@ export function PostCard({
               disabled={isSaving}
               className="px-3 py-1.5 rounded-lg bg-accent text-white text-xs font-heading font-bold disabled:opacity-50"
             >
-              {isSaving ? 'Saving...' : 'Save'}
+              {isSaving ? t.community.saving : t.community.save}
             </button>
             <button
-              onClick={() => { setEditMode(false); setEditText(post.content); }}
+              onClick={() => {
+                setEditMode(false);
+                setEditText(post.content);
+              }}
               className="px-3 py-1.5 rounded-lg bg-surface-light text-muted text-xs"
             >
-              Cancel
+              {t.community.cancel}
             </button>
           </div>
         </div>
@@ -250,14 +251,13 @@ export function PostCard({
         </p>
       )}
 
-      {/* Images */}
       {post.imageUrls.length > 0 && (
         <div className={clsx('mb-3 grid gap-2', post.imageUrls.length > 1 ? 'grid-cols-2' : 'grid-cols-1')}>
           {post.imageUrls.map((url, i) => (
             <Image
               key={i}
               src={url}
-              alt={`Post image ${i + 1}`}
+              alt={t.community.postImage.replace('{n}', String(i + 1))}
               width={500}
               height={400}
               className="rounded-xl max-h-64 object-cover w-full"
@@ -266,9 +266,7 @@ export function PostCard({
         </div>
       )}
 
-      {/* Action bar */}
       <div className="flex items-center gap-4">
-        {/* Like */}
         <button onClick={onToggleLike} className="flex items-center gap-1.5 group">
           <svg
             className={clsx('w-4 h-4 transition-colors', isLiked ? 'text-accent fill-accent' : 'text-muted group-hover:text-accent')}
@@ -284,7 +282,6 @@ export function PostCard({
           </span>
         </button>
 
-        {/* Comments */}
         <button onClick={onToggleComments} className="flex items-center gap-1.5 text-muted hover:text-foreground transition-colors">
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
@@ -292,7 +289,6 @@ export function PostCard({
           <span className="text-xs font-mono">{post.commentCount}</span>
         </button>
 
-        {/* Shares */}
         <div className="flex items-center gap-1.5 text-muted">
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <circle cx="18" cy="5" r="3" />
@@ -304,7 +300,6 @@ export function PostCard({
           <span className="text-xs font-mono">{post.shareCount}</span>
         </div>
 
-        {/* Three-dot menu */}
         <div ref={menuRef} className="relative ml-auto">
           <button
             onClick={() => setMenuOpen(!menuOpen)}
@@ -321,45 +316,63 @@ export function PostCard({
               {isOwner && (
                 <>
                   <button
-                    onClick={() => { setEditMode(true); setMenuOpen(false); }}
+                    onClick={() => {
+                      setEditMode(true);
+                      setMenuOpen(false);
+                    }}
                     className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-surface-light transition-colors flex items-center gap-2"
                   >
-                    ✏️ Edit
+                    {t.community.edit}
                   </button>
                   <button
-                    onClick={() => { handleDelete(); setMenuOpen(false); }}
+                    onClick={() => {
+                      handleDelete();
+                      setMenuOpen(false);
+                    }}
                     className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-surface-light transition-colors flex items-center gap-2"
                   >
-                    🗑️ Delete
+                    {t.community.delete}
                   </button>
                 </>
               )}
               {(isOwner || isAdmin) && (
                 <button
-                  onClick={() => { handlePin(); setMenuOpen(false); }}
+                  onClick={() => {
+                    handlePin();
+                    setMenuOpen(false);
+                  }}
                   className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-surface-light transition-colors flex items-center gap-2"
                 >
-                  📌 {post.isPinned ? 'Unpin' : 'Pin'}
+                  {post.isPinned ? t.community.unpin : t.community.pin}
                 </button>
               )}
               <button
-                onClick={() => { handleCopyLink(); setMenuOpen(false); }}
+                onClick={() => {
+                  handleCopyLink();
+                  setMenuOpen(false);
+                }}
                 className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-surface-light transition-colors flex items-center gap-2"
               >
-                {copied ? '✅ Copied!' : '🔗 Copy Link'}
+                {copied ? t.community.copied : t.community.copyLink}
               </button>
               <button
-                onClick={() => { setShareModalOpen(true); setMenuOpen(false); }}
+                onClick={() => {
+                  setShareModalOpen(true);
+                  setMenuOpen(false);
+                }}
                 className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-surface-light transition-colors flex items-center gap-2"
               >
-                🔄 Share
+                {t.community.sharing}
               </button>
               {!isOwner && (
                 <button
-                  onClick={() => { setReportModalOpen(true); setMenuOpen(false); }}
+                  onClick={() => {
+                    setReportModalOpen(true);
+                    setMenuOpen(false);
+                  }}
                   className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-surface-light transition-colors flex items-center gap-2"
                 >
-                  🚩 Report
+                  {t.community.report}
                 </button>
               )}
             </div>
@@ -367,25 +380,22 @@ export function PostCard({
         </div>
       </div>
 
-      {/* Share count label if shares exist */}
-      {(post.shareCount) > 0 && (
+      {post.shareCount > 0 && (
         <p className="text-[10px] text-muted font-mono mt-2 ml-1">
-          🔄 Shared {post.shareCount} {post.shareCount === 1 ? 'time' : 'times'}
+          🔄 {t.community.sharedCount.replace('{count}', String(post.shareCount)).replace('{times}', shareTimesLabel)}
         </p>
       )}
 
-      {/* Comments section */}
       {commentsOpen && commentChildren}
 
-      {/* Share modal */}
       {shareModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setShareModalOpen(false)}>
           <div className="bg-surface border border-surface-light rounded-2xl p-6 w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
-            <h3 className="font-heading font-bold text-foreground text-lg mb-4">Share Post</h3>
+            <h3 className="font-heading font-bold text-foreground text-lg mb-4">{t.community.sharePostTitle}</h3>
             <textarea
               value={shareComment}
               onChange={(e) => setShareComment(e.target.value)}
-              placeholder="Add a comment (optional)..."
+              placeholder={t.community.shareCommentPlaceholder}
               rows={3}
               className="w-full bg-surface-light rounded-xl px-3 py-2 text-foreground text-sm outline-none border border-white/10 focus:border-accent/50 resize-none mb-4"
             />
@@ -394,45 +404,47 @@ export function PostCard({
                 onClick={() => setShareModalOpen(false)}
                 className="px-4 py-2 rounded-lg bg-surface-light text-muted text-sm"
               >
-                Cancel
+                {t.community.cancel}
               </button>
               <button
                 onClick={handleShare}
                 className="px-4 py-2 rounded-lg bg-accent text-white text-sm font-heading font-bold"
               >
-                Share
+                {t.community.sharing}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Report modal */}
       {reportModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setReportModalOpen(false)}>
           <div className="bg-surface border border-surface-light rounded-2xl p-6 w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
-            <h3 className="font-heading font-bold text-foreground text-lg mb-4">Report Post</h3>
-            <p className="text-foreground-muted text-sm mb-3">Why are you reporting this post?</p>
+            <h3 className="font-heading font-bold text-foreground text-lg mb-4">{t.community.reportPostTitle}</h3>
+            <p className="text-foreground-muted text-sm mb-3">{t.community.reportPostQuestion}</p>
             <textarea
               value={reportReason}
               onChange={(e) => setReportReason(e.target.value)}
-              placeholder="Explain the issue..."
+              placeholder={t.community.reportIssuePlaceholder}
               rows={3}
               className="w-full bg-surface-light rounded-xl px-3 py-2 text-foreground text-sm outline-none border border-white/10 focus:border-accent/50 resize-none mb-4"
             />
             <div className="flex items-center justify-end gap-3">
               <button
-                onClick={() => { setReportModalOpen(false); setReportReason(''); }}
+                onClick={() => {
+                  setReportModalOpen(false);
+                  setReportReason('');
+                }}
                 className="px-4 py-2 rounded-lg bg-surface-light text-muted text-sm"
               >
-                Cancel
+                {t.community.cancel}
               </button>
               <button
                 onClick={handleReport}
                 disabled={!reportReason.trim()}
                 className="px-4 py-2 rounded-lg bg-red-500 text-white text-sm font-heading font-bold disabled:opacity-50"
               >
-                Report
+                {t.community.report}
               </button>
             </div>
           </div>

@@ -4,7 +4,7 @@ import { use } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
-import { learningPaths } from '@/lib/data/learning-paths';
+import { learningPaths, getLearningPathLocale } from '@/lib/data/learning-paths';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
 export default function PreviewPage({
@@ -13,24 +13,27 @@ export default function PreviewPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = use(params);
-  const { t } = useTranslation();
-  const path = learningPaths.find((lp) => lp.slug === slug);
+  const { t, locale } = useTranslation();
+  const rawPath = learningPaths.find((lp) => lp.slug === slug);
+  const path = rawPath ? getLearningPathLocale(rawPath, locale) : undefined;
 
   if (!path) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-4 text-center">
         <div className="text-6xl mb-4">🔍</div>
         <h1 className="font-display text-3xl text-[var(--color-foreground)] uppercase mb-2">
-          Path Not Found
+          {locale === 'es' ? 'Ruta no encontrada' : 'Path Not Found'}
         </h1>
         <p className="text-[var(--color-foreground-muted)] mb-6">
-          The learning path you&apos;re looking for doesn&apos;t exist.
+          {locale === 'es'
+            ? 'La ruta de aprendizaje que buscas no existe.'
+            : 'The learning path you\'re looking for doesn\'t exist.'}
         </p>
         <Link
           href="/"
           className="px-6 py-3 rounded-xl bg-[var(--color-accent)] text-white font-heading font-bold text-sm hover:shadow-[0_0_30px_rgba(255,59,48,0.3)] transition-all"
         >
-          ← Back to Home
+          {locale === 'es' ? '← Volver al Inicio' : '← Back to Home'}
         </Link>
       </div>
     );
@@ -50,7 +53,7 @@ export default function PreviewPage({
           <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
             <polyline points="15 18 9 12 15 6" />
           </svg>
-          Back to Hustle Alliance
+          {locale === 'es' ? 'Volver a Hustle Alliance' : 'Back to Hustle Alliance'}
         </Link>
 
         {/* Hero info */}
@@ -106,13 +109,13 @@ export default function PreviewPage({
                 {firstLesson?.title || 'Sample Lesson'}
               </h2>
               <p className="font-mono text-xs text-[var(--color-foreground-dim)] mb-6">
-                {firstLesson?.duration || '5 min'} • Free Preview
+                {firstLesson?.duration || '5 min'} • {locale === 'es' ? 'Vista Previa Gratis' : 'Free Preview'}
               </p>
 
               {firstLesson?.insights && firstLesson.insights.length > 0 && (
                 <div className="mb-6 relative">
                   <p className="text-[var(--color-foreground-muted)] text-xs uppercase tracking-wider mb-3 font-mono">
-                    Key Insights
+                    {locale === 'es' ? 'Conceptos Clave' : 'Key Insights'}
                   </p>
                   <div className="relative">
                     <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin">
@@ -174,27 +177,31 @@ export default function PreviewPage({
               shadow-[0_0_40px_rgba(255,59,48,0.08)]">
               <div className="text-4xl mb-3">🚀</div>
               <h3 className="font-heading font-bold text-[var(--color-foreground)] text-lg mb-2">
-                Ready to go deeper?
+                {locale === 'es' ? '¿Listo para profundizar?' : 'Ready to go deeper?'}
               </h3>
               <p className="text-[var(--color-foreground-dim)] text-sm mb-5">
-                Join Hustle Alliance to unlock all {path.totalLessons} lessons, earn badges, and connect with {path.studentCount.toLocaleString()}+ founders.
+                {locale === 'es'
+                  ? `Únete a Hustle Alliance para desbloquear las ${path.totalLessons} lecciones, ganar insignias y conectar con más de ${path.studentCount.toLocaleString()} fundadores.`
+                  : `Join Hustle Alliance to unlock all ${path.totalLessons} lessons, earn badges, and connect with ${path.studentCount.toLocaleString()}+ founders.`}
               </p>
               <Link
                 href="/dashboard"
                 className="block w-full py-3 rounded-xl bg-[var(--color-accent)] text-white font-heading font-bold text-sm
                   hover:shadow-[0_0_30px_rgba(255,59,48,0.3)] transition-all active:scale-[0.98]"
               >
-                Start Free — Join the Alliance
+                {locale === 'es' ? 'Empieza Gratis — Únete a la Alianza' : 'Start Free — Join the Alliance'}
               </Link>
               <p className="text-[var(--color-foreground-dim)] text-xs mt-3">
-                No credit card required. Free forever tier available.
+                {locale === 'es'
+                  ? 'Sin tarjeta de crédito. Plan gratuito para siempre disponible.'
+                  : 'No credit card required. Free forever tier available.'}
               </p>
             </div>
 
             {/* Path overview */}
             <div className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-5">
               <h3 className="font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--color-foreground-dim)] mb-4">
-                What you&apos;ll learn
+                {locale === 'es' ? 'Lo que aprenderás' : 'What you\'ll learn'}
               </h3>
               <ul className="space-y-3">
                 {path.modules.map((mod, i) => (
@@ -205,7 +212,7 @@ export default function PreviewPage({
                     <div>
                       <p className="text-[var(--color-foreground)] text-sm font-medium">{mod.title}</p>
                       <p className="text-[var(--color-foreground-dim)] text-xs">
-                        {mod.lessons.length} lessons
+                        {mod.lessons.length} {locale === 'es' ? 'lecciones' : 'lessons'}
                       </p>
                     </div>
                   </li>
@@ -216,7 +223,7 @@ export default function PreviewPage({
             {/* Author */}
             <div className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-5">
               <h3 className="font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--color-foreground-dim)] mb-4">
-                Instructor
+                {locale === 'es' ? 'Instructor' : 'Instructor'}
               </h3>
               <div className="flex items-center gap-3">
                 <Image

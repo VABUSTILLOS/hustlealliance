@@ -6,6 +6,7 @@ import { MessageBubble } from "./MessageBubble";
 import { MessageInput } from "./MessageInput";
 import { TypingIndicator } from "./TypingIndicator";
 import type { ConversationDetail } from "@/lib/db/messages";
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 interface MessageItem {
   id: string;
@@ -49,6 +50,7 @@ export function ChatView({
   onTyping,
   typingNames,
 }: ChatViewProps) {
+  const { t } = useTranslation();
   const router = useRouter();
   const bottomRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -79,10 +81,21 @@ export function ChatView({
   }, [isLoading, messages.length]);
 
   const displayName = (() => {
-    if (conversation.isGroup) return conversation.name || "Group Chat";
+    if (conversation.isGroup) return conversation.name || t.messages.groupChat;
     const other = conversation.participants.find((p) => p.user.id !== userId);
     return other?.user.name || other?.user.username || "Unknown";
   })();
+
+  const formatDateHeader = (dateStr: string): string => {
+    const date = new Date(dateStr);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    if (date.toDateString() === today.toDateString()) return t.messages.today;
+    if (date.toDateString() === yesterday.toDateString()) return t.messages.yesterday;
+    return date.toLocaleDateString([], { month: "long", day: "numeric", year: "numeric" });
+  };
 
   // Group messages by date for date separators
   const groupedMessages = [] as { date: string; messages: MessageItem[] }[];
@@ -120,8 +133,8 @@ export function ChatView({
             <h3 className="text-sm font-semibold">{displayName}</h3>
             <p className="text-xs text-muted-foreground">
               {conversation.isGroup
-                ? `${conversation.participants.length} members`
-                : "Direct Message"}
+                ? `${conversation.participants.length} ${t.messages.members}`
+                : t.messages.directMessage}
             </p>
           </div>
         </div>
@@ -140,7 +153,7 @@ export function ChatView({
               disabled={isLoading}
               className="rounded-full bg-muted px-4 py-1 text-xs text-muted-foreground hover:text-foreground disabled:opacity-50"
             >
-              {isLoading ? "Loading..." : "Load older messages"}
+              {isLoading ? t.messages.loading : t.messages.loadOlderMessages}
             </button>
           </div>
         )}
@@ -164,8 +177,8 @@ export function ChatView({
           </div>
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <p className="text-sm text-muted-foreground">No messages yet</p>
-            <p className="mt-1 text-xs text-muted-foreground">Send a message to start the conversation</p>
+            <p className="text-sm text-muted-foreground">{t.messages.noMessagesYet}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{t.messages.startConversationHint}</p>
           </div>
         ) : (
           groupedMessages.map((group) => (
@@ -203,15 +216,4 @@ export function ChatView({
       />
     </div>
   );
-}
-
-function formatDateHeader(dateStr: string): string {
-  const date = new Date(dateStr);
-  const today = new Date();
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
-
-  if (date.toDateString() === today.toDateString()) return "Today";
-  if (date.toDateString() === yesterday.toDateString()) return "Yesterday";
-  return date.toLocaleDateString([], { month: "long", day: "numeric", year: "numeric" });
 }

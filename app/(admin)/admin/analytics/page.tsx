@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 type ChartDataPoint = { month: string; count?: number; amount?: number };
 type Analytics = {
@@ -51,6 +52,7 @@ function BarChart({ data, dataKey, color, label }: { data: ChartDataPoint[]; dat
 }
 
 export default function AdminAnalyticsPage() {
+  const { t } = useTranslation();
   const [data, setData] = useState<Analytics | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -62,33 +64,33 @@ export default function AdminAnalyticsPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="p-8 text-muted">Loading analytics...</div>;
-  if (!data) return <div className="p-8 text-muted">Failed to load analytics.</div>;
+  if (loading) return <div className="p-8 text-muted">{t.admin.analytics.loading}</div>;
+  if (!data) return <div className="p-8 text-muted">{t.admin.analytics.failedLoad}</div>;
 
   return (
     <div className="p-4 md:p-8">
-      <h1 className="text-2xl font-heading font-bold text-foreground mb-8">Analytics</h1>
+      <h1 className="text-2xl font-heading font-bold text-foreground mb-8">{t.admin.analytics.title}</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {/* Enrollments chart */}
         <div className="glass-card p-6">
-          <BarChart data={data.enrollmentsByMonth} dataKey="count" color="#3B82F6" label="Enrollments per Month" />
+          <BarChart data={data.enrollmentsByMonth} dataKey="count" color="#3B82F6" label={t.admin.analytics.enrollmentsPerMonth} />
         </div>
 
         {/* Completions chart */}
         <div className="glass-card p-6">
-          <BarChart data={data.completionsByMonth} dataKey="count" color="#22C55E" label="Completions per Month" />
+          <BarChart data={data.completionsByMonth} dataKey="count" color="#22C55E" label={t.admin.analytics.completionsPerMonth} />
         </div>
 
         {/* Revenue chart */}
         <div className="glass-card p-6 lg:col-span-2">
-          <BarChart data={data.revenueByMonth} dataKey="amount" color="#FF3B30" label="Revenue per Month (USD)" />
+          <BarChart data={data.revenueByMonth} dataKey="amount" color="#FF3B30" label={t.admin.analytics.revenuePerMonth} />
         </div>
       </div>
 
       {/* Top courses */}
       <div className="glass-card p-6 mb-8">
-        <h3 className="text-foreground font-heading font-bold mb-4">Top Courses by Enrollment</h3>
+        <h3 className="text-foreground font-heading font-bold mb-4">{t.admin.analytics.topCourses}</h3>
         <div className="space-y-3">
           {data.topCourses.slice(0, 5).map((c, i) => (
             <div key={c.title} className="flex items-center justify-between py-2 border-b border-surface-light/50 last:border-0">
@@ -96,7 +98,7 @@ export default function AdminAnalyticsPage() {
                 <span className="text-muted font-mono text-sm w-6">#{i + 1}</span>
                 <span className="text-foreground text-sm">{c.title}</span>
               </div>
-              <span className="text-muted text-sm font-mono">{c.enrollments} enrolled</span>
+              <span className="text-muted text-sm font-mono">{t.admin.analytics.enrolled.replace('{count}', String(c.enrollments))}</span>
             </div>
           ))}
         </div>
@@ -104,7 +106,7 @@ export default function AdminAnalyticsPage() {
 
       {/* Completion rates */}
       <div className="glass-card p-6">
-        <h3 className="text-foreground font-heading font-bold mb-4">Course Completion Rates</h3>
+        <h3 className="text-foreground font-heading font-bold mb-4">{t.admin.analytics.completionRates}</h3>
         <div className="space-y-3">
           {data.courseCompletionRates.slice(0, 10).map((c) => (
             <div key={c.title} className="space-y-1">

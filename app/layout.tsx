@@ -27,8 +27,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Hustle Alliance",
-  description: "The premium community for solo founders.",
+  title: "Hustle Alliance — The Founder's Collective",
+  description: "The premium community for solo founders. Join 2,400+ founders building together.",
 };
 
 export default function RootLayout({

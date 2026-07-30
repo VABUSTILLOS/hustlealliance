@@ -1,4 +1,5 @@
 import type { KeyInsight } from './gamification';
+import { learningPathsES, type InsightTranslations, type LessonTranslations, type ModuleTranslations, type LearningPathTranslations } from './learning-paths-es';
 
 export type Difficulty = 'Beginner' | 'Intermediate' | 'Advanced';
 export type Category = 'Fundraising' | 'Marketing' | 'Product' | 'Leadership';
@@ -47,6 +48,52 @@ export interface LearningPath {
   keyInsights: KeyInsight[];
   totalLessons: number;
   communitySpaceSlug?: string;
+}
+
+/** Get locale-aware learning path data */
+export function getLearningPathLocale(path: LearningPath, locale: 'en' | 'es'): LearningPath {
+  if (locale === 'en') return path;
+  const es = learningPathsES[path.slug];
+  if (!es) return path;
+
+  const localizedModules = path.modules.map(mod => {
+    const esMod = es.modules[mod.id];
+    if (!esMod) return mod;
+    return {
+      ...mod,
+      title: esMod.title,
+      lessons: mod.lessons.map(lesson => {
+        const esLesson = esMod.lessons[lesson.slug];
+        if (!esLesson) return lesson;
+        return {
+          ...lesson,
+          title: esLesson.title,
+          content: esLesson.content,
+          insights: lesson.insights?.map((ins, i) => ({
+            ...ins,
+            title: esLesson.insights?.[i]?.title ?? ins.title,
+            insight: esLesson.insights?.[i]?.insight ?? ins.insight,
+          })),
+        };
+      }),
+    };
+  });
+
+  const localizedInsights = path.keyInsights.map((ins, i) => ({
+    ...ins,
+    title: es.keyInsights[i]?.title ?? ins.title,
+    insight: es.keyInsights[i]?.insight ?? ins.insight,
+  }));
+
+  return {
+    ...path,
+    title: es.path.title,
+    tagline: es.path.tagline,
+    description: es.path.description,
+    author: { ...path.author, bio: es.path.authorBio },
+    modules: localizedModules,
+    keyInsights: localizedInsights,
+  };
 }
 
 export const learningPaths: LearningPath[] = [

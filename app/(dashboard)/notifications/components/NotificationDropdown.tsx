@@ -5,6 +5,7 @@ import type { NotificationItem } from '@/app/(dashboard)/notifications/hooks/use
 import { NotificationItemRow } from './NotificationItem';
 import Link from 'next/link';
 import { useCallback, useEffect, useRef } from 'react';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 interface NotificationDropdownProps {
   isOpen: boolean;
@@ -12,6 +13,7 @@ interface NotificationDropdownProps {
 }
 
 export function NotificationDropdown({ isOpen, onClose }: NotificationDropdownProps) {
+  const { t } = useTranslation();
   const { data, isLoading } = useNotifications(5);
   const markAsRead = useMarkAsRead();
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -58,7 +60,7 @@ export function NotificationDropdown({ isOpen, onClose }: NotificationDropdownPr
       className="absolute right-0 top-full mt-2 w-80 bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-xl shadow-xl z-50 overflow-hidden"
     >
       <div className="px-4 py-3 border-b border-[var(--color-border-subtle)] flex items-center justify-between">
-        <h3 className="font-heading font-bold text-sm text-foreground">Notifications</h3>
+        <h3 className="font-heading font-bold text-sm text-foreground">{t.notifications.title}</h3>
       </div>
 
       <div className="max-h-[360px] overflow-y-auto">
@@ -66,7 +68,7 @@ export function NotificationDropdown({ isOpen, onClose }: NotificationDropdownPr
           <div className="px-4 py-8 text-center text-muted text-sm">Loading...</div>
         ) : notifications.length === 0 ? (
           <div className="px-4 py-8 text-center text-muted text-sm">
-            No notifications yet
+            {t.notifications.emptyState}
           </div>
         ) : (
           notifications.map((n) => (
@@ -80,7 +82,7 @@ export function NotificationDropdown({ isOpen, onClose }: NotificationDropdownPr
         onClick={onClose}
         className="block px-4 py-3 text-center text-sm text-accent hover:bg-accent/5 border-t border-[var(--color-border-subtle)] font-medium transition-colors"
       >
-        View all notifications
+        {t.notifications.viewAll}
       </Link>
     </div>
   );

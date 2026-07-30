@@ -2,6 +2,7 @@
 
 import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 type QuizSummary = {
   quizId: string;
@@ -26,6 +27,7 @@ type StudentAttempt = {
 
 export default function CourseQuizzesPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const { t } = useTranslation();
   const [data, setData] = useState<{ quizzes: QuizSummary[]; attempts: StudentAttempt[] } | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -37,19 +39,19 @@ export default function CourseQuizzesPage({ params }: { params: Promise<{ id: st
       .finally(() => setLoading(false));
   }, [id]);
 
-  if (loading) return <div className="p-8 text-muted">Loading...</div>;
-  if (!data) return <div className="p-8 text-muted">Failed to load quiz data.</div>;
+  if (loading) return <div className="p-8 text-muted">{t.general.loading}</div>;
+  if (!data) return <div className="p-8 text-muted">{t.instructor.quizzes.failedLoad}</div>;
 
   return (
     <div className="p-4 md:p-8">
       <div className="flex items-center gap-4 mb-8">
-        <Link href={`/instructor/courses/${id}`} className="text-muted hover:text-foreground">← Back</Link>
-        <h1 className="text-2xl font-heading font-bold text-foreground">Quiz Results</h1>
+        <Link href={`/instructor/courses/${id}`} className="text-muted hover:text-foreground">{t.instructor.courses.back}</Link>
+        <h1 className="text-2xl font-heading font-bold text-foreground">{t.instructor.quizzes.title}</h1>
       </div>
 
       {/* Quiz summaries */}
       {data.quizzes.length === 0 ? (
-        <div className="glass-card p-8 text-center text-muted">No quizzes in this course.</div>
+        <div className="glass-card p-8 text-center text-muted">{t.instructor.quizzes.noQuizzes}</div>
       ) : (
         <div className="space-y-6">
           {data.quizzes.map((q) => (
@@ -62,21 +64,21 @@ export default function CourseQuizzesPage({ params }: { params: Promise<{ id: st
                 <div className="flex gap-6 text-center">
                   <div>
                     <p className="text-2xl font-heading font-bold text-blue-400">{q.avgScore}%</p>
-                    <p className="text-muted text-[10px]">Avg Score</p>
+                    <p className="text-muted text-[10px]">{t.instructor.quizzes.avgScore}</p>
                   </div>
                   <div>
                     <p className="text-2xl font-heading font-bold text-green-400">{q.passRate}%</p>
-                    <p className="text-muted text-[10px]">Pass Rate</p>
+                    <p className="text-muted text-[10px]">{t.instructor.quizzes.passRate}</p>
                   </div>
                   <div>
                     <p className="text-2xl font-heading font-bold text-foreground">{q.totalAttempts}</p>
-                    <p className="text-muted text-[10px]">Attempts</p>
+                    <p className="text-muted text-[10px]">{t.instructor.quizzes.attempts}</p>
                   </div>
                 </div>
               </div>
               <div className="flex gap-4 text-sm">
-                <span className="text-green-400">{q.passCount} passed</span>
-                <span className="text-red-400">{q.failCount} failed</span>
+                <span className="text-green-400">{t.instructor.quizzes.passedCount.replace('{count}', String(q.passCount))}</span>
+                <span className="text-red-400">{t.instructor.quizzes.failedCount.replace('{count}', String(q.failCount))}</span>
               </div>
             </div>
           ))}
@@ -86,15 +88,15 @@ export default function CourseQuizzesPage({ params }: { params: Promise<{ id: st
       {/* Recent attempts */}
       {data.attempts.length > 0 && (
         <div className="mt-8">
-          <h2 className="text-lg font-heading font-bold text-foreground mb-4">Recent Attempts</h2>
+          <h2 className="text-lg font-heading font-bold text-foreground mb-4">{t.instructor.quizzes.recentAttempts}</h2>
           <div className="glass-card overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-muted text-left border-b border-surface-light">
-                  <th className="p-4 font-medium">Student</th>
-                  <th className="p-4 font-medium">Score</th>
-                  <th className="p-4 font-medium">Result</th>
-                  <th className="p-4 font-medium">Submitted</th>
+                  <th className="p-4 font-medium">{t.instructor.quizzes.table.student}</th>
+                  <th className="p-4 font-medium">{t.instructor.quizzes.table.score}</th>
+                  <th className="p-4 font-medium">{t.instructor.quizzes.table.result}</th>
+                  <th className="p-4 font-medium">{t.instructor.quizzes.table.submitted}</th>
                 </tr>
               </thead>
               <tbody>
@@ -107,7 +109,7 @@ export default function CourseQuizzesPage({ params }: { params: Promise<{ id: st
                     <td className="p-4 text-muted font-mono">{a.score}%</td>
                     <td className="p-4">
                       <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${a.passed ? 'text-green-400 bg-green-400/10' : 'text-red-400 bg-red-400/10'}`}>
-                        {a.passed ? 'Passed' : 'Failed'}
+                        {a.passed ? t.instructor.quizzes.resultPassed : t.instructor.quizzes.resultFailed}
                       </span>
                     </td>
                     <td className="p-4 text-muted text-xs">{new Date(a.submittedAt).toLocaleString()}</td>

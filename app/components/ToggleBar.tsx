@@ -4,7 +4,7 @@ import { useTranslation } from '@/lib/i18n/useTranslation';
 import { useTheme } from '@/lib/theme/useTheme';
 
 export default function ToggleBar() {
-  const { locale, setLocale } = useTranslation();
+  const { t, locale, setLocale } = useTranslation();
   const { theme, toggleTheme } = useTheme();
 
   return (
@@ -13,7 +13,7 @@ export default function ToggleBar() {
       <button
         onClick={() => setLocale(locale === 'en' ? 'es' : 'en')}
         className="px-2.5 py-1 rounded-lg border border-[var(--color-border-subtle)] bg-[var(--color-surface)]/80 backdrop-blur-md text-xs font-mono font-bold text-[var(--color-foreground)]/70 hover:text-accent hover:border-accent/30 transition-all"
-        aria-label="Toggle language"
+        aria-label={t.toggle.language}
       >
         {locale === 'en' ? 'EN' : 'ES'}
       </button>
@@ -22,7 +22,7 @@ export default function ToggleBar() {
       <button
         onClick={toggleTheme}
         className="p-2 rounded-lg border border-[var(--color-border-subtle)] bg-[var(--color-surface)]/80 backdrop-blur-md text-[var(--color-foreground)]/60 hover:text-accent transition-all"
-        aria-label="Toggle theme"
+        aria-label={t.toggle.theme}
       >
         {theme === 'dark' ? (
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

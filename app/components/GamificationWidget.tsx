@@ -3,9 +3,10 @@
 import { motion } from 'framer-motion';
 import { useStore } from '@/lib/store/useStore';
 import { useEffect, useState, useRef } from 'react';
-import { badges as allBadges } from '@/lib/data/gamification';
+import { badges as allBadges, getBadgeLocale } from '@/lib/data/gamification';
 import BadgeUnlock from './BadgeUnlock';
 import { useToast } from './ToastProvider';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 export default function GamificationWidget() {
   const { gamification, checkDailyLogin, getNextBadge, clearLatestBadge } = useStore();
@@ -13,6 +14,7 @@ export default function GamificationWidget() {
   const { addToast } = useToast();
   const prevStreak = useRef(gamification.streak);
   const prevBadgeCount = useRef(gamification.earnedBadges.length);
+  const { locale, t } = useTranslation();
 
   useEffect(() => {
     checkDailyLogin();
@@ -30,7 +32,9 @@ export default function GamificationWidget() {
   useEffect(() => {
     if (streak > prevStreak.current && prevStreak.current > 0) {
       addToast({
-        message: `${streak}-day streak! Keep the fire burning!`,
+        message: locale === 'es'
+          ? `¡Racha de ${streak} días! ¡Sigue así!`
+          : `${streak}-day streak! Keep the fire burning!`,
         icon: '🔥',
         type: 'streak',
       });
@@ -45,7 +49,9 @@ export default function GamificationWidget() {
       const newBadge = allBadges.find(b => b.id === newBadgeId);
       if (newBadge) {
         addToast({
-          message: `Badge unlocked: ${newBadge.name}! ${newBadge.icon}`,
+          message: locale === 'es'
+            ? `¡Insignia desbloqueada: ${newBadge.nameEs}! ${newBadge.icon}`
+            : `Badge unlocked: ${newBadge.name}! ${newBadge.icon}`,
           icon: newBadge.icon,
           type: 'success',
           duration: 5000,
@@ -118,7 +124,7 @@ export default function GamificationWidget() {
                 <div className="flex items-center gap-1">
                   <span className="text-xs">{nextBadge.badge.icon}</span>
                   <span className="text-[10px] text-foreground-muted truncate max-w-[60px]">
-                    {nextBadge.badge.name}
+                    {locale === 'es' ? nextBadge.badge.nameEs : nextBadge.badge.name}
                   </span>
                 </div>
                 <div className="w-full h-1 bg-white/10 rounded-full mt-1 overflow-hidden">

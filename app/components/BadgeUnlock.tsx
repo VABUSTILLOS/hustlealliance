@@ -2,6 +2,8 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Badge } from '@/lib/data/gamification';
+import { getBadgeLocale } from '@/lib/data/gamification';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 interface Props {
   badge: Badge | null;
@@ -9,6 +11,8 @@ interface Props {
 }
 
 export default function BadgeUnlock({ badge, onClose }: Props) {
+  const { locale } = useTranslation();
+  const loc = badge ? getBadgeLocale(badge, locale) : null;
   return (
     <AnimatePresence>
       {badge && (
@@ -82,13 +86,13 @@ export default function BadgeUnlock({ badge, onClose }: Props) {
                 transition={{ delay: 0.5 }}
               >
                 <h2 className="text-sm text-accent font-semibold uppercase tracking-widest mb-2">
-                  Badge Unlocked!
+                  {locale === 'es' ? '¡Insignia Desbloqueada!' : 'Badge Unlocked!'}
                 </h2>
                 <h1 className="text-2xl font-bold text-foreground mb-2">
-                  {badge.name}
+                  {loc?.name}
                 </h1>
                 <p className="text-foreground-dim text-sm mb-6">
-                  {badge.description}
+                  {loc?.description}
                 </p>
 
                 <button
@@ -96,7 +100,7 @@ export default function BadgeUnlock({ badge, onClose }: Props) {
                   className="px-6 py-2.5 rounded-xl bg-accent text-white font-semibold text-sm
                     hover:shadow-lg hover:shadow-accent/30 transition-all active:scale-95"
                 >
-                  Awesome!
+                  {locale === 'es' ? '¡Genial!' : 'Awesome!'}
                 </button>
               </motion.div>
             </div>
