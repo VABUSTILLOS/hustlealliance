@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useCallback, useState, createContext, useContext } from "react";
 import { motion } from "framer-motion";
-import type { ReactNode, RefObject } from "react";
+import type { ReactNode, RefObject, UIEvent } from "react";
 
 // ── Scroll Container Context ──────────────────────────────────────────────────
 // PostDetailClient reads this to know it's inside a modal and skip its own
@@ -14,43 +14,6 @@ const ScrollContainerContext =
 
 export function useScrollContainer() {
   return useContext(ScrollContainerContext);
-}
-
-// ── Modal-native reading progress bar ─────────────────────────────────────────
-// Tracks the panel's internal scroll, positioned absolutely at the panel top.
-
-function ModalProgressBar({
-  scrollRef,
-}: {
-  scrollRef: RefObject<HTMLDivElement | null>;
-}) {
-  const [progress, setProgress] = useState(0);
-
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-
-    const handleScroll = () => {
-      const scrollable = el.scrollHeight - el.clientHeight;
-      const pct = scrollable > 0 ? Math.min((el.scrollTop / scrollable) * 100, 100) : 0;
-      setProgress(pct);
-    };
-
-    el.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
-    return () => el.removeEventListener("scroll", handleScroll);
-  }, [scrollRef]);
-
-  return (
-    <div className="absolute top-0 left-0 right-0 z-30 h-1 bg-surface-light">
-      <motion.div
-        className="h-full bg-accent"
-        style={{ width: `${progress}%` }}
-        animate={{ opacity: progress > 99 ? 0 : 1 }}
-        transition={{ duration: 0.1 }}
-      />
-    </div>
-  );
 }
 
 // ── PostModal ─────────────────────────────────────────────────────────────────
@@ -66,6 +29,15 @@ export function PostModal({
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const scrollY = useRef(0);
   const [mounted, setMounted] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
+
+  // ── Track internal scroll via React onScroll — window is locked ───────────
+  const handleScroll = useCallback((e: UIEvent<HTMLDivElement>) => {
+    const target = e.currentTarget;
+    const scrollable = target.scrollHeight - target.clientHeight;
+    const pct = scrollable > 0 ? Math.min((target.scrollTop / scrollable) * 100, 100) : 0;
+    setScrollProgress(pct);
+  }, []);
 
   // ── Mount guard — prevents SSR/client DOM mismatch flash ──────────────────
   useEffect(() => {
@@ -121,9 +93,10 @@ export function PostModal({
           onClick={dismiss}
         />
 
-        {/* Slide-in panel */}
+        {/* Slide-in panel — onScroll tracks internal reading progress */}
         <motion.div
           ref={scrollRef}
+          onScroll={handleScroll}
           initial={{ x: "100%" }}
           animate={{ x: 0 }}
           exit={{ x: "100%" }}
@@ -132,12 +105,19 @@ export function PostModal({
                      border-l border-surface-light shadow-2xl
                      overflow-y-auto overscroll-contain will-change-transform"
         >
-          {/* Reading progress bar — anchored to panel top */}
-          <ModalProgressBar scrollRef={scrollRef} />
+          {/* Reading progress bar — sticky at panel top, above the header */}
+          <div className="sticky top-0 z-30 h-1 bg-surface-light">
+            <motion.div
+              className="h-full bg-accent"
+              style={{ width: `${scrollProgress}%` }}
+              animate={{ opacity: scrollProgress > 99 ? 0 : 1 }}
+              transition={{ duration: 0.1 }}
+            />
+          </div>
 
           {/* Sticky header */}
           <div
-            className="sticky top-0 z-20 bg-surface/95 backdrop-blur-sm
+            className="sticky top-[4px] z-20 bg-surface/95 md:backdrop-blur-sm
                         border-b border-surface-light px-5 py-3.5
                         flex items-center gap-3"
           >
