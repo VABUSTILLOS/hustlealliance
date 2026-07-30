@@ -133,7 +133,7 @@ async function main() {
       categoryId: catFundraising.id,
       instructorId: marcus.id,
       communitySpaceSlug: 'fundraising-hub',
-      thumbnail: 'https://images.unsplash.com/photo-1553484771-371e845efba1?w=800&h=500&fit=crop',
+      thumbnail: '/images/courses/fundraising-101.webp',
       modules: [
         {
           title: 'Building Your Narrative',
@@ -175,7 +175,7 @@ async function main() {
       categoryId: catMarketing.id,
       instructorId: priya.id,
       communitySpaceSlug: 'growth-hacking',
-      thumbnail: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=500&fit=crop',
+      thumbnail: '/images/courses/growth-marketing.webp',
       modules: [
         {
           title: 'Growth Foundations',
@@ -214,7 +214,7 @@ async function main() {
       categoryId: catProduct.id,
       instructorId: devon.id,
       communitySpaceSlug: 'ai-ml-builders',
-      thumbnail: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&h=500&fit=crop',
+      thumbnail: '/images/courses/product-led-growth.webp',
       modules: [
         {
           title: 'PLG Fundamentals',
@@ -253,7 +253,7 @@ async function main() {
       categoryId: catLeadership.id,
       instructorId: sarah.id,
       communitySpaceSlug: 'saas-founders',
-      thumbnail: 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=800&h=500&fit=crop',
+      thumbnail: '/images/courses/leadership-foundations.webp',
       modules: [
         {
           title: 'The Founder-to-Leader Transition',
@@ -294,7 +294,7 @@ async function main() {
       categoryId: catSales.id,
       instructorId: marcus.id,
       communitySpaceSlug: 'saas-founders',
-      thumbnail: 'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=800&h=500&fit=crop',
+      thumbnail: '/images/courses/sales-for-founders.webp',
       modules: [
         {
           title: 'Foundations of Founder-Led Sales',
@@ -335,7 +335,7 @@ async function main() {
       categoryId: catFinance.id,
       instructorId: devon.id,
       communitySpaceSlug: 'fundraising-hub',
-      thumbnail: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&h=500&fit=crop',
+      thumbnail: '/images/courses/startup-finance-101.webp',
       modules: [
         {
           title: 'Financial Foundations',
@@ -376,7 +376,7 @@ async function main() {
       categoryId: catProduct.id,
       instructorId: devon.id,
       communitySpaceSlug: 'ai-ml-builders',
-      thumbnail: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&h=500&fit=crop',
+      thumbnail: '/images/courses/ai-tools-for-founders.webp',
       modules: [
         {
           title: 'AI Fundamentals for Founders',
@@ -417,7 +417,7 @@ async function main() {
       categoryId: catProduct.id,
       instructorId: priya.id,
       communitySpaceSlug: 'saas-founders',
-      thumbnail: 'https://images.unsplash.com/photo-1545235617-9465d2a55698?w=800&h=500&fit=crop',
+      thumbnail: '/images/courses/design-thinking.webp',
       modules: [
         {
           title: 'Empathize & Define',
@@ -457,7 +457,7 @@ async function main() {
       categoryId: catLeadership.id,
       instructorId: sarah.id,
       communitySpaceSlug: 'saas-founders',
-      thumbnail: 'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&h=500&fit=crop',
+      thumbnail: '/images/courses/remote-leadership.webp',
       modules: [
         {
           title: 'Remote-First Mindset',
@@ -498,7 +498,7 @@ async function main() {
       categoryId: catMarketing.id,
       instructorId: priya.id,
       communitySpaceSlug: 'growth-hacking',
-      thumbnail: 'https://images.unsplash.com/photo-1432821596592-e2c18b78144f?w=800&h=500&fit=crop',
+      thumbnail: '/images/courses/content-marketing-mastery.webp',
       modules: [
         {
           title: 'Content Strategy Foundations',
@@ -762,6 +762,212 @@ async function main() {
   }
 
   console.log('✅ Drip feed & prerequisites seeded');
+
+  // ==================== STUDY GROUPS ====================
+  console.log('\n📚 Creating study groups for all courses...');
+
+  const allCourseSlugs = [
+    'fundraising-101',
+    'growth-marketing',
+    'product-led-growth',
+    'leadership-foundations',
+    'sales-for-founders',
+    'startup-finance-101',
+    'ai-tools-for-founders',
+    'design-thinking',
+    'remote-leadership',
+    'content-marketing-mastery',
+  ];
+
+  const studyGroupPosts: Record<string, { authorId: string; content: string; replies: { authorId: string; content: string }[] }[]> = {
+    'fundraising-101': [
+      {
+        authorId: marcus.id,
+        content: "Welcome to the Fundraising 101 study group! 👋 I'm Marcus, your instructor. Drop your pitch deck questions here and I'll give live feedback. What's the #1 thing you're struggling with in your fundraise?",
+        replies: [
+          { authorId: demoStudent.id, content: "Thanks Marcus! I'm struggling with valuation — how do you determine a fair pre-money valuation for a pre-revenue startup?" },
+          { authorId: marcus.id, content: "Great question Alex! For pre-revenue, it's mostly about comparable deals and team strength. Look at recent rounds in your sector at your stage. If you have strong founder-market fit and a big TAM, you can command a premium. I'd target $6-10M for a strong pre-seed." },
+        ],
+      },
+      {
+        authorId: demoStudent.id,
+        content: "Just finished the 'Building the 12-Slide Deck' lesson. The framework is super clear. Anyone want to do a mutual pitch deck review? I'll go first — here's my problem slide.",
+        replies: [
+          { authorId: priya.id, content: "I love this idea! Peer review is one of the most underrated fundraising tactics. Happy to give feedback when you share." },
+        ],
+      },
+      {
+        authorId: devon.id,
+        content: "For those asking about warm intros — I swear by the double opt-in method. Always ask your connector 'Would you be comfortable introducing me to X?' before sending the blurb. It respects their relationship and dramatically increases the yes rate.",
+        replies: [],
+      },
+    ],
+    'growth-marketing': [
+      {
+        authorId: priya.id,
+        content: "Hey growth hackers! 👋 I'm Priya, your instructor for Growth Marketing. Let's kick things off: what's your current MRR and what channel is working best for you right now?",
+        replies: [
+          { authorId: demoStudent.id, content: "We're at $2K MRR, mostly from direct outreach. Looking to add a content engine to get more inbound. Any tips on where to start?" },
+          { authorId: priya.id, content: "Start with one long-form pillar post per week targeting your highest-intent keyword. Repurpose it into 5-7 social posts. Consistency beats perfection — it took me 4 months to see real SEO traction." },
+        ],
+      },
+    ],
+    'product-led-growth': [
+      {
+        authorId: devon.id,
+        content: "Welcome to PLG! The biggest mistake I see founders make is trying to bolt on PLG to a sales-led motion. You have to commit fully. What's your product's 'aha moment' — the thing that makes users go 'I get it now'?",
+        replies: [
+          { authorId: sarah.id, content: "So true. At my last company, we found our aha moment wasn't even a feature — it was when users saw their team's activity dashboard for the first time. That was our activation metric." },
+        ],
+      },
+    ],
+    'leadership-foundations': [
+      {
+        authorId: sarah.id,
+        content: "Leadership is the hardest transition in a founder's journey. Going from doing everything to enabling others is uncomfortable but necessary. What's been your biggest leadership challenge so far?",
+        replies: [
+          { authorId: demoStudent.id, content: "Delegation. I still catch myself doing things my team could handle because 'it's faster if I just do it.' How do you break that habit?" },
+          { authorId: sarah.id, content: "Set a rule: if someone on your team can do it 70% as well as you, delegate it. Your job is to make that 70% become 90% through coaching. Track your calendar — if you're spending more than 4 hours/day on IC work, you're not leading." },
+        ],
+      },
+    ],
+    'sales-for-founders': [
+      {
+        authorId: marcus.id,
+        content: "Founders who sell have an unfair advantage — you can change the product roadmap mid-conversation based on what you hear. No salesperson can do that. What's your biggest fear about doing sales calls?",
+        replies: [
+          { authorId: priya.id, content: "Honestly, the fear of sounding salesy. I don't want to be that pushy person. How do you sell without feeling like you're selling?" },
+          { authorId: marcus.id, content: "Reframe it: you're not selling, you're diagnosing. Ask questions, listen, and only pitch if your product actually solves their problem. The best 'sales calls' feel like consulting sessions." },
+        ],
+      },
+    ],
+    'startup-finance-101': [
+      {
+        authorId: devon.id,
+        content: "Finance fluency is a superpower. When you can walk into a board meeting and talk cap tables, burn multiples, and unit economics, investors take you seriously. What finance topic scares you most?",
+        replies: [
+          { authorId: demoStudent.id, content: "Cap tables. I get the basics but once you add convertible notes, SAFEs, and option pools I'm lost. Is there a good template?" },
+          { authorId: devon.id, content: "Check out the cap table lesson in Module 3 — I included a Google Sheet template. The key is to model dilution at each round. Most founders are shocked to see they'll own 15-20% after Series B." },
+        ],
+      },
+    ],
+    'ai-tools-for-founders': [
+      {
+        authorId: devon.id,
+        content: "AI is moving so fast — this course is my attempt to cut through the noise and give you the 20% of tools that create 80% of the value. What AI tool has made the biggest impact on your workflow so far?",
+        replies: [
+          { authorId: priya.id, content: "Claude for writing first drafts of blog posts and email sequences. I still edit heavily but it cuts my writing time by 60%. Also Perplexity for market research — it's like having a research analyst." },
+          { authorId: demoStudent.id, content: "Cursor for coding! I'm not technical but I built a landing page in 2 hours. Mind-blowing." },
+        ],
+      },
+    ],
+    'design-thinking': [
+      {
+        authorId: priya.id,
+        content: "Design thinking isn't about making things pretty — it's about making things that work for real humans. Who's tried talking to users this week? What surprised you?",
+        replies: [
+          { authorId: sarah.id, content: "I interviewed 5 users yesterday and every single one used our product differently than we intended. We were optimizing for the wrong workflow entirely." },
+        ],
+      },
+    ],
+    'remote-leadership': [
+      {
+        authorId: sarah.id,
+        content: "Remote leadership done right can be more effective than in-office. But done wrong, it's a retention disaster. What's your remote team setup — fully remote, hybrid, or async-first?",
+        replies: [
+          { authorId: devon.id, content: "Async-first with quarterly offsites. Writing culture is everything — if it's not documented, it didn't happen. We use Notion for all decision-making and Loom for walkthroughs." },
+        ],
+      },
+    ],
+    'content-marketing-mastery': [
+      {
+        authorId: priya.id,
+        content: "Content marketing is the most underrated growth lever for bootstrapped startups. It compounds. The blog post you write today will bring traffic for years. What's your content strategy right now?",
+        replies: [
+          { authorId: demoStudent.id, content: "Honestly, we don't have one. We post randomly on Twitter when we remember. Where should we start?" },
+          { authorId: priya.id, content: "Pick ONE platform and ONE format. Master it before expanding. For B2B SaaS, I'd start with LinkedIn + a weekly newsletter. Block 2 hours every Monday morning to write. Ship even when it's not perfect." },
+        ],
+      },
+    ],
+  };
+
+  for (const courseSlug of allCourseSlugs) {
+    const course = await prisma.course.findUnique({
+      where: { slug: courseSlug },
+      select: { id: true, instructorId: true },
+    });
+    if (!course) {
+      console.log(`  ⚠️  Course not found: ${courseSlug}, skipping study group`);
+      continue;
+    }
+
+    // Create or get study group
+    let group = await prisma.courseStudyGroup.findUnique({
+      where: { courseId: course.id },
+    });
+
+    if (!group) {
+      group = await prisma.courseStudyGroup.create({
+        data: {
+          courseId: course.id,
+          description: `Study group for ${courseSlug}`,
+        },
+      });
+      console.log(`  📚 Created study group: ${courseSlug}`);
+    } else {
+      console.log(`  📚 Study group exists: ${courseSlug}`);
+    }
+
+    // Add members: instructor + demo student + 1-2 other instructors
+    const memberIds = new Set<string>();
+    if (course.instructorId) memberIds.add(course.instructorId);
+    memberIds.add(demoStudent.id);
+    // Mix in other instructors for cross-pollination
+    for (const inst of instructors) {
+      if (memberIds.size >= 5) break;
+      memberIds.add(inst.id);
+    }
+
+    for (const userId of memberIds) {
+      await prisma.courseGroupMember.upsert({
+        where: { groupId_userId: { groupId: group.id, userId } },
+        update: {},
+        create: { groupId: group.id, userId },
+      });
+    }
+    console.log(`  👥 Added ${memberIds.size} members`);
+
+    // Add pre-seeded posts with replies if they don't exist yet
+    const existingPosts = await prisma.courseGroupPost.count({ where: { groupId: group.id } });
+    if (existingPosts === 0) {
+      const posts = studyGroupPosts[courseSlug] || [];
+      for (const postData of posts) {
+        const post = await prisma.courseGroupPost.create({
+          data: {
+            groupId: group.id,
+            authorId: postData.authorId,
+            content: postData.content,
+            createdAt: new Date(Date.now() - Math.floor(Math.random() * 14 * 24 * 60 * 60 * 1000)), // random date in last 14 days
+          },
+        });
+        for (const replyData of postData.replies) {
+          await prisma.courseGroupReply.create({
+            data: {
+              postId: post.id,
+              authorId: replyData.authorId,
+              content: replyData.content,
+              createdAt: new Date(post.createdAt.getTime() + Math.floor(Math.random() * 4 + 1) * 60 * 60 * 1000), // 1-4 hours after post
+            },
+          });
+        }
+      }
+      console.log(`  💬 Added ${posts.length} posts with replies`);
+    } else {
+      console.log(`  💬 ${existingPosts} posts already exist, skipping`);
+    }
+  }
+
+  console.log('✅ Study groups seeded');
 
   console.log('\n🎉 Seeding complete!');
 }

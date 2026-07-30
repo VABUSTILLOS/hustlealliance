@@ -64,7 +64,7 @@ export const learningPaths: LearningPath[] = [
     totalLessons: 10,
     communitySpaceSlug: 'fundraising-hub',
     thumbnail:
-      'https://images.unsplash.com/photo-1553484771-371e845efba1?w=800&h=500&fit=crop',
+      '/images/courses/fundraising-101.webp',
     author: {
       name: 'Marcus Chen',
       role: 'GP @ Horizon Ventures',
@@ -245,7 +245,7 @@ Valuation, liquidation preference, anti-dilution, board seats — know what matt
     totalLessons: 12,
     communitySpaceSlug: 'growth-hacking',
     thumbnail:
-      'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=500&fit=crop',
+      '/images/courses/growth-marketing.webp',
     author: {
       name: 'Priya Patel',
       role: 'Head of Growth @ ScaleUp',
@@ -362,7 +362,7 @@ Turn customers into evangelists.`,
     totalLessons: 8,
     communitySpaceSlug: 'ai-ml-builders',
     thumbnail:
-      'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&h=500&fit=crop',
+      '/images/courses/product-led-growth.webp',
     author: {
       name: 'Devon Mitchell',
       role: 'CEO @ Flux Studio',
@@ -479,7 +479,7 @@ Find the pricing sweet spot that maximizes conversion.`,
     totalLessons: 9,
     communitySpaceSlug: 'leader-circle',
     thumbnail:
-      'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=800&h=500&fit=crop',
+      '/images/courses/leadership-foundations.webp',
     author: {
       name: 'Sarah Okonkwo',
       role: 'CEO @ TalentBridge',

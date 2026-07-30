@@ -144,7 +144,7 @@ export default function LearningCatalogPage() {
                       {/* Thumbnail */}
                       <div className="relative h-48 overflow-hidden">
                         <Image
-                          src={course.thumbnail || 'https://images.unsplash.com/photo-1553484771-371e845efba1?w=800&h=500&fit=crop'}
+                          src={course.thumbnail || '/images/courses/fundraising-101.webp'}
                           alt={course.title}
                           fill
                           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
