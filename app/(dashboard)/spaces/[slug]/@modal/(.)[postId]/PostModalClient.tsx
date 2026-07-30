@@ -1,12 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useCallback, createContext, useContext } from "react";
+import { useEffect, useRef, useCallback, useState, createContext, useContext } from "react";
 import { motion } from "framer-motion";
 import type { ReactNode, RefObject } from "react";
 
 // ── Scroll Container Context ──────────────────────────────────────────────────
-// ReadingProgressBar consumes this to track modal scroll instead of window
+// PostDetailClient reads this to know it's inside a modal and skip its own
+// window-based ReadingProgressBar.
 
 const ScrollContainerContext =
   createContext<RefObject<HTMLDivElement | null> | null>(null);
@@ -14,6 +15,45 @@ const ScrollContainerContext =
 export function useScrollContainer() {
   return useContext(ScrollContainerContext);
 }
+
+// ── Modal-native reading progress bar ─────────────────────────────────────────
+// Tracks the panel's internal scroll, positioned absolutely at the panel top.
+
+function ModalProgressBar({
+  scrollRef,
+}: {
+  scrollRef: RefObject<HTMLDivElement | null>;
+}) {
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const handleScroll = () => {
+      const scrollable = el.scrollHeight - el.clientHeight;
+      const pct = scrollable > 0 ? Math.min((el.scrollTop / scrollable) * 100, 100) : 0;
+      setProgress(pct);
+    };
+
+    el.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => el.removeEventListener("scroll", handleScroll);
+  }, [scrollRef]);
+
+  return (
+    <div className="absolute top-0 left-0 right-0 z-30 h-1 bg-surface-light">
+      <motion.div
+        className="h-full bg-accent"
+        style={{ width: `${progress}%` }}
+        animate={{ opacity: progress > 99 ? 0 : 1 }}
+        transition={{ duration: 0.1 }}
+      />
+    </div>
+  );
+}
+
+// ── PostModal ─────────────────────────────────────────────────────────────────
 
 export function PostModal({
   children,
@@ -25,6 +65,12 @@ export function PostModal({
   const router = useRouter();
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const scrollY = useRef(0);
+  const [mounted, setMounted] = useState(false);
+
+  // ── Mount guard — prevents SSR/client DOM mismatch flash ──────────────────
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const dismiss = useCallback(() => {
     router.back();
@@ -32,9 +78,9 @@ export function PostModal({
 
   // ── iOS-safe scroll lock ──────────────────────────────────────────────────
   useEffect(() => {
-    scrollY.current = window.scrollY;
+    if (!mounted) return;
 
-    // Pin body in place so background doesn't scroll on iOS
+    scrollY.current = window.scrollY;
     document.body.style.position = "fixed";
     document.body.style.top = `-${scrollY.current}px`;
     document.body.style.width = "100%";
@@ -47,32 +93,35 @@ export function PostModal({
       document.body.style.overflow = "";
       window.scrollTo(0, scrollY.current);
     };
-  }, []);
+  }, [mounted]);
 
   // ── Close on Escape ───────────────────────────────────────────────────────
   useEffect(() => {
+    if (!mounted) return;
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") dismiss();
     }
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [dismiss]);
+  }, [dismiss, mounted]);
+
+  // ── Hide entirely until client-mounted — eliminates SSR flash ─────────────
+  if (!mounted) return null;
 
   return (
     <ScrollContainerContext.Provider value={scrollRef}>
       <div className="fixed inset-0 z-50 flex justify-end">
-        {/* Backdrop overlay — fades in, GPU-accelerated, blocks touch bleed on iOS */}
+        {/* Backdrop — no blur on mobile (WebKit repaint flash), md:blur only */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-          className="absolute inset-0 bg-black/60 backdrop-blur-sm touch-none
-                     will-change-[opacity]"
+          className="absolute inset-0 bg-black/60 md:backdrop-blur-sm touch-none will-change-[opacity]"
           onClick={dismiss}
         />
 
-        {/* Slide-in panel — fullscreen mobile, 720px drawer on desktop */}
+        {/* Slide-in panel */}
         <motion.div
           ref={scrollRef}
           initial={{ x: "100%" }}
@@ -83,7 +132,10 @@ export function PostModal({
                      border-l border-surface-light shadow-2xl
                      overflow-y-auto overscroll-contain will-change-transform"
         >
-          {/* Fixed header with back-arrow close button */}
+          {/* Reading progress bar — anchored to panel top */}
+          <ModalProgressBar scrollRef={scrollRef} />
+
+          {/* Sticky header */}
           <div
             className="sticky top-0 z-20 bg-surface/95 backdrop-blur-sm
                         border-b border-surface-light px-5 py-3.5
@@ -113,7 +165,7 @@ export function PostModal({
             </h2>
           </div>
 
-          {/* Content area */}
+          {/* Content */}
           <div className="p-4 sm:p-6">{children}</div>
         </motion.div>
       </div>

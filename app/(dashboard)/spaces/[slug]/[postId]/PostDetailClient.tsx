@@ -105,35 +105,18 @@ function renderArticleBody(content: string): string {
 
 function ReadingProgressBar() {
   const [progress, setProgress] = useState(0);
-  const scrollRef = useScrollContainer();
 
   useEffect(() => {
-    const container = scrollRef?.current;
-
-    if (container) {
-      // ── Inside modal — track the panel's scroll ────────
-      const handleScroll = () => {
-        const scrollTop = container.scrollTop;
-        const docHeight = container.scrollHeight - container.clientHeight;
-        const pct = docHeight > 0 ? Math.min((scrollTop / docHeight) * 100, 100) : 0;
-        setProgress(pct);
-      };
-      container.addEventListener("scroll", handleScroll, { passive: true });
-      handleScroll();
-      return () => container.removeEventListener("scroll", handleScroll);
-    } else {
-      // ── Full page — track window scroll ────────────────
-      const handleScroll = () => {
-        const scrollTop = window.scrollY;
-        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-        const pct = docHeight > 0 ? Math.min((scrollTop / docHeight) * 100, 100) : 0;
-        setProgress(pct);
-      };
-      window.addEventListener("scroll", handleScroll, { passive: true });
-      handleScroll();
-      return () => window.removeEventListener("scroll", handleScroll);
-    }
-  }, [scrollRef]);
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const pct = docHeight > 0 ? Math.min((scrollTop / docHeight) * 100, 100) : 0;
+      setProgress(pct);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50 h-[3px] bg-surface-light">
@@ -528,10 +511,12 @@ export function PostDetailClient({
   relatedPosts,
 }: Props) {
   const { title, body } = extractTitle(post.content);
+  const inModal = !!useScrollContainer();
 
   return (
     <>
-      <ReadingProgressBar />
+      {/* Only render viewport progress bar on full-page loads — modal has its own */}
+      {!inModal && <ReadingProgressBar />}
 
       <article className="px-4 sm:px-6 lg:px-8 py-8 mx-auto" style={{ maxWidth: 720 }}>
         <ArticleHeader post={post} />
