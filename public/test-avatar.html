@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avatar Test Page</title>
+<style>
+  body { font-family: system-ui; padding: 20px; background: #111; color: #fff; }
+  h2 { margin-top: 30px; }
+  .test-row { display: flex; gap: 20px; align-items: center; margin: 10px 0; flex-wrap: wrap; }
+  .label { font-size: 12px; color: #999; margin-bottom: 4px; }
+  .card { text-align: center; }
+  /* Match MemberCard avatar container styles */
+  .av-container {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: #1a1a2e; /* simulate --color-surface-light */
+    overflow: hidden;
+  }
+  .av-container img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+  }
+  .pass { color: #4ade80; }
+  .fail { color: #f87171; }
+</style>
+</head>
+<body>
+<h1>Avatar Rendering Test</h1>
+<p>This page tests different ways of rendering the SVG avatars to isolate the issue.</p>
+
+<h2>1. Plain &lt;img&gt; tag (no CSS)</h2>
+<div class="test-row">
+  <img src="/images/avatars/marcuschen.svg" alt="Plain" width="48" height="48" onload="this.nextElementSibling.textContent='✅'" onerror="this.nextElementSibling.textContent='❌'">
+  <span>Loading...</span>
+</div>
+
+<h2>2. Plain &lt;img&gt; tag (no width/height)</h2>
+<div class="test-row">
+  <img src="/images/avatars/marcuschen.svg" alt="Plain" onload="this.nextElementSibling.textContent='✅'" onerror="this.nextElementSibling.textContent='❌'">
+  <span>Loading...</span>
+</div>
+
+<h2>3. MemberCard-style container (rounded-full, object-cover, w-12 h-12)</h2>
+<div class="test-row">
+  <div class="av-container">
+    <img src="/images/avatars/marcuschen.svg" alt="MC" onload="this.parentElement.nextElementSibling.textContent='✅'" onerror="this.parentElement.nextElementSibling.textContent='❌'">
+  </div>
+  <span>Loading...</span>
+</div>
+
+<h2>4. Multiple different avatars</h2>
+<div class="test-row" id="multi-avatars"></div>
+
+<h2>5. Direct data URL (not from file)</h2>
+<div class="test-row">
+  <div class="av-container">
+    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23b45309'/%3E%3Ctext x='50' y='50' fill='%23fff' dominant-baseline='central' font-family='system-ui' font-size='36' font-weight='600' text-anchor='middle'%3EMC%3C/text%3E%3C/svg%3E" alt="Data URL">
+  </div>
+</div>
+
+<script>
+// Load multiple avatars dynamically
+const seeds = ['marcuschen','sarahjohnson','davidkim','alexrivera','jamesthompson'];
+const container = document.getElementById('multi-avatars');
+seeds.forEach(seed => {
+  const div = document.createElement('div');
+  div.className = 'card';
+  const label = document.createElement('div');
+  label.className = 'label';
+  label.textContent = seed;
+  const av = document.createElement('div');
+  av.className = 'av-container';
+  const img = document.createElement('img');
+  img.src = '/images/avatars/' + seed + '.svg';
+  img.alt = seed;
+  img.onload = () => { label.textContent = seed + ' ✅'; };
+  img.onerror = () => { label.textContent = seed + ' ❌'; };
+  av.appendChild(img);
+  div.appendChild(av);
+  div.appendChild(label);
+  container.appendChild(div);
+});
+</script>
+</body>
+</html>
