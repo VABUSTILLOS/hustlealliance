@@ -118,7 +118,7 @@ export function SpaceDetailClient({
               key={post.id}
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-surface border border-surface-light rounded-2xl p-5"
+              className="bg-surface border border-surface-light rounded-2xl p-5 hover:border-accent/20 transition-colors cursor-pointer"
             >
               <div className="flex items-center gap-3 mb-3">
                 <Image src={post.author.avatar ?? ''} alt="" width={40} height={40} className="rounded-full border border-white/10 object-cover" />
@@ -149,6 +149,12 @@ export function SpaceDetailClient({
               <div className="flex items-center gap-4 text-xs font-mono text-muted">
                 <span>❤️ {post.likeCount}</span>
                 <span>💬 {post.commentCount}</span>
+                <Link
+                  href={`/spaces/${slug}/${post.id}`}
+                  className="ml-auto text-accent hover:text-accent-glow transition-colors"
+                >
+                  Read more →
+                </Link>
               </div>
             </motion.div>
           ))}
