@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db/prisma";
+import { normalizeAvatarUrl } from "@/lib/utils/avatar";
 
 // ── Types ─────────────────────────────────────────────────────────────
 
@@ -144,12 +145,12 @@ async function searchAllILIKE(term: string, limit = 20): Promise<SearchResult[]>
     ...users.map((u: Record<string, unknown>) => ({
       entityType: "user" as const, entityId: u.id as string, rank: 0,
       title: u.name as string, subtitle: (u.headline ?? u.username ?? "") as string,
-      avatarUrl: u.avatar as string | null, createdAt: new Date(), snippet: null,
+      avatarUrl: normalizeAvatarUrl(u.avatar as string | null), createdAt: new Date(), snippet: null,
     })),
     ...posts.map((p: Record<string, unknown>) => ({
       entityType: "post" as const, entityId: p.id as string, rank: 0,
       title: (p.content as string).slice(0, 100), subtitle: (p.author as Record<string, unknown>).name as string,
-      avatarUrl: (p.author as Record<string, unknown>).avatar as string | null, createdAt: p.createdAt as Date, snippet: null,
+      avatarUrl: normalizeAvatarUrl((p.author as Record<string, unknown>).avatar as string | null), createdAt: p.createdAt as Date, snippet: null,
     })),
     ...groups.map((g: Record<string, unknown>) => ({
       entityType: "group" as const, entityId: g.id as string, rank: 0,
@@ -213,7 +214,7 @@ export async function searchUsers(
       users.map((u: Record<string, unknown>) => ({
         entityType: "user" as const, entityId: u.id as string, rank: 0,
         title: u.name as string, subtitle: (u.headline ?? u.username ?? "") as string,
-        avatarUrl: u.avatar as string | null, createdAt: new Date(), snippet: null,
+        avatarUrl: normalizeAvatarUrl(u.avatar as string | null), createdAt: new Date(), snippet: null,
       })),
     );
   }
@@ -256,7 +257,7 @@ export async function searchPosts(
       posts.map((p: Record<string, unknown>) => ({
         entityType: "post" as const, entityId: p.id as string, rank: 0,
         title: (p.content as string).slice(0, 100), subtitle: (p.author as Record<string, unknown>).name as string,
-        avatarUrl: (p.author as Record<string, unknown>).avatar as string | null, createdAt: p.createdAt as Date, snippet: null,
+        avatarUrl: normalizeAvatarUrl((p.author as Record<string, unknown>).avatar as string | null), createdAt: p.createdAt as Date, snippet: null,
       })),
     );
   }

@@ -111,9 +111,11 @@ export function normalizeAvatarUrl(url: string | null): string | null {
   }
 
   // Try DiceBear mapping: extract seed from URL
+  // Handle both %20 and + space encoding in query strings
   const seedMatch = url.match(/[?&]seed=([^&]+)/);
   if (seedMatch) {
-    const seed = decodeURIComponent(seedMatch[1]);
+    const rawSeed = seedMatch[1];
+    const seed = decodeURIComponent(rawSeed.replace(/\+/g, ' '));
     const username = DICE_BEAR_TO_USERNAME[seed];
     if (username) return `/images/avatars/${username}.svg`;
   }

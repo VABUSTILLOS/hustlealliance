@@ -1,6 +1,7 @@
 import { cache } from "react";
 import prisma from "@/lib/db/prisma";
 import type { FriendshipStatus } from "@/lib/generated/prisma/client";
+import { normalizeAvatarUrl } from "@/lib/utils/avatar";
 
 // ── Follow / Unfollow ──────────────────────────────────────────────────
 
@@ -337,6 +338,7 @@ export const getUserProfileData = cache(
 
     return {
       ...user,
+      avatar: normalizeAvatarUrl(user.avatar),
       createdAt: user.createdAt.toISOString(),
       profile: user.profile
         ? {
@@ -377,7 +379,7 @@ export const getUserPosts = cache(
     const hasMore = posts.length > limit;
     const items = (hasMore ? posts.slice(0, limit) : posts).map((post) => ({
       id: post.id,
-      author: post.author,
+      author: { ...post.author, avatar: normalizeAvatarUrl(post.author.avatar) },
       content: post.content,
       space: post.space,
       visibility: post.visibility,
