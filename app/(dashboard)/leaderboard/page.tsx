@@ -5,14 +5,13 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { useQuery } from '@tanstack/react-query';
 import { useCurrentUser } from '@/lib/hooks/useCurrentUser';
-import { getInitialsAvatarUrl, DEFAULT_AVATAR } from '@/lib/utils/avatar';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
 interface LeaderboardEntry {
   rank: number;
   username: string;
   name: string;
-  avatar: string | null;
+  avatar: string;
   xp: number;
   streak: number;
   badges: { icon: string; name: string }[];
@@ -84,7 +83,11 @@ export default function LeaderboardPage() {
                 w-12 h-12 rounded-full flex items-center justify-center shrink-0
                 ${isTopThree ? 'bg-accent text-white' : 'bg-surface-light text-foreground-dim'}
               `}>
-                <Image src={user?.avatar ?? DEFAULT_AVATAR} alt={user?.name ?? 'User'} width={48} height={48} className="rounded-full" />
+                {user?.avatar ? (
+                  <Image src={user.avatar} alt={user?.name ?? 'User'} width={48} height={48} className="rounded-full object-cover" />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-surface-light" />
+                )}
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-foreground-muted text-xs uppercase tracking-wider">{t.leaderboard.myRank}</p>
@@ -166,7 +169,7 @@ export default function LeaderboardPage() {
                     {/* Name + Badges */}
                     <div className="flex items-center gap-2 min-w-0">
                       <Image
-                        src={entry.avatar ?? getInitialsAvatarUrl(entry.name)}
+                        src={entry.avatar}
                         alt={entry.name}
                         width={28}
                         height={28}

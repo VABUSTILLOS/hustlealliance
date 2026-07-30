@@ -26,10 +26,14 @@ export async function GET(request: NextRequest) {
 
     const userIds = xpAgg.map((x) => x.userId);
 
-    // Fetch user profiles + streaks in parallel
+    // Fetch user profiles + streaks in parallel.
+    // Strictly exclude users without a real uploaded profile photo.
     const [users, streaks, badges] = await Promise.all([
       prisma.user.findMany({
-        where: { id: { in: userIds } },
+        where: {
+          id: { in: userIds },
+          avatar: { not: null, not: '' },
+        },
         select: { id: true, name: true, avatar: true, username: true },
       }),
       prisma.streak.findMany({
@@ -51,23 +55,26 @@ export async function GET(request: NextRequest) {
       badgeMap.get(b.userId)!.push({ icon: b.badge.icon, name: b.badge.name });
     }
 
-    // Sort by XP descending and build entries
+    // Sort by XP descending, build entries, and filter to users with real avatars.
+    // Ranks are reassigned after filtering to ensure sequential ordering.
     const entries = xpAgg
       .sort((a, b) => (b._sum.amount ?? 0) - (a._sum.amount ?? 0))
       .slice(0, 20)
-      .map((x, i) => {
+      .map((x) => {
         const u = userMap.get(x.userId);
+        if (!u) return null;
         const userBadges = badgeMap.get(x.userId) || [];
         return {
-          rank: i + 1,
-          username: u?.username ?? x.userId,
-          name: u?.name ?? 'Unknown',
-          avatar: u?.avatar ?? null,
+          username: u.username ?? x.userId,
+          name: u.name,
+          avatar: u.avatar!,
           xp: x._sum.amount ?? 0,
           streak: streakMap.get(x.userId) ?? 0,
           badges: userBadges,
         };
-      });
+      })
+      .filter((e): e is NonNullable<typeof e> => e !== null)
+      .map((e, i) => ({ rank: i + 1, ...e }));
 
     return NextResponse.json(
       { entries, period },
