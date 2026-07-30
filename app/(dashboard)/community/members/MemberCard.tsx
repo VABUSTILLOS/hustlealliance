@@ -31,7 +31,7 @@ export function MemberCard({ member }: { member: CommunityMemberItem }) {
               src={member.avatar}
               alt={member.name}
               className="w-full h-full object-cover"
-              loading="lazy"
+              loading="eager"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-lg font-bold text-[var(--color-foreground-muted)] uppercase">
