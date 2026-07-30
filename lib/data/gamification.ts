@@ -58,27 +58,27 @@ export interface LeaderboardEntry {
 export const weeklyLeaderboard: LeaderboardEntry[] = [
   { rank: 1, username: 'sarahj', name: 'Sarah Johnson', avatar: getInitialsAvatarUrl('Sarah+Johnson'.replace('+',' ')), xp: 340, streak: 12, badges: ['fire', 'quick-learner'], completedLessons: 23 },
   { rank: 2, username: 'marcusw', name: 'Marcus Wong', avatar: getInitialsAvatarUrl('Marcus+Wong'.replace('+',' ')), xp: 285, streak: 8, badges: ['fire', 'learning'], completedLessons: 19 },
-  { rank: 3, username: 'elenak', name: 'Elena Kim', avatar: '/images/avatars/elenak.svg', xp: 260, streak: 14, badges: ['fire', 'quick-learner', 'social'], completedLessons: 17 },
+  { rank: 3, username: 'elenak', name: 'Elena Kim', avatar: '/images/avatars/elenak.jpg', xp: 260, streak: 14, badges: ['fire', 'quick-learner', 'social'], completedLessons: 17 },
   { rank: 4, username: 'alexk', name: 'Alex Kurosawa', avatar: getInitialsAvatarUrl('Alex+Kurosawa'.replace('+',' ')), xp: 215, streak: 5, badges: ['learning'], completedLessons: 14 },
   { rank: 5, username: 'jamesc', name: 'James Chen', avatar: getInitialsAvatarUrl('James+Chen'.replace('+',' ')), xp: 190, streak: 7, badges: ['fire'], completedLessons: 13 },
-  { rank: 6, username: 'mariat', name: 'Maria Torres', avatar: '/images/avatars/mariat.svg', xp: 165, streak: 3, badges: [], completedLessons: 11 },
-  { rank: 7, username: 'priyap', name: 'Priya Patel', avatar: '/images/avatars/priyap.svg', xp: 140, streak: 4, badges: [], completedLessons: 9 },
-  { rank: 8, username: 'davidl', name: 'David Liu', avatar: '/images/avatars/davidl.svg', xp: 120, streak: 2, badges: [], completedLessons: 8 },
-  { rank: 9, username: 'annaw', name: 'Anna Williams', avatar: '/images/avatars/annaw.svg', xp: 95, streak: 6, badges: [], completedLessons: 6 },
-  { rank: 10, username: 'tomb', name: 'Tom Baker', avatar: '/images/avatars/tomb.svg', xp: 75, streak: 1, badges: [], completedLessons: 5 },
+  { rank: 6, username: 'mariat', name: 'Maria Torres', avatar: '/images/avatars/mariat.jpg', xp: 165, streak: 3, badges: [], completedLessons: 11 },
+  { rank: 7, username: 'priyap', name: 'Priya Patel', avatar: '/images/avatars/priyap.jpg', xp: 140, streak: 4, badges: [], completedLessons: 9 },
+  { rank: 8, username: 'davidl', name: 'David Liu', avatar: '/images/avatars/davidl.jpg', xp: 120, streak: 2, badges: [], completedLessons: 8 },
+  { rank: 9, username: 'annaw', name: 'Anna Williams', avatar: '/images/avatars/annaw.jpg', xp: 95, streak: 6, badges: [], completedLessons: 6 },
+  { rank: 10, username: 'tomb', name: 'Tom Baker', avatar: '/images/avatars/tomb.jpg', xp: 75, streak: 1, badges: [], completedLessons: 5 },
 ];
 
 export const monthlyLeaderboard: LeaderboardEntry[] = [
-  { rank: 1, username: 'elenak', name: 'Elena Kim', avatar: '/images/avatars/elenak.svg', xp: 1240, streak: 14, badges: ['fire', 'quick-learner', 'social', 'butterfly'], completedLessons: 62 },
+  { rank: 1, username: 'elenak', name: 'Elena Kim', avatar: '/images/avatars/elenak.jpg', xp: 1240, streak: 14, badges: ['fire', 'quick-learner', 'social', 'butterfly'], completedLessons: 62 },
   { rank: 2, username: 'marcusw', name: 'Marcus Wong', avatar: getInitialsAvatarUrl('Marcus+Wong'.replace('+',' ')), xp: 980, streak: 8, badges: ['fire', 'learning', 'pathfinder'], completedLessons: 49 },
   { rank: 3, username: 'sarahj', name: 'Sarah Johnson', avatar: getInitialsAvatarUrl('Sarah+Johnson'.replace('+',' ')), xp: 850, streak: 12, badges: ['fire', 'quick-learner'], completedLessons: 43 },
   { rank: 4, username: 'alexk', name: 'Alex Kurosawa', avatar: getInitialsAvatarUrl('Alex+Kurosawa'.replace('+',' ')), xp: 620, streak: 5, badges: ['learning'], completedLessons: 31 },
   { rank: 5, username: 'jamesc', name: 'James Chen', avatar: getInitialsAvatarUrl('James+Chen'.replace('+',' ')), xp: 510, streak: 7, badges: ['fire', 'social'], completedLessons: 26 },
-  { rank: 6, username: 'mariat', name: 'Maria Torres', avatar: '/images/avatars/mariat.svg', xp: 445, streak: 3, badges: [], completedLessons: 22 },
-  { rank: 7, username: 'priyap', name: 'Priya Patel', avatar: '/images/avatars/priyap.svg', xp: 380, streak: 4, badges: [], completedLessons: 19 },
-  { rank: 8, username: 'davidl', name: 'David Liu', avatar: '/images/avatars/davidl.svg', xp: 310, streak: 2, badges: [], completedLessons: 15 },
-  { rank: 9, username: 'annaw', name: 'Anna Williams', avatar: '/images/avatars/annaw.svg', xp: 250, streak: 6, badges: [], completedLessons: 12 },
-  { rank: 10, username: 'tomb', name: 'Tom Baker', avatar: '/images/avatars/tomb.svg', xp: 185, streak: 1, badges: [], completedLessons: 9 },
+  { rank: 6, username: 'mariat', name: 'Maria Torres', avatar: '/images/avatars/mariat.jpg', xp: 445, streak: 3, badges: [], completedLessons: 22 },
+  { rank: 7, username: 'priyap', name: 'Priya Patel', avatar: '/images/avatars/priyap.jpg', xp: 380, streak: 4, badges: [], completedLessons: 19 },
+  { rank: 8, username: 'davidl', name: 'David Liu', avatar: '/images/avatars/davidl.jpg', xp: 310, streak: 2, badges: [], completedLessons: 15 },
+  { rank: 9, username: 'annaw', name: 'Anna Williams', avatar: '/images/avatars/annaw.jpg', xp: 250, streak: 6, badges: [], completedLessons: 12 },
+  { rank: 10, username: 'tomb', name: 'Tom Baker', avatar: '/images/avatars/tomb.jpg', xp: 185, streak: 1, badges: [], completedLessons: 9 },
 ];
 
 // Key insight cards for bite-sized previews
@@ -102,7 +102,7 @@ export interface FriendActivity {
 export const friendsActivity: FriendActivity[] = [
   { id: 'fa1', username: 'sarahj', name: 'Sarah Johnson', avatar: getInitialsAvatarUrl('Sarah+Johnson'.replace('+',' ')), action: 'completed_lesson', target: 'Crafting Your Story', timestamp: '2h ago' },
   { id: 'fa2', username: 'marcusw', name: 'Marcus Wong', avatar: getInitialsAvatarUrl('Marcus+Wong'.replace('+',' ')), action: 'earned_badge', target: '7-Day Streak', timestamp: '4h ago' },
-  { id: 'fa3', username: 'elenak', name: 'Elena Kim', avatar: '/images/avatars/elenak.svg', action: 'completed_path', target: 'Growth Marketing', timestamp: '6h ago' },
+  { id: 'fa3', username: 'elenak', name: 'Elena Kim', avatar: '/images/avatars/elenak.jpg', action: 'completed_path', target: 'Growth Marketing', timestamp: '6h ago' },
   { id: 'fa4', username: 'jamesc', name: 'James Chen', avatar: getInitialsAvatarUrl('James+Chen'.replace('+',' ')), action: 'started_path', target: 'Product-Led Growth', timestamp: '8h ago' },
-  { id: 'fa5', username: 'priyap', name: 'Priya Patel', avatar: '/images/avatars/priyap.svg', action: 'completed_lesson', target: 'Nailing the First Meeting', timestamp: '12h ago' },
+  { id: 'fa5', username: 'priyap', name: 'Priya Patel', avatar: '/images/avatars/priyap.jpg', action: 'completed_lesson', target: 'Nailing the First Meeting', timestamp: '12h ago' },
 ];

@@ -21,7 +21,7 @@ export const upcomingEvents: CommunityEvent[] = [
     time: '11:00 AM PT',
     host: {
       name: 'Marcus Chen',
-      avatar: '/images/avatars/marcuschen.svg',
+      avatar: '/images/avatars/marcuschen.jpg',
     },
     attendees: 87,
   },
@@ -33,7 +33,7 @@ export const upcomingEvents: CommunityEvent[] = [
     time: '2:00 PM PT',
     host: {
       name: 'Priya Patel',
-      avatar: '/images/avatars/priyap.svg',
+      avatar: '/images/avatars/priyap.jpg',
     },
     attendees: 134,
   },
@@ -45,7 +45,7 @@ export const upcomingEvents: CommunityEvent[] = [
     time: '10:00 AM PT',
     host: {
       name: 'Devon Mitchell',
-      avatar: '/images/avatars/devonm.svg',
+      avatar: '/images/avatars/devonm.jpg',
     },
     attendees: 56,
     space: 'saas-founders',

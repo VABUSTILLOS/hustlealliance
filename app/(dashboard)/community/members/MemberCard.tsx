@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import type { CommunityMemberItem } from '@/lib/db/community';
 import { getInitialsAvatarUrl } from '@/lib/utils/avatar';
 
@@ -31,14 +30,13 @@ export function MemberCard({ member }: { member: CommunityMemberItem }) {
     <div className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-5 hover:border-[var(--color-accent)] transition-colors group cursor-pointer h-full">
       {/* Top: Avatar + Name */}
       <div className="flex items-start gap-4 mb-3">
-        <div className="w-12 h-12 rounded-full bg-[var(--color-surface-light)] overflow-hidden shrink-0 relative">
-          <Image
+        <div className="w-12 h-12 rounded-full bg-[var(--color-surface-light)] overflow-hidden shrink-0">
+          <img
             src={avatarSrc}
             alt={member.name}
-            fill
-            sizes="48px"
-            className="object-cover"
-            unoptimized
+            width={48}
+            height={48}
+            className="w-full h-full object-cover"
           />
         </div>
         <div className="min-w-0 flex-1">

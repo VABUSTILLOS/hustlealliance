@@ -69,9 +69,9 @@ export default function Pricing() {
   ];
 
   const testimonials = [
-    { quote: t.pricing.testimonials.t1.quote, name: t.pricing.testimonials.t1.name, role: t.pricing.testimonials.t1.role, avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=96&h=96&fit=crop&crop=face' },
-    { quote: t.pricing.testimonials.t2.quote, name: t.pricing.testimonials.t2.name, role: t.pricing.testimonials.t2.role, avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=96&h=96&fit=crop&crop=face' },
-    { quote: t.pricing.testimonials.t3.quote, name: t.pricing.testimonials.t3.name, role: t.pricing.testimonials.t3.role, avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=96&h=96&fit=crop&crop=face' },
+    { quote: t.pricing.testimonials.t1.quote, name: t.pricing.testimonials.t1.name, role: t.pricing.testimonials.t1.role, avatar: '/images/avatars/priyap.jpg' },
+    { quote: t.pricing.testimonials.t2.quote, name: t.pricing.testimonials.t2.name, role: t.pricing.testimonials.t2.role, avatar: '/images/avatars/marcuschen.jpg' },
+    { quote: t.pricing.testimonials.t3.quote, name: t.pricing.testimonials.t3.name, role: t.pricing.testimonials.t3.role, avatar: '/images/avatars/devonm.jpg' },
   ];
   return (
     <section className="relative py-16 lg:py-32 px-4 bg-black">

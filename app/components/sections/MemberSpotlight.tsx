@@ -38,7 +38,7 @@ const members: MemberNode[] = [
     username: 'marcuschen',
     startup: 'Nexus AI',
     niche: 'SaaS',
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=faces',
+    image: '/images/avatars/marcuschen.jpg',
     accent: NICHE_ACCENTS['SaaS'],
   },
   {
@@ -47,7 +47,7 @@ const members: MemberNode[] = [
     username: 'priyap',
     startup: 'Lumina Health',
     niche: 'Health',
-    image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&h=200&fit=crop&crop=faces',
+    image: '/images/avatars/priyap.jpg',
     accent: NICHE_ACCENTS['Health'],
   },
   {
@@ -56,25 +56,25 @@ const members: MemberNode[] = [
     username: 'jameso',
     startup: 'Volt Finance',
     niche: 'Fintech',
-    image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=faces',
+    image: '/images/avatars/jameso.jpg',
     accent: NICHE_ACCENTS['Fintech'],
   },
   {
-    id: 'elena-torres',
-    name: 'Elena Torres',
-    username: 'elenat',
+    id: 'elena-kim',
+    name: 'Elena Kim',
+    username: 'elenak',
     startup: 'Aether Climate',
     niche: 'Climate',
-    image: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200&h=200&fit=crop&crop=faces',
+    image: '/images/avatars/elenak.jpg',
     accent: NICHE_ACCENTS['Climate'],
   },
   {
-    id: 'devon-wright',
-    name: 'Devon Wright',
-    username: 'devonw',
+    id: 'devon-mitchell',
+    name: 'Devon Mitchell',
+    username: 'devonm',
     startup: 'Flux Studio',
     niche: 'Creator',
-    image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=200&h=200&fit=crop&crop=faces',
+    image: '/images/avatars/devonm.jpg',
     accent: NICHE_ACCENTS['Creator'],
   },
   {
@@ -83,7 +83,7 @@ const members: MemberNode[] = [
     username: 'amarao',
     startup: 'Cipher Security',
     niche: 'AI',
-    image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop&crop=faces',
+    image: '/images/avatars/amarao.jpg',
     accent: NICHE_ACCENTS['AI'],
   },
   {
@@ -92,7 +92,7 @@ const members: MemberNode[] = [
     username: 'kevinl',
     startup: 'ChainLogic',
     niche: 'Web3',
-    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=faces',
+    image: '/images/avatars/kevinl.jpg',
     accent: NICHE_ACCENTS['Web3'],
   },
   {
@@ -101,16 +101,16 @@ const members: MemberNode[] = [
     username: 'ninak',
     startup: 'LearnFlow',
     niche: 'EdTech',
-    image: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=200&h=200&fit=crop&crop=faces',
+    image: '/images/avatars/ninak.jpg',
     accent: NICHE_ACCENTS['EdTech'],
   },
   {
     id: 'omar-hassan',
     name: 'Omar Hassan',
-    username: 'omark',
+    username: 'omarh',
     startup: 'DeployKit',
     niche: 'DevTools',
-    image: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200&h=200&fit=crop&crop=faces',
+    image: '/images/avatars/omarh.jpg',
     accent: NICHE_ACCENTS['DevTools'],
   },
 ];
@@ -184,7 +184,7 @@ function FounderCard({
             fill
             sizes="120px"
             className="object-cover rounded-full"
-            style={{ filter: 'grayscale(100%) contrast(1.1)' }}
+            style={{ filter: 'contrast(1.05)' }}
           />
         </motion.div>
       </motion.div>

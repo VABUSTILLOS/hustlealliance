@@ -69,7 +69,7 @@ export const learningPaths: LearningPath[] = [
       name: 'Marcus Chen',
       role: 'GP @ Horizon Ventures',
       avatar:
-        '/images/avatars/marcuschen.svg',
+        '/images/avatars/marcuschen.jpg',
       bio: 'Former founder turned investor. Led seed rounds for 40+ startups totaling $120M+.',
     },
     keyInsights: [
@@ -250,7 +250,7 @@ Valuation, liquidation preference, anti-dilution, board seats — know what matt
       name: 'Priya Patel',
       role: 'Head of Growth @ ScaleUp',
       avatar:
-        '/images/avatars/priyap.svg',
+        '/images/avatars/priyap.jpg',
       bio: 'Scaled 3 startups from 0 to 100K+ users. Specializes in organic growth and community-led acquisition.',
     },
     keyInsights: [
@@ -367,7 +367,7 @@ Turn customers into evangelists.`,
       name: 'Devon Mitchell',
       role: 'CEO @ Flux Studio',
       avatar:
-        '/images/avatars/devonm.svg',
+        '/images/avatars/devonm.jpg',
       bio: 'Built and sold two PLG companies. Advises YC startups on product-led strategy.',
     },
     keyInsights: [
@@ -484,7 +484,7 @@ Find the pricing sweet spot that maximizes conversion.`,
       name: 'Sarah Okonkwo',
       role: 'CEO @ TalentBridge',
       avatar:
-        '/images/avatars/sarahk.svg',
+        '/images/avatars/sarahk.jpg',
       bio: 'Scaled engineering teams at Google, Stripe, and two YC startups. Author of "The Founder\'s Guide to Leadership."',
     },
     keyInsights: [

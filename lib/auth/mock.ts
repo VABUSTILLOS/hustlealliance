@@ -13,7 +13,7 @@ export const MOCK_USER: AuthUser = {
   name: 'Founder',
   role: 'ADMIN',
   membershipTier: 'PRO',
-  avatar: '/images/avatars/alexk.svg',
+  avatar: '/images/avatars/alexk.jpg',
 };
 
 // Client-side mock (matches UserInfo interface from useStore)
@@ -24,7 +24,7 @@ export const MOCK_USER_INFO = {
   username: 'founder',
   role: 'ADMIN' as const,
   membershipTier: 'PRO' as const,
-  avatar: '/images/avatars/alexk.svg',
+  avatar: '/images/avatars/alexk.jpg',
 };
 
 /**
@@ -38,5 +38,5 @@ export const FOUNDER_PROFILE: UserInfo = {
   username: 'founder',
   role: 'STUDENT',
   membershipTier: 'FREE',
-  avatar: '/images/avatars/alexk.svg',
+  avatar: '/images/avatars/alexk.jpg',
 };
