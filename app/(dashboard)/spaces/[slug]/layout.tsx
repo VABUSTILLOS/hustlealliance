@@ -1,3 +1,7 @@
+"use client";
+
+import { AnimatePresence } from "framer-motion";
+
 // Parallel route layout — children renders the feed/full-page, @modal renders the slide-in
 export default function SpaceSlugLayout({
   children,
@@ -9,7 +13,7 @@ export default function SpaceSlugLayout({
   return (
     <>
       {children}
-      {modal}
+      <AnimatePresence mode="wait">{modal}</AnimatePresence>
     </>
   );
 }

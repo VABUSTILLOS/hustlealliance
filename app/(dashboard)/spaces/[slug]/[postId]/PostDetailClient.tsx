@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef, useOptimistic } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { useScrollContainer } from "../@modal/(.)[postId]/PostModalClient";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -104,19 +105,35 @@ function renderArticleBody(content: string): string {
 
 function ReadingProgressBar() {
   const [progress, setProgress] = useState(0);
+  const scrollRef = useScrollContainer();
 
   useEffect(() => {
-    const handleScroll = () => {
-      const scrollTop = window.scrollY;
-      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-      const pct = docHeight > 0 ? Math.min((scrollTop / docHeight) * 100, 100) : 0;
-      setProgress(pct);
-    };
+    const container = scrollRef?.current;
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+    if (container) {
+      // ── Inside modal — track the panel's scroll ────────
+      const handleScroll = () => {
+        const scrollTop = container.scrollTop;
+        const docHeight = container.scrollHeight - container.clientHeight;
+        const pct = docHeight > 0 ? Math.min((scrollTop / docHeight) * 100, 100) : 0;
+        setProgress(pct);
+      };
+      container.addEventListener("scroll", handleScroll, { passive: true });
+      handleScroll();
+      return () => container.removeEventListener("scroll", handleScroll);
+    } else {
+      // ── Full page — track window scroll ────────────────
+      const handleScroll = () => {
+        const scrollTop = window.scrollY;
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const pct = docHeight > 0 ? Math.min((scrollTop / docHeight) * 100, 100) : 0;
+        setProgress(pct);
+      };
+      window.addEventListener("scroll", handleScroll, { passive: true });
+      handleScroll();
+      return () => window.removeEventListener("scroll", handleScroll);
+    }
+  }, [scrollRef]);
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50 h-[3px] bg-surface-light">
