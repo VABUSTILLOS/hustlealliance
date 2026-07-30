@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import clsx from 'clsx';
 import { LazyMotionDiv } from '@/lib/framer/lazy-motion';
+import { getInitialsAvatarUrl, DEFAULT_AVATAR } from '@/lib/utils/avatar';
 import { timeAgo } from '@/lib/utils/time';
 import type { CommunityPostItem } from '@/lib/db/community';
 
@@ -194,7 +195,7 @@ export function PostCard({
       {/* Author row */}
       <div className="flex items-center gap-3 mb-3">
         <Image
-          src={post.author.avatar ?? `https://api.dicebear.com/9.x/initials/svg?seed=${post.author.name}`}
+          src={post.author.avatar ?? getInitialsAvatarUrl(post.author.name)}
           alt=""
           width={40}
           height={40}

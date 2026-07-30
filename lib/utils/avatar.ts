@@ -91,6 +91,27 @@ const UNSPLASH_TO_USERNAME: Record<string, string> = {
   'photo-1573497019940-1c28c88b4f3e': 'sarahk',
 };
 
+/**
+ * Self-contained initials SVG data URL for a given name.
+ * Used as a zero-dependency fallback when no local SVG exists.
+ */
+export function getInitialsAvatarUrl(name: string): string {
+  const initials = name
+    .split(' ')
+    .map((w) => w[0] || '')
+    .join('')
+    .slice(0, 2)
+    .toUpperCase() || '?';
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) | 0;
+  const hue = ((hash % 360) + 360) % 360;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="hsl(${hue},65%,45%)"/><text x="50" y="50" fill="#fff" font-family="Arial,sans-serif" font-size="40" font-weight="bold" text-anchor="middle" dominant-baseline="central">${initials}</text></svg>`;
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+}
+
+/** Generic fallback avatar data URL (question-mark silhouette) */
+export const DEFAULT_AVATAR = getInitialsAvatarUrl('User');
+
 /** URL patterns that indicate an external avatar source */
 const EXTERNAL_PATTERNS = ['api.dicebear.com', 'images.unsplash.com'];
 

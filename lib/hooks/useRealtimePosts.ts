@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { getInitialsAvatarUrl, DEFAULT_AVATAR } from '@/lib/utils/avatar';
 import { useStore } from '@/lib/store/useStore';
 import type { FeedPost } from '@/lib/data/community';
 
@@ -85,7 +86,7 @@ export function useRealtimePosts() {
               name: author.name ?? 'Member',
               avatar:
                 author.avatar ??
-                `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(author.name ?? 'User')}`,
+                getInitialsAvatarUrl(author.name ?? 'User'),
             },
             text: row.content,
             image: row.image ?? undefined,

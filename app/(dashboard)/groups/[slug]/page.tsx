@@ -8,6 +8,7 @@ import { GroupHeader } from '../components/GroupHeader';
 import { GroupTabs } from '../components/GroupTabs';
 import { MemberList } from '../components/MemberList';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { getInitialsAvatarUrl, DEFAULT_AVATAR } from '@/lib/utils/avatar';
 import Image from 'next/image';
 
 export default function GroupDetailPage({
@@ -94,7 +95,7 @@ export default function GroupDetailPage({
               >
                 <div className="flex items-center gap-3 mb-3">
                   <Image
-                    src={post.author.avatar ?? `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(post.author.name)}`}
+                    src={post.author.avatar ?? getInitialsAvatarUrl(post.author.name)}
                     alt=""
                     width={40}
                     height={40}
@@ -116,7 +117,7 @@ export default function GroupDetailPage({
                     {post.comments.map((c) => (
                       <div key={c.id} className="flex items-start gap-2">
                         <Image
-                          src={c.author.avatar ?? `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(c.author.name)}`}
+                          src={c.author.avatar ?? getInitialsAvatarUrl(c.author.name)}
                           alt=""
                           width={24}
                           height={24}
@@ -189,7 +190,7 @@ export default function GroupDetailPage({
               <h3 className="font-heading font-bold text-foreground text-sm mb-1">Created by</h3>
               <div className="flex items-center gap-2">
                 <Image
-                  src={group.creator.avatar ?? `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(group.creator.name)}`}
+                  src={group.creator.avatar ?? getInitialsAvatarUrl(group.creator.name)}
                   alt=""
                   width={24}
                   height={24}

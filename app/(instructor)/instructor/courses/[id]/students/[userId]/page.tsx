@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, use } from 'react';
+import { getInitialsAvatarUrl, DEFAULT_AVATAR } from '@/lib/utils/avatar';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -54,7 +55,7 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
       <div className="glass-card p-6 mb-8">
         <div className="flex items-center gap-4 mb-4">
           <Image
-            src={data.student.avatar || `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(data.student.name)}`}
+            src={data.student.avatar || getInitialsAvatarUrl(data.student.name)}
             alt={data.student.name}
             width={48}
             height={48}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { getInitialsAvatarUrl, DEFAULT_AVATAR } from '@/lib/utils/avatar';
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { useTranslation } from "@/lib/i18n/useTranslation";
@@ -256,7 +257,7 @@ export default function EventDetailPage() {
                   <div key={d.id} className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-4">
                     <div className="flex items-center gap-3 mb-2">
                       <Image
-                        src={d.user.avatar ?? "https://api.dicebear.com/9.x/initials/svg?seed=User"}
+                        src={d.user.avatar ?? DEFAULT_AVATAR}
                         alt={d.user.name}
                         width={32}
                         height={32}

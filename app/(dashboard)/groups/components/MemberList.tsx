@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { getInitialsAvatarUrl, DEFAULT_AVATAR } from '@/lib/utils/avatar';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import clsx from 'clsx';
@@ -100,7 +101,7 @@ export function MemberList({
               className="flex items-center gap-3 p-3 rounded-xl bg-surface border border-surface-light"
             >
               <Image
-                src={member.user.avatar ?? `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(member.user.name)}`}
+                src={member.user.avatar ?? getInitialsAvatarUrl(member.user.name)}
                 alt={member.user.name}
                 width={40}
                 height={40}

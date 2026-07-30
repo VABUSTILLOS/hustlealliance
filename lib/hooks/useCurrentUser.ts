@@ -2,6 +2,7 @@
 
 import { useStore, type UserInfo } from '@/lib/store/useStore';
 import { FOUNDER_PROFILE } from '@/lib/auth/mock';
+import { getInitialsAvatarUrl } from '@/lib/utils/avatar';
 
 const USER_INFO_KEY = 'hustle_user_info';
 
@@ -38,9 +39,15 @@ export function useCurrentUser(): UserInfo {
 /**
  * Derives a DiceBear avatar URL from a name or email.
  */
+/**
+ * Returns a local avatar URL. For known seed users, resolves to their local SVG.
+ * For unknown users, generates a deterministic initials SVG as a data URL.
+ */
+/**
+ * Returns a local avatar URL using the shared initials SVG generator.
+ */
 export function getAvatarUrl(name?: string, email?: string): string {
-  const seed = name || email || 'User';
-  return `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(seed)}&backgroundColor=ea580c`;
+  return getInitialsAvatarUrl(name || email || 'User');
 }
 
 /**

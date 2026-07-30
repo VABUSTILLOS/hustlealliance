@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { getInitialsAvatarUrl, DEFAULT_AVATAR } from '@/lib/utils/avatar';
 
 interface Testimonial {
   id: string;
@@ -21,7 +22,7 @@ const testimonials: Testimonial[] = [
     name: 'Nina Okonkwo',
     role: 'Founder & CEO',
     company: 'Tula Health',
-    avatar: 'https://api.dicebear.com/9.x/initials/svg?seed=Nina+Okonkwo&backgroundColor=7c3aed',
+    avatar: getInitialsAvatarUrl('Nina+Okonkwo'.replace('+',' ')),
     quote: 'I was stuck in fundraising limbo for 8 months. The Fundraising 101 path gave me the exact term sheet checklist I needed. Closed our $1.2M pre-seed two weeks later.',
     result: 'Raised $1.2M in 2 weeks',
     path: 'Fundraising 101',
@@ -31,7 +32,7 @@ const testimonials: Testimonial[] = [
     name: 'Diego Ramírez',
     role: 'Cofounder & CTO',
     company: 'StackBridge',
-    avatar: 'https://api.dicebear.com/9.x/initials/svg?seed=Diego+Ramirez&backgroundColor=db2777',
+    avatar: getInitialsAvatarUrl('Diego+Ramirez'.replace('+',' ')),
     quote: 'I\'m an engineer, not a marketer. The Growth Marketing path broke down customer acquisition into systems I could actually follow. We hit 2,000 beta signups in our first month.',
     result: '2,000 beta users in 30 days',
     path: 'Growth Marketing',
@@ -41,7 +42,7 @@ const testimonials: Testimonial[] = [
     name: 'Aisha Patel',
     role: 'Solo Founder',
     company: 'WriteFlow',
-    avatar: 'https://api.dicebear.com/9.x/initials/svg?seed=Aisha+Patel&backgroundColor=0891b2',
+    avatar: getInitialsAvatarUrl('Aisha+Patel'.replace('+',' ')),
     quote: 'Being a solo founder is lonely. Hustle Alliance gave me a community of people who actually get it. The SaaS Founders space alone saved me from three product mistakes.',
     result: 'Avoided 3 costly pivots',
   },
@@ -50,7 +51,7 @@ const testimonials: Testimonial[] = [
     name: 'James Hawthorne',
     role: 'CEO',
     company: 'Pivot Analytics',
-    avatar: 'https://api.dicebear.com/9.x/initials/svg?seed=James+Hawthorne&backgroundColor=ea580c',
+    avatar: getInitialsAvatarUrl('James+Hawthorne'.replace('+',' ')),
     quote: 'I was skeptical about "online learning" for startups. But the Product-Led Growth path was more actionable than my $5,000 accelerator program. Redesigned our onboarding — activation jumped 34%.',
     result: 'Activation rate up 34%',
     path: 'Product-Led Growth',
@@ -60,7 +61,7 @@ const testimonials: Testimonial[] = [
     name: 'Keiko Tanaka',
     role: 'Founder',
     company: 'Meridian Ventures',
-    avatar: 'https://api.dicebear.com/9.x/initials/svg?seed=Keiko+Tanaka&backgroundColor=9333ea',
+    avatar: getInitialsAvatarUrl('Keiko+Tanaka'.replace('+',' ')),
     quote: 'The community here is different. It\'s not about vanity metrics or "crushing it." Real founders sharing real struggles and real solutions. The peer feedback on my pitch deck was invaluable.',
     result: 'Won pitch competition',
   },
@@ -69,7 +70,7 @@ const testimonials: Testimonial[] = [
     name: 'Omar Hassan',
     role: 'Technical Founder',
     company: 'GridSense',
-    avatar: 'https://api.dicebear.com/9.x/initials/svg?seed=Omar+Hassan&backgroundColor=059669',
+    avatar: getInitialsAvatarUrl('Omar+Hassan'.replace('+',' ')),
     quote: 'I joined for the learning paths, I stayed for the accountability. The 7-day streak system got me building consistently for the first time in years. Shipped more in 30 days than the previous 6 months.',
     result: 'Shipped in 30 days vs 6 months',
     path: 'Community Streaks',

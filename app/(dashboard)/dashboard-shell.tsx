@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import Image from 'next/image';
 import clsx from 'clsx';
 import { useStore } from '@/lib/store/useStore';
+import { getInitialsAvatarUrl, DEFAULT_AVATAR } from '@/lib/utils/avatar';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { useCurrentUser } from '@/lib/hooks/useCurrentUser';
 import { ReactQueryProvider } from '@/lib/hooks/queryClient';
@@ -163,7 +164,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         <div className="px-6 py-5 border-t border-surface-light">
           <div className="flex items-center gap-3 group mb-3">
             <Image
-              src={user?.avatar ?? 'https://api.dicebear.com/9.x/initials/svg?seed=User'}
+              src={user?.avatar ?? DEFAULT_AVATAR}
               alt={user?.name ?? 'User'}
               width={36}
               height={36}

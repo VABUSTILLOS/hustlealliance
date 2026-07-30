@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { getInitialsAvatarUrl, DEFAULT_AVATAR } from '@/lib/utils/avatar';
 import { useStore } from '@/lib/store/useStore';
 
 interface Attendee {
@@ -61,7 +62,7 @@ export function useLiveClassPresence(classId: string | null) {
         name: currentUser?.name ?? 'Anonymous',
         avatar:
           currentUser?.avatar ??
-          `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(currentUser?.name ?? 'User')}`,
+          getInitialsAvatarUrl(currentUser?.name ?? 'User'),
       };
 
       await channel.send({

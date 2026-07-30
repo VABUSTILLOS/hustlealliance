@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { useStore } from '@/lib/store/useStore';
+import { getInitialsAvatarUrl, DEFAULT_AVATAR } from '@/lib/utils/avatar';
 import { useCurrentUser, getFirstName, getAvatarUrl } from '@/lib/hooks/useCurrentUser';
 import { useDashboard } from '@/lib/hooks/useDashboard';
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -183,7 +184,7 @@ export default function DashboardPage() {
           <Widget className="relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-r from-accent/5 via-transparent to-transparent pointer-events-none" />
             <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-5">
-              <Image src={user?.avatar ?? 'https://api.dicebear.com/9.x/initials/svg?seed=User'} alt={user?.name ?? 'User'}
+              <Image src={user?.avatar ?? DEFAULT_AVATAR} alt={user?.name ?? 'User'}
                 width={64} height={64} className="rounded-full border-2 border-white/10 object-cover shrink-0" />
               <div className="flex-1 min-w-0">
                 <h1 className="font-display text-2xl sm:text-3xl text-white uppercase leading-none mb-1">

@@ -4,6 +4,7 @@ import { memo, useState, useCallback } from 'react';
 import Image from 'next/image';
 import { useQuery } from '@tanstack/react-query';
 import { LazyMotionDiv } from '@/lib/framer/lazy-motion';
+import { getInitialsAvatarUrl, DEFAULT_AVATAR } from '@/lib/utils/avatar';
 import { useCurrentUser } from '@/lib/hooks/useCurrentUser';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { useAddComment } from './hooks/useAddComment';
@@ -67,7 +68,7 @@ const CommentTreeInner = memo(function CommentTreeInner({
           comments.map((c) => (
             <div key={c.id} className="flex gap-2 ml-4">
               <Image
-                src={c.author.avatar ?? 'https://api.dicebear.com/9.x/initials/svg?seed=User'}
+                src={c.author.avatar ?? DEFAULT_AVATAR}
                 alt=""
                 width={24}
                 height={24}
@@ -85,7 +86,7 @@ const CommentTreeInner = memo(function CommentTreeInner({
         {/* Add comment input */}
         <div className="flex gap-2 ml-4 pt-1">
           <Image
-            src={user?.avatar ?? 'https://api.dicebear.com/9.x/initials/svg?seed=User'}
+            src={user?.avatar ?? DEFAULT_AVATAR}
             alt=""
             width={24}
             height={24}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { getInitialsAvatarUrl, DEFAULT_AVATAR } from '@/lib/utils/avatar';
 import Image from "next/image";
 import { ProfileTabs, type ProfileTab } from "../components/ProfileTabs";
 import { useUserFriends } from "../hooks/useProfile";
@@ -69,7 +70,7 @@ export function ProfileContent({
                     <Image
                       src={
                         post.author.avatar ??
-                        `https://api.dicebear.com/9.x/initials/svg?seed=${post.author.name}`
+                        getInitialsAvatarUrl(post.author.name)
                       }
                       alt=""
                       width={40}
@@ -278,7 +279,7 @@ export function ProfileContent({
                     <Image
                       src={
                         friend.avatar ??
-                        `https://api.dicebear.com/9.x/initials/svg?seed=${friend.name}`
+                        getInitialsAvatarUrl(friend.name)
                       }
                       alt={friend.name}
                       width={56}

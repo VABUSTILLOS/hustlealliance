@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { getInitialsAvatarUrl, DEFAULT_AVATAR } from '@/lib/utils/avatar';
 import Image from "next/image";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import type { EventCard } from "./hooks/useEvents";
@@ -102,7 +103,7 @@ export default function EventCard({ event }: { event: EventCard }) {
         <div className="flex items-center justify-between mt-3 pt-3 border-t border-[var(--color-border-subtle)]">
           <div className="flex items-center gap-2">
             <Image
-              src={event.creator.avatar ?? "https://api.dicebear.com/9.x/initials/svg?seed=User"}
+              src={event.creator.avatar ?? DEFAULT_AVATAR}
               alt={event.creator.name}
               width={20}
               height={20}

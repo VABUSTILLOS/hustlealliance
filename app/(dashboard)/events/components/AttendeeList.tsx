@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { getInitialsAvatarUrl, DEFAULT_AVATAR } from '@/lib/utils/avatar';
 import Link from "next/link";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import type { RSVPStatus } from "@/lib/generated/prisma/client";
@@ -62,7 +63,7 @@ export default function AttendeeList({
         >
           <div className="relative">
             <Image
-              src={a.user.avatar ?? "https://api.dicebear.com/9.x/initials/svg?seed=User"}
+              src={a.user.avatar ?? DEFAULT_AVATAR}
               alt={a.user.name}
               width={40}
               height={40}

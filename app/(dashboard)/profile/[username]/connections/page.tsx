@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, use } from "react";
+import { getInitialsAvatarUrl, DEFAULT_AVATAR } from '@/lib/utils/avatar';
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
@@ -131,7 +132,7 @@ function ConnectionsContent({
                 <Image
                   src={
                     item.avatar ??
-                    `https://api.dicebear.com/9.x/initials/svg?seed=${item.name}`
+                    getInitialsAvatarUrl(item.name)
                   }
                   alt={item.name}
                   width={44}

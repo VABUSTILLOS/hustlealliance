@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { getInitialsAvatarUrl, DEFAULT_AVATAR } from '@/lib/utils/avatar';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import clsx from 'clsx';
@@ -502,7 +503,7 @@ function MembersTab({ members }: { members: MemberData[] }) {
               <Image
                 src={
                   m.user.avatar ??
-                  'https://api.dicebear.com/9.x/initials/svg?seed=User'
+                  DEFAULT_AVATAR
                 }
                 alt={m.user.name}
                 width={40}
@@ -567,7 +568,7 @@ function Sidebar({
                 <Image
                   src={
                     m.user.avatar ??
-                    'https://api.dicebear.com/9.x/initials/svg?seed=User'
+                    DEFAULT_AVATAR
                   }
                   alt={m.user.name}
                   width={32}
@@ -723,7 +724,7 @@ function PostCard({
         <Image
           src={
             post.author.avatar ??
-            'https://api.dicebear.com/9.x/initials/svg?seed=User'
+            DEFAULT_AVATAR
           }
           alt={post.author.name}
           width={36}
@@ -770,7 +771,7 @@ function PostCard({
                 <Image
                   src={
                     reply.author.avatar ??
-                    'https://api.dicebear.com/9.x/initials/svg?seed=User'
+                    DEFAULT_AVATAR
                   }
                   alt={reply.author.name}
                   width={20}

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import clsx from 'clsx';
 import { useCourse } from '@/lib/hooks/useCourses';
+import { getInitialsAvatarUrl, DEFAULT_AVATAR } from '@/lib/utils/avatar';
 import { useAccessCheck } from '@/lib/hooks/useAccessCheck';
 import { useStore } from '@/lib/store/useStore';
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -144,7 +145,7 @@ export default function LearningPathPage({
                   <h3 className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted mb-4">{t.learningDetail.instructor}</h3>
                   <div className="flex items-center gap-3 mb-3">
                     <Image
-                      src={course.instructor.avatar || 'https://api.dicebear.com/9.x/initials/svg?seed=Instructor&backgroundColor=dc2626'}
+                      src={course.instructor.avatar || getInitialsAvatarUrl('Instructor')}
                       alt={course.instructor.name}
                       width={48}
                       height={48}

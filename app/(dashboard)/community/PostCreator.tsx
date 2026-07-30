@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import Image from 'next/image';
 import clsx from 'clsx';
 import { useStore } from '@/lib/store/useStore';
+import { getInitialsAvatarUrl, DEFAULT_AVATAR } from '@/lib/utils/avatar';
 import { LazyMotionDiv, LazyAnimatePresence } from '@/lib/framer/lazy-motion';
 import { useCurrentUser } from '@/lib/hooks/useCurrentUser';
 import { spaces as allSpaces } from '@/lib/data/spaces';
@@ -134,7 +135,7 @@ export function PostCreator() {
     if (!newPostText.trim() || isOverLimit) return;
     const newPost: FeedPost = {
       id: crypto.randomUUID(),
-      author: { username: user?.username ?? 'member', name: user?.name ?? 'Member', avatar: user?.avatar ?? 'https://api.dicebear.com/9.x/initials/svg?seed=User' },
+      author: { username: user?.username ?? 'member', name: user?.name ?? 'Member', avatar: user?.avatar ?? DEFAULT_AVATAR },
       text: newPostText,
       image: previewImage || undefined,
       timestamp: 'Just now',
@@ -158,7 +159,7 @@ export function PostCreator() {
       className="bg-surface border border-surface-light rounded-2xl p-5 mb-6"
     >
       <div className="flex gap-3">
-        <Image src={user?.avatar ?? 'https://api.dicebear.com/9.x/initials/svg?seed=User'} alt="" width={40} height={40} className="rounded-full border border-white/10 object-cover shrink-0" />
+        <Image src={user?.avatar ?? DEFAULT_AVATAR} alt="" width={40} height={40} className="rounded-full border border-white/10 object-cover shrink-0" />
         <div className="flex-1 space-y-3 relative">
           <div className="relative">
             <textarea
@@ -185,7 +186,7 @@ export function PostCreator() {
                       onClick={() => handleSelectMention(u.username)}
                       className="w-full text-left px-3 py-2 hover:bg-surface-light transition-colors flex items-center gap-2"
                     >
-                      <Image src={u.avatar ?? `https://api.dicebear.com/9.x/initials/svg?seed=${u.name}`} alt="" width={24} height={24} className="rounded-full object-cover shrink-0" />
+                      <Image src={u.avatar ?? getInitialsAvatarUrl(u.name)} alt="" width={24} height={24} className="rounded-full object-cover shrink-0" />
                       <div className="min-w-0">
                         <p className="text-xs font-heading font-bold text-foreground truncate">{u.name}</p>
                         <p className="text-[10px] text-muted">@{u.username}</p>

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { getPostDetailCached } from '@/lib/db/community';
+import { getInitialsAvatarUrl, DEFAULT_AVATAR } from '@/lib/utils/avatar';
 import { getCommentsForPost } from '@/lib/db/community';
 import { getCurrentUser } from '@/lib/auth/user';
 import { PostCard } from '../../components/PostCard';
@@ -90,7 +91,7 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
               comments.map((comment) => (
                 <div key={comment.id} className="flex gap-2 ml-4">
                   <Image
-                    src={comment.author.avatar ?? `https://api.dicebear.com/9.x/initials/svg?seed=${comment.author.name}`}
+                    src={comment.author.avatar ?? getInitialsAvatarUrl(comment.author.name)}
                     alt=""
                     width={24}
                     height={24}

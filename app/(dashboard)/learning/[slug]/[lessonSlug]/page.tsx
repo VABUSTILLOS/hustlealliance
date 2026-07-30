@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import clsx from 'clsx';
 import { useLesson, useCourse } from '@/lib/hooks/useCourses';
+import { getInitialsAvatarUrl, DEFAULT_AVATAR } from '@/lib/utils/avatar';
 import { useAccessCheck } from '@/lib/hooks/useAccessCheck';
 import { useDripStatus } from '@/lib/hooks/useDripStatus';
 import { completeLessonAction } from '@/app/actions/learning';
@@ -85,7 +86,7 @@ export default function LessonPlayerPage({
       id: `post-${Date.now()}`,
       author: {
         name: user?.name ?? 'Member',
-        avatar: user?.avatar ?? 'https://api.dicebear.com/9.x/initials/svg?seed=User',
+        avatar: user?.avatar ?? DEFAULT_AVATAR,
         username: user?.username ?? user?.email?.split('@')[0] ?? 'member',
       },
       text: `🎉 ${t.gamification.sharedWin} "${lesson.title}" ${t.gamification.from} "${course.title}"!`,

@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { getInitialsAvatarUrl, DEFAULT_AVATAR } from '@/lib/utils/avatar';
 import Link from "next/link";
 import { FollowButton } from "./FollowButton";
 import { FriendButton } from "./FriendButton";
@@ -43,7 +44,7 @@ export function ProfileHeader({ profile, isOwnProfile }: ProfileHeaderProps) {
             <Image
               src={
                 profile.avatar ??
-                `https://api.dicebear.com/9.x/initials/svg?seed=${profile.name}`
+                getInitialsAvatarUrl(profile.name)
               }
               alt={displayName}
               fill

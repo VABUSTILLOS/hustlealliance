@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useLiveClassPresence } from '@/lib/hooks/useLiveClassPresence';
+import { getInitialsAvatarUrl, DEFAULT_AVATAR } from '@/lib/utils/avatar';
 
 interface LiveClassDetail {
   id: string;
@@ -234,7 +235,7 @@ export default function LiveClassPage({ params }: { params: Promise<{ id: string
             <Image
               src={
                 liveClass.instructor.avatar ??
-                `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(liveClass.instructor.name)}`
+                getInitialsAvatarUrl(liveClass.instructor.name)
               }
               alt={liveClass.instructor.name}
               width={40}
@@ -253,7 +254,7 @@ export default function LiveClassPage({ params }: { params: Promise<{ id: string
                 key={a.userId}
                 src={
                   a.avatar ||
-                  `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(a.name)}`
+                  getInitialsAvatarUrl(a.name)
                 }
                 alt={a.name}
                 title={a.name}
