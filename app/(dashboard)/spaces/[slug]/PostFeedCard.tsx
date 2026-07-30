@@ -69,13 +69,30 @@ export function PostFeedCard({
     >
       {/* Author header */}
       <div className="flex items-center gap-3 mb-3">
-        <Image
-          src={post.author.avatar ?? ""}
-          alt=""
-          width={40}
-          height={40}
-          className="rounded-full border border-white/10 object-cover shrink-0"
-        />
+        {post.author.avatar ? (
+          <Image
+            src={post.author.avatar}
+            alt=""
+            width={40}
+            height={40}
+            unoptimized
+            className="rounded-full border border-white/10 object-cover shrink-0"
+          />
+        ) : (
+          <div
+            className="rounded-full border border-white/10 shrink-0 flex items-center justify-center
+                       bg-accent/20 text-accent font-heading font-bold text-[14px] select-none"
+            style={{ width: 40, height: 40 }}
+            aria-hidden
+          >
+            {(post.author.name ?? "?")
+              .split(" ")
+              .map((w) => w[0])
+              .join("")
+              .slice(0, 2)
+              .toUpperCase()}
+          </div>
+        )}
         <div className="min-w-0">
           <p className="font-heading font-bold text-foreground text-sm truncate">
             {post.author.name}

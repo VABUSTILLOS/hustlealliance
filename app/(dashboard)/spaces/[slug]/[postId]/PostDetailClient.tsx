@@ -130,6 +130,87 @@ function ReadingProgressBar() {
   );
 }
 
+function AuthorAvatar({
+  src,
+  name,
+  size = 44,
+}: {
+  src: string | null;
+  name: string | null;
+  size?: number;
+}) {
+  if (src) {
+    return (
+      <Image
+        src={src}
+        alt=""
+        width={size}
+        height={size}
+        unoptimized
+        className="rounded-full border border-white/10 object-cover shrink-0"
+      />
+    );
+  }
+
+  // Fallback: initials on a colored circle
+  const initials = (name ?? "?")
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  return (
+    <div
+      className="rounded-full border border-white/10 shrink-0 flex items-center justify-center
+                 bg-accent/20 text-accent font-heading font-bold select-none"
+      style={{ width: size, height: size, fontSize: size * 0.36 }}
+      aria-hidden
+    >
+      {initials}
+    </div>
+  );
+}
+
+const CommentAvatar = ({
+  src,
+  name,
+}: {
+  src: string | null;
+  name: string | null;
+}) => {
+  if (src) {
+    return (
+      <Image
+        src={src}
+        alt=""
+        width={36}
+        height={36}
+        unoptimized
+        className="rounded-full border border-white/10 object-cover shrink-0"
+      />
+    );
+  }
+
+  const initials = (name ?? "?")
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  return (
+    <div
+      className="rounded-full border border-white/10 shrink-0 flex items-center justify-center
+                 bg-accent/20 text-accent font-heading font-bold text-[11px] select-none"
+      style={{ width: 36, height: 36 }}
+      aria-hidden
+    >
+      {initials}
+    </div>
+  );
+};
+
 function ArticleHeader({ post }: { post: PostData }) {
   const { title } = extractTitle(post.content);
 
@@ -154,13 +235,7 @@ function ArticleHeader({ post }: { post: PostData }) {
 
       {/* Author row */}
       <div className="flex items-center gap-3 mb-4">
-        <Image
-          src={post.author.avatar ?? ""}
-          alt=""
-          width={44}
-          height={44}
-          className="rounded-full border border-white/10 object-cover"
-        />
+        <AuthorAvatar src={post.author.avatar} name={post.author.name} size={44} />
         <div>
           <p className="font-heading font-bold text-foreground text-sm">{post.author.name}</p>
           <div className="flex items-center gap-2">
@@ -359,13 +434,7 @@ function CommentItem({
   return (
     <div className="group">
       <div className="flex gap-3">
-        <Image
-          src={comment.author.avatar ?? ""}
-          alt=""
-          width={32}
-          height={32}
-          className="rounded-full border border-white/10 object-cover shrink-0 mt-0.5"
-        />
+        <CommentAvatar src={comment.author.avatar} name={comment.author.name} />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-0.5">
             <p className="font-heading font-bold text-foreground text-xs">{comment.author.name}</p>
