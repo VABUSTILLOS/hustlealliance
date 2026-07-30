@@ -34,7 +34,10 @@ export async function GET(request: NextRequest) {
       prisma.user.findMany({
         where: {
           id: { in: userIds },
-          avatar: { not: null, not: '' },
+          AND: [
+            { avatar: { not: null } },
+            { avatar: { not: '' } },
+          ],
         },
         select: { id: true, name: true, avatar: true, username: true },
       }),
