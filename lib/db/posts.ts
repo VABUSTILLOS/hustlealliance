@@ -1,4 +1,5 @@
 import prisma from "@/lib/db/prisma";
+import { normalizeAvatarUrl } from "@/lib/utils/avatar";
 import type { PostVisibility } from "@/lib/generated/prisma/client";
 
 // ── Create (with mention parsing) ──────────────────────────────────────
@@ -67,7 +68,7 @@ export async function getFeedPosts(params: {
 }
 
 export async function getPostById(postId: string) {
-  return prisma.communityPost.findUnique({
+  const post = await prisma.communityPost.findUnique({
     where: { id: postId },
     include: {
       author: { select: { id: true, name: true, username: true, avatar: true } },
@@ -81,6 +82,23 @@ export async function getPostById(postId: string) {
       },
     },
   });
+
+  if (!post) return null;
+
+  return {
+    ...post,
+    author: {
+      ...post.author,
+      avatar: normalizeAvatarUrl(post.author.avatar),
+    },
+    comments: post.comments.map((c) => ({
+      ...c,
+      author: {
+        ...c.author,
+        avatar: normalizeAvatarUrl(c.author.avatar),
+      },
+    })),
+  };
 }
 
 export async function getUserPosts(userId: string, limit = 20, cursor?: string) {
@@ -269,7 +287,7 @@ export async function searchPosts(query: string, filters?: {
 // ── Post Detail (enriched) ──────────────────────────────────────────────
 
 export async function getPostDetail(postId: string) {
-  return prisma.communityPost.findFirst({
+  const post = await prisma.communityPost.findFirst({
     where: { id: postId, isDeleted: false },
     include: {
       author: { select: { id: true, name: true, username: true, avatar: true } },
@@ -281,4 +299,14 @@ export async function getPostDetail(postId: string) {
       _count: { select: { likes: true, comments: true, shares: true } },
     },
   });
+
+  if (!post) return null;
+
+  return {
+    ...post,
+    author: {
+      ...post.author,
+      avatar: normalizeAvatarUrl(post.author.avatar),
+    },
+  };
 }
