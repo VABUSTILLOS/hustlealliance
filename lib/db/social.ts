@@ -307,6 +307,12 @@ export const getUserProfileData = cache(
             yearsExperience: true,
             headline: true,
             summary: true,
+            interests: true,
+            canHelpWith: true,
+            lookingFor: true,
+            businessInfo: true,
+            hasOpportunities: true,
+            marketplaceSeller: true,
           },
         },
         _count: {
