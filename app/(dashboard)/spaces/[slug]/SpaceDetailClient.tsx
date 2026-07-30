@@ -9,31 +9,7 @@ import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { Space } from '@/lib/data/spaces';
 import type { GetCommunityPostsResult } from '@/lib/db/community';
 import { useCommunityFeed } from '../../community/useCommunityFeed';
-
-function renderBlogContent(content: string): string {
-  // Split off the title line (## Title) if present
-  let title = '';
-  let body = content;
-  const titleMatch = content.match(/^## (.+)\n\n/);
-  if (titleMatch) {
-    title = `<h3 class="font-heading font-bold text-foreground text-base mb-2">${titleMatch[1]}</h3>`;
-    body = content.slice(titleMatch[0].length);
-  }
-  // Basic markdown: **bold**, paragraphs
-  const html = body
-    .split('\n\n')
-    .filter(Boolean)
-    .map((p) => {
-      const trimmed = p.trim();
-      if (trimmed.startsWith('**') && trimmed.includes('**')) {
-        // Sub-heading
-        return `<h4 class="font-heading font-bold text-foreground text-sm mt-3 mb-1">${trimmed.replace(/\*\*/g, '')}</h4>`;
-      }
-      return `<p class="mb-2 leading-relaxed">${trimmed.replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold text-foreground">$1</strong>')}</p>`;
-    })
-    .join('');
-  return title + html;
-}
+import { PostFeedCard } from './PostFeedCard';
 
 export function SpaceDetailClient({
   slug,
@@ -114,49 +90,7 @@ export function SpaceDetailClient({
       ) : (
         <div className="space-y-4">
           {posts.map((post) => (
-            <motion.div
-              key={post.id}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-surface border border-surface-light rounded-2xl p-5 hover:border-accent/20 transition-colors cursor-pointer"
-            >
-              <div className="flex items-center gap-3 mb-3">
-                <Image src={post.author.avatar ?? ''} alt="" width={40} height={40} className="rounded-full border border-white/10 object-cover" />
-                <div>
-                  <p className="font-heading font-bold text-foreground text-sm">{post.author.name}</p>
-                  <div className="flex items-center gap-2">
-                    <p className="font-mono text-[10px] text-muted">@{post.author.username}</p>
-                    <span className="text-muted text-[10px]">•</span>
-                    <p className="text-muted text-[10px]">{new Date(post.createdAt).toLocaleDateString()}</p>
-                    {post.locale && (
-                      <>
-                        <span className="text-muted text-[10px]">•</span>
-                        <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-accent/10 text-accent uppercase">{post.locale}</span>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-              {post.excerpt && (
-                <p className="text-muted text-xs mb-2 italic leading-relaxed">{post.excerpt}</p>
-              )}
-              {post.imageUrls.length > 0 && (
-                <div className="relative w-full aspect-[16/9] rounded-xl overflow-hidden mb-3">
-                  <Image src={post.imageUrls[0]} alt="" fill unoptimized className="object-cover" sizes="(max-width: 640px) 100vw, 700px" />
-                </div>
-              )}
-              <div className="text-foreground-muted text-sm mb-3 blog-content" dangerouslySetInnerHTML={{ __html: renderBlogContent(post.content) }} />
-              <div className="flex items-center gap-4 text-xs font-mono text-muted">
-                <span>❤️ {post.likeCount}</span>
-                <span>💬 {post.commentCount}</span>
-                <Link
-                  href={`/spaces/${slug}/${post.id}`}
-                  className="ml-auto text-accent hover:text-accent-glow transition-colors"
-                >
-                  Read more →
-                </Link>
-              </div>
-            </motion.div>
+            <PostFeedCard key={post.id} post={post} spaceSlug={slug} />
           ))}
         </div>
       )}

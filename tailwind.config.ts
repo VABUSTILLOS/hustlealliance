@@ -36,6 +36,7 @@ const config: Config = {
         'gradient-shift': 'gradient-shift 8s linear infinite',
         'cta-pulse': 'cta-pulse 2s infinite',
         'number-tick': 'number-tick 0.6s ease-out',
+        'slide-in': 'slideIn 0.3s ease-out forwards',
       },
       keyframes: {
         float: {
@@ -58,6 +59,10 @@ const config: Config = {
         'number-tick': {
           '0%': { opacity: '0', transform: 'translateY(10px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        slideIn: {
+          '0%': { transform: 'translateX(100%)' },
+          '100%': { transform: 'translateX(0)' },
         },
       },
       fontFamily: {

@@ -65,7 +65,7 @@ function formatDate(dateStr: string): string {
   });
 }
 
-function extractTitle(content: string): { title: string; body: string } {
+export function extractTitle(content: string): { title: string; body: string } {
   const match = content.match(/^## (.+?)(?:\n\n|$)/);
   if (match) {
     return { title: match[1], body: content.slice(match[0].length) };
