@@ -1,7 +1,9 @@
 import { PrismaPg } from '@prisma/adapter-pg';
+import { prisma } from './prisma';
 
 let initialized = false;
 let initPromise: Promise<void> | null = null;
+let seededPromise: Promise<void> | null = null;
 
 function getPool() {
   // Access the underlying pg Pool through the global prisma instance
@@ -96,4 +98,173 @@ export async function ensureStudyGroupTables(): Promise<void> {
   })();
 
   await initPromise;
+}
+
+/**
+ * Seeds study group data (groups, members, posts, replies) for all courses.
+ * Idempotent — skips if study groups already exist.
+ * Must be called after ensureStudyGroupTables().
+ */
+export async function ensureStudyGroupsSeeded(): Promise<void> {
+  if (seededPromise) {
+    await seededPromise;
+    return;
+  }
+
+  seededPromise = (async () => {
+    await ensureStudyGroupTables();
+
+    // Check if any study groups already exist
+    const existingCount = await prisma.courseStudyGroup.count();
+    if (existingCount > 0) {
+      console.log('[StudyGroup] Study groups already seeded, skipping.');
+      return;
+    }
+
+    console.log('[StudyGroup] Seeding study groups...');
+
+    // Find instructors and demo student
+    const marcus = await prisma.user.findUnique({ where: { email: 'marcus@hustlealliance.com' } });
+    const priya  = await prisma.user.findUnique({ where: { email: 'priya@hustlealliance.com' } });
+    const devon  = await prisma.user.findUnique({ where: { email: 'devon@hustlealliance.com' } });
+    const sarah  = await prisma.user.findUnique({ where: { email: 'sarah@hustlealliance.com' } });
+    const demo   = await prisma.user.findUnique({ where: { email: 'alex@hustlealliance.com' } });
+
+    if (!marcus || !priya || !devon || !sarah || !demo) {
+      console.warn('[StudyGroup] Not all seed users found, skipping study group seeding.');
+      return;
+    }
+
+    const instructors = [marcus, priya, devon, sarah];
+
+    const allCourseSlugs = [
+      'fundraising-101', 'growth-marketing', 'product-led-growth',
+      'leadership-foundations', 'sales-for-founders', 'startup-finance-101',
+      'ai-tools-for-founders', 'design-thinking', 'remote-leadership',
+      'content-marketing-mastery',
+    ];
+
+    const postsData: Record<string, { authorId: string; content: string; replies: { authorId: string; content: string }[] }[]> = {
+      'fundraising-101': [
+        { authorId: marcus.id, content: "Welcome to the Fundraising 101 study group! 👋 I'm Marcus, your instructor. Drop your pitch deck questions here and I'll give live feedback. What's the #1 thing you're struggling with in your fundraise?", replies: [
+          { authorId: demo.id, content: "Thanks Marcus! I'm struggling with valuation — how do you determine a fair pre-money valuation for a pre-revenue startup?" },
+          { authorId: marcus.id, content: "Great question Alex! For pre-revenue, it's mostly about comparable deals and team strength. Look at recent rounds in your sector at your stage. If you have strong founder-market fit and a big TAM, you can command a premium. I'd target $6-10M for a strong pre-seed." },
+        ]},
+        { authorId: demo.id, content: "Just finished the 'Building the 12-Slide Deck' lesson. The framework is super clear. Anyone want to do a mutual pitch deck review?", replies: [
+          { authorId: priya.id, content: "I love this idea! Peer review is one of the most underrated fundraising tactics. Happy to give feedback when you share." },
+        ]},
+        { authorId: devon.id, content: "For those asking about warm intros — I swear by the double opt-in method. Always ask your connector before sending the blurb. It respects their relationship and dramatically increases the yes rate.", replies: [] },
+      ],
+      'growth-marketing': [
+        { authorId: priya.id, content: "Hey growth hackers! 👋 I'm Priya, your instructor for Growth Marketing. Let's kick things off: what's your current MRR and what channel is working best for you right now?", replies: [
+          { authorId: demo.id, content: "We're at $2K MRR, mostly from direct outreach. Looking to add a content engine to get more inbound. Any tips on where to start?" },
+          { authorId: priya.id, content: "Start with one long-form pillar post per week targeting your highest-intent keyword. Repurpose it into 5-7 social posts. Consistency beats perfection — it took me 4 months to see real SEO traction." },
+        ]},
+      ],
+      'product-led-growth': [
+        { authorId: devon.id, content: "Welcome to PLG! The biggest mistake I see founders make is trying to bolt on PLG to a sales-led motion. You have to commit fully. What's your product's 'aha moment'?", replies: [
+          { authorId: sarah.id, content: "So true. At my last company, we found our aha moment wasn't even a feature — it was when users saw their team's activity dashboard for the first time." },
+        ]},
+      ],
+      'leadership-foundations': [
+        { authorId: sarah.id, content: "Leadership is the hardest transition in a founder's journey. Going from doing everything to enabling others is uncomfortable but necessary. What's been your biggest leadership challenge so far?", replies: [
+          { authorId: demo.id, content: "Delegation. I still catch myself doing things my team could handle because 'it's faster if I just do it.' How do you break that habit?" },
+          { authorId: sarah.id, content: "Set a rule: if someone on your team can do it 70% as well as you, delegate it. Your job is to make that 70% become 90% through coaching." },
+        ]},
+      ],
+      'sales-for-founders': [
+        { authorId: marcus.id, content: "Founders who sell have an unfair advantage — you can change the product roadmap mid-conversation based on what you hear. No salesperson can do that. What's your biggest fear about doing sales calls?", replies: [
+          { authorId: priya.id, content: "Honestly, the fear of sounding salesy. I don't want to be that pushy person. How do you sell without feeling like you're selling?" },
+          { authorId: marcus.id, content: "Reframe it: you're not selling, you're diagnosing. Ask questions, listen, and only pitch if your product actually solves their problem." },
+        ]},
+      ],
+      'startup-finance-101': [
+        { authorId: devon.id, content: "Finance fluency is a superpower. When you can walk into a board meeting and talk cap tables, burn multiples, and unit economics, investors take you seriously. What finance topic scares you most?", replies: [
+          { authorId: demo.id, content: "Cap tables. I get the basics but once you add convertible notes, SAFEs, and option pools I'm lost. Is there a good template?" },
+          { authorId: devon.id, content: "Check out the cap table lesson in Module 3 — I included a Google Sheet template. The key is to model dilution at each round." },
+        ]},
+      ],
+      'ai-tools-for-founders': [
+        { authorId: devon.id, content: "AI is moving so fast — this course is my attempt to cut through the noise and give you the 20% of tools that create 80% of the value. What AI tool has made the biggest impact on your workflow so far?", replies: [
+          { authorId: priya.id, content: "Claude for writing first drafts of blog posts and email sequences. I still edit heavily but it cuts my writing time by 60%." },
+          { authorId: demo.id, content: "Cursor for coding! I'm not technical but I built a landing page in 2 hours. Mind-blowing." },
+        ]},
+      ],
+      'design-thinking': [
+        { authorId: priya.id, content: "Design thinking isn't about making things pretty — it's about making things that work for real humans. Who's tried talking to users this week? What surprised you?", replies: [
+          { authorId: sarah.id, content: "I interviewed 5 users yesterday and every single one used our product differently than we intended. We were optimizing for the wrong workflow entirely." },
+        ]},
+      ],
+      'remote-leadership': [
+        { authorId: sarah.id, content: "Remote leadership done right can be more effective than in-office. But done wrong, it's a retention disaster. What's your remote team setup — fully remote, hybrid, or async-first?", replies: [
+          { authorId: devon.id, content: "Async-first with quarterly offsites. Writing culture is everything — if it's not documented, it didn't happen. We use Notion for all decision-making and Loom for walkthroughs." },
+        ]},
+      ],
+      'content-marketing-mastery': [
+        { authorId: priya.id, content: "Content marketing is the most underrated growth lever for bootstrapped startups. It compounds. The blog post you write today will bring traffic for years. What's your content strategy right now?", replies: [
+          { authorId: demo.id, content: "Honestly, we don't have one. We post randomly on Twitter when we remember. Where should we start?" },
+          { authorId: priya.id, content: "Pick ONE platform and ONE format. Master it before expanding. For B2B SaaS, I'd start with LinkedIn + a weekly newsletter. Block 2 hours every Monday morning to write." },
+        ]},
+      ],
+    };
+
+    for (const slug of allCourseSlugs) {
+      const course = await prisma.course.findUnique({
+        where: { slug },
+        select: { id: true, instructorId: true },
+      });
+      if (!course) { console.log(`  ⚠ Course ${slug} not found`); continue; }
+
+      let group = await prisma.courseStudyGroup.findUnique({ where: { courseId: course.id } });
+      if (!group) {
+        group = await prisma.courseStudyGroup.create({
+          data: { courseId: course.id, description: `Study group for ${slug}` },
+        });
+      }
+
+      // Add members: instructor + demo + other instructors (up to 5)
+      const memberIds = new Set<string>();
+      if (course.instructorId) memberIds.add(course.instructorId);
+      memberIds.add(demo.id);
+      for (const inst of instructors) {
+        if (memberIds.size >= 5) break;
+        memberIds.add(inst.id);
+      }
+      for (const userId of memberIds) {
+        await prisma.courseGroupMember.upsert({
+          where: { groupId_userId: { groupId: group.id, userId } },
+          update: {},
+          create: { groupId: group.id, userId },
+        });
+      }
+
+      // Add discussion posts
+      const posts = postsData[slug] || [];
+      for (const pd of posts) {
+        const post = await prisma.courseGroupPost.create({
+          data: {
+            groupId: group.id,
+            authorId: pd.authorId,
+            content: pd.content,
+            createdAt: new Date(Date.now() - Math.floor(Math.random() * 14 * 24 * 60 * 60 * 1000)),
+          },
+        });
+        for (const rd of pd.replies) {
+          await prisma.courseGroupReply.create({
+            data: {
+              postId: post.id,
+              authorId: rd.authorId,
+              content: rd.content,
+              createdAt: new Date(post.createdAt.getTime() + Math.floor(Math.random() * 4 + 1) * 60 * 60 * 1000),
+            },
+          });
+        }
+      }
+      console.log(`  📚 ${slug}: group + ${memberIds.size} members + ${posts.length} threads`);
+    }
+
+    console.log('[StudyGroup] Study groups seeded.');
+  })();
+
+  await seededPromise;
 }
