@@ -432,23 +432,45 @@ export interface MemberProfile {
 
 export const getMemberProfile = cache(
   async (username: string, currentUserId?: string): Promise<{ profile: MemberProfile | null; isFollowing: boolean }> => {
-    const user = await prisma.user.findFirst({
-      where: { username },
-      select: {
-        id: true, name: true, username: true, avatar: true,
-        role: true, membershipTier: true, bio: true, createdAt: true,
-        profile: {
-          select: {
-            headline: true, location: true, website: true,
-            industries: true, skills: true, yearsExperience: true,
-            interests: true, canHelpWith: true, lookingFor: true,
-            businessInfo: true, hasOpportunities: true, marketplaceSeller: true,
-            socialLinks: true,
+    // Fetch user with profile — tries full select first, falls back to minimal
+    // select if new columns (interests, canHelpWith, etc.) haven't been migrated yet.
+    let user: any;
+    try {
+      user = await prisma.user.findFirst({
+        where: { username },
+        select: {
+          id: true, name: true, username: true, avatar: true,
+          role: true, membershipTier: true, bio: true, createdAt: true,
+          profile: {
+            select: {
+              headline: true, location: true, website: true,
+              industries: true, skills: true, yearsExperience: true,
+              interests: true, canHelpWith: true, lookingFor: true,
+              businessInfo: true, hasOpportunities: true, marketplaceSeller: true,
+              socialLinks: true,
+            },
           },
+          _count: { select: { posts: true, comments: true, followers: true, following: true } },
         },
-        _count: { select: { posts: true, comments: true, followers: true, following: true } },
-      },
-    });
+      });
+    } catch {
+      // Fallback: new columns don't exist yet in the database
+      user = await prisma.user.findFirst({
+        where: { username },
+        select: {
+          id: true, name: true, username: true, avatar: true,
+          role: true, membershipTier: true, bio: true, createdAt: true,
+          profile: {
+            select: {
+              headline: true, location: true, website: true,
+              industries: true, skills: true, yearsExperience: true,
+              socialLinks: true,
+            },
+          },
+          _count: { select: { posts: true, comments: true, followers: true, following: true } },
+        },
+      });
+    }
 
     if (!user) return { profile: null, isFollowing: false };
 
