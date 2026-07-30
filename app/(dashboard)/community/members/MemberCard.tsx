@@ -19,25 +19,60 @@ const roleLabel: Record<string, string> = {
   STUDENT: 'Member',
 };
 
+/** Generate a deterministic hue from a name string for avatar background color */
+function nameToHue(name: string): number {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) | 0;
+  return ((hash % 360) + 360) % 360;
+}
+
+/** Get initials (up to 2 chars) from a name */
+function getInitials(name: string): string {
+  return name
+    .split(' ')
+    .map((w) => w[0] || '')
+    .join('')
+    .slice(0, 2)
+    .toUpperCase() || '?';
+}
+
+/** Renders an inline SVG avatar with the member's initials on a colored circle */
+function MemberAvatar({ name }: { name: string }) {
+  const initials = getInitials(name);
+  const hue = nameToHue(name);
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 100 100"
+      className="w-full h-full"
+      aria-label={name}
+    >
+      <circle cx="50" cy="50" r="50" fill={`hsl(${hue},65%,45%)`} />
+      <text
+        x="50"
+        y="50"
+        fill="#fff"
+        dominantBaseline="central"
+        fontFamily="system-ui,-apple-system,sans-serif"
+        fontSize="36"
+        fontWeight="600"
+        letterSpacing="1"
+        textAnchor="middle"
+      >
+        {initials}
+      </text>
+    </svg>
+  );
+}
+
 export function MemberCard({ member }: { member: CommunityMemberItem }) {
   return (
     <Link href={`/community/members/${member.username || member.id}`} className="block">
     <div className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-5 hover:border-[var(--color-accent)] transition-colors group cursor-pointer h-full">
       {/* Top: Avatar + Name */}
       <div className="flex items-start gap-4 mb-3">
-        <div className="w-12 h-12 rounded-full bg-[var(--color-surface-light)] overflow-hidden shrink-0">
-          {member.avatar ? (
-            <img
-              src={member.avatar}
-              alt={member.name}
-              className="w-full h-full object-cover"
-              loading="eager"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-lg font-bold text-[var(--color-foreground-muted)] uppercase">
-              {member.name.charAt(0)}
-            </div>
-          )}
+        <div className="w-12 h-12 rounded-full overflow-hidden shrink-0">
+          <MemberAvatar name={member.name} />
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
