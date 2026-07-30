@@ -1,5 +1,6 @@
 import { cache } from 'react';
 import prisma from '@/lib/db/prisma';
+import { normalizeAvatarUrl } from '@/lib/utils/avatar';
 
 // ── Return types (matching existing FeedPost / Community shapes) ──
 
@@ -83,7 +84,7 @@ export const getCommunityPosts = cache(
         id: post.author.id,
         name: post.author.name,
         username: post.author.username,
-        avatar: post.author.avatar,
+        avatar: normalizeAvatarUrl(post.author.avatar),
       },
       content: post.content,
       space: post.space,
@@ -124,7 +125,7 @@ export const getCommentsForPost = cache(
         id: comment.author.id,
         name: comment.author.name,
         username: comment.author.username,
-        avatar: comment.author.avatar,
+        avatar: normalizeAvatarUrl(comment.author.avatar),
       },
       content: comment.content,
       createdAt: comment.createdAt.toISOString(),
@@ -209,7 +210,7 @@ export const getPinnedPosts = cache(
         id: post.author.id,
         name: post.author.name,
         username: post.author.username,
-        avatar: post.author.avatar,
+        avatar: normalizeAvatarUrl(post.author.avatar),
       },
       content: post.content,
       space: post.space,
@@ -260,7 +261,7 @@ export const getPostDetailCached = cache(
         id: post.author.id,
         name: post.author.name,
         username: post.author.username,
-        avatar: post.author.avatar,
+        avatar: normalizeAvatarUrl(post.author.avatar),
       },
       content: post.content,
       space: post.space,
@@ -378,7 +379,7 @@ export const getCommunityMembers = cache(
       id: u.id,
       name: u.name,
       username: u.username,
-      avatar: u.avatar,
+      avatar: normalizeAvatarUrl(u.avatar),
       role: u.role,
       membershipTier: u.membershipTier,
       headline: u.profile?.headline ?? null,
@@ -485,7 +486,7 @@ export const getMemberProfile = cache(
     return {
       profile: {
         id: user.id, name: user.name, username: user.username,
-        avatar: user.avatar, role: user.role, membershipTier: user.membershipTier,
+        avatar: normalizeAvatarUrl(user.avatar), role: user.role, membershipTier: user.membershipTier,
         bio: user.bio, headline: user.profile?.headline ?? null,
         location: user.profile?.location ?? null,
         website: user.profile?.website ?? null,

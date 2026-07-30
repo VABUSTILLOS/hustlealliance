@@ -29,7 +29,7 @@ export const feedPosts: FeedPost[] = [
     author: {
       username: 'sarahk',
       name: 'Sarah Kim',
-      avatar: 'https://api.dicebear.com/9.x/initials/svg?seed=Sarah+Kim&backgroundColor=7c3aed',
+      avatar: '/images/avatars/sarahk.svg',
     },
     text: 'Just closed our seed round! 🎉 The Fundraising 101 path in Hustle Alliance was a game-changer — the term sheet breakdown alone saved us $50K in legal fees. Thank you to this incredible community.',
     image:
@@ -43,7 +43,7 @@ export const feedPosts: FeedPost[] = [
         author: {
           username: 'marcuschen',
           name: 'Marcus Chen',
-          avatar: 'https://api.dicebear.com/9.x/initials/svg?seed=Marcus+Chen&backgroundColor=059669',
+          avatar: '/images/avatars/marcuschen.svg',
         },
         text: 'Congratulations Sarah! Proud to have played a small part in your journey. 🚀',
         timestamp: '1 hour ago',
@@ -53,7 +53,7 @@ export const feedPosts: FeedPost[] = [
         author: {
           username: 'priyap',
           name: 'Priya Patel',
-          avatar: 'https://api.dicebear.com/9.x/initials/svg?seed=Priya+Patel&backgroundColor=db2777',
+          avatar: '/images/avatars/priyap.svg',
         },
         text: 'Amazing! Which investors did you end up going with? Would love to compare notes.',
         timestamp: '45 min ago',
@@ -65,7 +65,7 @@ export const feedPosts: FeedPost[] = [
     author: {
       username: 'devonm',
       name: 'Devon Mitchell',
-      avatar: 'https://api.dicebear.com/9.x/initials/svg?seed=Devon+Mitchell&backgroundColor=0891b2',
+      avatar: '/images/avatars/devonm.svg',
     },
     text: 'Hot take: Most startups don\'t need to raise venture capital. We built Flux Studio to $2M ARR completely bootstrapped. The playbooks in the Growth Marketing path are all you need to get started. AMA!',
     timestamp: '5 hours ago',
@@ -78,7 +78,7 @@ export const feedPosts: FeedPost[] = [
           username: 'jameso',
           name: 'James Okafor',
           avatar:
-            'https://api.dicebear.com/9.x/initials/svg?seed=James+Okafor&backgroundColor=dc2626',
+            '/images/avatars/jameso.svg',
         },
         text: 'How did you handle churn in the early days?',
         timestamp: '3 hours ago',
@@ -92,7 +92,7 @@ export const feedPosts: FeedPost[] = [
       username: 'maya',
       name: 'Maya Rodriguez',
       avatar:
-        'https://api.dicebear.com/9.x/initials/svg?seed=Maya+Rodriguez&backgroundColor=9333ea',
+        '/images/avatars/maya.svg',
     },
     text: 'Just published my first blog post about building in public. 6 months ago I was too scared to share anything. Now I have 2K followers and 3 inbound investor inquiries. The Community-Led Growth lesson was 🔥',
     timestamp: '8 hours ago',
@@ -107,7 +107,7 @@ export const feedPosts: FeedPost[] = [
       username: 'alexk',
       name: 'Alex Kowalski',
       avatar:
-        'https://api.dicebear.com/9.x/initials/svg?seed=Alex+Kowalski&backgroundColor=ea580c',
+        '/images/avatars/alexk.svg',
     },
     text: 'Looking for a technical co-founder. Building an AI-powered recruiting platform. I have domain expertise and first pilot customer. Based in SF. DM me if interested or tag someone!',
     timestamp: '12 hours ago',
@@ -120,7 +120,7 @@ export const feedPosts: FeedPost[] = [
           username: 'sarahk',
           name: 'Sarah Kim',
           avatar:
-            'https://api.dicebear.com/9.x/initials/svg?seed=Sarah+Kim&backgroundColor=7c3aed',
+            '/images/avatars/sarahk.svg',
         },
         text: 'I know someone great — will DM you!',
         timestamp: '10 hours ago',
@@ -133,7 +133,7 @@ export const feedPosts: FeedPost[] = [
       username: 'priyap',
       name: 'Priya Patel',
       avatar:
-        'https://api.dicebear.com/9.x/initials/svg?seed=Sarah+Kim&backgroundColor=7c3aed',
+        '/images/avatars/sarahk.svg',
     },
     text: 'New module just dropped in the Growth Marketing path: "Community-Led Growth." We break down how Duolingo, Figma, and Notion built their communities. Plus a step-by-step playbook for founders. Check it out ⬇️',
     timestamp: '1 day ago',
@@ -147,7 +147,7 @@ export const feedPosts: FeedPost[] = [
       username: 'jameso',
       name: 'James Okafor',
       avatar:
-        'https://api.dicebear.com/9.x/initials/svg?seed=James+Okafor&backgroundColor=dc2626',
+        '/images/avatars/jameso.svg',
     },
     text: 'Built a custom analytics dashboard for our SaaS this weekend. Zero-budget stack: Next.js + Supabase + Vercel. Happy to share the repo if anyone wants it.',
     image:
@@ -164,7 +164,7 @@ export const feedPosts: FeedPost[] = [
       username: 'sarahk',
       name: 'Sarah Kim',
       avatar:
-        'https://api.dicebear.com/9.x/initials/svg?seed=Sarah+Kim&backgroundColor=7c3aed',
+        '/images/avatars/sarahk.svg',
     },
     text: 'What\'s everyone using for CRM these days? We\'re outgrowing HubSpot and need something more startup-friendly. Budget under $100/mo.',
     timestamp: '2 days ago',
@@ -177,7 +177,7 @@ export const feedPosts: FeedPost[] = [
           username: 'devonm',
           name: 'Devon Mitchell',
           avatar:
-            'https://api.dicebear.com/9.x/initials/svg?seed=Devon+Mitchell&backgroundColor=0891b2',
+            '/images/avatars/devonm.svg',
         },
         text: 'Check out Folk — we switched 3 months ago and love it.',
         timestamp: '2 days ago',
@@ -190,7 +190,7 @@ export const feedPosts: FeedPost[] = [
       username: 'marcuschen',
       name: 'Marcus Chen',
       avatar:
-        'https://api.dicebear.com/9.x/initials/svg?seed=Marcus+Chen&backgroundColor=059669',
+        '/images/avatars/marcuschen.svg',
     },
     text: 'Office hours this Friday at 11am PT. Bring your pitch decks — I\'ll do live feedback on the first 5 submissions. Link in the Events tab.',
     timestamp: '2 days ago',
@@ -204,7 +204,7 @@ export const feedPosts: FeedPost[] = [
       username: 'maya',
       name: 'Maya Rodriguez',
       avatar:
-        'https://api.dicebear.com/9.x/initials/svg?seed=Maya+Rodriguez&backgroundColor=9333ea',
+        '/images/avatars/maya.svg',
     },
     text: 'Who else is building in climate tech? 🌍 We\'re working on carbon offset tracking for SMEs. Would love to connect with other climate founders here.',
     timestamp: '3 days ago',
@@ -219,7 +219,7 @@ export const feedPosts: FeedPost[] = [
       username: 'alexk',
       name: 'Alex Kowalski',
       avatar:
-        'https://api.dicebear.com/9.x/initials/svg?seed=Alex+Kowalski&backgroundColor=ea580c',
+        '/images/avatars/alexk.svg',
     },
     text: 'The Product-Led Growth path is incredible. Just redesigned our onboarding flow based on Module 2 and activation rate went from 12% to 34% in two weeks. Data doesn\'t lie 📈',
     timestamp: '3 days ago',

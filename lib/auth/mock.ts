@@ -13,7 +13,7 @@ export const MOCK_USER: AuthUser = {
   name: 'Founder',
   role: 'ADMIN',
   membershipTier: 'PRO',
-  avatar: 'https://api.dicebear.com/9.x/initials/svg?seed=Founder&backgroundColor=ea580c',
+  avatar: '/images/avatars/alexk.svg',
 };
 
 // Client-side mock (matches UserInfo interface from useStore)
@@ -24,7 +24,7 @@ export const MOCK_USER_INFO = {
   username: 'founder',
   role: 'ADMIN' as const,
   membershipTier: 'PRO' as const,
-  avatar: 'https://api.dicebear.com/9.x/initials/svg?seed=Founder&backgroundColor=ea580c',
+  avatar: '/images/avatars/alexk.svg',
 };
 
 /**
@@ -38,5 +38,5 @@ export const FOUNDER_PROFILE: UserInfo = {
   username: 'founder',
   role: 'STUDENT',
   membershipTier: 'FREE',
-  avatar: 'https://api.dicebear.com/9.x/initials/svg?seed=Founder&backgroundColor=ea580c',
+  avatar: '/images/avatars/alexk.svg',
 };

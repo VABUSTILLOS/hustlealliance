@@ -1,5 +1,6 @@
 import prisma from '@/lib/db/prisma';
 import { Prisma } from '@/lib/generated/prisma/client';
+import { normalizeAvatarUrl } from '@/lib/utils/avatar';
 
 // ─── Types ───────────────────────────────────────────────────────
 
@@ -199,7 +200,7 @@ export async function getCourseStudents(courseId: string): Promise<{
       userId: e.userId,
       userName: e.user.name || 'Unknown',
       userEmail: e.user.email,
-      avatar: e.user.avatar,
+      avatar: normalizeAvatarUrl(e.user.avatar),
       enrolledAt: e.enrolledAt,
       progressPct: e.progressPct,
       completedAt: e.completedAt,
