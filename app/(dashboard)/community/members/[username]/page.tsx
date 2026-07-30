@@ -3,7 +3,8 @@ import { getMemberProfile } from '@/lib/db/community';
 import { getCurrentUser } from '@/lib/auth/user';
 import { MemberProfileClient } from './MemberProfileClient';
 
-export const dynamic = 'force-dynamic';
+// ISR: revalidate member profile pages every 120s
+export const revalidate = 120;
 
 export default async function MemberProfilePage({
   params,

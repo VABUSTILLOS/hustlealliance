@@ -4,11 +4,15 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npx prisma generate && if [ \"$SKIP_MIGRATE\" != \"1\" ]; then npx prisma migrate deploy; fi && if [ \"$SKIP_SEEDS\" != \"1\" ]; then npx tsx prisma/seed.ts && npx tsx prisma/seed-community.ts; fi && next build",
+    "build": "next build",
+    "build:full": "npx prisma generate && next build",
     "db:migrate": "npx prisma migrate deploy",
+    "db:seed": "npx tsx prisma/seed.ts && npx tsx prisma/seed-community.ts",
+    "db:setup": "npx prisma generate && npx prisma migrate deploy && npx tsx prisma/seed.ts && npx tsx prisma/seed-community.ts",
     "postinstall": "npx prisma generate",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "analyze": "ANALYZE=true next build --webpack"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.9.1",
@@ -34,6 +38,7 @@
     "seed": "npx tsx prisma/seed.ts"
   },
   "devDependencies": {
+    "@next/bundle-analyzer": "^16.2.12",
     "@playwright/test": "^1.62.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",

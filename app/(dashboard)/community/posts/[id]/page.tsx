@@ -6,7 +6,8 @@ import { getCurrentUser } from '@/lib/auth/user';
 import { PostCard } from '../../components/PostCard';
 import { CommunityHeader } from '../../CommunityHeader';
 
-export const dynamic = 'force-dynamic';
+// ISR: revalidate post detail pages every 60s
+export const revalidate = 60;
 
 interface PostDetailPageProps {
   params: Promise<{ id: string }>;

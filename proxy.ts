@@ -1,8 +1,8 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
-const SUPABASE_URL = 'https://yftgdtdvmvvqyzcdntge.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_sY8NIgcLzNcLUGx2Swl9BA_yqf9NIc8';
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://yftgdtdvmvvqyzcdntge.supabase.co';
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 export async function proxy(request: NextRequest) {
   const host = request.headers.get('host') || '';

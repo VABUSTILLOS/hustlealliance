@@ -4,7 +4,8 @@ import { MembersGrid } from './MembersGrid';
 import { MembersFilters } from './MembersFilters';
 import type { GetCommunityMembersOpts } from '@/lib/db/community';
 
-export const dynamic = 'force-dynamic';
+// ISR: revalidate member listing every 60s
+export const revalidate = 60;
 
 const VALID_SORTS = ['activity', 'newest', 'name'] as const;
 const VALID_ROLES = ['STUDENT', 'INSTRUCTOR', 'ADMIN'] as const;

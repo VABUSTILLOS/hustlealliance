@@ -6,7 +6,8 @@ import { PostFeedServer } from './PostFeedServer';
 import { Suspense } from 'react';
 import type { FeedTab } from './FeedTabs';
 
-export const dynamic = 'force-dynamic';
+// ISR: revalidate the feed every 30s — fresh content without cold starts
+export const revalidate = 30;
 
 const VALID_TABS: FeedTab[] = ['personal', 'global', 'spaces'];
 
