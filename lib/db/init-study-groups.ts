@@ -1,7 +1,4 @@
 import { prisma } from './prisma';
-import { createClient } from '@supabase/supabase-js';
-
-const SUPABASE_URL = 'https://yftgdtdvmvvqyzcdntge.supabase.co';
 
 let initialized = false;
 let initPromise: Promise<void> | null = null;
@@ -140,38 +137,21 @@ export async function ensureStudyGroupForCourse(courseId: string): Promise<void>
       return;
     }
 
-    // Use Supabase with SERVICE_ROLE key to bypass RLS entirely.
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    console.log('[StudyGroup] service_role key present:', !!serviceRoleKey, 'length:', serviceRoleKey?.length);
-    
-    if (!serviceRoleKey) {
-      console.error('[StudyGroup] SUPABASE_SERVICE_ROLE_KEY missing — cannot provision study groups');
-      return;
-    }
-
-    const adminClient = createClient(SUPABASE_URL, serviceRoleKey, {
-      auth: { persistSession: false },
-    });
-
-    console.log('[StudyGroup] Attempting INSERT via Supabase service_role...');
-
-    const newId = crypto.randomUUID();
-    const { data, error } = await adminClient
-      .from('CourseStudyGroup')
-      .insert({ id: newId, courseId, description: null })
-      .select('id')
-      .single();
-
-    if (error) {
-      console.error('[StudyGroup] Supabase insert error:', JSON.stringify({ code: error.code, message: error.message, details: error.details, hint: error.hint }));
+    // Use Prisma directly now that the table is owned by prisma and RLS is off
+    try {
+      const created = await prisma.courseStudyGroup.create({
+        data: { courseId },
+      });
+      console.log('[StudyGroup] Provisioned study group for course', courseId, 'id:', created.id);
+      provisionedCourses.add(courseId);
+    } catch (err: any) {
       // Duplicate = another request raced us, that's fine
-      if (error.code === '23505') {
+      if (err?.code === 'P2002' || err?.message?.includes('Unique constraint')) {
         console.log('[StudyGroup] Study group already exists (race).');
         provisionedCourses.add(courseId);
+        return;
       }
-    } else {
-      console.log('[StudyGroup] Provisioned study group for course', courseId, 'id:', data?.id);
-      provisionedCourses.add(courseId);
+      console.error('[StudyGroup] Failed to provision study group for', courseId, ':', err?.message);
     }
   })();
 
