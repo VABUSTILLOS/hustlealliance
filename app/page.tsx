@@ -1,27 +1,46 @@
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
+import TrustBar from './components/TrustBar';
+import Footer from './components/Footer';
+import HomepageSEO from './components/HomepageSEO';
 import { HomepageLazySection } from './components/HomepageLazySection';
+import ActivityTicker from './components/ActivityTicker';
+import ExitIntentPopup from './components/ExitIntentPopup';
 
 export const revalidate = 3600;
 
 export default function Home() {
   return (
     <div className="scroll-smooth bg-deep text-foreground font-body">
+      <HomepageSEO />
       <Navbar />
       <Hero />
-      <HomepageLazySection name="QuickPreviewCTA" />
-      <HomepageLazySection name="Pillars" />
-      <HomepageLazySection name="TakeawayCards" />
-      <HomepageLazySection name="MemberSpotlight" />
-      <HomepageLazySection name="ResourceLibrary" />
-      <HomepageLazySection name="GamificationSection" />
-      <HomepageLazySection name="SpacesPreview" />
-      <HomepageLazySection name="AccountabilitySection" />
+      {/* Social proof — trust bar */}
+      <TrustBar />
+      {/* Value proposition — problem vs solution (moved before features) */}
       <HomepageLazySection name="ValueProposition" />
-      <HomepageLazySection name="Pricing" />
+      {/* Features — "Everything you need to build" */}
+      <HomepageLazySection name="Pillars" />
+      {/* Free lessons — "Taste the knowledge before you commit" */}
+      <HomepageLazySection name="QuickPreviewCTA" />
+      {/* Social proof — testimonials */}
       <HomepageLazySection name="WallOfLove" />
-      <HomepageLazySection name="FooterCTA" />
-      <HomepageLazySection name="ActivityTicker" />
+      {/* Hero journey — gamification, XP, tiers */}
+      <HomepageLazySection name="GamificationSection" />
+      {/* Playbooks — resource library */}
+      <HomepageLazySection name="ResourceLibrary" />
+      {/* Accountability — journey, habits, planner, spaces */}
+      <HomepageLazySection name="AccountabilitySection" />
+      {/* FAQ — objection handling */}
+      <HomepageLazySection name="FAQ" />
+      {/* Pricing */}
+      <HomepageLazySection name="Pricing" />
+      {/* Activity toast ticker (renders nothing, manages toasts) */}
+      <ActivityTicker />
+      {/* Exit intent popup — catches abandoning visitors */}
+      <ExitIntentPopup />
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

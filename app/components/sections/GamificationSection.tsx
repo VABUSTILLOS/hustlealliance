@@ -23,7 +23,7 @@ export default function GamificationSection() {
   const { t } = useTranslation();
 
   return (
-    <section className="relative py-16 lg:py-32 px-4 bg-black overflow-hidden">
+    <section className="relative py-14 lg:py-24 px-4 bg-black overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[var(--color-accent)]/5 rounded-full blur-[150px]" />
@@ -108,11 +108,11 @@ export default function GamificationSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.35 }}
-          className="text-center"
+          className="text-center space-y-4"
         >
           <Link
             href="/journey"
-            className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-[var(--color-accent)] text-white font-heading font-bold text-sm
+            className="inline-flex items-center gap-2 px-8 py-4 min-h-[48px] rounded-xl bg-[var(--color-accent)] text-white font-heading font-bold text-sm
               hover:shadow-[0_0_40px_rgba(255,59,48,0.3)] transition-all active:scale-[0.97]"
           >
             {t.gamification.homeCta}
@@ -120,6 +120,19 @@ export default function GamificationSection() {
               <polyline points="9 18 15 12 9 6" />
             </svg>
           </Link>
+          <div>
+            <a
+              href="/signup"
+              className="inline-flex items-center gap-2 px-6 py-3 min-h-[48px] rounded-xl bg-[var(--color-surface)] border border-[var(--color-border-subtle)]
+                text-[var(--color-foreground)] font-heading font-bold text-sm
+                hover:border-[var(--color-accent)]/30 hover:text-[var(--color-accent)] transition-all duration-300"
+            >
+              {t.hero.cta1}
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </a>
+          </div>
         </motion.div>
       </div>
     </section>

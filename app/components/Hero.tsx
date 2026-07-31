@@ -5,6 +5,7 @@ import { useInView, useAnimate } from 'framer-motion';
 import { LazyMotion } from '@/lib/framer/lazy-motion';
 import Image from 'next/image';
 import NeonButton from './NeonButton';
+import EmailCapture from './EmailCapture';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
 function AnimatedCounter({ end, suffix = '' }: { end: number; suffix?: string }) {
@@ -27,7 +28,7 @@ function AnimatedCounter({ end, suffix = '' }: { end: number; suffix?: string })
   }, [inView, end, animate]);
 
   return (
-    <span ref={scope} className="font-display text-4xl sm:text-5xl tabular-nums">
+    <span ref={scope} className="font-display tabular-nums">
       <span ref={displayRef}>{end.toLocaleString()}</span>
       {suffix}
     </span>
@@ -54,10 +55,12 @@ export default function Hero() {
   const { t } = useTranslation();
 
   const stats = [
-    { value: 2400, suffix: '+', label: t.hero.founders },
-    { value: 180, suffix: '+', label: t.hero.guides },
-    { value: 40, suffix: 'M+', label: t.hero.raised },
-  ]; return (
+    { value: 2400, suffix: '+', label: 'active founders' },
+    { value: 180, suffix: '+', label: 'tactical playbooks' },
+    { value: 40, suffix: 'M+', label: 'raised by members' },
+  ];
+
+  return (
     <section className="relative min-h-screen flex flex-col lg:flex-row overflow-hidden">
       {/* Left: Content */}
       <div className="relative z-10 flex flex-col justify-center w-full lg:w-3/5 px-6 sm:px-12 lg:px-16 xl:px-24 py-20 lg:py-0">
@@ -67,11 +70,11 @@ export default function Hero() {
           animate="show"
           className="max-w-2xl"
         >
-          {/* Eyebrow */}
+          {/* Eyebrow — badge style */}
           <LazyMotion
-            as="p"
+            as="span"
             variants={item}
-            className="font-mono text-xs uppercase tracking-[0.2em] text-accent mb-6"
+            className="inline-block font-mono text-[10px] sm:text-xs uppercase tracking-[0.25em] text-accent border border-accent/30 rounded-full px-3 py-1.5 mb-6 w-fit"
           >
             {t.hero.eyebrow}
           </LazyMotion>
@@ -91,7 +94,7 @@ export default function Hero() {
           <LazyMotion
             as="p"
             variants={item}
-            className="text-muted text-lg sm:text-xl max-w-md mb-10 font-body leading-relaxed"
+            className="text-base sm:text-lg text-zinc-300 max-w-lg mb-10 font-body leading-relaxed"
           >
             {t.hero.subheadline}
           </LazyMotion>
@@ -99,39 +102,75 @@ export default function Hero() {
           {/* CTAs */}
           <LazyMotion
             variants={item}
-            className="flex flex-col sm:flex-row gap-4"
+            className="flex flex-col gap-3"
           >
-            <NeonButton variant="primary" href="/dashboard" className="text-base !py-4 !px-10 !text-base">
-              {t.hero.cta1}
-            </NeonButton>
-            <NeonButton variant="secondary" href="/spaces" className="text-base !py-4 !px-10">
-              {t.hero.cta2}
-            </NeonButton>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <NeonButton variant="primary" href="/signup" className="text-base !py-4 !px-10 min-h-[48px]">
+                {t.hero.cta1}
+              </NeonButton>
+              <NeonButton variant="secondary" href="/preview/fundraising-101" className="text-base !py-4 !px-10 min-h-[48px]">
+                {t.hero.cta2}
+              </NeonButton>
+            </div>
+            {/* Microcopy */}
+            <p className="text-sm text-zinc-400 mt-1">
+              {t.hero.microcopy}
+            </p>
+          </LazyMotion>
+
+          {/* Email capture — low-friction lead gen */}
+          <LazyMotion
+            variants={item}
+            className="mt-6"
+          >
+            <EmailCapture />
           </LazyMotion>
         </LazyMotion>
 
-        {/* Stats row */}
+        {/* Stats row — consolidated inline */}
         <LazyMotion
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1, duration: 0.6 }}
-          className="flex flex-wrap gap-x-12 gap-y-6 mt-16 lg:mt-20"
+          className="mt-16 lg:mt-20"
         >
-          {stats.map((stat) => (
-            <div key={stat.label} className="flex flex-col">
-              <span className="font-display text-4xl sm:text-5xl text-foreground tabular-nums leading-none">
-                <AnimatedCounter end={stat.value} suffix={stat.suffix} />
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-base sm:text-lg text-zinc-300 font-body">
+            {stats.map((stat, i) => (
+              <span key={stat.label} className="inline-flex items-baseline gap-1">
+                <span className="font-display text-xl sm:text-2xl text-foreground tabular-nums leading-none">
+                  <AnimatedCounter end={stat.value} suffix={stat.suffix} />
+                </span>
+                <span className="text-zinc-300">
+                  {stat.label}
+                </span>
+                {i < stats.length - 1 && (
+                  <span className="text-zinc-600 mx-2 select-none">·</span>
+                )}
               </span>
-              <span className="font-mono text-xs uppercase tracking-widest text-muted mt-2">
-                {stat.label}
-              </span>
-            </div>
-          ))}
+            ))}
+          </div>
+
+          {/* Outcome-driven testimonial placeholder */}
+          <div className="mt-6 pt-6 border-t border-white/10">
+            <blockquote className="flex items-start gap-3">
+              <svg className="w-6 h-6 shrink-0 mt-0.5 text-accent/40" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10H14.017zM0 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151C7.546 6.068 5.983 8.789 5.983 11H10v10H0z" />
+              </svg>
+              <div>
+                <p className="text-sm sm:text-base text-zinc-300 italic leading-relaxed">
+                  &ldquo;{t.hero.testimonialQuote}&rdquo;
+                </p>
+                <p className="text-xs text-zinc-400 mt-1 font-mono uppercase tracking-wide">
+                  — {t.hero.testimonialName}, {t.hero.testimonialCompany}
+                </p>
+              </div>
+            </blockquote>
+          </div>
         </LazyMotion>
       </div>
 
       {/* Right: Full-bleed photography */}
-      <div className="relative w-full lg:w-2/5 h-64 sm:h-80 lg:h-auto min-h-[50vh] lg:min-h-screen overflow-hidden">
+      <div className="relative w-full lg:w-2/5 h-48 sm:h-64 lg:h-auto lg:min-h-screen overflow-hidden">
         {/* B&W Photo */}
         <Image
           src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1200&h=1600&fit=crop&crop=faces"

@@ -24,7 +24,7 @@ export default function SpacesPreview() {
   };
 
   return (
-    <section className="relative py-16 lg:py-32 px-4 bg-black overflow-hidden">
+    <section className="relative py-14 lg:py-24 px-4 bg-black overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute bottom-1/2 right-1/4 w-[450px] h-[450px] bg-[var(--color-violet)]/4 rounded-full blur-[140px]" />
@@ -86,7 +86,7 @@ export default function SpacesPreview() {
                   <h3 className="font-heading font-bold text-sm text-[var(--color-foreground)] group-hover:text-[var(--color-accent)] transition-colors">
                     {space.name}
                   </h3>
-                  <p className="text-[var(--color-foreground-dim)] text-xs mt-1.5 line-clamp-2">
+                  <p className="text-zinc-300 text-xs mt-1.5 line-clamp-2">
                     {locale === 'es' ? space.descriptionEs : space.description}
                   </p>
                   {/* Tags */}
@@ -112,11 +112,11 @@ export default function SpacesPreview() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.2 }}
-          className="text-center"
+          className="text-center space-y-4"
         >
           <Link
             href="/spaces"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border-subtle)]
+            className="inline-flex items-center gap-2 px-6 py-3 min-h-[48px] rounded-xl bg-[var(--color-surface)] border border-[var(--color-border-subtle)]
               text-[var(--color-foreground)] font-heading font-bold text-sm
               hover:border-[var(--color-accent)]/30 hover:text-[var(--color-accent)] transition-all duration-300"
           >
@@ -125,6 +125,18 @@ export default function SpacesPreview() {
               <polyline points="9 18 15 12 9 6" />
             </svg>
           </Link>
+          <div>
+            <a
+              href="#pricing"
+              className="inline-flex items-center gap-2 px-6 py-3 min-h-[48px] rounded-xl bg-[var(--color-accent)] text-white font-heading font-bold text-sm
+                hover:shadow-[0_0_40px_rgba(255,59,48,0.3)] transition-all active:scale-[0.97]"
+            >
+              {t.hero.cta1}
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </a>
+          </div>
         </motion.div>
       </div>
     </section>

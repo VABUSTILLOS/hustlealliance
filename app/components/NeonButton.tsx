@@ -23,7 +23,7 @@ export default function NeonButton({
   disabled = false,
 }: NeonButtonProps) {
   const base =
-    'relative inline-flex items-center justify-center px-6 py-3 rounded-lg font-heading font-bold text-white transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-accent/50 disabled:opacity-50 disabled:cursor-not-allowed';
+    'relative inline-flex items-center justify-center px-6 py-3 min-h-[48px] rounded-lg font-heading font-bold text-white transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-accent/50 disabled:opacity-50 disabled:cursor-not-allowed';
 
   const primary =
     'bg-accent hover:bg-accent-glow hover:scale-105';

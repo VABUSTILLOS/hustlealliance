@@ -8,7 +8,7 @@ export default function ValueProposition() {
   const { t } = useTranslation();
 
   return (
-    <section className="relative py-16 lg:py-32 px-4 bg-black overflow-hidden">
+    <section className="relative py-14 lg:py-24 px-4 bg-black overflow-hidden">
       {/* Background effects */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-gradient-to-br from-[var(--color-accent)]/8 via-[var(--color-violet)]/5 to-transparent rounded-full blur-[160px]" />
@@ -67,8 +67,8 @@ export default function ValueProposition() {
           transition={{ delay: 0.3 }}
         >
           <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-2 px-10 py-5 rounded-xl bg-[var(--color-accent)] text-white font-heading font-bold text-base
+            href="/signup"
+            className="inline-flex items-center gap-2 px-10 py-5 min-h-[48px] rounded-xl bg-[var(--color-accent)] text-white font-heading font-bold text-base
               hover:shadow-[0_0_50px_rgba(255,59,48,0.4)] transition-all active:scale-[0.97] animate-pulse-glow"
           >
             {t.valueProp.cta}

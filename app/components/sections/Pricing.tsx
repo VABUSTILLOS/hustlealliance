@@ -74,7 +74,7 @@ export default function Pricing() {
     { quote: t.pricing.testimonials.t3.quote, name: t.pricing.testimonials.t3.name, role: t.pricing.testimonials.t3.role, avatar: '/images/avatars/devonm.jpg' },
   ];
   return (
-    <section className="relative py-16 lg:py-32 px-4 bg-black">
+    <section className="relative py-16 lg:py-24 px-4 bg-black">
       <div className="max-w-6xl mx-auto">
         {/* ── Header ─────────────────────────── */}
         <motion.div
@@ -90,6 +90,20 @@ export default function Pricing() {
           <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl text-foreground leading-none uppercase">
             {t.pricing.headline}
           </h2>
+        </motion.div>
+
+        {/* ── Urgency banner ─────────────────── */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.1 }}
+          className="text-center mb-8"
+        >
+          <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 border border-accent/20 text-accent text-xs font-mono font-bold uppercase tracking-wider">
+            <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+            {t.pricing.urgency.tag}: {t.pricing.urgency.message}
+          </span>
         </motion.div>
 
         {/* ── Tier cards ─────────────────────── */}
@@ -146,16 +160,16 @@ export default function Pricing() {
                   {tier.features.map((f) => (
                     <li key={f} className="flex items-start gap-3 text-sm">
                       <Checkmark />
-                      <span className="text-muted font-body">{f}</span>
+                      <span className="text-zinc-300 font-body">{f}</span>
                     </li>
                   ))}
                 </ul>
 
                 {/* CTA */}
                 <Link
-                  href="/dashboard"
+                  href="#pricing"
                   className={clsx(
-                    'w-full py-3 rounded-xl font-heading font-bold text-sm uppercase tracking-wider transition-all duration-300 inline-block text-center',
+                    'w-full py-3 min-h-[48px] rounded-xl font-heading font-bold text-sm uppercase tracking-wider transition-all duration-300 inline-block text-center',
                     tier.variant === 'solid'
                       ? 'bg-accent text-white hover:bg-accent-glow shadow-[0_0_30px_rgba(255,59,48,0.25)] hover:shadow-[0_0_50px_rgba(255,59,48,0.4)] hover:scale-[1.02]'
                       : 'border border-white/15 text-foreground hover:border-accent/50 hover:text-accent hover:bg-accent/5'

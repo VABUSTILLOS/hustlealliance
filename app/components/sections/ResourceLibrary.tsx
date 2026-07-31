@@ -177,7 +177,7 @@ export default function ResourceLibrary() {
   }, []);
 
   return (
-    <section className="relative py-16 lg:py-32 px-4 bg-black">
+    <section className="relative py-14 lg:py-24 px-4 bg-black">
       {/* Background glow */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-accent/3 rounded-full blur-[180px]" />
@@ -264,7 +264,7 @@ export default function ResourceLibrary() {
         >
           <Link
             href="/resources"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-accent hover:bg-accent-glow text-white font-heading font-bold text-sm transition-all duration-300 hover:shadow-[0_8px_30px_rgba(255,59,48,0.3)] hover:-translate-y-0.5"
+            className="inline-flex items-center gap-2 px-6 py-3 min-h-[48px] rounded-xl bg-accent hover:bg-accent-glow text-white font-heading font-bold text-sm transition-all duration-300 hover:shadow-[0_8px_30px_rgba(255,59,48,0.3)] hover:-translate-y-0.5"
           >
             {t.resourceLibrary.viewAll}
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">

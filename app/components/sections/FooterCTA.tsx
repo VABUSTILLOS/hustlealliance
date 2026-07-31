@@ -81,10 +81,10 @@ export default function FooterCTA() {
           className="text-center mb-20"
         >
           <h2 className="text-4xl sm:text-5xl md:text-6xl font-heading font-extrabold text-foreground mb-8">
-            {t.footer.headline}
+            {t.hero.line1} <span className="text-accent">{t.hero.line2}</span>
           </h2>
-          <NeonButton variant="primary" href="/dashboard" className="text-lg !py-4 !px-10 animate-pulse-glow">
-            {t.footer.cta}
+          <NeonButton variant="primary" href="#pricing" className="text-lg !py-4 !px-10 min-h-[48px] animate-pulse-glow">
+            {t.hero.cta1}
             <svg className="w-5 h-5 ml-2 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="7" y1="17" x2="17" y2="7" /><polyline points="7 7 17 7 17 17" /></svg>
           </NeonButton>
         </motion.div>

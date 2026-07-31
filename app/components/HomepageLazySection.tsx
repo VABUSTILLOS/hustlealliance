@@ -7,19 +7,13 @@ import type { ComponentType } from 'react';
 const sectionMap: Record<string, () => Promise<{ default: ComponentType<any> }>> = {
   QuickPreviewCTA: () => import('./sections/QuickPreviewCTA'),
   Pillars: () => import('./Pillars'),
-  TakeawayCards: () => import('./TakeawayCards'),
-  MemberSpotlight: () => import('./sections/MemberSpotlight'),
-  ResourceLibrary: () => import('./sections/ResourceLibrary'),
   GamificationSection: () => import('./sections/GamificationSection'),
-  SpacesPreview: () => import('./sections/SpacesPreview'),
-  HabitsPreview: () => import('./sections/HabitsPreview'),
-  PlannerPreview: () => import('./sections/PlannerPreview'),
+  ResourceLibrary: () => import('./sections/ResourceLibrary'),
   ValueProposition: () => import('./sections/ValueProposition'),
-  Pricing: () => import('./sections/Pricing'),
-  WallOfLove: () => import('./sections/WallOfLove'),
-  FooterCTA: () => import('./sections/FooterCTA'),
-  ActivityTicker: () => import('./ActivityTicker'),
   AccountabilitySection: () => import('./sections/AccountabilitySection'),
+  WallOfLove: () => import('./sections/WallOfLove'),
+  FAQ: () => import('./sections/FAQ'),
+  Pricing: () => import('./sections/Pricing'),
 };
 
 export function HomepageLazySection({ name }: { name: string }) {

@@ -121,7 +121,7 @@ export default function TakeawayCards() {
   );
 
   return (
-    <section className="relative py-16 lg:py-32 px-4 bg-[var(--color-bg)]">
+    <section className="relative py-14 lg:py-24 px-4 bg-[var(--color-bg)]">
       {/* Background glow */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/3 right-0 w-[500px] h-[500px] bg-[var(--color-accent)]/3 rounded-full blur-[150px]" />
@@ -235,6 +235,26 @@ export default function TakeawayCards() {
             </motion.div>
           ))}
         </div>
+
+        {/* Bottom CTA */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="text-center mt-12"
+        >
+          <a
+            href="#pricing"
+            className="inline-flex items-center gap-2 px-8 py-4 min-h-[48px] rounded-xl bg-[var(--color-accent)] text-white font-heading font-bold text-sm
+              hover:shadow-[0_0_40px_rgba(255,59,48,0.3)] transition-all active:scale-[0.97]"
+          >
+            {t.hero.cta1}
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </a>
+        </motion.div>
       </div>
     </section>
   );

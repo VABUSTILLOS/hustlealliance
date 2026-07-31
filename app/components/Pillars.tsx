@@ -94,7 +94,7 @@ export default function Pillars() {
     { title: t.pillars.guides.title, description: t.pillars.guides.desc, device: 'tablet' as const },
   ];
   return (
-    <section className="relative py-16 lg:py-32 px-4 bg-black">
+    <section className="relative py-16 lg:py-24 px-4 bg-black">
       <div className="max-w-6xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -129,7 +129,7 @@ export default function Pillars() {
                   {feature.title}
                   <span className="absolute bottom-0 left-0 w-8 h-[3px] bg-accent rounded-full transition-all duration-300 group-hover:w-full" />
                 </h3>
-                <p className="text-muted font-body text-sm leading-relaxed">
+                <p className="text-zinc-300 font-body text-sm leading-relaxed">
                   {feature.description}
                 </p>
               </div>
@@ -145,11 +145,14 @@ export default function Pillars() {
           className="text-center mt-16"
         >
           <a
-            href="#pricing"
-            className="font-mono text-xs uppercase tracking-[0.15em] text-accent hover:text-accent-glow transition-colors inline-flex items-center gap-2"
+            href="/signup"
+            className="inline-flex items-center gap-2 px-8 py-4 min-h-[48px] rounded-xl bg-[var(--color-accent)] text-white font-heading font-bold text-sm
+              hover:shadow-[0_0_40px_rgba(255,59,48,0.3)] transition-all active:scale-[0.97]"
           >
-            {t.pillars.viewAllFeatures}
-            <span className="text-lg leading-none">&rarr;</span>
+            {t.hero.cta1}
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
           </a>
         </motion.div>
       </div>
