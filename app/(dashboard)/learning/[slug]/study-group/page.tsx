@@ -1,6 +1,6 @@
 import prisma from '@/lib/db/prisma';
 import { StudyGroupClient } from './client';
-import { ensureStudyGroupTables, ensureStudyGroupsSeeded } from '@/lib/db/init-study-groups';
+import { ensureStudyGroupTables, ensureStudyGroupForCourse } from '@/lib/db/init-study-groups';
 
 export default async function StudyGroupPage({
   params,
@@ -12,10 +12,8 @@ export default async function StudyGroupPage({
   try {
     // Ensure study group tables exist before querying
     await ensureStudyGroupTables();
-    // Seed study group data if not yet populated
-    await ensureStudyGroupsSeeded();
 
-    // Fetch course + study group server-side — no auth required
+    // Fetch course first — we need its id to provision the study group
     const course = await prisma.course.findUnique({
       where: { slug },
       select: { id: true, title: true },
@@ -30,8 +28,10 @@ export default async function StudyGroupPage({
       );
     }
 
-    // Find existing study group — seed script creates these at build time.
-    // Use findUnique instead of upsert to avoid RLS INSERT permission errors.
+    // Auto-provision a study group for this course if one doesn't exist yet
+    await ensureStudyGroupForCourse(course.id);
+
+    // Find existing study group
     let raw = await prisma.courseStudyGroup.findUnique({
       where: { courseId: course.id },
       include: {

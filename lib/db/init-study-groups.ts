@@ -5,6 +5,10 @@ let initialized = false;
 let initPromise: Promise<void> | null = null;
 let seededPromise: Promise<void> | null = null;
 
+// Per-course provisioning — lightweight, idempotent, called on every page visit
+const provisionedCourses = new Set<string>();
+const provisionPromises = new Map<string, Promise<void>>();
+
 function getPool() {
   // Access the underlying pg Pool through the global prisma instance
   const globalForPrisma = globalThis as unknown as { __pgPool?: any };
@@ -101,6 +105,52 @@ export async function ensureStudyGroupTables(): Promise<void> {
 }
 
 /**
+ * Lightweight per-course provisioning — creates a study group for a specific
+ * course if one doesn't exist yet. Called on every study group page visit.
+ * Idempotent and cheap (single findUnique + optional create).
+ */
+export async function ensureStudyGroupForCourse(courseId: string): Promise<void> {
+  // Skip if already provisioned in this process lifetime
+  if (provisionedCourses.has(courseId)) return;
+
+  // Deduplicate concurrent calls for the same courseId
+  const existing = provisionPromises.get(courseId);
+  if (existing) {
+    await existing;
+    return;
+  }
+
+  const promise = (async () => {
+    await ensureStudyGroupTables();
+
+    const group = await prisma.courseStudyGroup.findUnique({ where: { courseId } });
+    if (group) {
+      provisionedCourses.add(courseId);
+      return;
+    }
+
+    try {
+      await prisma.courseStudyGroup.create({
+        data: { courseId, description: null },
+      });
+      console.log(`[StudyGroup] Provisioned study group for course ${courseId}`);
+    } catch (err) {
+      // Race: another request created it between our check and create
+      const msg = (err as Error).message?.slice(0, 100);
+      if (msg?.includes('Unique constraint') || msg?.includes('duplicate key')) {
+        console.log(`[StudyGroup] Study group for ${courseId} already exists (race).`);
+      } else {
+        console.error(`[StudyGroup] Failed to provision study group for ${courseId}:`, msg);
+      }
+    }
+    provisionedCourses.add(courseId);
+  })();
+
+  provisionPromises.set(courseId, promise);
+  await promise;
+}
+
+/**
  * Seeds study group data (groups, members, posts, replies) for all courses.
  * Idempotent — skips if study groups already exist.
  * Must be called after ensureStudyGroupTables().
@@ -114,9 +164,9 @@ export async function ensureStudyGroupsSeeded(): Promise<void> {
   seededPromise = (async () => {
     await ensureStudyGroupTables();
 
-    // Check if any study groups already exist
-    const existingCount = await prisma.courseStudyGroup.count();
-    if (existingCount > 0) {
+    // Check if demo posts have already been seeded
+    const existingPostCount = await prisma.courseGroupPost.count();
+    if (existingPostCount > 0) {
       console.log('[StudyGroup] Study groups already seeded, skipping.');
       return;
     }
