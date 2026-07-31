@@ -44,49 +44,52 @@ export async function ensureStudyGroupTables(): Promise<void> {
   initPromise = (async () => {
     const pool = getPool();
 
-    // Quick check — bail if tables already exist
+    // ── Check if tables already exist ──
+    let tablesExist = false;
     try {
-      const result = await pool.query(`SELECT 1 FROM "CourseStudyGroup" LIMIT 1`);
+      await pool.query(`SELECT 1 FROM "CourseStudyGroup" LIMIT 1`);
+      tablesExist = true;
       console.log('[StudyGroup] Tables already exist');
-      initialized = true;
-      return;
     } catch {
-      // Table doesn't exist, proceed to create
+      // Table doesn't exist, will create below
     }
 
-    console.log('[StudyGroup] Creating study group tables...');
+    // ── Create tables if needed ──
+    if (!tablesExist) {
+      console.log('[StudyGroup] Creating study group tables...');
 
-    const statements = [
-      `CREATE TABLE IF NOT EXISTS "CourseStudyGroup" ("id" TEXT NOT NULL, "courseId" TEXT NOT NULL, "description" TEXT, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "CourseStudyGroup_pkey" PRIMARY KEY ("id"))`,
-      `CREATE UNIQUE INDEX IF NOT EXISTS "CourseStudyGroup_courseId_key" ON "CourseStudyGroup"("courseId")`,
-      `ALTER TABLE "CourseStudyGroup" ADD CONSTRAINT IF NOT EXISTS "CourseStudyGroup_courseId_fkey" FOREIGN KEY ("courseId") REFERENCES "Course"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
-      `CREATE TABLE IF NOT EXISTS "CourseGroupMember" ("id" TEXT NOT NULL, "groupId" TEXT NOT NULL, "userId" TEXT NOT NULL, "joinedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "CourseGroupMember_pkey" PRIMARY KEY ("id"))`,
-      `CREATE UNIQUE INDEX IF NOT EXISTS "CourseGroupMember_groupId_userId_key" ON "CourseGroupMember"("groupId", "userId")`,
-      `ALTER TABLE "CourseGroupMember" ADD CONSTRAINT IF NOT EXISTS "CourseGroupMember_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "CourseStudyGroup"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
-      `ALTER TABLE "CourseGroupMember" ADD CONSTRAINT IF NOT EXISTS "CourseGroupMember_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
-      `CREATE TABLE IF NOT EXISTS "CourseGroupPost" ("id" TEXT NOT NULL, "groupId" TEXT NOT NULL, "authorId" TEXT NOT NULL, "content" TEXT NOT NULL, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "CourseGroupPost_pkey" PRIMARY KEY ("id"))`,
-      `ALTER TABLE "CourseGroupPost" ADD CONSTRAINT IF NOT EXISTS "CourseGroupPost_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "CourseStudyGroup"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
-      `ALTER TABLE "CourseGroupPost" ADD CONSTRAINT IF NOT EXISTS "CourseGroupPost_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
-      `CREATE TABLE IF NOT EXISTS "CourseGroupReply" ("id" TEXT NOT NULL, "postId" TEXT NOT NULL, "authorId" TEXT NOT NULL, "content" TEXT NOT NULL, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "CourseGroupReply_pkey" PRIMARY KEY ("id"))`,
-      `ALTER TABLE "CourseGroupReply" ADD CONSTRAINT IF NOT EXISTS "CourseGroupReply_postId_fkey" FOREIGN KEY ("postId") REFERENCES "CourseGroupPost"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
-      `ALTER TABLE "CourseGroupReply" ADD CONSTRAINT IF NOT EXISTS "CourseGroupReply_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
-      `CREATE TABLE IF NOT EXISTS "CourseGroupFile" ("id" TEXT NOT NULL, "groupId" TEXT NOT NULL, "uploaderId" TEXT NOT NULL, "fileName" TEXT NOT NULL, "fileUrl" TEXT NOT NULL, "fileSize" INTEGER NOT NULL, "mimeType" TEXT NOT NULL, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "CourseGroupFile_pkey" PRIMARY KEY ("id"))`,
-      `ALTER TABLE "CourseGroupFile" ADD CONSTRAINT IF NOT EXISTS "CourseGroupFile_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "CourseStudyGroup"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
-      `ALTER TABLE "CourseGroupFile" ADD CONSTRAINT IF NOT EXISTS "CourseGroupFile_uploaderId_fkey" FOREIGN KEY ("uploaderId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
-    ];
+      const statements = [
+        `CREATE TABLE IF NOT EXISTS "CourseStudyGroup" ("id" TEXT NOT NULL, "courseId" TEXT NOT NULL, "description" TEXT, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "CourseStudyGroup_pkey" PRIMARY KEY ("id"))`,
+        `CREATE UNIQUE INDEX IF NOT EXISTS "CourseStudyGroup_courseId_key" ON "CourseStudyGroup"("courseId")`,
+        `ALTER TABLE "CourseStudyGroup" ADD CONSTRAINT IF NOT EXISTS "CourseStudyGroup_courseId_fkey" FOREIGN KEY ("courseId") REFERENCES "Course"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
+        `CREATE TABLE IF NOT EXISTS "CourseGroupMember" ("id" TEXT NOT NULL, "groupId" TEXT NOT NULL, "userId" TEXT NOT NULL, "joinedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "CourseGroupMember_pkey" PRIMARY KEY ("id"))`,
+        `CREATE UNIQUE INDEX IF NOT EXISTS "CourseGroupMember_groupId_userId_key" ON "CourseGroupMember"("groupId", "userId")`,
+        `ALTER TABLE "CourseGroupMember" ADD CONSTRAINT IF NOT EXISTS "CourseGroupMember_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "CourseStudyGroup"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
+        `ALTER TABLE "CourseGroupMember" ADD CONSTRAINT IF NOT EXISTS "CourseGroupMember_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
+        `CREATE TABLE IF NOT EXISTS "CourseGroupPost" ("id" TEXT NOT NULL, "groupId" TEXT NOT NULL, "authorId" TEXT NOT NULL, "content" TEXT NOT NULL, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "CourseGroupPost_pkey" PRIMARY KEY ("id"))`,
+        `ALTER TABLE "CourseGroupPost" ADD CONSTRAINT IF NOT EXISTS "CourseGroupPost_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "CourseStudyGroup"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
+        `ALTER TABLE "CourseGroupPost" ADD CONSTRAINT IF NOT EXISTS "CourseGroupPost_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
+        `CREATE TABLE IF NOT EXISTS "CourseGroupReply" ("id" TEXT NOT NULL, "postId" TEXT NOT NULL, "authorId" TEXT NOT NULL, "content" TEXT NOT NULL, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "CourseGroupReply_pkey" PRIMARY KEY ("id"))`,
+        `ALTER TABLE "CourseGroupReply" ADD CONSTRAINT IF NOT EXISTS "CourseGroupReply_postId_fkey" FOREIGN KEY ("postId") REFERENCES "CourseGroupPost"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
+        `ALTER TABLE "CourseGroupReply" ADD CONSTRAINT IF NOT EXISTS "CourseGroupReply_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
+        `CREATE TABLE IF NOT EXISTS "CourseGroupFile" ("id" TEXT NOT NULL, "groupId" TEXT NOT NULL, "uploaderId" TEXT NOT NULL, "fileName" TEXT NOT NULL, "fileUrl" TEXT NOT NULL, "fileSize" INTEGER NOT NULL, "mimeType" TEXT NOT NULL, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "CourseGroupFile_pkey" PRIMARY KEY ("id"))`,
+        `ALTER TABLE "CourseGroupFile" ADD CONSTRAINT IF NOT EXISTS "CourseGroupFile_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "CourseStudyGroup"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
+        `ALTER TABLE "CourseGroupFile" ADD CONSTRAINT IF NOT EXISTS "CourseGroupFile_uploaderId_fkey" FOREIGN KEY ("uploaderId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
+      ];
 
-    for (const sql of statements) {
-      try {
-        await pool.query(sql);
-      } catch (err) {
-        const msg = (err as Error).message?.slice(0, 120);
-        console.error('[StudyGroup] SQL error:', msg);
-        throw err;
+      for (const sql of statements) {
+        try {
+          await pool.query(sql);
+        } catch (err) {
+          const msg = (err as Error).message?.slice(0, 120);
+          console.error('[StudyGroup] SQL error:', msg);
+          throw err;
+        }
       }
+      console.log('[StudyGroup] Study group tables created.');
     }
 
-    // Disable RLS on study group tables so all authenticated users can read/write
-    // (site is in open pre-paywall mode)
+    // ── Always disable RLS (tables may exist from prior deploys where this step was skipped) ──
     const rlsTables = ['CourseStudyGroup', 'CourseGroupMember', 'CourseGroupPost', 'CourseGroupReply', 'CourseGroupFile'];
     for (const table of rlsTables) {
       try {
@@ -134,16 +137,18 @@ export async function ensureStudyGroupForCourse(courseId: string): Promise<void>
         data: { courseId, description: null },
       });
       console.log(`[StudyGroup] Provisioned study group for course ${courseId}`);
+      provisionedCourses.add(courseId);
     } catch (err) {
       // Race: another request created it between our check and create
       const msg = (err as Error).message?.slice(0, 100);
       if (msg?.includes('Unique constraint') || msg?.includes('duplicate key')) {
         console.log(`[StudyGroup] Study group for ${courseId} already exists (race).`);
+        provisionedCourses.add(courseId);
       } else {
         console.error(`[StudyGroup] Failed to provision study group for ${courseId}:`, msg);
+        // Don't cache the failure — allow retry on next request
       }
     }
-    provisionedCourses.add(courseId);
   })();
 
   provisionPromises.set(courseId, promise);
