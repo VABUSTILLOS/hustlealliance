@@ -91,11 +91,11 @@ export default function ExitIntentPopup() {
                   </div>
 
                   <h3 className="font-heading text-xl font-bold text-foreground mb-2">
-                    Free Fundraising 101 Checklist
+                    Before You Go — One Free Resource
                   </h3>
                   <p className="text-zinc-400 text-sm mb-6 leading-relaxed">
-                    The exact term sheet checklist that helped founders raise $40M+. 
-                    Drop your email and we&apos;ll send it right over — no spam, ever.
+                    I put together a 2-page checklist that walks you through exactly what investors look for in a term sheet. 
+                    It&apos;s saved founders weeks of back-and-forth. Take it — worst case you delete the email. Best case it saves you your next round.
                   </p>
 
                   <form onSubmit={handleSubmit} className="flex flex-col gap-3">

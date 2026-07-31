@@ -106,6 +106,22 @@ export default function Pricing() {
           </span>
         </motion.div>
 
+        {/* ── Guarantee ─────────────────── */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.15 }}
+          className="text-center mb-10"
+        >
+          <p className="inline-flex items-start gap-2 text-sm text-zinc-300 max-w-2xl mx-auto leading-relaxed">
+            <svg className="w-5 h-5 shrink-0 mt-0.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+            <span>{t.pricing.guarantee}</span>
+          </p>
+        </motion.div>
+
         {/* ── Tier cards ─────────────────────── */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-start mb-28">
           {tiers.map((tier, i) => (
@@ -128,7 +144,7 @@ export default function Pricing() {
                 {/* Popular badge */}
                 {tier.popular && (
                   <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-accent text-white text-[10px] font-mono font-bold uppercase tracking-wider px-4 py-1 rounded-full">
-                    {t.pricing.popular}
+                    {t.pricing.mostPopular}
                   </div>
                 )}
 

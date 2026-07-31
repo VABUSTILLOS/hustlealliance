@@ -48,6 +48,16 @@ export default function FAQ() {
           </h2>
         </motion.div>
 
+        {/* Kern vulnerability opener */}
+        <motion.p
+          initial={{ opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-center text-sm sm:text-base text-zinc-300 max-w-2xl mx-auto mb-10 leading-relaxed"
+        >
+          {t.faq.opener}
+        </motion.p>
+
         {/* FAQ items */}
         <div className="space-y-3">
           {faqs.map((faq, i) => (

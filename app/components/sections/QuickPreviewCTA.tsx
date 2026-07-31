@@ -78,7 +78,7 @@ export default function QuickPreviewCTA() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@founder.com"
+                placeholder={t.quickPreview.emailPlaceholder || 'Where should we send it?'}
                 required
                 className="flex-1 px-4 py-3 min-h-[48px] rounded-xl bg-white/5 border border-white/15 text-sm text-white placeholder:text-zinc-500 
                   focus:outline-none focus:border-accent/50 focus:bg-white/8 transition-all duration-200"
