@@ -132,6 +132,9 @@ export default function GamificationSection() {
                 <polyline points="9 18 15 12 9 6" />
               </svg>
             </a>
+            <p className="mt-2 text-[10px] text-zinc-500 text-center">
+              Free Starter plan — $0/month, no credit card.
+            </p>
           </div>
         </motion.div>
       </div>

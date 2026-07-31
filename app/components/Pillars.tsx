@@ -154,6 +154,9 @@ export default function Pillars() {
               <polyline points="9 18 15 12 9 6" />
             </svg>
           </a>
+          <p className="mt-3 text-xs text-zinc-500">
+            Free plan available — $0/month, no credit card.
+          </p>
         </motion.div>
       </div>
     </section>

@@ -57,7 +57,7 @@ export default function Hero() {
   const stats = [
     { value: 2400, suffix: '+', label: 'active founders' },
     { value: 180, suffix: '+', label: 'tactical playbooks' },
-    { value: 40, suffix: 'M+', label: 'raised by members' },
+    { value: 30, suffix: '-Day', label: 'Money-Back Guarantee' },
   ];
 
   return (

@@ -1,6 +1,5 @@
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
-import TrustBar from './components/TrustBar';
 import Footer from './components/Footer';
 import HomepageSEO from './components/HomepageSEO';
 import { HomepageLazySection } from './components/HomepageLazySection';
@@ -15,8 +14,6 @@ export default function Home() {
       <HomepageSEO />
       <Navbar />
       <Hero />
-      {/* Social proof — trust bar */}
-      <TrustBar />
       {/* Value proposition — problem vs solution (moved before features) */}
       <HomepageLazySection name="ValueProposition" />
       {/* Features — "Everything you need to build" */}
