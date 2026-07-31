@@ -2,8 +2,10 @@
 
 import { useEffect, useState, useCallback, type FormEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 export default function ExitIntentPopup() {
+  const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success'>('idle');
@@ -80,8 +82,8 @@ export default function ExitIntentPopup() {
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
                   </div>
-                  <h3 className="font-heading text-xl font-bold text-foreground mb-2">You're in!</h3>
-                  <p className="text-zinc-400 text-sm">Check your inbox for the free Fundraising 101 lesson.</p>
+                  <h3 className="font-heading text-xl font-bold text-foreground mb-2">{t.exitIntent.successTitle}</h3>
+                  <p className="text-zinc-400 text-sm">{t.exitIntent.successBody}</p>
                 </div>
               ) : (
                 <>
@@ -91,11 +93,10 @@ export default function ExitIntentPopup() {
                   </div>
 
                   <h3 className="font-heading text-xl font-bold text-foreground mb-2">
-                    Before You Go — One Free Resource
+                    {t.exitIntent.title}
                   </h3>
                   <p className="text-zinc-400 text-sm mb-6 leading-relaxed">
-                    I put together a 2-page checklist that walks you through exactly what investors look for in a term sheet. 
-                    It&apos;s saved founders weeks of back-and-forth. Take it — worst case you delete the email. Best case it saves you your next round.
+                    {t.exitIntent.body}
                   </p>
 
                   <form onSubmit={handleSubmit} className="flex flex-col gap-3">
@@ -103,7 +104,7 @@ export default function ExitIntentPopup() {
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="you@founder.com"
+                      placeholder={t.exitIntent.placeholder}
                       required
                       className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/15 text-sm text-white placeholder:text-zinc-500 
                         focus:outline-none focus:border-accent/50 transition-all duration-200"
@@ -115,12 +116,12 @@ export default function ExitIntentPopup() {
                       className="w-full py-3 rounded-xl bg-accent text-white font-heading font-bold text-sm
                         hover:bg-accent-glow hover:shadow-[0_0_30px_rgba(255,59,48,0.3)] transition-all duration-300 disabled:opacity-50"
                     >
-                      {status === 'loading' ? 'Sending...' : 'Send Me the Checklist'}
+                      {status === 'loading' ? '...' : t.exitIntent.cta}
                     </button>
                   </form>
 
                   <p className="text-center text-[10px] text-zinc-600 mt-4">
-                    No spam. Unsubscribe anytime. We respect founders&apos; time.
+                    {t.exitIntent.noSpam}
                   </p>
                 </>
               )}

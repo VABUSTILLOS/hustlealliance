@@ -183,7 +183,7 @@ export default function Pricing() {
 
                 {/* CTA */}
                 <Link
-                  href="#pricing"
+                  href="/signup"
                   className={clsx(
                     'w-full py-3 min-h-[48px] rounded-xl font-heading font-bold text-sm uppercase tracking-wider transition-all duration-300 inline-block text-center',
                     tier.variant === 'solid'
