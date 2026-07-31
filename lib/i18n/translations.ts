@@ -22,7 +22,7 @@ const t = {
       eyebrow: "You're not stuck. You're just missing the playbook.",
       line1: 'Stop Building',
       line2: 'Alone.',
-      subheadline: '180+ step-by-step playbooks. Guided roadmaps from ideation to scale. A community of builders who actually respond. Your own website — zero code. All in one place, starting at $0.',
+      subheadline: '180+ step-by-step playbooks. Guided roadmaps from ideation to scale. The Founders Collective — a community of builders who actually respond. Your own website — zero code. All in one place, starting at $0.',
       cta1: 'See What You Get →',
       cta2: 'Preview a Free Lesson',
       microcopy: 'The first lesson is free. Plans from $0/month. No credit card — just see if it\'s for you.',
@@ -39,7 +39,7 @@ const t = {
       subtitle: 'They left to build something of their own. This is where they do it.',
     },
     pillars: {
-      tag: 'What You Get',
+      tag: 'The Founders Collective',
       headline: 'Everything you need to build',
       viewAllFeatures: 'View all features',
       community: {
@@ -909,7 +909,7 @@ const t = {
       studyGroupStatFiles: 'Files',
       studyGroupMembersCount: 'Members ({count})',
       notYetUnlocked: 'Not yet unlocked',
-      homeTag: 'Your Guided Roadmap',
+      homeTag: 'By Founders, for Founders',
       homeHeadline: "You Don't Need Another Course. You Need Someone to Tell You What to Do Next.",
       homeSubtitle: '100+ tasks. 6 stages. One clear path from idea to scale. Log in, see your next step, do it, earn XP. No guessing. No Googling. Just forward motion.',
       homeCta: 'Start Your Journey',
@@ -1323,7 +1323,7 @@ const t = {
       eyebrow: 'No estás atascado. Solo te falta el playbook.',
       line1: 'Deja de Construir',
       line2: 'Solo.',
-      subheadline: 'Más de 180 playbooks paso a paso. Rutas guiadas desde la idea hasta escalar. Una comunidad de builders que realmente responden. Tu propio sitio web — sin código. Todo en un solo lugar, desde $0.',
+      subheadline: 'Más de 180 playbooks paso a paso. Rutas guiadas desde la idea hasta escalar. The Founders Collective — una comunidad de builders que realmente responden. Tu propio sitio web — sin código. Todo en un solo lugar, desde $0.',
       cta1: 'Ver Lo Que Obtienes →',
       cta2: 'Vista Previa Gratuita',
       microcopy: 'La primera lección es gratis. Planes desde $0/mes. Sin tarjeta de crédito — solo ve si es para ti.',
@@ -1340,7 +1340,7 @@ const t = {
       subtitle: 'Se fueron para construir algo propio. Aquí es donde lo hacen.',
     },
     pillars: {
-      tag: 'Lo Que Obtienes',
+      tag: 'The Founders Collective',
       headline: 'Todo lo que necesitas para construir',
       viewAllFeatures: 'Ver todas las funciones',
       community: {
@@ -2209,7 +2209,7 @@ const t = {
       studyGroupStatFiles: 'Archivos',
       studyGroupMembersCount: 'Miembros ({count})',
       notYetUnlocked: 'Aún no desbloqueado',
-      homeTag: 'Tu Ruta Guiada',
+      homeTag: 'By Founders, for Founders',
       homeHeadline: 'No Necesitas Otro Curso. Necesitas Que Alguien Te Diga Qué Hacer Ahora.',
       homeSubtitle: 'Más de 100 tareas. 6 etapas. Un camino claro desde la idea hasta escalar. Inicia sesión, ve tu siguiente paso, hazlo, gana XP. Sin adivinar. Sin buscar en Google. Solo avanzar.',
       homeCta: 'Comienza Tu Viaje',

@@ -70,7 +70,7 @@ export default function Footer() {
               </span>
             </Link>
             <p className="mt-3 text-sm text-[var(--color-foreground-muted)] leading-relaxed max-w-xs">
-              The operating system for founders. Community, playbooks, and tools to go from idea to paying customers.
+              By Founders, for Founders. Community, playbooks, and tools to go from idea to paying customers.
             </p>
             {/* Socials */}
             <div className="flex items-center gap-3 mt-5">
