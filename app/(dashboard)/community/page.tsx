@@ -1,5 +1,6 @@
 import { CommunityHeader } from './CommunityHeader';
 import { getTrendingTopics } from '@/lib/db/community';
+import type { TrendingTopic } from '@/lib/db/community';
 import { PostFeedSkeleton } from './PostFeedSkeleton';
 import { CommunitySidebar } from './CommunitySidebar';
 import { PostFeedServer } from './PostFeedServer';
@@ -18,7 +19,14 @@ export default async function CommunityPage({
 }) {
   const { tab } = await searchParams;
   const initialTab: FeedTab = tab && VALID_TABS.includes(tab as FeedTab) ? (tab as FeedTab) : 'spaces';
-  const trending = await getTrendingTopics(5);
+
+  // Fetch trending topics gracefully — don't crash the page if the DB is unreachable
+  let trending: TrendingTopic[] = [];
+  try {
+    trending = await getTrendingTopics(5);
+  } catch (err) {
+    console.error('[community] Failed to load trending topics:', (err as Error).message);
+  }
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-8 max-w-7xl mx-auto">

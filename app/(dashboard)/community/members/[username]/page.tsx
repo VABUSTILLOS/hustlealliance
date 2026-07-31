@@ -15,7 +15,15 @@ export default async function MemberProfilePage({
   const user = await getCurrentUser();
   const currentUserId = user?.id;
 
-  const { profile, isFollowing } = await getMemberProfile(username, currentUserId);
+  let profile: Awaited<ReturnType<typeof getMemberProfile>>['profile'] = null;
+  let isFollowing = false;
+  try {
+    const result = await getMemberProfile(username, currentUserId);
+    profile = result.profile;
+    isFollowing = result.isFollowing;
+  } catch (err) {
+    console.error('[community] Failed to load member profile:', (err as Error).message);
+  }
 
   if (!profile) notFound();
 

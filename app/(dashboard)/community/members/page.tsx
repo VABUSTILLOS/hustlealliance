@@ -1,8 +1,8 @@
 import { getCommunityMembers } from '@/lib/db/community';
+import type { GetCommunityMembersOpts, GetCommunityMembersResult } from '@/lib/db/community';
 import { MembersHeader } from './MembersHeader';
 import { MembersGrid } from './MembersGrid';
 import { MembersFilters } from './MembersFilters';
-import type { GetCommunityMembersOpts } from '@/lib/db/community';
 
 // ISR: revalidate member listing every 60s
 export const revalidate = 60;
@@ -23,18 +23,23 @@ export default async function MembersPage({
   const tier = VALID_TIERS.includes(sp.tier as any) ? (sp.tier as GetCommunityMembersOpts['tier']) : undefined;
   const search = sp.search || undefined;
 
-  const { items, total } = await getCommunityMembers({ sort, role, tier, search, limit: 36 });
+  let result: GetCommunityMembersResult = { items: [], total: 0, hasMore: false, nextCursor: null };
+  try {
+    result = await getCommunityMembers({ sort, role, tier, search, limit: 36 });
+  } catch (err) {
+    console.error('[community] Failed to load members:', (err as Error).message);
+  }
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-8 max-w-7xl mx-auto">
-      <MembersHeader total={total} />
+      <MembersHeader total={result.total} />
       <MembersFilters
         initialSort={sort}
         initialRole={role}
         initialTier={tier}
         initialSearch={search}
       />
-      <MembersGrid members={items} />
+      <MembersGrid members={result.items} />
     </div>
   );
 }

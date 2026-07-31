@@ -1,4 +1,5 @@
 import { getCommunityPosts } from '@/lib/db/community';
+import type { GetCommunityPostsResult } from '@/lib/db/community';
 import { spaces } from '@/lib/data/spaces';
 import { SpaceDetailClient } from './SpaceDetailClient';
 
@@ -11,7 +12,13 @@ export default async function SpaceDetailPage({
 }) {
   const { slug } = await params;
   const space = spaces.find((s) => s.slug === slug);
-  const feed = await getCommunityPosts({ space: slug, limit: 30 });
+
+  let feed: GetCommunityPostsResult = { items: [], hasMore: false, nextCursor: null };
+  try {
+    feed = await getCommunityPosts({ space: slug, limit: 30 });
+  } catch (err) {
+    console.error('[spaces] Failed to load space posts:', (err as Error).message);
+  }
 
   return <SpaceDetailClient slug={slug} space={space ?? null} feed={feed} />;
 }

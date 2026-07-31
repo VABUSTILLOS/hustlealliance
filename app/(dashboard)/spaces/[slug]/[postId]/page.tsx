@@ -11,37 +11,53 @@ interface PageProps {
 export default async function PostDetailPage({ params }: PageProps) {
   const { slug, postId } = await params;
 
-  const post = await getPostById(postId);
+  let post;
+  try {
+    post = await getPostById(postId);
+  } catch (err) {
+    console.error('[post-detail] Failed to load post:', (err as Error).message);
+    notFound();
+  }
 
   if (!post || post.isDeleted) {
     notFound();
   }
 
   // Fetch comments (up to 50)
-  const initialComments = await getCommentsForPost(postId);
+  let initialComments: Awaited<ReturnType<typeof getCommentsForPost>> = [];
+  try {
+    initialComments = await getCommentsForPost(postId);
+  } catch (err) {
+    console.error('[post-detail] Failed to load comments:', (err as Error).message);
+  }
 
   // Fetch 3 related posts from same space
-  const relatedPosts = await prisma.communityPost.findMany({
-    where: {
-      space: slug,
-      id: { not: postId },
-      isDeleted: false,
-    },
-    select: {
-      id: true,
-      content: true,
-      excerpt: true,
-      imageUrls: true,
-      space: true,
-      createdAt: true,
-      author: {
-        select: { id: true, name: true, username: true, avatar: true },
+  let relatedPosts: any[] = [];
+  try {
+    relatedPosts = await prisma.communityPost.findMany({
+      where: {
+        space: slug,
+        id: { not: postId },
+        isDeleted: false,
       },
-      _count: { select: { likes: true, comments: true } },
-    },
-    take: 3,
-    orderBy: { createdAt: "desc" },
-  });
+      select: {
+        id: true,
+        content: true,
+        excerpt: true,
+        imageUrls: true,
+        space: true,
+        createdAt: true,
+        author: {
+          select: { id: true, name: true, username: true, avatar: true },
+        },
+        _count: { select: { likes: true, comments: true } },
+      },
+      take: 3,
+      orderBy: { createdAt: "desc" },
+    });
+  } catch (err) {
+    console.error('[post-detail] Failed to load related posts:', (err as Error).message);
+  }
 
   return (
     <PostDetailClient

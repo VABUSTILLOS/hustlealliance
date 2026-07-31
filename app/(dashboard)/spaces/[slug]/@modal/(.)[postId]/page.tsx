@@ -12,32 +12,48 @@ interface PageProps {
 export default async function PostInterceptPage({ params }: PageProps) {
   const { slug, postId } = await params;
 
-  const post = await getPostById(postId);
+  let post;
+  try {
+    post = await getPostById(postId);
+  } catch (err) {
+    console.error('[post-modal] Failed to load post:', (err as Error).message);
+    notFound();
+  }
   if (!post || post.isDeleted) notFound();
 
-  const initialComments = await getCommentsForPost(postId);
+  let initialComments: Awaited<ReturnType<typeof getCommentsForPost>> = [];
+  try {
+    initialComments = await getCommentsForPost(postId);
+  } catch (err) {
+    console.error('[post-modal] Failed to load comments:', (err as Error).message);
+  }
 
-  const relatedPosts = await prisma.communityPost.findMany({
-    where: {
-      space: slug,
-      id: { not: postId },
-      isDeleted: false,
-    },
-    select: {
-      id: true,
-      content: true,
-      excerpt: true,
-      imageUrls: true,
-      space: true,
-      createdAt: true,
-      author: {
-        select: { id: true, name: true, username: true, avatar: true },
+  let relatedPosts: any[] = [];
+  try {
+    relatedPosts = await prisma.communityPost.findMany({
+      where: {
+        space: slug,
+        id: { not: postId },
+        isDeleted: false,
       },
-      _count: { select: { likes: true, comments: true } },
-    },
-    take: 3,
-    orderBy: { createdAt: "desc" },
-  });
+      select: {
+        id: true,
+        content: true,
+        excerpt: true,
+        imageUrls: true,
+        space: true,
+        createdAt: true,
+        author: {
+          select: { id: true, name: true, username: true, avatar: true },
+        },
+        _count: { select: { likes: true, comments: true } },
+      },
+      take: 3,
+      orderBy: { createdAt: "desc" },
+    });
+  } catch (err) {
+    console.error('[post-modal] Failed to load related posts:', (err as Error).message);
+  }
 
   const { title } = extractTitle(post.content);
 
