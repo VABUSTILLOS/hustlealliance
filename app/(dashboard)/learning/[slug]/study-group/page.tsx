@@ -2,6 +2,8 @@ import prisma from '@/lib/db/prisma';
 import { StudyGroupClient } from './client';
 import { ensureStudyGroupTables, ensureStudyGroupForCourse } from '@/lib/db/init-study-groups';
 
+export const dynamic = 'force-dynamic';
+
 export default async function StudyGroupPage({
   params,
 }: {

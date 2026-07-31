@@ -19,6 +19,7 @@ const sectionMap: Record<string, () => Promise<{ default: ComponentType<any> }>>
   WallOfLove: () => import('./sections/WallOfLove'),
   FooterCTA: () => import('./sections/FooterCTA'),
   ActivityTicker: () => import('./ActivityTicker'),
+  AccountabilitySection: () => import('./sections/AccountabilitySection'),
 };
 
 export function HomepageLazySection({ name }: { name: string }) {

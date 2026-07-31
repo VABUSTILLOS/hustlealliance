@@ -16,8 +16,7 @@ export default function Home() {
       <HomepageLazySection name="ResourceLibrary" />
       <HomepageLazySection name="GamificationSection" />
       <HomepageLazySection name="SpacesPreview" />
-      <HomepageLazySection name="HabitsPreview" />
-      <HomepageLazySection name="PlannerPreview" />
+      <HomepageLazySection name="AccountabilitySection" />
       <HomepageLazySection name="ValueProposition" />
       <HomepageLazySection name="Pricing" />
       <HomepageLazySection name="WallOfLove" />
