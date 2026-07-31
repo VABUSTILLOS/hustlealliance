@@ -44,7 +44,7 @@ const t = {
       viewAllFeatures: 'View all features',
       community: {
         title: 'Community',
-        desc: 'Ask a question about fundraising, growth, or product — get answers from builders who\'ve done it. Real tactics from people in the arena right now.',
+        desc: 'Ask a question about fundraising, growth, or product — get answers from builders who\'ve done it. Members help each other skip the mistakes they already paid for. Real tactics from people in the arena right now.',
       },
       website: {
         title: 'Your Own Website',
@@ -52,7 +52,7 @@ const t = {
       },
       guides: {
         title: 'Guides & Resources',
-        desc: '180+ playbooks, templates, and tools. Each one replaces hours of trial and error. Filtered by your stage so you find exactly what you need.',
+        desc: '180+ playbooks, templates, and tools. Each one replaces hours of trial and error. New playbooks added every week — your resources expand the longer you\'re a member. Filtered by your stage so you find exactly what you need.',
       },
       chat1: 'Anyone else launching this month? 🚀',
       chat2: 'Yep! B2B SaaS, you?',
@@ -156,7 +156,7 @@ const t = {
       headline: 'The playbooks nobody hands you',
       pro: 'PRO',
       free: 'Free',
-      homeSubtitle: '180+ playbooks, templates, and tools. Each one replaces 5-10 hours of Googling. Organized by category so you find what you need in 30 seconds, not 3 hours. All included.',
+      homeSubtitle: '180+ playbooks, templates, and tools. Each one replaces 5-10 hours of Googling. New resources added weekly — your library grows the longer you\'re here. Organized by category so you find what you need in 30 seconds, not 3 hours. All included.',
       empty: 'No resources in this category yet. More added weekly.',
       viewAll: 'View Full Library',
       showingCount: 'Showing {visible} of {total} resources',
@@ -763,7 +763,7 @@ const t = {
     valueProp: {
       headline: "What You'll Waste Figuring It Out Alone vs. What You Get In Week One",
       line1: "200+ hours of Googling. 3 wrong pivots. $5K on the wrong tools. No one to ask when you're stuck at 2AM.",
-      line2: '180 playbooks pre-filtered for your stage. A guided roadmap telling you what to do next. A community that responds in minutes, not days. Your own website, live today.',
+      line2: '180 playbooks pre-filtered for your stage. A guided roadmap telling you what to do next. A community where members help each other skip the dead ends. Your own website, live today.',
       line3: "One path costs months and thousands. The other starts at $0 and gives you everything above. This isn't about whether you can afford it — it's about whether you can afford to keep guessing.",
       cta: 'Stop Guessing → Start Free',
     },
@@ -1345,7 +1345,7 @@ const t = {
       viewAllFeatures: 'Ver todas las funciones',
       community: {
         title: 'Comunidad',
-        desc: 'Haz una pregunta sobre fundraising, crecimiento o producto — obtén respuestas de builders que ya lo hicieron. Tácticas reales de gente en la arena ahora mismo.',
+        desc: 'Haz una pregunta sobre fundraising, crecimiento o producto — obtén respuestas de builders que ya lo hicieron. Los miembros se ayudan entre sí a evitar los errores que ya pagaron. Tácticas reales de gente en la arena ahora mismo.',
       },
       website: {
         title: 'Tu Propio Sitio Web',
@@ -1353,7 +1353,7 @@ const t = {
       },
       guides: {
         title: 'Guías y Recursos',
-        desc: 'Más de 180 playbooks, plantillas y herramientas. Cada uno reemplaza horas de prueba y error. Filtrados por tu etapa para que encuentres exactamente lo que necesitas.',
+        desc: 'Más de 180 playbooks, plantillas y herramientas. Cada uno reemplaza horas de prueba y error. Nuevos playbooks cada semana — tus recursos se expanden mientras más tiempo seas miembro. Filtrados por tu etapa para que encuentres exactamente lo que necesitas.',
       },
       chat1: '¿Alguien más lanza este mes? 🚀',
       chat2: '¡Sí! B2B SaaS, ¿tú?',
@@ -1457,7 +1457,7 @@ const t = {
       headline: 'Los playbooks que nadie te comparte',
       pro: 'PRO',
       free: 'Gratis',
-      homeSubtitle: 'Más de 180 playbooks, plantillas y herramientas. Cada uno reemplaza 5-10 horas de búsqueda en Google. Organizados por categoría para que encuentres lo que necesitas en 30 segundos, no en 3 horas. Todo incluido.',
+      homeSubtitle: 'Más de 180 playbooks, plantillas y herramientas. Cada uno reemplaza 5-10 horas de búsqueda en Google. Nuevos recursos cada semana — tu biblioteca crece mientras más tiempo estés aquí. Organizados por categoría para que encuentres lo que necesitas en 30 segundos, no en 3 horas. Todo incluido.',
       empty: 'Aún no hay recursos en esta categoría. Más añadidos cada semana.',
       viewAll: 'Ver Biblioteca Completa',
       showingCount: 'Mostrando {visible} de {total} recursos',
@@ -2063,7 +2063,7 @@ const t = {
     valueProp: {
       headline: 'Lo Que Desperdicias Averiguándolo Solo vs. Lo Que Obtienes En La Primera Semana',
       line1: 'Más de 200 horas en Google. 3 pivotes equivocados. $5K en herramientas incorrectas. Nadie a quien preguntar cuando estás atascado a las 2AM.',
-      line2: '180 playbooks pre-filtrados para tu etapa. Una ruta guiada que te dice qué hacer a continuación. Una comunidad que responde en minutos, no días. Tu propio sitio web, en vivo hoy.',
+      line2: '180 playbooks pre-filtrados para tu etapa. Una ruta guiada que te dice qué hacer a continuación. Una comunidad donde los miembros se ayudan a evitar los callejones sin salida. Tu propio sitio web, en vivo hoy.',
       line3: 'Un camino cuesta meses y miles. El otro empieza en $0 y te da todo lo anterior. No se trata de si puedes pagarlo — se trata de si puedes seguir adivinando.',
       cta: 'Deja de Adivinar → Empieza Gratis',
     },
