@@ -61,22 +61,22 @@ export async function ensureStudyGroupTables(): Promise<void> {
       console.log('[StudyGroup] Creating study group tables...');
 
       const statements = [
-        `CREATE TABLE IF NOT EXISTS "CourseStudyGroup" ("id" TEXT NOT NULL, "courseId" TEXT NOT NULL, "description" TEXT, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "CourseStudyGroup_pkey" PRIMARY KEY ("id"))`,
-        `CREATE UNIQUE INDEX IF NOT EXISTS "CourseStudyGroup_courseId_key" ON "CourseStudyGroup"("courseId")`,
-        `ALTER TABLE "CourseStudyGroup" ADD CONSTRAINT IF NOT EXISTS "CourseStudyGroup_courseId_fkey" FOREIGN KEY ("courseId") REFERENCES "Course"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
-        `CREATE TABLE IF NOT EXISTS "CourseGroupMember" ("id" TEXT NOT NULL, "groupId" TEXT NOT NULL, "userId" TEXT NOT NULL, "joinedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "CourseGroupMember_pkey" PRIMARY KEY ("id"))`,
-        `CREATE UNIQUE INDEX IF NOT EXISTS "CourseGroupMember_groupId_userId_key" ON "CourseGroupMember"("groupId", "userId")`,
-        `ALTER TABLE "CourseGroupMember" ADD CONSTRAINT IF NOT EXISTS "CourseGroupMember_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "CourseStudyGroup"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
-        `ALTER TABLE "CourseGroupMember" ADD CONSTRAINT IF NOT EXISTS "CourseGroupMember_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
-        `CREATE TABLE IF NOT EXISTS "CourseGroupPost" ("id" TEXT NOT NULL, "groupId" TEXT NOT NULL, "authorId" TEXT NOT NULL, "content" TEXT NOT NULL, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "CourseGroupPost_pkey" PRIMARY KEY ("id"))`,
-        `ALTER TABLE "CourseGroupPost" ADD CONSTRAINT IF NOT EXISTS "CourseGroupPost_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "CourseStudyGroup"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
-        `ALTER TABLE "CourseGroupPost" ADD CONSTRAINT IF NOT EXISTS "CourseGroupPost_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
-        `CREATE TABLE IF NOT EXISTS "CourseGroupReply" ("id" TEXT NOT NULL, "postId" TEXT NOT NULL, "authorId" TEXT NOT NULL, "content" TEXT NOT NULL, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "CourseGroupReply_pkey" PRIMARY KEY ("id"))`,
-        `ALTER TABLE "CourseGroupReply" ADD CONSTRAINT IF NOT EXISTS "CourseGroupReply_postId_fkey" FOREIGN KEY ("postId") REFERENCES "CourseGroupPost"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
-        `ALTER TABLE "CourseGroupReply" ADD CONSTRAINT IF NOT EXISTS "CourseGroupReply_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
-        `CREATE TABLE IF NOT EXISTS "CourseGroupFile" ("id" TEXT NOT NULL, "groupId" TEXT NOT NULL, "uploaderId" TEXT NOT NULL, "fileName" TEXT NOT NULL, "fileUrl" TEXT NOT NULL, "fileSize" INTEGER NOT NULL, "mimeType" TEXT NOT NULL, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "CourseGroupFile_pkey" PRIMARY KEY ("id"))`,
-        `ALTER TABLE "CourseGroupFile" ADD CONSTRAINT IF NOT EXISTS "CourseGroupFile_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "CourseStudyGroup"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
-        `ALTER TABLE "CourseGroupFile" ADD CONSTRAINT IF NOT EXISTS "CourseGroupFile_uploaderId_fkey" FOREIGN KEY ("uploaderId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
+        `CREATE TABLE "CourseStudyGroup" ("id" TEXT NOT NULL, "courseId" TEXT NOT NULL, "description" TEXT, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "CourseStudyGroup_pkey" PRIMARY KEY ("id"))`,
+        `CREATE UNIQUE INDEX "CourseStudyGroup_courseId_key" ON "CourseStudyGroup"("courseId")`,
+        `ALTER TABLE "CourseStudyGroup" ADD CONSTRAINT "CourseStudyGroup_courseId_fkey" FOREIGN KEY ("courseId") REFERENCES "Course"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
+        `CREATE TABLE "CourseGroupMember" ("id" TEXT NOT NULL, "groupId" TEXT NOT NULL, "userId" TEXT NOT NULL, "joinedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "CourseGroupMember_pkey" PRIMARY KEY ("id"))`,
+        `CREATE UNIQUE INDEX "CourseGroupMember_groupId_userId_key" ON "CourseGroupMember"("groupId", "userId")`,
+        `ALTER TABLE "CourseGroupMember" ADD CONSTRAINT "CourseGroupMember_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "CourseStudyGroup"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
+        `ALTER TABLE "CourseGroupMember" ADD CONSTRAINT "CourseGroupMember_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
+        `CREATE TABLE "CourseGroupPost" ("id" TEXT NOT NULL, "groupId" TEXT NOT NULL, "authorId" TEXT NOT NULL, "content" TEXT NOT NULL, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "CourseGroupPost_pkey" PRIMARY KEY ("id"))`,
+        `ALTER TABLE "CourseGroupPost" ADD CONSTRAINT "CourseGroupPost_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "CourseStudyGroup"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
+        `ALTER TABLE "CourseGroupPost" ADD CONSTRAINT "CourseGroupPost_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
+        `CREATE TABLE "CourseGroupReply" ("id" TEXT NOT NULL, "postId" TEXT NOT NULL, "authorId" TEXT NOT NULL, "content" TEXT NOT NULL, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "CourseGroupReply_pkey" PRIMARY KEY ("id"))`,
+        `ALTER TABLE "CourseGroupReply" ADD CONSTRAINT "CourseGroupReply_postId_fkey" FOREIGN KEY ("postId") REFERENCES "CourseGroupPost"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
+        `ALTER TABLE "CourseGroupReply" ADD CONSTRAINT "CourseGroupReply_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
+        `CREATE TABLE "CourseGroupFile" ("id" TEXT NOT NULL, "groupId" TEXT NOT NULL, "uploaderId" TEXT NOT NULL, "fileName" TEXT NOT NULL, "fileUrl" TEXT NOT NULL, "fileSize" INTEGER NOT NULL, "mimeType" TEXT NOT NULL, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "CourseGroupFile_pkey" PRIMARY KEY ("id"))`,
+        `ALTER TABLE "CourseGroupFile" ADD CONSTRAINT "CourseGroupFile_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "CourseStudyGroup"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
+        `ALTER TABLE "CourseGroupFile" ADD CONSTRAINT "CourseGroupFile_uploaderId_fkey" FOREIGN KEY ("uploaderId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
       ];
 
       for (const sql of statements) {
@@ -84,10 +84,9 @@ export async function ensureStudyGroupTables(): Promise<void> {
           await pool.query(sql);
         } catch (err) {
           const msg = (err as Error).message?.slice(0, 120);
-          // "must be owner" = table exists but is owned by a different role (e.g. Supabase migrations).
-          // This is non-fatal — the table already exists with the right schema.
-          if (msg?.includes('must be owner')) {
-            console.warn('[StudyGroup] Skipping DDL (not owner):', msg);
+          // Non-fatal: table/index/constraint already exists (race condition)
+          if (msg?.includes('already exists') || msg?.includes('duplicate key') || msg?.includes('must be owner')) {
+            console.warn('[StudyGroup] Skipping DDL (exists/not owner):', msg);
             continue;
           }
           console.error('[StudyGroup] SQL error:', msg);
