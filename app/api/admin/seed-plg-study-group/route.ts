@@ -309,17 +309,14 @@ export async function GET() {
     const authorLookup = new Map<string, string>();
     memberMap.forEach((m) => authorLookup.set(m.id, m.realUserId));
 
-    // Update real users' avatars and names with mock personas (only if avatar is null/empty)
+    // Update real users' avatars and names with mock personas for the PLG demo
     let avatarsUpdated = 0;
     for (const m of memberMap) {
-      const realUser = realUsers.find(u => u.id === m.realUserId);
-      if (realUser && (!realUser.avatar || realUser.avatar === '')) {
-        await prisma.user.update({
-          where: { id: realUser.id },
-          data: { avatar: m.avatar, name: m.name },
-        });
-        avatarsUpdated++;
-      }
+      await prisma.user.update({
+        where: { id: m.realUserId },
+        data: { avatar: m.avatar, name: m.name },
+      });
+      avatarsUpdated++;
     }
     results.avatarsUpdated = avatarsUpdated;
 
