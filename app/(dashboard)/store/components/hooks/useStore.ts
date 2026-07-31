@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getErrorMsg } from "@/lib/i18n/getErrorMsg";
 
 interface ProductFilters {
   type?: string;
@@ -16,7 +17,7 @@ export function useStoreProducts(filters: ProductFilters = {}) {
     queryKey: ["store-products", filters],
     queryFn: async () => {
       const res = await fetch(`/api/store/products?${params.toString()}`);
-      if (!res.ok) throw new Error("Failed to fetch products");
+      if (!res.ok) throw new Error(getErrorMsg("fetchProducts"));
       return res.json();
     },
   });
@@ -27,7 +28,7 @@ export function useProduct(slug: string) {
     queryKey: ["product", slug],
     queryFn: async () => {
       const res = await fetch(`/api/store/products/${slug}`);
-      if (!res.ok) throw new Error("Failed to fetch product");
+      if (!res.ok) throw new Error(getErrorMsg("fetchProduct"));
       return res.json();
     },
     enabled: !!slug,
@@ -39,7 +40,7 @@ export function useCart() {
     queryKey: ["cart"],
     queryFn: async () => {
       const res = await fetch("/api/store/cart");
-      if (!res.ok) throw new Error("Failed to fetch cart");
+      if (!res.ok) throw new Error(getErrorMsg("fetchCart"));
       return res.json();
     },
   });
@@ -56,7 +57,7 @@ export function useAddToCart() {
       });
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.error || "Failed to add to cart");
+        throw new Error(err.error || getErrorMsg("addToCart"));
       }
       return res.json();
     },
@@ -75,7 +76,7 @@ export function useCreateOrder() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      if (!res.ok) throw new Error("Failed to create order");
+      if (!res.ok) throw new Error(getErrorMsg("placeOrder"));
       return res.json();
     },
     onSuccess: () => {
@@ -90,7 +91,7 @@ export function useOrders() {
     queryKey: ["orders"],
     queryFn: async () => {
       const res = await fetch("/api/store/orders");
-      if (!res.ok) throw new Error("Failed to fetch orders");
+      if (!res.ok) throw new Error(getErrorMsg("fetchOrders"));
       return res.json();
     },
   });
@@ -101,7 +102,7 @@ export function useOrder(orderId: string) {
     queryKey: ["order", orderId],
     queryFn: async () => {
       const res = await fetch(`/api/store/orders/${orderId}`);
-      if (!res.ok) throw new Error("Failed to fetch order");
+      if (!res.ok) throw new Error(getErrorMsg("fetchOrder"));
       return res.json();
     },
     enabled: !!orderId,
@@ -113,7 +114,7 @@ export function useProductReviews(productId: string) {
     queryKey: ["product-reviews", productId],
     queryFn: async () => {
       const res = await fetch(`/api/store/products/${productId}/reviews`);
-      if (!res.ok) throw new Error("Failed to fetch reviews");
+      if (!res.ok) throw new Error(getErrorMsg("fetchReviews"));
       return res.json();
     },
     enabled: !!productId,
@@ -131,7 +132,7 @@ export function useAddReview() {
       });
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.error || "Failed to add review");
+        throw new Error(err.error || getErrorMsg("addReview"));
       }
       return res.json();
     },

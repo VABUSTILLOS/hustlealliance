@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { getErrorMsg } from "@/lib/i18n/getErrorMsg";
 
 interface UserProfileData {
   id: string;
@@ -61,7 +62,7 @@ export function useProfile(username: string) {
     queryFn: async () => {
       const res = await fetch(`/api/profile/${encodeURIComponent(username)}`);
       if (res.status === 404) return null;
-      if (!res.ok) throw new Error("Failed to fetch profile");
+      if (!res.ok) throw new Error(getErrorMsg("fetchProfile"));
       return res.json();
     },
     staleTime: 30_000,
@@ -73,7 +74,7 @@ export function useProfilePosts(userId: string) {
     queryKey: ["profile-posts", userId],
     queryFn: async () => {
       const res = await fetch(`/api/users/${userId}/posts`);
-      if (!res.ok) throw new Error("Failed to fetch posts");
+      if (!res.ok) throw new Error(getErrorMsg("fetchPosts"));
       return res.json();
     },
     enabled: !!userId,
@@ -86,7 +87,7 @@ export function useUserFollowers(userId: string) {
     queryKey: ["user-followers", userId],
     queryFn: async () => {
       const res = await fetch(`/api/users/${userId}/followers`);
-      if (!res.ok) throw new Error("Failed to fetch followers");
+      if (!res.ok) throw new Error(getErrorMsg("fetchFollowers"));
       return res.json();
     },
     enabled: !!userId,
@@ -99,7 +100,7 @@ export function useUserFollowing(userId: string) {
     queryKey: ["user-following", userId],
     queryFn: async () => {
       const res = await fetch(`/api/users/${userId}/following`);
-      if (!res.ok) throw new Error("Failed to fetch following");
+      if (!res.ok) throw new Error(getErrorMsg("fetchFollowing"));
       return res.json();
     },
     enabled: !!userId,
@@ -112,7 +113,7 @@ export function useUserFriends(userId: string) {
     queryKey: ["user-friends", userId],
     queryFn: async () => {
       const res = await fetch(`/api/users/${userId}/friends`);
-      if (!res.ok) throw new Error("Failed to fetch friends");
+      if (!res.ok) throw new Error(getErrorMsg("fetchFriends"));
       return res.json();
     },
     enabled: !!userId,

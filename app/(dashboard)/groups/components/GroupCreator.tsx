@@ -4,9 +4,11 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useCreateGroup } from './hooks/useGroups';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 export function GroupCreator() {
   const router = useRouter();
+  const { t } = useTranslation();
   const createGroup = useCreateGroup();
 
   const [name, setName] = useState('');
@@ -53,7 +55,7 @@ export function GroupCreator() {
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="e.g. SaaS Founders"
+          placeholder={t.groups.namePlaceholder}
           className="w-full px-4 py-3 bg-surface border border-surface-light rounded-xl text-foreground placeholder:text-muted outline-none focus:border-accent/40 transition-colors"
           required
         />
@@ -72,7 +74,7 @@ export function GroupCreator() {
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="What's this group about?"
+          placeholder={t.groups.descriptionPlaceholder}
           rows={4}
           className="w-full px-4 py-3 bg-surface border border-surface-light rounded-xl text-foreground placeholder:text-muted outline-none focus:border-accent/40 transition-colors resize-none"
         />

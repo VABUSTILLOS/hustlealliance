@@ -1,76 +1,88 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { useToast } from './ToastProvider';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
-interface ActivityEvent {
-  message: string;
+interface ActivityEventTemplate {
+  key: keyof typeof import('@/lib/i18n/translations').default.en.activityTicker;
+  params: Record<string, string>;
   icon: string;
   type: 'success' | 'info' | 'streak';
 }
 
-const events: ActivityEvent[] = [
-  { message: 'Sarah K. unlocked Growth Marketing', icon: '🔓', type: 'streak' },
-  { message: 'Diego R. just joined the Alliance', icon: '🎉', type: 'info' },
-  { message: 'Marcus C. completed Fundraising 101', icon: '✅', type: 'success' },
-  { message: 'Priya P. started a new mastermind', icon: '🧠', type: 'info' },
-  { message: 'James O. unlocked SaaS Pricing Models', icon: '🔓', type: 'streak' },
-  { message: 'Elena T. closed $2.5M seed round', icon: '💰', type: 'success' },
-  { message: 'Devon W. launched on Product Hunt', icon: '🚀', type: 'info' },
-  { message: 'Amara O. hit a 30-day streak', icon: '🔥', type: 'streak' },
-  { message: 'Alex N. unlocked Term Sheet Guide', icon: '🔓', type: 'streak' },
-  { message: 'Lisa W. got featured in TechCrunch', icon: '📰', type: 'success' },
-  { message: 'Tomás F. completed PMF Framework', icon: '✅', type: 'success' },
-  { message: 'Rachel A. landed first enterprise deal', icon: '💼', type: 'success' },
-  { message: 'Kevin L. joined Fintech mastermind', icon: '🤝', type: 'info' },
-  { message: 'Maya S. shared a cold email template', icon: '📧', type: 'info' },
-  { message: 'Jordan P. unlocked Zero-Budget Launch', icon: '🔓', type: 'streak' },
-  { message: 'Nina K. crossed $10K MRR milestone', icon: '📈', type: 'success' },
-  { message: 'Omar H. started a community challenge', icon: '🏆', type: 'streak' },
-  { message: 'Grace T. hired her first employee', icon: '👋', type: 'info' },
-  { message: 'Felix R. completed Growth Playbook', icon: '✅', type: 'success' },
-  { message: 'Zara M. just upgraded to Pro', icon: '⭐', type: 'info' },
+const eventTemplates: ActivityEventTemplate[] = [
+  { key: 'unlocked', params: { name: 'Sarah K.', resource: 'Growth Marketing' }, icon: '🔓', type: 'streak' },
+  { key: 'joinedAlliance', params: { name: 'Diego R.' }, icon: '🎉', type: 'info' },
+  { key: 'completed', params: { name: 'Marcus C.', course: 'Fundraising 101' }, icon: '✅', type: 'success' },
+  { key: 'startedMastermind', params: { name: 'Priya P.' }, icon: '🧠', type: 'info' },
+  { key: 'unlocked', params: { name: 'James O.', resource: 'SaaS Pricing Models' }, icon: '🔓', type: 'streak' },
+  { key: 'closedSeed', params: { name: 'Elena T.', amount: '$2.5M' }, icon: '💰', type: 'success' },
+  { key: 'launchedPH', params: { name: 'Devon W.' }, icon: '🚀', type: 'info' },
+  { key: 'hitStreak', params: { name: 'Amara O.', days: '30' }, icon: '🔥', type: 'streak' },
+  { key: 'unlocked', params: { name: 'Alex N.', resource: 'Term Sheet Guide' }, icon: '🔓', type: 'streak' },
+  { key: 'featuredTC', params: { name: 'Lisa W.' }, icon: '📰', type: 'success' },
+  { key: 'completed', params: { name: 'Tomás F.', course: 'PMF Framework' }, icon: '✅', type: 'success' },
+  { key: 'landedDeal', params: { name: 'Rachel A.' }, icon: '💼', type: 'success' },
+  { key: 'joinedMastermind', params: { name: 'Kevin L.', niche: 'Fintech' }, icon: '🤝', type: 'info' },
+  { key: 'sharedTemplate', params: { name: 'Maya S.' }, icon: '📧', type: 'info' },
+  { key: 'unlocked', params: { name: 'Jordan P.', resource: 'Zero-Budget Launch' }, icon: '🔓', type: 'streak' },
+  { key: 'crossedMRR', params: { name: 'Nina K.', amount: '$10K' }, icon: '📈', type: 'success' },
+  { key: 'startedChallenge', params: { name: 'Omar H.' }, icon: '🏆', type: 'streak' },
+  { key: 'hiredFirst', params: { name: 'Grace T.' }, icon: '👋', type: 'info' },
+  { key: 'completed', params: { name: 'Felix R.', course: 'Growth Playbook' }, icon: '✅', type: 'success' },
+  { key: 'upgradedPro', params: { name: 'Zara M.' }, icon: '⭐', type: 'info' },
 ];
+
+function interpolate(template: string, params: Record<string, string>): string {
+  return template.replace(/\{(\w+)\}/g, (_, key) => params[key] ?? `{${key}}`);
+}
 
 export default function ActivityTicker() {
   const { addToast } = useToast();
+  const { t } = useTranslation();
   const usedIndices = useRef<Set<number>>(new Set());
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const buildMessage = useCallback(
+    (template: ActivityEventTemplate): string => {
+      const raw = t.activityTicker[template.key];
+      return interpolate(raw, template.params);
+    },
+    [t.activityTicker],
+  );
+
   useEffect(() => {
     function scheduleNext() {
-      // Pick an event we haven't shown recently
-      if (usedIndices.current.size >= events.length) {
+      if (usedIndices.current.size >= eventTemplates.length) {
         usedIndices.current.clear();
       }
       let index: number;
       do {
-        index = Math.floor(Math.random() * events.length);
+        index = Math.floor(Math.random() * eventTemplates.length);
       } while (usedIndices.current.has(index));
 
       usedIndices.current.add(index);
-      const event = events[index];
-      const delay = 8000 + Math.random() * 7000; // 8–15 seconds
+      const template = eventTemplates[index];
+      const delay = 8000 + Math.random() * 7000;
 
       timerRef.current = setTimeout(() => {
         addToast({
-          message: event.message,
-          icon: event.icon,
-          type: event.type,
+          message: buildMessage(template),
+          icon: template.icon,
+          type: template.type,
           duration: 4500,
         });
         scheduleNext();
       }, delay);
     }
 
-    // Initial delay: 3–6 seconds before first toast
     timerRef.current = setTimeout(scheduleNext, 3000 + Math.random() * 3000);
 
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [addToast]);
+  }, [addToast, buildMessage]);
 
-  // This component renders nothing — it just triggers toasts
   return null;
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useInfiniteQuery } from "@tanstack/react-query";
+import { getErrorMsg } from "@/lib/i18n/getErrorMsg";
 
 export interface FeedItem {
   id: string;
@@ -27,7 +28,7 @@ export function usePersonalFeed({ enabled = true }: { enabled?: boolean } = {}) 
       params.set("limit", "20");
       if (pageParam) params.set("cursor", pageParam as string);
       const res = await fetch(`/api/feed?${params.toString()}`);
-      if (!res.ok) throw new Error("Failed to fetch personal feed");
+      if (!res.ok) throw new Error(getErrorMsg("fetchPersonalFeed"));
       return res.json();
     },
     initialPageParam: undefined as string | undefined,
@@ -64,7 +65,7 @@ export function useGlobalFeed({ enabled = true }: { enabled?: boolean } = {}) {
       params.set("limit", "20");
       if (pageParam) params.set("cursor", pageParam as string);
       const res = await fetch(`/api/feed/global?${params.toString()}`);
-      if (!res.ok) throw new Error("Failed to fetch global feed");
+      if (!res.ok) throw new Error(getErrorMsg("fetchGlobalFeed"));
       return res.json();
     },
     initialPageParam: undefined as string | undefined,

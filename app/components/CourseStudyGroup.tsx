@@ -5,6 +5,7 @@ import { getInitialsAvatarUrl, DEFAULT_AVATAR } from '@/lib/utils/avatar';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import clsx from 'clsx';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import {
   createGroupPost,
   createGroupReply,
@@ -21,40 +22,6 @@ type MemberData = GroupData['members'][number];
 type FileData = GroupData['files'][number];
 
 type Tab = 'discussions' | 'files' | 'members';
-
-const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
-  {
-    key: 'discussions',
-    label: 'Discussions',
-    icon: (
-      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
-      </svg>
-    ),
-  },
-  {
-    key: 'files',
-    label: 'Files',
-    icon: (
-      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-        <polyline points="14 2 14 8 20 8" />
-      </svg>
-    ),
-  },
-  {
-    key: 'members',
-    label: 'Members',
-    icon: (
-      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2" />
-        <circle cx="9" cy="7" r="4" />
-        <path d="M23 21v-2a4 4 0 00-3-3.87" />
-        <path d="M16 3.13a4 4 0 010 7.75" />
-      </svg>
-    ),
-  },
-];
 
 // ── Format helpers ─────────────────────────────────────────────────
 
@@ -98,6 +65,41 @@ export function CourseStudyGroup({
 }: CourseStudyGroupProps) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { t } = useTranslation();
+
+  const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
+    {
+      key: 'discussions',
+      label: t.gamification.studyGroupTabDiscussions,
+      icon: (
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+        </svg>
+      ),
+    },
+    {
+      key: 'files',
+      label: t.gamification.studyGroupTabFiles,
+      icon: (
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+          <polyline points="14 2 14 8 20 8" />
+        </svg>
+      ),
+    },
+    {
+      key: 'members',
+      label: t.gamification.studyGroupTabMembers,
+      icon: (
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 00-3-3.87" />
+          <path d="M16 3.13a4 4 0 010 7.75" />
+        </svg>
+      ),
+    },
+  ];
 
   // Local state
   const [activeTab, setActiveTab] = useState<Tab>('discussions');
@@ -317,6 +319,7 @@ function DiscussionsTab({
   onToggleReply: (postId: string) => void;
   onReply: (postId: string) => Promise<void>;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-6">
       {/* Compose */}
@@ -324,7 +327,7 @@ function DiscussionsTab({
         <textarea
           value={content}
           onChange={(e) => onContentChange(e.target.value)}
-          placeholder="Ask a question, share a resource, or discuss the course material..."
+          placeholder={t.gamification.studyGroupAskPlaceholder}
           className="w-full bg-transparent text-foreground placeholder:text-muted text-sm resize-none outline-none min-h-[100px]"
           rows={3}
           onKeyDown={(e) => {
@@ -363,8 +366,8 @@ function DiscussionsTab({
               <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
             </svg>
           }
-          title="No posts yet"
-          subtitle="Be the first to start a discussion!"
+          title={t.gamification.studyGroupNoPosts}
+          subtitle={t.gamification.studyGroupNoPostsSubtitle}
         />
       ) : (
         <div className="space-y-4">
@@ -399,6 +402,7 @@ function FilesTab({
   fileInputRef: React.RefObject<HTMLInputElement | null>;
   onFileSelect: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-6">
       {/* Upload */}
@@ -460,8 +464,8 @@ function FilesTab({
               <polyline points="14 2 14 8 20 8" />
             </svg>
           }
-          title="No files shared yet"
-          subtitle="Upload course materials, templates, or resources."
+          title={t.gamification.studyGroupNoFiles}
+          subtitle={t.gamification.studyGroupNoFilesSubtitle}
         />
       ) : (
         <div className="space-y-2">
@@ -477,6 +481,7 @@ function FilesTab({
 // ── Members Tab ──────────────────────────────────────────────────────
 
 function MembersTab({ members }: { members: MemberData[] }) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-6">
       {members.length === 0 ? (
@@ -487,8 +492,8 @@ function MembersTab({ members }: { members: MemberData[] }) {
               <circle cx="9" cy="7" r="4" />
             </svg>
           }
-          title="No members yet"
-          subtitle="Enrolled students will appear here."
+          title={t.gamification.studyGroupNoMembers}
+          subtitle={t.gamification.studyGroupNoMembersSubtitle}
         />
       ) : (
         <div className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl divide-y divide-[var(--color-border-subtle)]">
@@ -542,17 +547,18 @@ function Sidebar({
   posts: PostData[];
   files: FileData[];
 }) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-4">
       {/* Quick stats */}
       <div className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-5">
         <h3 className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted mb-4">
-          Group Stats
+           {t.gamification.studyGroupStatsTitle}
         </h3>
         <div className="space-y-3">
-          <StatRow label="Members" value={members.length} />
-          <StatRow label="Discussions" value={posts.length} />
-          <StatRow label="Files" value={files.length} />
+          <StatRow label={t.gamification.studyGroupStatMembers} value={members.length} />
+          <StatRow label={t.gamification.studyGroupStatDiscussions} value={posts.length} />
+          <StatRow label={t.gamification.studyGroupStatFiles} value={files.length} />
         </div>
       </div>
 
@@ -560,7 +566,7 @@ function Sidebar({
       {activeTab !== 'members' && members.length > 0 && (
         <div className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-5 sticky top-24">
           <h3 className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted mb-4">
-            Members ({members.length})
+            {t.gamification.studyGroupMembersCount.replace('{count}', String(members.length))}
           </h3>
           <div className="space-y-2.5">
             {members.slice(0, 10).map((m) => (
@@ -716,6 +722,7 @@ function PostCard({
   onReply: (postId: string) => Promise<void>;
 }) {
   const isReplyingToThis = replyingTo === post.id;
+  const { t } = useTranslation();
 
   return (
     <div className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-5">
@@ -799,7 +806,7 @@ function PostCard({
           <textarea
             value={replyContent[post.id] ?? ''}
             onChange={(e) => onReplyContentChange(post.id, e.target.value)}
-            placeholder="Write a reply..."
+            placeholder={t.gamification.studyGroupReplyPlaceholder}
             className="w-full bg-transparent text-foreground placeholder:text-muted text-sm resize-none outline-none min-h-[60px]"
             rows={2}
             onKeyDown={(e) => {

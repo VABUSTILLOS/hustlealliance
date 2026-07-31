@@ -172,7 +172,7 @@ export default function GroupSettingsPage({
                 type="text"
                 value={inviteUserId}
                 onChange={(e) => setInviteUserId(e.target.value)}
-                placeholder="User ID to invite"
+                placeholder={t.groups.invitePlaceholder}
                 className="flex-1 px-3 py-2 bg-surface-light border border-white/10 rounded-lg text-sm text-foreground placeholder:text-muted outline-none focus:border-accent/30"
               />
               <button

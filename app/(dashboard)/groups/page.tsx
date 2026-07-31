@@ -40,7 +40,7 @@ export default function GroupsPage() {
             onClick={() => router.push('/groups/create')}
             className="px-5 py-2.5 rounded-xl bg-accent text-foreground font-heading font-bold text-sm uppercase hover:bg-accent-glow transition-all shrink-0"
           >
-            + Create Group
+            {t.groups.createGroup}
           </button>
         </div>
       </motion.div>
@@ -60,7 +60,7 @@ export default function GroupsPage() {
           </svg>
           <input
             type="text"
-            placeholder="Search groups..."
+            placeholder={t.groups.searchPlaceholder}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 bg-surface border border-surface-light rounded-xl text-sm text-foreground placeholder:text-muted outline-none focus:border-accent/30"
@@ -71,9 +71,9 @@ export default function GroupsPage() {
           onChange={(e) => setVisibility(e.target.value)}
           className="px-3 py-2.5 bg-surface border border-surface-light rounded-xl text-sm text-muted outline-none focus:border-accent/30"
         >
-          <option value="">All Visibility</option>
-          <option value="PUBLIC">Public</option>
-          <option value="PRIVATE">Private</option>
+          <option value="">{t.groups.visibilityAll}</option>
+          <option value="PUBLIC">{t.groups.visibilityPublic}</option>
+          <option value="PRIVATE">{t.groups.visibilityPrivate}</option>
         </select>
         <button
           onClick={() => setMyGroups(!myGroups)}
@@ -83,7 +83,7 @@ export default function GroupsPage() {
               : 'bg-surface border-surface-light text-muted hover:border-accent/20'
           }`}
         >
-          {t.dashboard.mySpaces}
+          {t.groups.myGroupsFilter}
         </button>
       </div>
 

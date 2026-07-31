@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useCallback, useState, createContext, useContext } from "react";
 import { motion } from "framer-motion";
 import type { ReactNode, RefObject, UIEvent } from "react";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 // ── Scroll Container Context ──────────────────────────────────────────────────
 // PostDetailClient reads this to know it's inside a modal and skip its own
@@ -31,6 +32,7 @@ export function PostModal({
   const [mounted, setMounted] = useState(false);
   const progressBarRef = useRef<HTMLDivElement | null>(null);
   const ticking = useRef(false);
+  const { t } = useTranslation();
 
   // ── rAF-throttled scroll → direct DOM scaleX (zero React re-renders) ──────
   const handleScroll = useCallback((e: UIEvent<HTMLDivElement>) => {
@@ -136,7 +138,7 @@ export function PostModal({
               className="flex items-center justify-center w-8 h-8 rounded-lg
                          bg-white/5 hover:bg-white/10 active:bg-white/15
                          transition-colors shrink-0"
-              aria-label="Close"
+              aria-label={t.general.close}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"

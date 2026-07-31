@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { Inter, Bebas_Neue, JetBrains_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { Providers } from "./providers";
 import ToggleBar from "./components/ToggleBar";
 import CursorGlow from "./components/CursorGlow";
 import { WebVitals } from "./components/WebVitals";
+import type { Locale } from "@/lib/i18n/translations";
+import translations from "@/lib/i18n/translations";
 import "./globals.css";
 
 const inter = Inter({
@@ -26,19 +29,28 @@ const jetbrainsMono = JetBrains_Mono({
   display: 'swap',
 });
 
-export const metadata: Metadata = {
-  title: "Hustle Alliance — The Founder's Collective",
-  description: "The premium community for solo founders. Join 2,400+ founders building together.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const cookieStore = await cookies();
+  const locale: Locale = cookieStore.get('ha-locale')?.value === 'es' ? 'es' : 'en';
+  const meta = translations[locale].metadata;
+  return {
+    title: meta.title,
+    description: meta.description,
+  };
+}
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const lang: Locale = cookieStore.get('ha-locale')?.value === 'es' ? 'es' : 'en';
+
   return (
     <html
-      lang="en"
+      lang={lang}
+      suppressHydrationWarning
       className={`${inter.variable} ${bebasNeue.variable} ${jetbrainsMono.variable} scroll-smooth antialiased`}
     >
       <body className="min-h-screen bg-[var(--color-bg)]">

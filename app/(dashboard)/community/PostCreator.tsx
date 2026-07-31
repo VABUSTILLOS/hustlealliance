@@ -210,7 +210,7 @@ export function PostCreator() {
 
           {previewImage && (
             <div className="relative inline-block">
-              <Image src={previewImage} alt="Preview" width={400} height={300} className="max-h-48 rounded-lg" style={{ width: 'auto', height: 'auto' }} />
+              <Image src={previewImage} alt={t.community.previewImage} width={400} height={300} className="max-h-48 rounded-lg" style={{ width: 'auto', height: 'auto' }} />
               <button
                 onClick={() => setPreviewImage(null)}
                 className="absolute -top-2 -right-2 w-6 h-6 bg-black/60 rounded-full flex items-center justify-center text-white text-xs"
@@ -265,7 +265,7 @@ export function PostCreator() {
                 value={visibility}
                 onChange={(e) => setVisibility(e.target.value as 'PUBLIC' | 'CONNECTIONS_ONLY')}
                 className="bg-surface-light border border-white/10 rounded-lg text-muted text-xs px-2 py-1.5 outline-none"
-                title="Post visibility"
+                title={t.community.postVisibility}
               >
                 <option value="PUBLIC">🌐 Public</option>
                 <option value="CONNECTIONS_ONLY">👥 Connections</option>

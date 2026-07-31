@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getErrorMsg } from "@/lib/i18n/getErrorMsg";
 
 interface JobFilters {
   search?: string;
@@ -20,7 +21,7 @@ export function useJobs(filters: JobFilters = {}) {
     queryKey: ["jobs", filters],
     queryFn: async () => {
       const res = await fetch(`/api/jobs?${params.toString()}`);
-      if (!res.ok) throw new Error("Failed to fetch jobs");
+      if (!res.ok) throw new Error(getErrorMsg("fetchJobs"));
       return res.json();
     },
   });
@@ -31,7 +32,7 @@ export function useJob(slug: string) {
     queryKey: ["job", slug],
     queryFn: async () => {
       const res = await fetch(`/api/jobs/${slug}`);
-      if (!res.ok) throw new Error("Failed to fetch job");
+      if (!res.ok) throw new Error(getErrorMsg("fetchJob"));
       return res.json();
     },
     enabled: !!slug,
@@ -47,7 +48,7 @@ export function useCreateJob() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      if (!res.ok) throw new Error("Failed to create job");
+      if (!res.ok) throw new Error(getErrorMsg("createJob"));
       return res.json();
     },
     onSuccess: () => {
@@ -67,7 +68,7 @@ export function useApplyToJob(jobId: string) {
       });
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.error || "Failed to apply");
+        throw new Error(err.error || getErrorMsg("applyJob"));
       }
       return res.json();
     },
@@ -82,7 +83,7 @@ export function useMyApplications() {
     queryKey: ["my-applications"],
     queryFn: async () => {
       const res = await fetch("/api/jobs/applications");
-      if (!res.ok) throw new Error("Failed to fetch applications");
+      if (!res.ok) throw new Error(getErrorMsg("fetchApplications"));
       return res.json();
     },
   });
@@ -93,7 +94,7 @@ export function useJobCategories() {
     queryKey: ["job-categories"],
     queryFn: async () => {
       const res = await fetch("/api/jobs/categories");
-      if (!res.ok) throw new Error("Failed to fetch categories");
+      if (!res.ok) throw new Error(getErrorMsg("fetchCategories"));
       return res.json();
     },
     staleTime: Infinity,

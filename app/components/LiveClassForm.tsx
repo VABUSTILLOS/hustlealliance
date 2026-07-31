@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import clsx from 'clsx';
 import { useCreateLiveClass } from '@/lib/hooks/useLiveClasses';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 interface LiveClassFormProps {
   courseId?: string;
@@ -11,6 +12,7 @@ interface LiveClassFormProps {
 }
 
 export default function LiveClassForm({ courseId, onSuccess, onCancel }: LiveClassFormProps) {
+  const { t } = useTranslation();
   const createMutation = useCreateLiveClass();
 
   const [title, setTitle] = useState('');
@@ -92,7 +94,7 @@ export default function LiveClassForm({ courseId, onSuccess, onCancel }: LiveCla
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="e.g. Fundraising Q&A Office Hours"
+          placeholder={t.instructor.liveClasses.form.titlePlaceholder}
           className="w-full bg-white/5 border border-surface-light rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-foreground-dim/40 focus:outline-none focus:border-accent transition-colors"
         />
       </div>
@@ -103,7 +105,7 @@ export default function LiveClassForm({ courseId, onSuccess, onCancel }: LiveCla
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="What will be covered? Who should attend?"
+          placeholder={t.instructor.liveClasses.form.descPlaceholder}
           rows={3}
           className="w-full bg-white/5 border border-surface-light rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-foreground-dim/40 focus:outline-none focus:border-accent transition-colors resize-none"
         />
@@ -154,7 +156,7 @@ export default function LiveClassForm({ courseId, onSuccess, onCancel }: LiveCla
             type="number"
             value={maxAttendees}
             onChange={(e) => setMaxAttendees(e.target.value === '' ? '' : Number(e.target.value))}
-            placeholder="Unlimited"
+            placeholder={t.instructor.liveClasses.form.unlimited}
             min={1}
             className="w-full bg-white/5 border border-surface-light rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-foreground-dim/40 focus:outline-none focus:border-accent transition-colors"
           />

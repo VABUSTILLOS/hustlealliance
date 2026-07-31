@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { getErrorMsg } from "@/lib/i18n/getErrorMsg";
 
 export function useAddComment(postId: string) {
   const queryClient = useQueryClient();
@@ -17,7 +18,7 @@ export function useAddComment(postId: string) {
       );
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: "Failed" }));
-        throw new Error(err.error ?? "Failed to add comment");
+        throw new Error(err.error ?? getErrorMsg("postComment"));
       }
       return res.json();
     },

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { getErrorMsg } from "@/lib/i18n/getErrorMsg";
 
 export function useLikePost(postId: string) {
   const queryClient = useQueryClient();
@@ -10,7 +11,7 @@ export function useLikePost(postId: string) {
       const res = await fetch(`/api/community/posts/${postId}/like`, {
         method: "POST",
       });
-      if (!res.ok && res.status !== 409) throw new Error("Failed to like");
+      if (!res.ok && res.status !== 409) throw new Error(getErrorMsg("likePost"));
       return true;
     },
     onSuccess: () => {
@@ -25,7 +26,7 @@ export function useLikePost(postId: string) {
       const res = await fetch(`/api/community/posts/${postId}/like`, {
         method: "DELETE",
       });
-      if (!res.ok && res.status !== 404) throw new Error("Failed to unlike");
+      if (!res.ok && res.status !== 404) throw new Error(getErrorMsg("unlikePost"));
       return false;
     },
     onSuccess: () => {

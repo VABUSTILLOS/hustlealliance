@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import clsx from 'clsx';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 interface Notification {
   id: string;
@@ -25,18 +26,6 @@ const TYPE_ICONS: Record<string, string> = {
   CONTENT_UNLOCKED: '🔓',
 };
 
-const TYPE_LABELS: Record<string, string> = {
-  COURSE_ENROLLED: 'Enrolled',
-  LESSON_COMPLETED: 'Completed',
-  BADGE_EARNED: 'Badge',
-  CERTIFICATE_ISSUED: 'Certificate',
-  COURSE_EXPIRING: 'Expiring',
-  LIVE_CLASS_REMINDER: 'Live Class',
-  QUIZ_PASSED: 'Quiz',
-  XP_MILESTONE: 'XP',
-  CONTENT_UNLOCKED: 'Unlocked',
-};
-
 export default function NotificationBell() {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -44,6 +33,19 @@ export default function NotificationBell() {
   const [loading, setLoading] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const bellRef = useRef<HTMLButtonElement>(null);
+  const { t } = useTranslation();
+
+  const TYPE_LABELS: Record<string, string> = {
+    COURSE_ENROLLED: t.notifications.typeEnrolled,
+    LESSON_COMPLETED: t.notifications.typeCompleted,
+    BADGE_EARNED: t.notifications.typeBadge,
+    CERTIFICATE_ISSUED: t.notifications.typeCertificate,
+    COURSE_EXPIRING: t.notifications.typeExpiring,
+    LIVE_CLASS_REMINDER: t.notifications.typeLiveClass,
+    QUIZ_PASSED: t.notifications.typeQuiz,
+    XP_MILESTONE: t.notifications.typeXP,
+    CONTENT_UNLOCKED: t.notifications.typeUnlocked,
+  };
 
   const fetchNotifications = useCallback(async () => {
     setLoading(true);
@@ -104,10 +106,10 @@ export default function NotificationBell() {
     const now = new Date();
     const diffMs = now.getTime() - d.getTime();
     const diffMin = Math.floor(diffMs / 60000);
-    if (diffMin < 1) return 'Just now';
-    if (diffMin < 60) return `${diffMin}m ago`;
+    if (diffMin < 1) return t.notifications.timeJustNow;
+    if (diffMin < 60) return t.notifications.timeMinutesAgo.replace('{n}', String(diffMin));
     const diffHr = Math.floor(diffMin / 60);
-    if (diffHr < 24) return `${diffHr}h ago`;
+    if (diffHr < 24) return t.notifications.timeHoursAgo.replace('{n}', String(diffHr));
     return d.toLocaleDateString();
   };
 
@@ -117,7 +119,7 @@ export default function NotificationBell() {
         ref={bellRef}
         onClick={() => { setOpen(!open); if (!open) fetchNotifications(); }}
         className="relative p-2 rounded-xl hover:bg-white/5 transition-colors"
-        aria-label="Notifications"
+        aria-label={t.notifications.title}
       >
         <svg className="w-5 h-5 text-foreground-dim" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
@@ -136,13 +138,13 @@ export default function NotificationBell() {
         >
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-surface-light">
-            <h4 className="font-heading text-sm text-foreground uppercase">Notifications</h4>
+            <h4 className="font-heading text-sm text-foreground uppercase">{t.notifications.title}</h4>
             {unreadCount > 0 && (
               <button
                 onClick={markAllRead}
                 className="text-xs text-accent hover:text-accent-glow transition-colors"
               >
-                Mark all read
+                {t.notifications.markAllRead}
               </button>
             )}
           </div>
@@ -150,12 +152,12 @@ export default function NotificationBell() {
           {/* List */}
           {loading && notifications.length === 0 ? (
             <div className="flex items-center justify-center py-8 text-sm text-foreground-dim">
-              Loading...
+              {t.general.loading}
             </div>
           ) : notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-sm text-foreground-dim gap-2">
               <span className="text-2xl">🔔</span>
-              <span>No notifications yet</span>
+              <span>{t.notifications.emptyState}</span>
             </div>
           ) : (
             <div className="divide-y divide-white/5">

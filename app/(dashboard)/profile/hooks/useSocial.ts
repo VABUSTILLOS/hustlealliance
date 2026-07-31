@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { getErrorMsg } from "@/lib/i18n/getErrorMsg";
 
 // ── Follow / Unfollow ────────────────────────────────────────────────
 
@@ -12,7 +13,7 @@ export function useFollowUser(userId: string) {
       const res = await fetch(`/api/users/${userId}/follow`, { method: "POST" });
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.error ?? "Failed to follow");
+        throw new Error(err.error ?? getErrorMsg("follow"));
       }
       return res.json();
     },
@@ -31,7 +32,7 @@ export function useUnfollowUser(userId: string) {
   return useMutation({
     mutationFn: async () => {
       const res = await fetch(`/api/users/${userId}/follow`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Failed to unfollow");
+      if (!res.ok) throw new Error(getErrorMsg("unfollow"));
       return res.json();
     },
     onSuccess: () => {
@@ -57,7 +58,7 @@ export function useSendFriendRequest() {
       });
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.error ?? "Failed to send request");
+        throw new Error(err.error ?? getErrorMsg("sendRequest"));
       }
       return res.json();
     },
@@ -85,7 +86,7 @@ export function useRespondToFriendRequest() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action }),
       });
-      if (!res.ok) throw new Error("Failed to respond to request");
+      if (!res.ok) throw new Error(getErrorMsg("respondToRequest"));
       return res.json();
     },
     onSuccess: () => {
@@ -124,7 +125,7 @@ export function useUpdateProfile() {
       });
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.error ?? "Failed to update profile");
+        throw new Error(err.error ?? getErrorMsg("updateProfile"));
       }
       return res.json();
     },

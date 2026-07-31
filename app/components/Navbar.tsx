@@ -56,7 +56,7 @@ export default function Navbar() {
             <button
               onClick={toggleTheme}
               className="p-2 rounded-lg text-[var(--color-foreground)]/60 hover:text-accent transition-colors"
-              aria-label="Toggle theme"
+              aria-label={t.toggle.theme}
             >
               {theme === 'dark' ? (
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

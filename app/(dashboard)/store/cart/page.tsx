@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, ShoppingCart, CreditCard } from "lucide-react";
 import { CartItem, type CartItemData } from "../components/CartItem";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { getErrorMsg } from "@/lib/i18n/getErrorMsg";
 
 function loadCart(): CartItemData[] {
   if (typeof window === "undefined") return [];
@@ -66,7 +67,7 @@ export default function CartPage() {
           })),
         }),
       });
-      if (!res.ok) throw new Error("Checkout failed");
+      if (!res.ok) throw new Error(getErrorMsg("checkoutFailed"));
       localStorage.removeItem("ha-cart");
       window.dispatchEvent(new Event("cart-updated"));
       router.push(`/store/orders`);

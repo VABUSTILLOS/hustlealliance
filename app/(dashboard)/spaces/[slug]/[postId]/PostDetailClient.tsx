@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { useScrollContainer } from "../@modal/(.)[postId]/PostModalClient";
+import { getErrorMsg } from "@/lib/i18n/getErrorMsg";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -58,8 +59,9 @@ interface Props {
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("en-US", {
+function formatDate(dateStr: string, locale: string = "en"): string {
+  const loc = locale === "es" ? "es-ES" : "en-US";
+  return new Date(dateStr).toLocaleDateString(loc, {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -357,7 +359,7 @@ function CommentForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: trimmed }),
       });
-      if (!res.ok) throw new Error("Failed to post comment");
+      if (!res.ok) throw new Error(getErrorMsg("postComment"));
 
       const newComment: CommentData = await res.json();
       onCommentAdded(newComment);

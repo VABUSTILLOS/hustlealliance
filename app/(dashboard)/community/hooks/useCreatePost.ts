@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { CommunityPostItem } from "@/lib/db/community";
+import { getErrorMsg } from "@/lib/i18n/getErrorMsg";
 
 interface CreatePostInput {
   content: string;
@@ -22,7 +23,7 @@ export function useCreatePost() {
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: "Failed" }));
-        throw new Error(err.error ?? "Failed to create post");
+        throw new Error(err.error ?? getErrorMsg("createPost"));
       }
       return res.json() as Promise<CommunityPostItem>;
     },

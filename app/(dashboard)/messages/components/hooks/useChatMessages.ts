@@ -5,6 +5,7 @@ import { useCallback, useMemo } from "react";
 import { useMessages } from "@/lib/realtime/hooks/useMessages";
 import type { PaginatedResult } from "@/lib/db/messages";
 import type { MessagePayload } from "@/lib/realtime/supabase";
+import { getErrorMsg } from "@/lib/i18n/getErrorMsg";
 
 interface MessageItem {
   id: string;
@@ -47,7 +48,7 @@ export function useChatMessages({
       params.set("limit", String(limit));
       if (pageParam) params.set("cursor", pageParam as string);
       const res = await fetch(`/api/messages/conversations/${conversationId}/messages?${params}`);
-      if (!res.ok) throw new Error("Failed to fetch messages");
+      if (!res.ok) throw new Error(getErrorMsg("fetchMessages"));
       return res.json();
     },
     initialPageParam: undefined as string | undefined,

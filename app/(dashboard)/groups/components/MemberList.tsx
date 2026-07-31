@@ -5,6 +5,7 @@ import { getInitialsAvatarUrl, DEFAULT_AVATAR } from '@/lib/utils/avatar';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import clsx from 'clsx';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 interface Member {
   id: string;
@@ -42,6 +43,7 @@ export function MemberList({
   onInvite,
 }: MemberListProps) {
   const [search, setSearch] = useState('');
+  const { t } = useTranslation();
   const isAdmin = currentUserRole === 'OWNER' || currentUserRole === 'ADMIN';
 
   const filtered = members.filter((m) => {
@@ -69,7 +71,7 @@ export function MemberList({
           </svg>
           <input
             type="text"
-            placeholder="Search members..."
+            placeholder={t.groups.searchMembersPlaceholder}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-10 pr-4 py-2 bg-surface-light border border-white/10 rounded-lg text-sm text-foreground placeholder:text-muted outline-none focus:border-accent/30"

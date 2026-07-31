@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMemo } from 'react';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { Resource } from '@/lib/data/resources';
 import { getResourceContent, hasRealContent } from '@/lib/data/resources-content';
 import { GuideViewer } from './GuideViewer';
@@ -36,6 +37,7 @@ interface ResourceViewerProps {
 }
 
 export function ResourceViewer({ resource, locale, onClose }: ResourceViewerProps) {
+  const { t } = useTranslation();
   const realContent = useMemo(() => {
     if (hasRealContent(resource.id)) {
       return getResourceContent(resource.id);
@@ -90,7 +92,7 @@ export function ResourceViewer({ resource, locale, onClose }: ResourceViewerProp
           <button
             onClick={onClose}
             className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/60 transition-all"
-            aria-label="Close"
+            aria-label={t.general.close}
           >
             ✕
           </button>

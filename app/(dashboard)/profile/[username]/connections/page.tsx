@@ -5,6 +5,8 @@ import { getInitialsAvatarUrl, DEFAULT_AVATAR } from '@/lib/utils/avatar';
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+import { getErrorMsg } from "@/lib/i18n/getErrorMsg";
 import clsx from "clsx";
 import {
   useUserFollowers,
@@ -28,15 +30,16 @@ function ConnectionsContent({
 }) {
   const [activeTab, setActiveTab] = useState<ConnectionTab>(initialTab);
   const router = useRouter();
+  const { t } = useTranslation();
 
   const { data: followers, isLoading: loadingFollowers } = useUserFollowers(userId);
   const { data: following, isLoading: loadingFollowing } = useUserFollowing(userId);
   const { data: friendsData, isLoading: loadingFriends } = useUserFriends(userId);
 
   const tabs: { key: ConnectionTab; label: string; count?: number }[] = [
-    { key: "followers", label: "Followers", count: followers?.length },
-    { key: "following", label: "Following", count: following?.length },
-    { key: "friends", label: "Friends", count: friendsData?.friends?.length },
+    { key: "followers", label: t.profile.connections.tabFollowers, count: followers?.length },
+    { key: "following", label: t.profile.connections.tabFollowing, count: following?.length },
+    { key: "friends", label: t.profile.connections.tabFriends, count: friendsData?.friends?.length },
   ];
 
   const isLoading =
@@ -102,14 +105,14 @@ function ConnectionsContent({
             {activeTab === "followers" ? "👀" : activeTab === "following" ? "🔭" : "👥"}
           </div>
           <h3 className="font-display text-xl text-foreground mb-2">
-            No {activeTab} yet
+            {activeTab === "followers" ? t.profile.connections.noFollowersTitle : activeTab === "following" ? t.profile.connections.noFollowingTitle : t.profile.connections.noFriendsTitle}
           </h3>
           <p className="text-muted text-sm">
             {activeTab === "followers"
-              ? "No one is following this user yet."
+              ? t.profile.connections.noFollowersDesc
               : activeTab === "following"
-                ? "This user isn't following anyone yet."
-                : "No friends yet."}
+                ? t.profile.connections.noFollowingDesc
+                : t.profile.connections.noFriendsDesc}
           </p>
         </div>
       ) : (
@@ -211,7 +214,7 @@ function ConnectionsUserIdResolver({
     queryKey: ["profile", username],
     queryFn: async () => {
       const res = await fetch(`/api/profile/${encodeURIComponent(username)}`);
-      if (!res.ok) throw new Error("Failed to fetch profile");
+      if (!res.ok) throw new Error(getErrorMsg("fetchProfile"));
       return res.json();
     },
     staleTime: 30_000,

@@ -223,7 +223,7 @@ export default function EventCreator() {
           type="number"
           value={maxAttendees}
           onChange={(e) => setMaxAttendees(e.target.value)}
-          placeholder="Leave blank for unlimited"
+          placeholder={t.events.form.capacityUnlimitedPlaceholder}
           min="1"
           className="w-full px-4 py-2.5 rounded-xl bg-[var(--color-bg)] border border-[var(--color-border-subtle)] text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent"
         />

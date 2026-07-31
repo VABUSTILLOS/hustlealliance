@@ -431,7 +431,7 @@ export default function LessonPlayerPage({
                   </svg>
                 )}
                 {isDripLocked && (
-                  <span className="text-[10px] shrink-0 ml-auto" title="Not yet unlocked">⏳</span>
+                  <span className="text-[10px] shrink-0 ml-auto" title={t.gamification.notYetUnlocked}>⏳</span>
                 )}
               </Link>
             );

@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { EventType, EventStatus, RSVPStatus } from "@/lib/generated/prisma/client";
+import { getErrorMsg } from "@/lib/i18n/getErrorMsg";
 
 // ── Types ──────────────────────────────────────────────────────────────
 
@@ -74,7 +75,7 @@ export function useEvents(params?: {
     queryKey: ["events", params],
     queryFn: async () => {
       const res = await fetch(`/api/events?${queryString.toString()}`);
-      if (!res.ok) throw new Error("Failed to fetch events");
+      if (!res.ok) throw new Error(getErrorMsg("fetchEvents"));
       return res.json();
     },
   });
@@ -85,7 +86,7 @@ export function useUpcomingEvents(limit = 3) {
     queryKey: ["events", "upcoming", limit],
     queryFn: async () => {
       const res = await fetch(`/api/events/upcoming?limit=${limit}`);
-      if (!res.ok) throw new Error("Failed to fetch upcoming events");
+      if (!res.ok) throw new Error(getErrorMsg("fetchUpcomingEvents"));
       return res.json();
     },
   });
@@ -96,7 +97,7 @@ export function useEvent(slugOrId: string) {
     queryKey: ["event", slugOrId],
     queryFn: async () => {
       const res = await fetch(`/api/events/${slugOrId}`);
-      if (!res.ok) throw new Error("Event not found");
+      if (!res.ok) throw new Error(getErrorMsg("eventNotFound"));
       return res.json();
     },
     enabled: !!slugOrId,
@@ -111,7 +112,7 @@ export function useUserEvents(userId: string, status?: RSVPStatus) {
     queryKey: ["userEvents", userId, status],
     queryFn: async () => {
       const res = await fetch(`/api/users/${userId}/events?${queryString.toString()}`);
-      if (!res.ok) throw new Error("Failed to fetch user events");
+      if (!res.ok) throw new Error(getErrorMsg("fetchUserEvents"));
       return res.json();
     },
     enabled: !!userId,
@@ -126,7 +127,7 @@ export function useEventAttendees(eventId: string, status?: RSVPStatus) {
     queryKey: ["eventAttendees", eventId, status],
     queryFn: async () => {
       const res = await fetch(`/api/events/${eventId}/rsvp?${queryString.toString()}`);
-      if (!res.ok) throw new Error("Failed to fetch attendees");
+      if (!res.ok) throw new Error(getErrorMsg("fetchAttendees"));
       return res.json();
     },
     enabled: !!eventId,
@@ -138,7 +139,7 @@ export function useEventDiscussions(eventId: string, limit = 20) {
     queryKey: ["eventDiscussions", eventId, limit],
     queryFn: async () => {
       const res = await fetch(`/api/events/${eventId}/discussions?limit=${limit}`);
-      if (!res.ok) throw new Error("Failed to fetch discussions");
+      if (!res.ok) throw new Error(getErrorMsg("fetchDiscussions"));
       return res.json();
     },
     enabled: !!eventId,
@@ -158,7 +159,7 @@ export function useCreateEvent() {
       });
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.error ?? "Failed to create event");
+        throw new Error(err.error ?? getErrorMsg("createEvent"));
       }
       return res.json();
     },
@@ -179,7 +180,7 @@ export function useRSVP(eventId: string) {
       });
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.error ?? "Failed to RSVP");
+        throw new Error(err.error ?? getErrorMsg("rsvp"));
       }
       return res.json();
     },
@@ -197,7 +198,7 @@ export function useCancelEvent() {
       const res = await fetch(`/api/events/${eventId}`, { method: "DELETE" });
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.error ?? "Failed to cancel event");
+        throw new Error(err.error ?? getErrorMsg("cancelEvent"));
       }
       return res.json();
     },
@@ -218,7 +219,7 @@ export function useAddEventDiscussion(eventId: string) {
       });
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.error ?? "Failed to add comment");
+        throw new Error(err.error ?? getErrorMsg("addComment"));
       }
       return res.json();
     },
