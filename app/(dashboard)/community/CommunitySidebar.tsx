@@ -1,3 +1,5 @@
+'use client';
+
 import Link from "next/link";
 import type { TrendingTopic } from "@/lib/db/community";
 import { useTranslation } from '@/lib/i18n/useTranslation';
