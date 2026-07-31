@@ -1,4 +1,7 @@
 import { prisma } from './prisma';
+import { createClient } from '@supabase/supabase-js';
+
+const SUPABASE_URL = 'https://yftgdtdvmvvqyzcdntge.supabase.co';
 
 let initialized = false;
 let initPromise: Promise<void> | null = null;
@@ -138,24 +141,33 @@ export async function ensureStudyGroupForCourse(courseId: string): Promise<void>
       return;
     }
 
-    // Use raw pg Pool for INSERT to bypass RLS permission issues
-    const pool = getPool();
-    try {
-      await pool.query(
-        `INSERT INTO "CourseStudyGroup" ("id", "courseId", "description", "createdAt", "updatedAt") VALUES (gen_random_uuid()::text, $1, $2, NOW(), NOW())`,
-        [courseId, null]
-      );
-      console.log(`[StudyGroup] Provisioned study group for course ${courseId}`);
-      provisionedCourses.add(courseId);
-    } catch (err) {
-      const msg = (err as Error).message?.slice(0, 150);
-      // Unique violation = another request raced us — that's fine
-      if (msg?.includes('duplicate key') || msg?.includes('unique constraint') || msg?.includes('Unique constraint')) {
+    // Use Supabase with SERVICE_ROLE key to bypass RLS entirely.
+    // Raw pg Pool also hits RLS because the table is owned by a different role.
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!serviceRoleKey) {
+      console.error('[StudyGroup] SUPABASE_SERVICE_ROLE_KEY missing — cannot provision study groups');
+      return;
+    }
+
+    const adminClient = createClient(SUPABASE_URL, serviceRoleKey, {
+      auth: { persistSession: false },
+    });
+
+    const { error } = await adminClient
+      .from('CourseStudyGroup')
+      .insert({ courseId, description: null });
+
+    if (error) {
+      const msg = error.message?.slice(0, 150);
+      if (error.code === '23505' || msg?.includes('duplicate')) {
         console.log(`[StudyGroup] Study group for ${courseId} already exists (race).`);
         provisionedCourses.add(courseId);
       } else {
         console.error(`[StudyGroup] Failed to provision study group for ${courseId}:`, msg);
       }
+    } else {
+      console.log(`[StudyGroup] Provisioned study group for course ${courseId}`);
+      provisionedCourses.add(courseId);
     }
   })();
 
