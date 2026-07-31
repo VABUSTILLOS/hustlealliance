@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { getInitialsAvatarUrl, DEFAULT_AVATAR } from '@/lib/utils/avatar';
-import Image from 'next/image';
+import { UserAvatar } from '@/app/components/UserAvatar';
 import { useRouter } from 'next/navigation';
 import clsx from 'clsx';
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -505,15 +504,10 @@ function MembersTab({ members }: { members: MemberData[] }) {
               <span className="text-muted text-xs font-mono w-6 text-right">
                 {i + 1}
               </span>
-              <Image
-                src={
-                  m.user.avatar ??
-                  DEFAULT_AVATAR
-                }
-                alt={m.user.name}
-                width={40}
-                height={40}
-                className="rounded-full border border-white/10 object-cover shrink-0"
+              <UserAvatar
+                src={m.user.avatar}
+                name={m.user.name}
+                size={40}
               />
               <div className="min-w-0 flex-1">
                 <p className="text-foreground text-sm font-bold">
@@ -571,15 +565,10 @@ function Sidebar({
           <div className="space-y-2.5">
             {members.slice(0, 10).map((m) => (
               <div key={m.userId} className="flex items-center gap-3 group">
-                <Image
-                  src={
-                    m.user.avatar ??
-                    DEFAULT_AVATAR
-                  }
-                  alt={m.user.name}
-                  width={32}
-                  height={32}
-                  className="rounded-full border border-white/10 object-cover shrink-0"
+                <UserAvatar
+                  src={m.user.avatar}
+                  name={m.user.name}
+                  size={32}
                 />
                 <div className="min-w-0 flex-1">
                   <p className="text-foreground text-sm font-medium truncate">
@@ -728,15 +717,10 @@ function PostCard({
     <div className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-5">
       {/* Author */}
       <div className="flex items-center gap-3 mb-3">
-        <Image
-          src={
-            post.author.avatar ??
-            DEFAULT_AVATAR
-          }
-          alt={post.author.name}
-          width={36}
-          height={36}
-          className="rounded-full border border-white/10 object-cover"
+        <UserAvatar
+          src={post.author.avatar}
+          name={post.author.name}
+          size={36}
         />
         <div>
           <p className="font-heading font-bold text-foreground text-sm">
@@ -775,15 +759,10 @@ function PostCard({
           {post.replies!.map((reply) => (
             <div key={reply.id}>
               <div className="flex items-center gap-2 mb-1">
-                <Image
-                  src={
-                    reply.author.avatar ??
-                    DEFAULT_AVATAR
-                  }
-                  alt={reply.author.name}
-                  width={20}
-                  height={20}
-                  className="rounded-full border border-white/10 object-cover"
+                <UserAvatar
+                  src={reply.author.avatar}
+                  name={reply.author.name}
+                  size={20}
                 />
                 <span className="font-bold text-foreground text-xs">
                   {reply.author.name}

@@ -204,7 +204,7 @@ export async function createCourse(data: {
   instructorId: string;
   status?: CourseStatus;
 }) {
-  return prisma.course.create({
+  const course = await prisma.course.create({
     data: {
       title: data.title,
       slug: data.slug,
@@ -223,6 +223,13 @@ export async function createCourse(data: {
       instructor: { select: { id: true, name: true } },
     },
   });
+
+  // Auto-provision a study group (1:1 universal — every course gets one)
+  await prisma.courseStudyGroup.create({
+    data: { courseId: course.id, description: null },
+  });
+
+  return course;
 }
 
 export async function updateCourse(

@@ -123,7 +123,29 @@ export async function ensureStudyGroupsSeeded(): Promise<void> {
 
     console.log('[StudyGroup] Seeding study groups...');
 
-    // Find instructors and demo student
+    // ── 1. Ensure EVERY course has a study group (1:1 universal) ──
+    const allCourses = await prisma.course.findMany({
+      select: { id: true, slug: true, instructorId: true },
+    });
+
+    const existingGroups = await prisma.courseStudyGroup.findMany({
+      select: { courseId: true },
+    });
+    const existingCourseIds = new Set(existingGroups.map(g => g.courseId));
+
+    let createdCount = 0;
+    for (const course of allCourses) {
+      if (existingCourseIds.has(course.id)) continue;
+      await prisma.courseStudyGroup.create({
+        data: { courseId: course.id, description: null },
+      });
+      createdCount++;
+    }
+    if (createdCount > 0) {
+      console.log(`[StudyGroup] Created ${createdCount} missing study groups`);
+    }
+
+    // ── 2. Seed sample members + discussion posts for demo courses ──
     const marcus = await prisma.user.findUnique({ where: { email: 'marcus@hustlealliance.com' } });
     const priya  = await prisma.user.findUnique({ where: { email: 'priya@hustlealliance.com' } });
     const devon  = await prisma.user.findUnique({ where: { email: 'devon@hustlealliance.com' } });
@@ -131,7 +153,7 @@ export async function ensureStudyGroupsSeeded(): Promise<void> {
     const demo   = await prisma.user.findUnique({ where: { email: 'alex@hustlealliance.com' } });
 
     if (!marcus || !priya || !devon || !sarah || !demo) {
-      console.warn('[StudyGroup] Not all seed users found, skipping study group seeding.');
+      console.warn('[StudyGroup] Not all seed users found, skipping demo posts seeding.');
       return;
     }
 
