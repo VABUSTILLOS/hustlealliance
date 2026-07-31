@@ -155,9 +155,10 @@ export async function ensureStudyGroupForCourse(courseId: string): Promise<void>
 
     console.log('[StudyGroup] Attempting INSERT via Supabase service_role...');
 
+    const newId = crypto.randomUUID();
     const { data, error } = await adminClient
       .from('CourseStudyGroup')
-      .insert({ courseId, description: null })
+      .insert({ id: newId, courseId, description: null })
       .select('id')
       .single();
 
