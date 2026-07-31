@@ -142,8 +142,9 @@ export async function ensureStudyGroupForCourse(courseId: string): Promise<void>
     }
 
     // Use Supabase with SERVICE_ROLE key to bypass RLS entirely.
-    // Raw pg Pool also hits RLS because the table is owned by a different role.
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    console.log('[StudyGroup] service_role key present:', !!serviceRoleKey, 'length:', serviceRoleKey?.length);
+    
     if (!serviceRoleKey) {
       console.error('[StudyGroup] SUPABASE_SERVICE_ROLE_KEY missing — cannot provision study groups');
       return;
@@ -153,20 +154,23 @@ export async function ensureStudyGroupForCourse(courseId: string): Promise<void>
       auth: { persistSession: false },
     });
 
-    const { error } = await adminClient
+    console.log('[StudyGroup] Attempting INSERT via Supabase service_role...');
+
+    const { data, error } = await adminClient
       .from('CourseStudyGroup')
-      .insert({ courseId, description: null });
+      .insert({ courseId, description: null })
+      .select('id')
+      .single();
 
     if (error) {
-      const msg = error.message?.slice(0, 150);
-      if (error.code === '23505' || msg?.includes('duplicate')) {
-        console.log(`[StudyGroup] Study group for ${courseId} already exists (race).`);
+      console.error('[StudyGroup] Supabase insert error:', JSON.stringify({ code: error.code, message: error.message, details: error.details, hint: error.hint }));
+      // Duplicate = another request raced us, that's fine
+      if (error.code === '23505') {
+        console.log('[StudyGroup] Study group already exists (race).');
         provisionedCourses.add(courseId);
-      } else {
-        console.error(`[StudyGroup] Failed to provision study group for ${courseId}:`, msg);
       }
     } else {
-      console.log(`[StudyGroup] Provisioned study group for course ${courseId}`);
+      console.log('[StudyGroup] Provisioned study group for course', courseId, 'id:', data?.id);
       provisionedCourses.add(courseId);
     }
   })();
