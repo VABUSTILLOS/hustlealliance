@@ -1,29 +1,47 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export default function CursorGlow() {
-  const [pos, setPos] = useState({ x: 0, y: 0 });
   const [visible, setVisible] = useState(false);
   const [isTouch, setIsTouch] = useState(false);
-
-  const onMove = useCallback((e: MouseEvent) => {
-    setPos({ x: e.clientX, y: e.clientY });
-    setVisible(true);
-  }, []);
-
-  const onLeave = useCallback(() => setVisible(false), []);
-
-  const onEnter = useCallback((e: MouseEvent) => {
-    setPos({ x: e.clientX, y: e.clientY });
-    setVisible(true);
-  }, []);
+  const glowRef = useRef<HTMLDivElement>(null);
+  const rafRef = useRef<number | null>(null);
+  const visibleRef = useRef(false);
 
   useEffect(() => {
     // Detect touch device
     const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     setIsTouch(hasTouch);
     if (hasTouch) return;
+
+    // Move the glow imperatively (no React re-render per mousemove event).
+    const applyPos = (x: number, y: number) => {
+      const el = glowRef.current;
+      if (!el) return;
+      el.style.opacity = '1';
+      el.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%)`;
+    };
+
+    const onMove = (e: MouseEvent) => {
+      if (rafRef.current !== null) return;
+      rafRef.current = requestAnimationFrame(() => {
+        rafRef.current = null;
+        applyPos(e.clientX, e.clientY);
+      });
+    };
+
+    const onLeave = () => {
+      if (!visibleRef.current) return;
+      visibleRef.current = false;
+      setVisible(false);
+    };
+
+    const onEnter = (e: MouseEvent) => {
+      visibleRef.current = true;
+      setVisible(true);
+      applyPos(e.clientX, e.clientY);
+    };
 
     window.addEventListener('mousemove', onMove, { passive: true });
     document.body.addEventListener('mouseleave', onLeave);
@@ -33,19 +51,18 @@ export default function CursorGlow() {
       window.removeEventListener('mousemove', onMove);
       document.body.removeEventListener('mouseleave', onLeave);
       document.body.removeEventListener('mouseenter', onEnter);
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     };
-  }, [onMove, onLeave, onEnter]);
+  }, []);
 
   // Don't render on touch devices
   if (isTouch) return null;
 
   return (
     <div
+      ref={glowRef}
       className="fixed pointer-events-none z-[9999]"
       style={{
-        left: pos.x,
-        top: pos.y,
-        transform: 'translate(-50%, -50%)',
         opacity: visible ? 1 : 0,
         transition: 'opacity 0.15s ease',
       }}

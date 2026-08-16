@@ -95,22 +95,43 @@ export async function getUserFeed(params: {
   });
 }
 
-// ── Global / trending feed (not user-specific) ─────────────────────────
+// ── Global / trending feed ────────────────────────────────────────────
 
 export async function getGlobalFeed(params: {
   limit?: number;
   cursor?: string;
+  currentUserId?: string;
 }) {
-  return prisma.communityPost.findMany({
+  const posts = await prisma.communityPost.findMany({
     where: { visibility: "PUBLIC", groupId: null },
     include: {
       author: { select: { id: true, name: true, username: true, avatar: true } },
       _count: { select: { likes: true, comments: true } },
+      ...(params.currentUserId
+        ? {
+            likes: {
+              where: { userId: params.currentUserId },
+              select: { id: true },
+              take: 1,
+            },
+          }
+        : {}),
     },
     take: params.limit ?? 30,
     ...(params.cursor ? { cursor: { id: params.cursor }, skip: 1 } : {}),
     orderBy: { createdAt: "desc" },
   });
+
+  return posts.map((post) => ({
+    id: post.id,
+    content: post.content,
+    visibility: post.visibility,
+    groupId: post.groupId,
+    createdAt: post.createdAt,
+    author: post.author,
+    _count: post._count,
+    isLiked: (post as { likes?: { id: string }[] }).likes?.length ? true : undefined,
+  }));
 }
 
 // ── Cleanup ─────────────────────────────────────────────────────────────

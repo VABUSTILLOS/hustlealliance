@@ -30,10 +30,10 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
         <CommunityHeader />
         <div className="text-center py-16">
           <div className="text-6xl mb-4">🔍</div>
-          <h2 className="font-display text-2xl text-[var(--color-foreground)] uppercase mb-3">
+          <h2 className="font-display text-2xl text-white uppercase mb-3">
             {communityT.postNotFound}
           </h2>
-          <p className="text-[var(--color-foreground-muted)] text-sm mb-6">
+          <p className="text-foreground-muted text-sm mb-6">
             {communityT.postDeletedMessage}
           </p>
           <Link

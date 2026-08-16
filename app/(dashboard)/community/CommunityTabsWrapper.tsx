@@ -28,7 +28,7 @@ export function CommunityTabsWrapper({ initialData, trending, initialTab }: {
   return (
     <>
       <FeedTabs active={activeTab} onChange={handleTabChange} />
-      {activeTab !== 'personal' && <PostCreator />}
+      <PostCreator />
       <CommunityFeedClient initialData={initialData} trending={trending} activeTab={activeTab} />
     </>
   );

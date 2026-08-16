@@ -10,7 +10,6 @@ import { useStore } from '@/lib/store/useStore';
 import { getInitialsAvatarUrl, DEFAULT_AVATAR } from '@/lib/utils/avatar';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { useCurrentUser } from '@/lib/hooks/useCurrentUser';
-import { ReactQueryProvider } from '@/lib/hooks/queryClient';
 import MobileBottomNav from '@/app/components/MobileBottomNav';
 import dynamic from 'next/dynamic';
 
@@ -114,8 +113,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/');
 
   return (
-    <ReactQueryProvider>
-      <div className="min-h-screen bg-[var(--color-bg)]">
+    <div className="min-h-screen bg-[var(--color-bg)]">
       {/* ── Desktop Sidebar ────────────────── */}
       <aside className="hidden lg:flex fixed left-0 top-0 bottom-0 w-64 bg-[var(--color-surface)] border-r border-[var(--color-border-subtle)] flex-col z-40">
         {/* Logo */}
@@ -210,6 +208,5 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       {/* ── Global Search Modal ── */}
       <SearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
     </div>
-    </ReactQueryProvider>
   );
 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getGlobalFeed } from "@/lib/db/feed";
+import { getCurrentUser } from "@/lib/auth/user";
 
 // GET /api/feed/global
 export async function GET(req: NextRequest) {
@@ -8,8 +9,14 @@ export async function GET(req: NextRequest) {
   const cursor = searchParams.get("cursor") ?? undefined;
 
   try {
-    const feed = await getGlobalFeed({ limit, cursor });
-    return NextResponse.json(feed);
+    const user = await getCurrentUser();
+    const feed = await getGlobalFeed({ limit, cursor, currentUserId: user.id });
+    return NextResponse.json(feed, {
+      headers: {
+        // Response is user-specific (isLiked depends on the requesting user) — never cache publicly.
+        "Cache-Control": "private, no-store",
+      },
+    });
   } catch (err) {
     return NextResponse.json({ error: (err as Error).message }, { status: 500 });
   }

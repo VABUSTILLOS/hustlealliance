@@ -144,3 +144,11 @@ export function normalizeAvatarUrl(url: string | null): string | null {
   // Unknown external URL — return as-is (it may still work)
   return url;
 }
+
+/**
+ * Resolves an avatar: normalizes the source URL if present, otherwise falls back
+ * to a generated initials avatar for the given name.
+ */
+export function resolveAvatarUrl(src: string | null | undefined, name: string): string {
+  return normalizeAvatarUrl(src ?? null) ?? getInitialsAvatarUrl(name);
+}

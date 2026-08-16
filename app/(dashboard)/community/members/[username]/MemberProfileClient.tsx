@@ -7,9 +7,9 @@ import { toggleFollow, addToList, createList, getLists, removeFromList } from '.
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
 const tierBadgeClass: Record<string, string> = {
-  PRO: 'bg-[var(--color-accent)] text-white',
-  BASIC: 'bg-[var(--color-surface-light)] text-[var(--color-foreground-muted)]',
-  FREE: 'bg-transparent text-[var(--color-muted)] border border-[var(--color-border-subtle)]',
+  PRO: 'bg-accent text-white',
+  BASIC: 'bg-surface-light text-foreground-muted',
+  FREE: 'bg-transparent text-muted border border-white/5',
 };
 
 export function MemberProfileClient({
@@ -71,14 +71,14 @@ export function MemberProfileClient({
   return (
     <>
       {/* Header */}
-      <div className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-6 sm:p-8 mb-6">
+      <div className="bg-surface border border-white/5 rounded-2xl p-6 sm:p-8 mb-6">
         <div className="flex flex-col sm:flex-row gap-6 items-start">
           {/* Avatar */}
-          <div className="w-24 h-24 rounded-2xl bg-[var(--color-surface-light)] overflow-hidden shrink-0 border-2 border-[var(--color-border-subtle)]">
+          <div className="w-24 h-24 rounded-2xl bg-surface-light overflow-hidden shrink-0 border-2 border-white/5">
             {profile.avatar ? (
               <img src={profile.avatar} alt={profile.name} className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-3xl font-bold text-[var(--color-foreground-muted)] uppercase">
+              <div className="w-full h-full flex items-center justify-center text-3xl font-bold text-foreground-muted uppercase">
                 {profile.name.charAt(0)}
               </div>
             )}
@@ -87,27 +87,27 @@ export function MemberProfileClient({
           {/* Name + Meta */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 flex-wrap mb-1">
-              <h1 className="font-display text-2xl sm:text-3xl text-[var(--color-foreground)] uppercase leading-tight">
+              <h1 className="font-display text-2xl sm:text-3xl text-white uppercase leading-tight">
                 {profile.name}
               </h1>
               <span className={`text-xs font-mono px-2 py-0.5 rounded-full ${tierBadgeClass[profile.membershipTier] || tierBadgeClass.FREE}`}>
                 {profile.membershipTier}
               </span>
               {profile.role !== 'STUDENT' && (
-                <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-[var(--color-accent)]/10 text-[var(--color-accent)]">
+                <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-accent/10 text-accent">
                   {profile.role === 'INSTRUCTOR' ? t.community.roleInstructor : t.community.roleAdmin}
                 </span>
               )}
             </div>
-            <p className="text-sm text-[var(--color-muted)] font-mono">@{profile.username}</p>
+            <p className="text-sm text-muted font-mono">@{profile.username}</p>
 
             {profile.headline && (
-              <p className="mt-2 text-[var(--color-foreground-muted)] text-sm font-medium">
+              <p className="mt-2 text-foreground-muted text-sm font-medium">
                 {profile.headline}
               </p>
             )}
 
-            <div className="flex items-center gap-4 mt-3 text-xs text-[var(--color-muted)] font-mono">
+            <div className="flex items-center gap-4 mt-3 text-xs text-muted font-mono">
               {profile.location && <span>📍 {profile.location}</span>}
               {profile.yearsExperience && <span>🕐 {profile.yearsExperience}{t.community.yearsExperience}</span>}
               <span>{t.community.joined} {new Date(profile.joinedAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
@@ -116,20 +116,20 @@ export function MemberProfileClient({
             {/* Stats */}
             <div className="flex items-center gap-6 mt-4 text-sm">
               <div className="text-center">
-                <span className="font-display text-lg text-[var(--color-foreground)]">{followerCount}</span>
-                <span className="block text-[10px] text-[var(--color-muted)] font-mono uppercase">{t.community.statsFollowers}</span>
+                <span className="font-display text-lg text-white">{followerCount}</span>
+                <span className="block text-[10px] text-muted font-mono uppercase">{t.community.statsFollowers}</span>
               </div>
               <div className="text-center">
-                <span className="font-display text-lg text-[var(--color-foreground)]">{profile.followingCount}</span>
-                <span className="block text-[10px] text-[var(--color-muted)] font-mono uppercase">{t.community.statsFollowing}</span>
+                <span className="font-display text-lg text-white">{profile.followingCount}</span>
+                <span className="block text-[10px] text-muted font-mono uppercase">{t.community.statsFollowing}</span>
               </div>
               <div className="text-center">
-                <span className="font-display text-lg text-[var(--color-foreground)]">{profile.postCount}</span>
-                <span className="block text-[10px] text-[var(--color-muted)] font-mono uppercase">{t.community.statsPosts}</span>
+                <span className="font-display text-lg text-white">{profile.postCount}</span>
+                <span className="block text-[10px] text-muted font-mono uppercase">{t.community.statsPosts}</span>
               </div>
               <div className="text-center">
-                <span className="font-display text-lg text-[var(--color-foreground)]">{profile.commentCount}</span>
-                <span className="block text-[10px] text-[var(--color-muted)] font-mono uppercase">{t.community.commentsLabel}</span>
+                <span className="font-display text-lg text-white">{profile.commentCount}</span>
+                <span className="block text-[10px] text-muted font-mono uppercase">{t.community.commentsLabel}</span>
               </div>
             </div>
           </div>
@@ -141,15 +141,15 @@ export function MemberProfileClient({
                 onClick={handleFollow}
                 className={`px-6 py-2.5 rounded-xl font-mono text-sm font-bold transition-all ${
                   following
-                    ? 'bg-[var(--color-surface-light)] text-[var(--color-foreground-muted)] border border-[var(--color-border-subtle)] hover:border-red-400 hover:text-red-400'
-                    : 'bg-[var(--color-accent)] text-white hover:opacity-90'
+                    ? 'bg-surface-light text-foreground-muted border border-white/5 hover:border-red-400 hover:text-red-400'
+                    : 'bg-accent text-white hover:opacity-90'
                 }`}
               >
                 {following ? t.community.following : t.community.follow}
               </button>
               <button
                 onClick={openListModal}
-                className="px-6 py-2.5 rounded-xl font-mono text-sm font-bold bg-[var(--color-surface-light)] text-[var(--color-foreground-muted)] border border-[var(--color-border-subtle)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] transition-all"
+                className="px-6 py-2.5 rounded-xl font-mono text-sm font-bold bg-surface-light text-foreground-muted border border-white/5 hover:border-accent hover:text-accent transition-all"
               >
                 {t.community.addToList}
               </button>
@@ -163,27 +163,27 @@ export function MemberProfileClient({
         <div className="md:col-span-2 space-y-6">
           {/* Bio */}
           {profile.bio && (
-            <section className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-6">
-              <h2 className="font-heading font-bold text-sm uppercase tracking-wider text-[var(--color-muted)] mb-3">{t.community.about}</h2>
-              <p className="text-[var(--color-foreground)] leading-relaxed">{profile.bio}</p>
+            <section className="bg-surface border border-white/5 rounded-2xl p-6">
+              <h2 className="font-heading font-bold text-sm uppercase tracking-wider text-muted mb-3">{t.community.about}</h2>
+              <p className="text-white leading-relaxed">{profile.bio}</p>
             </section>
           )}
 
           {/* Business Info */}
           {profile.businessInfo && (
-            <section className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-6">
-              <h2 className="font-heading font-bold text-sm uppercase tracking-wider text-[var(--color-muted)] mb-3">{t.community.business}</h2>
-              <p className="text-[var(--color-foreground)] leading-relaxed">{profile.businessInfo}</p>
+            <section className="bg-surface border border-white/5 rounded-2xl p-6">
+              <h2 className="font-heading font-bold text-sm uppercase tracking-wider text-muted mb-3">{t.community.business}</h2>
+              <p className="text-white leading-relaxed">{profile.businessInfo}</p>
             </section>
           )}
 
           {/* Can Help With */}
           {profile.canHelpWith.length > 0 && (
-            <section className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-6">
-              <h2 className="font-heading font-bold text-sm uppercase tracking-wider text-[var(--color-muted)] mb-3">{t.community.canHelpWith}</h2>
+            <section className="bg-surface border border-white/5 rounded-2xl p-6">
+              <h2 className="font-heading font-bold text-sm uppercase tracking-wider text-muted mb-3">{t.community.canHelpWith}</h2>
               <div className="flex flex-wrap gap-2">
                 {profile.canHelpWith.map((item) => (
-                  <span key={item} className="px-3 py-1.5 rounded-lg bg-[var(--color-accent)]/10 text-[var(--color-accent)] text-sm font-mono">
+                  <span key={item} className="px-3 py-1.5 rounded-lg bg-accent/10 text-accent text-sm font-mono">
                     🤝 {item}
                   </span>
                 ))}
@@ -193,11 +193,11 @@ export function MemberProfileClient({
 
           {/* Looking For */}
           {profile.lookingFor.length > 0 && (
-            <section className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-6">
-              <h2 className="font-heading font-bold text-sm uppercase tracking-wider text-[var(--color-muted)] mb-3">{t.community.lookingFor}</h2>
+            <section className="bg-surface border border-white/5 rounded-2xl p-6">
+              <h2 className="font-heading font-bold text-sm uppercase tracking-wider text-muted mb-3">{t.community.lookingFor}</h2>
               <div className="flex flex-wrap gap-2">
                 {profile.lookingFor.map((item) => (
-                  <span key={item} className="px-3 py-1.5 rounded-lg bg-[var(--color-surface-light)] text-[var(--color-foreground-muted)] text-sm font-mono border border-[var(--color-border-subtle)]">
+                  <span key={item} className="px-3 py-1.5 rounded-lg bg-surface-light text-foreground-muted text-sm font-mono border border-white/5">
                     🔍 {item}
                   </span>
                 ))}
@@ -207,9 +207,9 @@ export function MemberProfileClient({
 
           {/* Opportunities */}
           {profile.hasOpportunities && (
-            <section className="bg-[var(--color-surface)] border border-[var(--color-accent)]/30 rounded-2xl p-6">
-              <h2 className="font-heading font-bold text-sm uppercase tracking-wider text-[var(--color-accent)] mb-3">{t.community.openToOpportunities}</h2>
-              <p className="text-[var(--color-foreground-muted)] text-sm">
+            <section className="bg-surface border border-accent/30 rounded-2xl p-6">
+              <h2 className="font-heading font-bold text-sm uppercase tracking-wider text-accent mb-3">{t.community.openToOpportunities}</h2>
+              <p className="text-foreground-muted text-sm">
                 {t.community.opportunitiesMessage.replace('{name}', profile.name)}
               </p>
             </section>
@@ -217,9 +217,9 @@ export function MemberProfileClient({
 
           {/* Marketplace */}
           {profile.marketplaceSeller && (
-            <section className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-6">
-              <h2 className="font-heading font-bold text-sm uppercase tracking-wider text-[var(--color-muted)] mb-3">{t.community.marketplaceSeller}</h2>
-              <p className="text-[var(--color-foreground-muted)] text-sm">
+            <section className="bg-surface border border-white/5 rounded-2xl p-6">
+              <h2 className="font-heading font-bold text-sm uppercase tracking-wider text-muted mb-3">{t.community.marketplaceSeller}</h2>
+              <p className="text-foreground-muted text-sm">
                 {t.community.marketplaceSellerMessage.replace('{name}', profile.name)}
               </p>
             </section>
@@ -230,11 +230,11 @@ export function MemberProfileClient({
         <div className="space-y-4">
           {/* Industries */}
           {profile.industries.length > 0 && (
-            <div className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-5">
-              <h3 className="font-heading font-bold text-xs uppercase tracking-wider text-[var(--color-muted)] mb-3">{t.community.industries}</h3>
+            <div className="bg-surface border border-white/5 rounded-2xl p-5">
+              <h3 className="font-heading font-bold text-xs uppercase tracking-wider text-muted mb-3">{t.community.industries}</h3>
               <div className="flex flex-wrap gap-1.5">
                 {profile.industries.map((ind) => (
-                  <span key={ind} className="px-2 py-1 rounded-md bg-[var(--color-surface-light)] text-[var(--color-foreground-muted)] text-xs font-mono">
+                  <span key={ind} className="px-2 py-1 rounded-md bg-surface-light text-foreground-muted text-xs font-mono">
                     {ind}
                   </span>
                 ))}
@@ -244,11 +244,11 @@ export function MemberProfileClient({
 
           {/* Skills */}
           {profile.skills.length > 0 && (
-            <div className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-5">
-              <h3 className="font-heading font-bold text-xs uppercase tracking-wider text-[var(--color-muted)] mb-3">{t.community.skills}</h3>
+            <div className="bg-surface border border-white/5 rounded-2xl p-5">
+              <h3 className="font-heading font-bold text-xs uppercase tracking-wider text-muted mb-3">{t.community.skills}</h3>
               <div className="flex flex-wrap gap-1.5">
                 {profile.skills.map((skill) => (
-                  <span key={skill} className="px-2 py-1 rounded-md bg-[var(--color-surface-light)] text-[var(--color-foreground-muted)] text-xs font-mono">
+                  <span key={skill} className="px-2 py-1 rounded-md bg-surface-light text-foreground-muted text-xs font-mono">
                     {skill}
                   </span>
                 ))}
@@ -258,11 +258,11 @@ export function MemberProfileClient({
 
           {/* Interests */}
           {profile.interests.length > 0 && (
-            <div className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-5">
-              <h3 className="font-heading font-bold text-xs uppercase tracking-wider text-[var(--color-muted)] mb-3">{t.community.interests}</h3>
+            <div className="bg-surface border border-white/5 rounded-2xl p-5">
+              <h3 className="font-heading font-bold text-xs uppercase tracking-wider text-muted mb-3">{t.community.interests}</h3>
               <div className="flex flex-wrap gap-1.5">
                 {profile.interests.map((interest) => (
-                  <span key={interest} className="px-2 py-1 rounded-md bg-[var(--color-surface-light)] text-[var(--color-foreground-muted)] text-xs font-mono">
+                  <span key={interest} className="px-2 py-1 rounded-md bg-surface-light text-foreground-muted text-xs font-mono">
                     {interest}
                   </span>
                 ))}
@@ -272,8 +272,8 @@ export function MemberProfileClient({
 
           {/* Social Links */}
           {profile.socialLinks && Object.keys(profile.socialLinks).length > 0 && (
-            <div className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-5">
-              <h3 className="font-heading font-bold text-xs uppercase tracking-wider text-[var(--color-muted)] mb-3">{t.community.links}</h3>
+            <div className="bg-surface border border-white/5 rounded-2xl p-5">
+              <h3 className="font-heading font-bold text-xs uppercase tracking-wider text-muted mb-3">{t.community.links}</h3>
               <div className="space-y-1.5">
                 {Object.entries(profile.socialLinks).map(([platform, url]) => (
                   <a
@@ -281,7 +281,7 @@ export function MemberProfileClient({
                     href={url as string}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block px-2 py-1 rounded-md text-xs font-mono text-[var(--color-accent)] hover:bg-[var(--color-surface-light)] transition-colors capitalize"
+                    className="block px-2 py-1 rounded-md text-xs font-mono text-accent hover:bg-surface-light transition-colors capitalize"
                   >
                     🔗 {platform}
                   </a>
@@ -291,13 +291,13 @@ export function MemberProfileClient({
           )}
 
           {profile.website && (
-            <div className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-5">
-              <h3 className="font-heading font-bold text-xs uppercase tracking-wider text-[var(--color-muted)] mb-3">{t.community.links}</h3>
+            <div className="bg-surface border border-white/5 rounded-2xl p-5">
+              <h3 className="font-heading font-bold text-xs uppercase tracking-wider text-muted mb-3">{t.community.links}</h3>
               <a
                 href={profile.website}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs font-mono text-[var(--color-accent)] hover:underline break-all"
+                className="text-xs font-mono text-accent hover:underline break-all"
               >
                 {profile.website}
               </a>
@@ -309,12 +309,12 @@ export function MemberProfileClient({
       {/* List Modal */}
       {showListModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowListModal(false)}>
-          <div className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-6 w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
-            <h3 className="font-heading font-bold text-lg text-[var(--color-foreground)] mb-1">{t.community.addToListTitle}</h3>
-            <p className="text-xs text-[var(--color-muted)] font-mono mb-4">{t.community.addToListDescription.replace('{name}', profile.name)}</p>
+          <div className="bg-surface border border-white/5 rounded-2xl p-6 w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-heading font-bold text-lg text-white mb-1">{t.community.addToListTitle}</h3>
+            <p className="text-xs text-muted font-mono mb-4">{t.community.addToListDescription.replace('{name}', profile.name)}</p>
 
             {addedMessage ? (
-              <p className="text-[var(--color-accent)] text-sm font-mono py-4 text-center">{addedMessage}</p>
+              <p className="text-accent text-sm font-mono py-4 text-center">{addedMessage}</p>
             ) : (
               <>
                 {/* Note */}
@@ -323,7 +323,7 @@ export function MemberProfileClient({
                   placeholder={t.community.optionalNotePlaceholder}
                   value={listNote}
                   onChange={(e) => setListNote(e.target.value)}
-                  className="w-full px-3 py-2 mb-3 rounded-lg bg-[var(--color-surface-light)] border border-[var(--color-border-subtle)] text-sm text-[var(--color-foreground)] font-mono placeholder:text-[var(--color-muted)] focus:outline-none focus:border-[var(--color-accent)]"
+                  className="w-full px-3 py-2 mb-3 rounded-lg bg-surface-light border border-white/5 text-sm text-white font-mono placeholder:text-muted focus:outline-none focus:border-accent"
                 />
 
                 {/* Existing lists */}
@@ -334,10 +334,10 @@ export function MemberProfileClient({
                         key={list.id}
                         onClick={() => handleAddToList(list.id)}
                         disabled={loading}
-                        className="w-full text-left px-3 py-2 rounded-lg hover:bg-[var(--color-surface-light)] transition-colors flex justify-between items-center"
+                        className="w-full text-left px-3 py-2 rounded-lg hover:bg-surface-light transition-colors flex justify-between items-center"
                       >
-                        <span className="text-sm text-[var(--color-foreground)] font-mono">{list.name}</span>
-                        <span className="text-[10px] text-[var(--color-muted)] font-mono">{list._count.items} {t.community.statsMembers.toLowerCase()}</span>
+                        <span className="text-sm text-white font-mono">{list.name}</span>
+                        <span className="text-[10px] text-muted font-mono">{list._count.items} {t.community.statsMembers.toLowerCase()}</span>
                       </button>
                     ))}
                   </div>
@@ -350,12 +350,12 @@ export function MemberProfileClient({
                     placeholder={t.community.newListNamePlaceholder}
                     value={newListName}
                     onChange={(e) => setNewListName(e.target.value)}
-                    className="flex-1 px-3 py-2 rounded-lg bg-[var(--color-surface-light)] border border-[var(--color-border-subtle)] text-sm text-[var(--color-foreground)] font-mono placeholder:text-[var(--color-muted)] focus:outline-none focus:border-[var(--color-accent)]"
+                    className="flex-1 px-3 py-2 rounded-lg bg-surface-light border border-white/5 text-sm text-white font-mono placeholder:text-muted focus:outline-none focus:border-accent"
                   />
                   <button
                     onClick={handleCreateAndAdd}
                     disabled={!newListName.trim() || loading}
-                    className="px-4 py-2 rounded-lg bg-[var(--color-accent)] text-white text-sm font-mono font-bold disabled:opacity-50 transition-opacity"
+                    className="px-4 py-2 rounded-lg bg-accent text-white text-sm font-mono font-bold disabled:opacity-50 transition-opacity"
                   >
                     {loading ? t.community.loading : t.community.createAndAdd}
                   </button>
@@ -365,7 +365,7 @@ export function MemberProfileClient({
 
             <button
               onClick={() => setShowListModal(false)}
-              className="w-full mt-4 py-2 text-xs font-mono text-[var(--color-muted)] hover:text-[var(--color-foreground)] transition-colors"
+              className="w-full mt-4 py-2 text-xs font-mono text-muted hover:text-white transition-colors"
             >
               {t.community.close}
             </button>

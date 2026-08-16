@@ -6,6 +6,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { useScrollContainer } from "../@modal/(.)[postId]/PostModalClient";
 import { getErrorMsg } from "@/lib/i18n/getErrorMsg";
+import { formatDate } from '@/lib/utils/format-date';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -58,15 +59,6 @@ interface Props {
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
-
-function formatDate(dateStr: string, locale: string = "en"): string {
-  const loc = locale === "es" ? "es-ES" : "en-US";
-  return new Date(dateStr).toLocaleDateString(loc, {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-}
 
 export function extractTitle(content: string): { title: string; body: string } {
   const match = content.match(/^## (.+?)(?:\n\n|$)/);
@@ -243,7 +235,7 @@ function ArticleHeader({ post }: { post: PostData }) {
           <div className="flex items-center gap-2">
             <span className="font-mono text-[10px] text-muted">@{post.author.username}</span>
             <span className="text-muted text-[10px]">•</span>
-            <span className="text-muted text-[10px]">{formatDate(post.createdAt)}</span>
+            <span className="text-muted text-[10px]">{formatDate(post.createdAt, { year: "numeric", month: "long", day: "numeric" })}</span>
             {post.locale && post.locale !== "en" && (
               <>
                 <span className="text-muted text-[10px]">•</span>
@@ -442,7 +434,7 @@ function CommentItem({
             <p className="font-heading font-bold text-foreground text-xs">{comment.author.name}</p>
             <span className="font-mono text-[10px] text-muted">@{comment.author.username}</span>
             <span className="text-muted text-[10px]">•</span>
-            <span className="text-muted text-[10px]">{formatDate(comment.createdAt)}</span>
+            <span className="text-muted text-[10px]">{formatDate(comment.createdAt, { year: "numeric", month: "long", day: "numeric" })}</span>
           </div>
           <p className="text-foreground-muted text-sm leading-relaxed mb-2">{comment.content}</p>
           <div className="flex items-center gap-3">
@@ -522,7 +514,7 @@ function CommentsSection({
 
 function PostActions({ post, postId }: { post: PostData; postId: string }) {
   const [liked, setLiked] = useState(false); // determined by current user on mount
-  const [likeCount, setLikeCount] = useState(post.likes?.length ?? post._count?.likes ?? 0);
+  const [likeCount, setLikeCount] = useState(post._count?.likes ?? post.likes?.length ?? 0);
 
   const handleLike = useCallback(async () => {
     if (liked) {
@@ -558,7 +550,7 @@ function PostActions({ post, postId }: { post: PostData; postId: string }) {
         }}
         className="flex items-center gap-2 font-mono text-sm text-muted hover:text-foreground transition-colors"
       >
-        💬 {post.comments?.length ?? post._count?.comments ?? 0} Comments
+        💬 {post._count?.comments ?? post.comments?.length ?? 0} Comments
       </button>
 
       {/* Scroll to top */}

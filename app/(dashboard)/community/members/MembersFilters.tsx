@@ -73,13 +73,13 @@ export function MembersFilters({
           clearTimeout((e.target as any)._timeout);
           updateParams({ search: e.target.value });
         }}
-        className="flex-1 min-w-[200px] px-4 py-2 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border-subtle)] text-sm text-[var(--color-foreground)] placeholder:text-[var(--color-muted)] font-mono focus:outline-none focus:border-[var(--color-accent)] transition-colors"
+        className="flex-1 min-w-[200px] px-4 py-2 rounded-xl bg-surface border border-white/5 text-sm text-white placeholder:text-muted font-mono focus:outline-none focus:border-accent transition-colors"
       />
 
       <select
         defaultValue={initialSort || 'activity'}
         onChange={(e) => updateParams({ sort: e.target.value })}
-        className="px-4 py-2 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border-subtle)] text-sm text-[var(--color-foreground)] font-mono focus:outline-none focus:border-[var(--color-accent)] transition-colors cursor-pointer"
+        className="px-4 py-2 rounded-xl bg-surface border border-white/5 text-sm text-white font-mono focus:outline-none focus:border-accent transition-colors cursor-pointer"
       >
         {sortOptions.map((opt) => (
           <option key={opt.value} value={opt.value}>
@@ -91,7 +91,7 @@ export function MembersFilters({
       <select
         defaultValue={initialRole || ''}
         onChange={(e) => updateParams({ role: e.target.value })}
-        className="px-4 py-2 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border-subtle)] text-sm text-[var(--color-foreground)] font-mono focus:outline-none focus:border-[var(--color-accent)] transition-colors cursor-pointer"
+        className="px-4 py-2 rounded-xl bg-surface border border-white/5 text-sm text-white font-mono focus:outline-none focus:border-accent transition-colors cursor-pointer"
       >
         {roleOptions.map((opt) => (
           <option key={opt.value} value={opt.value}>
@@ -103,7 +103,7 @@ export function MembersFilters({
       <select
         defaultValue={initialTier || ''}
         onChange={(e) => updateParams({ tier: e.target.value })}
-        className="px-4 py-2 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border-subtle)] text-sm text-[var(--color-foreground)] font-mono focus:outline-none focus:border-[var(--color-accent)] transition-colors cursor-pointer"
+        className="px-4 py-2 rounded-xl bg-surface border border-white/5 text-sm text-white font-mono focus:outline-none focus:border-accent transition-colors cursor-pointer"
       >
         {tierOptions.map((opt) => (
           <option key={opt.value} value={opt.value}>

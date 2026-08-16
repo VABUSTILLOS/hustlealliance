@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { getInitialsAvatarUrl, normalizeAvatarUrl } from '@/lib/utils/avatar';
+import { resolveAvatarUrl } from '@/lib/utils/avatar';
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { useTranslation } from "@/lib/i18n/useTranslation";
@@ -11,6 +11,7 @@ import EventHeader from "../components/EventHeader";
 import EventTabs from "../components/EventTabs";
 import RSVPButtons from "../components/RSVPButton";
 import AttendeeList from "../components/AttendeeList";
+import { formatDate, formatTimeRange } from '@/lib/utils/format-date';
 
 type Tab = "details" | "discussion" | "attendees";
 
@@ -184,16 +185,10 @@ export default function EventDetailPage() {
                   {t.events?.dateAndTime ?? "Date & Time"}
                 </h4>
                 <p className="text-sm text-foreground">
-                  {new Date(event.startDate).toLocaleDateString("en-US", {
-                    weekday: "long",
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
+                  {formatDate(event.startDate)}
                 </p>
                 <p className="text-sm text-muted">
-                  {new Date(event.startDate).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
-                  {event.endDate && ` – ${new Date(event.endDate).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}`}
+                  {formatTimeRange(event.startDate, event.endDate)}
                 </p>
               </div>
               <div className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-4">
@@ -257,7 +252,7 @@ export default function EventDetailPage() {
                   <div key={d.id} className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-4">
                     <div className="flex items-center gap-3 mb-2">
                       <Image
-                        src={normalizeAvatarUrl(d.user.avatar) ?? getInitialsAvatarUrl(d.user.name)}
+                        src={resolveAvatarUrl(d.user.avatar, d.user.name)}
                         alt={d.user.name}
                         width={32}
                         height={32}

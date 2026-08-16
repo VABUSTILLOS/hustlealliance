@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { formatDate } from '@/lib/utils/format-date';
 
 export interface PostFeedCardData {
   id: string;
@@ -41,14 +42,6 @@ function getPreview(post: PostFeedCardData): { title: string; preview: string } 
     .trim();
 
   return { title, preview: plain.slice(0, 200) + (plain.length > 200 ? "..." : "") };
-}
-
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
 }
 
 export function PostFeedCard({
@@ -103,7 +96,7 @@ export function PostFeedCard({
             </span>
             <span className="text-muted text-[10px]">•</span>
             <span className="text-muted text-[10px]">
-              {formatDate(post.createdAt)}
+              {formatDate(post.createdAt, { year: "numeric", month: "short", day: "numeric" })}
             </span>
             {post.locale && post.locale !== "en" && (
               <>

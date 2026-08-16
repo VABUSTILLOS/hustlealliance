@@ -1,13 +1,42 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import clsx from 'clsx';
+import { useRouter } from 'next/navigation';
 import { LazyMotionDiv } from '@/lib/framer/lazy-motion';
 import { getInitialsAvatarUrl } from '@/lib/utils/avatar';
 import { timeAgo } from '@/lib/utils/time';
 import type { CommunityPostItem } from '@/lib/db/community';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { useToast } from '@/app/components/ToastProvider';
+import { PostCardMenu } from './PostCardMenu';
+import { PostCardEditForm } from './PostCardEditForm';
+import { PostCardModals } from './PostCardModals';
+
+type PostType = 'milestone' | 'question' | 'data' | 'default';
+
+function detectPostType(content: string): PostType {
+  const c = content.trim();
+  if (/^(.{0,3}?(launched|raised|acquired|hit\s|reached|shipped|crossed|closed|sold|exit))/i.test(c)) return 'milestone';
+  if (/\$[\d,.]+[KMB]|MRR|ARR|\d+%|revenue|churn|CAC|LTV/i.test(c)) return 'data';
+  if (/^(How|What|Any|Has anyone|Can someone|Does anyone|Is there|Should I|Question|Help|Advice)/i.test(c) || c.endsWith('?')) return 'question';
+  return 'default';
+}
+
+const POST_TYPE_STYLES: Record<PostType, string> = {
+  milestone: 'border-l-2 border-l-accent bg-gradient-to-r from-accent/5 to-transparent',
+  question: 'border-l-2 border-l-amber-500/50',
+  data: 'border-l-2 border-l-cyan-500/50 bg-gradient-to-r from-cyan-500/3 to-transparent',
+  default: '',
+};
+
+const POST_TYPE_BADGE: Record<PostType, { emoji: string; label: string } | null> = {
+  milestone: { emoji: '🚀', label: 'Milestone' },
+  question: null,
+  data: null,
+  default: null,
+};
 
 interface PostCardProps {
   post: CommunityPostItem;
@@ -35,6 +64,8 @@ export function PostCard({
   commentChildren,
 }: PostCardProps) {
   const { t, locale } = useTranslation();
+  const router = useRouter();
+  const { addToast } = useToast();
   const [menuOpen, setMenuOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editText, setEditText] = useState(post.content);
@@ -48,6 +79,9 @@ export function PostCard({
 
   const isOwner = currentUserId === post.author.id;
   const isAdmin = currentUserRole === 'ADMIN';
+  const postType = useMemo(() => detectPostType(post.content), [post.content]);
+  const typeStyle = POST_TYPE_STYLES[postType];
+  const typeBadge = POST_TYPE_BADGE[postType];
   const shareTimesLabel = locale === 'es'
     ? (post.shareCount === 1 ? 'vez' : 'veces')
     : (post.shareCount === 1 ? 'time' : 'times');
@@ -78,17 +112,17 @@ export function PostCard({
       });
       if (!res.ok) {
         const data = await res.json();
-        alert(data.error || t.community.saveError);
+        addToast({ message: data.error || t.community.saveError, type: 'error' });
         return;
       }
       setEditMode(false);
-      window.location.reload();
+      router.refresh();
     } catch {
-      alert(t.community.saveError);
+      addToast({ message: t.community.saveError, type: 'error' });
     } finally {
       setIsSaving(false);
     }
-  }, [editText, post.id, post.content, t.community.saveError]);
+  }, [editText, post.id, post.content, t.community.saveError, addToast, router]);
 
   const handleDelete = useCallback(async () => {
     if (!confirm(t.community.deleteConfirm)) return;
@@ -96,28 +130,30 @@ export function PostCard({
       const res = await fetch(`/api/community/posts/${post.id}`, { method: 'DELETE' });
       if (!res.ok) {
         const data = await res.json();
-        alert(data.error || t.community.deleteError);
+        addToast({ message: data.error || t.community.deleteError, type: 'error' });
         return;
       }
       onDelete?.();
+      addToast({ message: t.community.postDeleted || 'Post deleted', type: 'success' });
     } catch {
-      alert(t.community.deleteError);
+      addToast({ message: t.community.deleteError, type: 'error' });
     }
-  }, [onDelete, post.id, t.community.deleteConfirm, t.community.deleteError]);
+  }, [onDelete, post.id, t.community.deleteConfirm, t.community.deleteError, addToast]);
 
   const handlePin = useCallback(async () => {
     try {
       const res = await fetch(`/api/community/posts/${post.id}/pin`, { method: 'PUT' });
       if (!res.ok) {
         const data = await res.json();
-        alert(data.error || t.community.pinError);
+        addToast({ message: data.error || t.community.pinError, type: 'error' });
         return;
       }
       onPin?.();
+      router.refresh();
     } catch {
-      alert(t.community.pinError);
+      addToast({ message: t.community.pinError, type: 'error' });
     }
-  }, [onPin, post.id, t.community.pinError]);
+  }, [onPin, post.id, t.community.pinError, addToast, router]);
 
   const handleCopyLink = useCallback(async () => {
     const url = `${window.location.origin}/community/posts/${post.id}`;
@@ -146,16 +182,17 @@ export function PostCard({
       });
       if (!res.ok) {
         const data = await res.json();
-        alert(data.error || t.community.shareError);
+        addToast({ message: data.error || t.community.shareError, type: 'error' });
         return;
       }
       setShareModalOpen(false);
       setShareComment('');
-      window.location.reload();
+      router.refresh();
+      addToast({ message: t.community.postShared || 'Post shared', type: 'success' });
     } catch {
-      alert(t.community.shareError);
+      addToast({ message: t.community.shareError, type: 'error' });
     }
-  }, [post.id, shareComment, t.community.shareError]);
+  }, [post.id, shareComment, t.community.shareError, addToast, router]);
 
   const handleReport = useCallback(async () => {
     if (!reportReason.trim()) return;
@@ -167,28 +204,42 @@ export function PostCard({
       });
       if (!res.ok) {
         const data = await res.json();
-        alert(data.error || t.community.reportError);
+        addToast({ message: data.error || t.community.reportError, type: 'error' });
         return;
       }
       setReportModalOpen(false);
       setReportReason('');
+      addToast({ message: t.community.reportSubmitted || 'Report submitted', type: 'info' });
     } catch {
-      alert(t.community.reportError);
+      addToast({ message: t.community.reportError, type: 'error' });
     }
-  }, [post.id, reportReason, t.community.reportError]);
+  }, [post.id, reportReason, t.community.reportError, addToast]);
 
   return (
     <LazyMotionDiv
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -12 }}
-      className="bg-surface border border-surface-light rounded-2xl p-5 relative"
+      className={clsx(
+        'bg-surface border border-surface-light rounded-2xl p-5 relative',
+        typeStyle,
+      )}
+      role="article"
+      aria-label={`Post by ${post.author.name}`}
     >
       {post.isPinned && (
-        <div className="absolute top-3 right-3">
-          <svg className="w-4 h-4 text-accent" viewBox="0 0 24 24" fill="currentColor">
+        <div className="absolute top-3 right-3" aria-label="Pinned post">
+          <svg className="w-4 h-4 text-accent" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z" />
           </svg>
+        </div>
+      )}
+
+      {typeBadge && (
+        <div className="mb-2">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent/10 border border-accent/20 text-accent text-[9px] font-mono uppercase">
+            {typeBadge.emoji} {typeBadge.label}
+          </span>
         </div>
       )}
 
@@ -219,34 +270,18 @@ export function PostCard({
       </div>
 
       {editMode ? (
-        <div className="mb-3 space-y-2">
-          <textarea
-            value={editText}
-            onChange={(e) => setEditText(e.target.value)}
-            rows={3}
-            className="w-full bg-surface-light rounded-xl px-3 py-2 text-foreground text-sm outline-none border border-white/10 focus:border-accent/50 resize-none"
-          />
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleSaveEdit}
-              disabled={isSaving}
-              className="px-3 py-1.5 rounded-lg bg-accent text-white text-xs font-heading font-bold disabled:opacity-50"
-            >
-              {isSaving ? t.community.saving : t.community.save}
-            </button>
-            <button
-              onClick={() => {
-                setEditMode(false);
-                setEditText(post.content);
-              }}
-              className="px-3 py-1.5 rounded-lg bg-surface-light text-muted text-xs"
-            >
-              {t.community.cancel}
-            </button>
-          </div>
-        </div>
+        <PostCardEditForm
+          editText={editText}
+          isSaving={isSaving}
+          onChange={setEditText}
+          onSave={handleSaveEdit}
+          onCancel={() => { setEditMode(false); setEditText(post.content); }}
+        />
       ) : (
-        <p className="text-foreground-muted text-sm mb-3 leading-relaxed whitespace-pre-wrap">
+        <p className={clsx(
+          'text-foreground-muted text-sm mb-3 leading-relaxed whitespace-pre-wrap',
+          postType === 'data' && 'font-mono',
+        )}>
           {post.content}
         </p>
       )}
@@ -267,30 +302,40 @@ export function PostCard({
       )}
 
       <div className="flex items-center gap-4">
-        <button onClick={onToggleLike} className="flex items-center gap-1.5 group">
+        <button
+          onClick={onToggleLike}
+          className="flex items-center gap-1.5 group focus-visible:ring-2 focus-visible:ring-accent/50 rounded-lg px-1 -mx-1"
+          aria-label={isLiked ? 'Unlike post' : 'Like post'}
+        >
           <svg
             className={clsx('w-4 h-4 transition-colors', isLiked ? 'text-accent fill-accent' : 'text-muted group-hover:text-accent')}
             viewBox="0 0 24 24"
             fill={isLiked ? 'currentColor' : 'none'}
             stroke="currentColor"
             strokeWidth="2"
+            aria-hidden="true"
           >
             <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
           </svg>
           <span className={clsx('text-xs font-mono', isLiked ? 'text-accent' : 'text-muted')}>
-            {post.likeCount > 0 ? post.likeCount : (isLiked ? 1 : 0)}
+            {post.likeCount + (isLiked && !post.isLiked ? 1 : (!isLiked && post.isLiked ? -1 : 0))}
           </span>
         </button>
 
-        <button onClick={onToggleComments} className="flex items-center gap-1.5 text-muted hover:text-foreground transition-colors">
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <button
+          onClick={onToggleComments}
+          className="flex items-center gap-1.5 text-muted hover:text-foreground transition-colors focus-visible:ring-2 focus-visible:ring-accent/50 rounded-lg px-1 -mx-1"
+          aria-label={commentsOpen ? 'Hide comments' : 'Show comments'}
+          aria-expanded={commentsOpen}
+        >
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
             <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
           </svg>
           <span className="text-xs font-mono">{post.commentCount}</span>
         </button>
 
-        <div className="flex items-center gap-1.5 text-muted">
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <div className="flex items-center gap-1.5 text-muted" aria-label={`${post.shareCount} shares`}>
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
             <circle cx="18" cy="5" r="3" />
             <circle cx="6" cy="12" r="3" />
             <circle cx="18" cy="19" r="3" />
@@ -303,79 +348,30 @@ export function PostCard({
         <div ref={menuRef} className="relative ml-auto">
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="p-1.5 rounded-lg text-muted hover:text-foreground hover:bg-surface-light transition-colors"
+            className="p-1.5 rounded-lg text-muted hover:text-foreground hover:bg-surface-light transition-colors focus-visible:ring-2 focus-visible:ring-accent/50"
+            aria-label="Post actions menu"
+            aria-expanded={menuOpen}
+            aria-haspopup="menu"
           >
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <circle cx="12" cy="5" r="2" />
               <circle cx="12" cy="12" r="2" />
               <circle cx="12" cy="19" r="2" />
             </svg>
           </button>
           {menuOpen && (
-            <div className="absolute right-0 top-full mt-1 w-48 bg-surface border border-surface-light rounded-xl shadow-xl z-50 py-1">
-              {isOwner && (
-                <>
-                  <button
-                    onClick={() => {
-                      setEditMode(true);
-                      setMenuOpen(false);
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-surface-light transition-colors flex items-center gap-2"
-                  >
-                    {t.community.edit}
-                  </button>
-                  <button
-                    onClick={() => {
-                      handleDelete();
-                      setMenuOpen(false);
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-surface-light transition-colors flex items-center gap-2"
-                  >
-                    {t.community.delete}
-                  </button>
-                </>
-              )}
-              {(isOwner || isAdmin) && (
-                <button
-                  onClick={() => {
-                    handlePin();
-                    setMenuOpen(false);
-                  }}
-                  className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-surface-light transition-colors flex items-center gap-2"
-                >
-                  {post.isPinned ? t.community.unpin : t.community.pin}
-                </button>
-              )}
-              <button
-                onClick={() => {
-                  handleCopyLink();
-                  setMenuOpen(false);
-                }}
-                className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-surface-light transition-colors flex items-center gap-2"
-              >
-                {copied ? t.community.copied : t.community.copyLink}
-              </button>
-              <button
-                onClick={() => {
-                  setShareModalOpen(true);
-                  setMenuOpen(false);
-                }}
-                className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-surface-light transition-colors flex items-center gap-2"
-              >
-                {t.community.sharing}
-              </button>
-              {!isOwner && (
-                <button
-                  onClick={() => {
-                    setReportModalOpen(true);
-                    setMenuOpen(false);
-                  }}
-                  className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-surface-light transition-colors flex items-center gap-2"
-                >
-                  {t.community.report}
-                </button>
-              )}
-            </div>
+            <PostCardMenu
+              isOwner={isOwner}
+              isAdmin={isAdmin}
+              isPinned={post.isPinned}
+              copied={copied}
+              onEdit={() => { setEditMode(true); setMenuOpen(false); }}
+              onDelete={() => { handleDelete(); setMenuOpen(false); }}
+              onPin={() => { handlePin(); setMenuOpen(false); }}
+              onCopyLink={() => { handleCopyLink(); setMenuOpen(false); }}
+              onShare={() => { setShareModalOpen(true); setMenuOpen(false); }}
+              onReport={() => { setReportModalOpen(true); setMenuOpen(false); }}
+            />
           )}
         </div>
       </div>
@@ -388,68 +384,18 @@ export function PostCard({
 
       {commentsOpen && commentChildren}
 
-      {shareModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setShareModalOpen(false)}>
-          <div className="bg-surface border border-surface-light rounded-2xl p-6 w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
-            <h3 className="font-heading font-bold text-foreground text-lg mb-4">{t.community.sharePostTitle}</h3>
-            <textarea
-              value={shareComment}
-              onChange={(e) => setShareComment(e.target.value)}
-              placeholder={t.community.shareCommentPlaceholder}
-              rows={3}
-              className="w-full bg-surface-light rounded-xl px-3 py-2 text-foreground text-sm outline-none border border-white/10 focus:border-accent/50 resize-none mb-4"
-            />
-            <div className="flex items-center justify-end gap-3">
-              <button
-                onClick={() => setShareModalOpen(false)}
-                className="px-4 py-2 rounded-lg bg-surface-light text-muted text-sm"
-              >
-                {t.community.cancel}
-              </button>
-              <button
-                onClick={handleShare}
-                className="px-4 py-2 rounded-lg bg-accent text-white text-sm font-heading font-bold"
-              >
-                {t.community.sharing}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {reportModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setReportModalOpen(false)}>
-          <div className="bg-surface border border-surface-light rounded-2xl p-6 w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
-            <h3 className="font-heading font-bold text-foreground text-lg mb-4">{t.community.reportPostTitle}</h3>
-            <p className="text-foreground-muted text-sm mb-3">{t.community.reportPostQuestion}</p>
-            <textarea
-              value={reportReason}
-              onChange={(e) => setReportReason(e.target.value)}
-              placeholder={t.community.reportIssuePlaceholder}
-              rows={3}
-              className="w-full bg-surface-light rounded-xl px-3 py-2 text-foreground text-sm outline-none border border-white/10 focus:border-accent/50 resize-none mb-4"
-            />
-            <div className="flex items-center justify-end gap-3">
-              <button
-                onClick={() => {
-                  setReportModalOpen(false);
-                  setReportReason('');
-                }}
-                className="px-4 py-2 rounded-lg bg-surface-light text-muted text-sm"
-              >
-                {t.community.cancel}
-              </button>
-              <button
-                onClick={handleReport}
-                disabled={!reportReason.trim()}
-                className="px-4 py-2 rounded-lg bg-red-500 text-white text-sm font-heading font-bold disabled:opacity-50"
-              >
-                {t.community.report}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <PostCardModals
+        shareModalOpen={shareModalOpen}
+        reportModalOpen={reportModalOpen}
+        shareComment={shareComment}
+        reportReason={reportReason}
+        onShareCommentChange={setShareComment}
+        onReportReasonChange={setReportReason}
+        onShareSubmit={handleShare}
+        onReportSubmit={handleReport}
+        onCloseShare={() => setShareModalOpen(false)}
+        onCloseReport={() => { setReportModalOpen(false); setReportReason(''); }}
+      />
     </LazyMotionDiv>
   );
 }

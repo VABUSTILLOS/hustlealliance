@@ -72,11 +72,20 @@ export async function getPostById(postId: string) {
     where: { id: postId },
     include: {
       author: { select: { id: true, name: true, username: true, avatar: true } },
-      likes: { include: { user: { select: { id: true, name: true, avatar: true } } } },
+      _count: { select: { likes: true, comments: true } },
+      likes: {
+        take: 20,
+        include: { user: { select: { id: true, name: true, avatar: true } } },
+      },
       comments: {
+        take: 50,
         include: {
           author: { select: { id: true, name: true, username: true, avatar: true } },
-          likes: { include: { user: { select: { id: true, name: true } } } },
+          _count: { select: { likes: true } },
+          likes: {
+            take: 5,
+            include: { user: { select: { id: true, name: true } } },
+          },
         },
         orderBy: { createdAt: "asc" },
       },

@@ -184,7 +184,7 @@ export function PostCreator() {
                     <button
                       key={u.id}
                       onClick={() => handleSelectMention(u.username)}
-                      className="w-full text-left px-3 py-2 hover:bg-surface-light transition-colors flex items-center gap-2"
+                      className="w-full text-left px-3 py-2 hover:bg-surface-light transition-colors flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:outline-none"
                     >
                       <Image src={u.avatar ?? getInitialsAvatarUrl(u.name)} alt="" width={24} height={24} className="rounded-full object-cover shrink-0" />
                       <div className="min-w-0">
@@ -226,7 +226,7 @@ export function PostCreator() {
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploading}
-                className="p-2 rounded-lg text-muted hover:text-foreground hover:bg-surface-light transition-colors disabled:opacity-50"
+                className="p-2 rounded-lg text-muted hover:text-foreground hover:bg-surface-light transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:outline-none"
                 title={t.community.imageHint}
               >
                 {isUploading ? (
@@ -276,7 +276,7 @@ export function PostCreator() {
               onClick={handlePost}
               disabled={!newPostText.trim() || isOverLimit}
               className={clsx(
-                'px-4 py-2 rounded-xl font-heading font-bold text-sm transition-all',
+                'px-4 py-2 rounded-xl font-heading font-bold text-sm transition-all focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:outline-none',
                 newPostText.trim() && !isOverLimit
                   ? 'bg-accent text-white hover:bg-accent-glow'
                   : 'bg-surface-light text-muted cursor-not-allowed'

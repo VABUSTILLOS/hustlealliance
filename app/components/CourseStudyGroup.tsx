@@ -11,6 +11,7 @@ import {
   uploadGroupFile,
   type StudyGroupWithMembers,
 } from '@/app/(dashboard)/learning/[slug]/study-group/actions';
+import { formatRelativeTime } from '@/lib/utils/format-date';
 
 // ── Types ─────────────────────────────────────────────────────────
 
@@ -28,23 +29,6 @@ function formatFileSize(bytes: number) {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-function timeAgo(date: string | Date) {
-  const now = Date.now();
-  const then = new Date(date).getTime();
-  const seconds = Math.floor((now - then) / 1000);
-  if (seconds < 60) return 'just now';
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  if (days < 30) return `${days}d ago`;
-  return new Date(date).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-  });
 }
 
 // ── Props ─────────────────────────────────────────────────────────
@@ -518,7 +502,7 @@ function MembersTab({ members }: { members: MemberData[] }) {
                 )}
               </div>
               <span className="text-muted text-xs shrink-0">
-                Joined {timeAgo(m.joinedAt)}
+                Joined {formatRelativeTime(m.joinedAt, { style: 'plain' })}
               </span>
             </div>
           ))}
@@ -671,7 +655,7 @@ function FileRow({ file }: { file: FileData }) {
         </p>
         <p className="text-muted text-xs">
           {formatFileSize(file.fileSize)} · Uploaded by {file.uploader.name} ·{' '}
-          {timeAgo(file.createdAt)}
+          {formatRelativeTime(file.createdAt, { style: 'plain' })}
         </p>
       </div>
       <svg
@@ -727,7 +711,7 @@ function PostCard({
             {post.author.name}
           </p>
           <p className="text-muted text-xs font-mono">
-            {timeAgo(post.createdAt)}
+            {formatRelativeTime(post.createdAt, { style: 'plain' })}
           </p>
         </div>
       </div>
@@ -768,7 +752,7 @@ function PostCard({
                   {reply.author.name}
                 </span>
                 <span className="text-muted text-[10px] font-mono">
-                  {timeAgo(reply.createdAt)}
+                  {formatRelativeTime(reply.createdAt, { style: 'plain' })}
                 </span>
               </div>
               <p className="text-foreground-muted text-sm leading-relaxed whitespace-pre-wrap ml-7">

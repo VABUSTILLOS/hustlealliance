@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCommunityPosts } from '@/lib/db/community';
 import type { GetCommunityPostsOpts } from '@/lib/db/community';
+import { getCurrentUser } from '@/lib/auth/user';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
@@ -11,10 +12,12 @@ export async function GET(request: NextRequest) {
   const space = searchParams.get('space') ?? undefined;
 
   try {
-    const data = await getCommunityPosts({ sort, cursor, limit, space });
+    const user = await getCurrentUser();
+    const data = await getCommunityPosts({ sort, cursor, limit, space, currentUserId: user.id });
     return NextResponse.json(data, {
       headers: {
-        'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=30',
+        // Response is user-specific (isLiked depends on the requesting user) — never cache publicly.
+        'Cache-Control': 'private, no-store',
       },
     });
   } catch (err) {

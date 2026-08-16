@@ -8,6 +8,7 @@ import { LazyMotionDiv, LazyAnimatePresence } from '@/lib/framer/lazy-motion';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { useCommunityFeed } from './useCommunityFeed';
 import { usePersonalFeed, useGlobalFeed } from './hooks/useFeeds';
+import { useLikeToggle } from './hooks/useLikeToggle';
 import { PostCard } from './components/PostCard';
 import { FeedItemCard } from './components/FeedItemCard';
 import type { GetCommunityPostsResult, TrendingTopic } from '@/lib/db/community';
@@ -32,7 +33,13 @@ export function CommunityFeedClient({ initialData, trending, activeTab }: Commun
 
   const [sort, setSort] = useState<SortMode>('latest');
   const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
-  const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
+  // Optimistic like-state overrides keyed by post id. The server's isLiked flag
+  // is authoritative; this only holds posts the user toggled since the last
+  // refetch. Derived during render (below) so no hydration effect is needed.
+  const [likeOverrides, setLikeOverrides] = useState<Map<string, boolean>>(new Map());
+
+  // Wire likes to the API (was previously local-state only)
+  const { mutate: toggleLikeApi } = useLikeToggle();
 
   const personalFeed = usePersonalFeed({ enabled: activeTab === 'personal' });
   const personalItems = personalFeed.data?.pages.flat() ?? [];
@@ -56,6 +63,36 @@ export function CommunityFeedClient({ initialData, trending, activeTab }: Commun
     ? sorted.filter((p) => !p.space || joinedSpaces.includes(p.space))
     : sorted;
 
+  const globalPosts = (globalFeed.data?.pages ?? []).flat().map((p) => ({
+    id: p.id,
+    content: p.content,
+    space: null as string | null,
+    createdAt: p.createdAt,
+    commentCount: p._count.comments,
+    likeCount: p._count.likes,
+    shareCount: 0,
+    isPinned: false,
+    isEdited: false,
+    excerpt: null as string | null,
+    locale: 'en',
+    imageUrls: [] as string[],
+    isLiked: p.isLiked,
+    author: {
+      id: p.author.id,
+      name: p.author.name,
+      username: p.author.username,
+      avatar: p.author.avatar,
+    },
+  }));
+
+  // Effective liked state per post: an optimistic toggle wins, otherwise the
+  // server-authoritative isLiked flag. Derived during render so already-liked
+  // posts show the filled heart on load, and a stale refetch can never clobber
+  // an optimistic toggle.
+  const likedState = new Map<string, boolean>();
+  for (const p of posts) likedState.set(p.id, likeOverrides.get(p.id) ?? p.isLiked ?? false);
+  for (const p of globalPosts) likedState.set(p.id, likeOverrides.get(p.id) ?? p.isLiked ?? false);
+
   const toggleComments = (postId: string) => {
     setExpandedComments((prev) => {
       const next = new Set(prev);
@@ -66,13 +103,27 @@ export function CommunityFeedClient({ initialData, trending, activeTab }: Commun
   };
 
   const handleToggleLike = (postId: string) => {
-    setLikedPosts((prev) => {
-      const next = new Set(prev);
-      if (next.has(postId)) next.delete(postId);
-      else next.add(postId);
-      return next;
-    });
-    toggleLike(postId);
+    const isCurrentlyLiked = likedState.get(postId) ?? false;
+    const nextLiked = !isCurrentlyLiked;
+    // Optimistic local update (server state stays authoritative via post.isLiked)
+    setLikeOverrides((prev) => new Map(prev).set(postId, nextLiked));
+    toggleLike(postId); // Zustand store
+    // Fire API call — invalidation will sync real state on success
+    toggleLikeApi(
+      { postId, action: nextLiked ? 'like' : 'unlike' },
+      {
+        onError: () => {
+          // Roll back the optimistic override so the UI falls back to the
+          // server-authoritative isLiked flag and the count returns to N.
+          setLikeOverrides((prev) => {
+            if (!prev.has(postId)) return prev;
+            const next = new Map(prev);
+            next.delete(postId);
+            return next;
+          });
+        },
+      },
+    );
   };
 
   if (activeTab === 'personal') {
@@ -87,8 +138,8 @@ export function CommunityFeedClient({ initialData, trending, activeTab }: Commun
         ) : personalItems.length === 0 ? (
           <LazyMotionDiv initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center py-16">
             <div className="text-6xl mb-4">👤</div>
-            <h2 className="font-display text-2xl text-[var(--color-foreground)] uppercase mb-3">{t.community.personalFeedEmpty}</h2>
-            <p className="text-[var(--color-foreground-muted)] text-sm max-w-md mx-auto">
+            <h2 className="font-display text-2xl text-white uppercase mb-3">{t.community.personalFeedEmpty}</h2>
+            <p className="text-foreground-muted text-sm max-w-md mx-auto">
               {t.community.personalFeedEmptyDesc}
             </p>
           </LazyMotionDiv>
@@ -102,7 +153,7 @@ export function CommunityFeedClient({ initialData, trending, activeTab }: Commun
                 <button
                   onClick={() => personalFeed.fetchNextPage()}
                   disabled={personalFeed.isFetchingNextPage}
-                  className="px-6 py-2 bg-surface border border-surface-light rounded-xl text-muted font-mono text-sm hover:border-accent/30 hover:text-accent transition-all disabled:opacity-50"
+                  className="px-6 py-2 bg-surface border border-surface-light rounded-xl text-muted font-mono text-sm hover:border-accent/30 hover:text-accent transition-all disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:outline-none"
                 >
                   {personalFeed.isFetchingNextPage ? t.community.loading : t.community.loadMore}
                 </button>
@@ -115,28 +166,6 @@ export function CommunityFeedClient({ initialData, trending, activeTab }: Commun
   }
 
   if (activeTab === 'global') {
-    const globalPages = globalFeed.data?.pages ?? [];
-    const globalPosts = globalPages.flat().map((p) => ({
-      id: p.id,
-      content: p.content,
-      space: null as string | null,
-      createdAt: p.createdAt,
-      commentCount: p._count.comments,
-      likeCount: p._count.likes,
-      shareCount: 0,
-      isPinned: false,
-      isEdited: false,
-      excerpt: null as string | null,
-      locale: 'en',
-      imageUrls: [] as string[],
-      author: {
-        id: p.author.id,
-        name: p.author.name,
-        username: p.author.username,
-        avatar: p.author.avatar,
-      },
-    }));
-
     return (
       <>
         {globalFeed.isLoading ? (
@@ -148,8 +177,8 @@ export function CommunityFeedClient({ initialData, trending, activeTab }: Commun
         ) : globalPosts.length === 0 ? (
           <LazyMotionDiv initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center py-16">
             <div className="text-6xl mb-4">🌍</div>
-            <h2 className="font-display text-2xl text-[var(--color-foreground)] uppercase mb-3">{t.community.globalPostsEmpty}</h2>
-            <p className="text-[var(--color-foreground-muted)] text-sm max-w-md mx-auto">
+            <h2 className="font-display text-2xl text-white uppercase mb-3">{t.community.globalPostsEmpty}</h2>
+            <p className="text-foreground-muted text-sm max-w-md mx-auto">
               {t.community.globalPostsEmptyDesc}
             </p>
           </LazyMotionDiv>
@@ -158,7 +187,7 @@ export function CommunityFeedClient({ initialData, trending, activeTab }: Commun
             <LazyAnimatePresence>
               {globalPosts.map((post) => {
                 const commentsOpen = expandedComments.has(post.id);
-                const isLiked = likedPosts.has(post.id);
+                const isLiked = likedState.get(post.id) ?? false;
                 return (
                   <PostCard
                     key={post.id}
@@ -189,7 +218,7 @@ export function CommunityFeedClient({ initialData, trending, activeTab }: Commun
                 <button
                   onClick={() => globalFeed.fetchNextPage()}
                   disabled={globalFeed.isFetchingNextPage}
-                  className="px-6 py-2 bg-surface border border-surface-light rounded-xl text-muted font-mono text-sm hover:border-accent/30 hover:text-accent transition-all disabled:opacity-50"
+                  className="px-6 py-2 bg-surface border border-surface-light rounded-xl text-muted font-mono text-sm hover:border-accent/30 hover:text-accent transition-all disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:outline-none"
                 >
                   {globalFeed.isFetchingNextPage ? t.community.loading : t.community.loadMore}
                 </button>
@@ -215,17 +244,17 @@ export function CommunityFeedClient({ initialData, trending, activeTab }: Commun
 
       {trending.length > 0 && (
         <div className="flex items-center gap-2 mb-6 overflow-x-auto scrollbar-none">
-          <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--color-muted)] shrink-0">
+          <span className="font-mono text-[10px] uppercase tracking-widest text-muted shrink-0">
             {t.community.trending}
           </span>
           {trending.map((topic) => (
             <button
               key={topic.space}
               onClick={() => setSort('latest')}
-              className="shrink-0 px-3 py-1.5 rounded-full text-xs font-mono bg-[var(--color-surface-light)] text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-accent)]/20 transition-colors border border-[var(--color-border-subtle)]"
+              className="shrink-0 px-3 py-1.5 rounded-full text-xs font-mono bg-surface-light text-foreground-muted hover:text-white hover:bg-accent/20 transition-colors border border-white/5 focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:outline-none"
             >
               {topic.space}
-              <span className="ml-1.5 text-[var(--color-muted)]">{topic.postCount}</span>
+              <span className="ml-1.5 text-muted">{topic.postCount}</span>
             </button>
           ))}
         </div>
@@ -234,10 +263,10 @@ export function CommunityFeedClient({ initialData, trending, activeTab }: Commun
       {filtered.length === 0 ? (
         <LazyMotionDiv initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center py-16 px-4">
           <div className="text-6xl mb-4">💬</div>
-          <h2 className="font-display text-2xl text-[var(--color-foreground)] uppercase mb-3">
+          <h2 className="font-display text-2xl text-white uppercase mb-3">
             {sort === 'my-spaces' ? t.community.spacePostsEmpty : t.community.postsEmpty}
           </h2>
-          <p className="text-[var(--color-foreground-muted)] text-sm mb-6 max-w-md mx-auto">
+          <p className="text-foreground-muted text-sm mb-6 max-w-md mx-auto">
             {sort === 'my-spaces' ? t.community.spacePostsEmptyDesc : t.community.postsEmptyDesc}
           </p>
         </LazyMotionDiv>
@@ -246,7 +275,7 @@ export function CommunityFeedClient({ initialData, trending, activeTab }: Commun
           <LazyAnimatePresence>
             {filtered.map((post) => {
               const commentsOpen = expandedComments.has(post.id);
-              const isLiked = likedPosts.has(post.id);
+              const isLiked = likedState.get(post.id) ?? false;
               return (
                 <PostCard
                   key={post.id}
@@ -280,7 +309,7 @@ export function CommunityFeedClient({ initialData, trending, activeTab }: Commun
           <button
             onClick={() => communityFeed.fetchNextPage()}
             disabled={communityFeed.isFetchingNextPage}
-            className="px-6 py-2 bg-surface border border-surface-light rounded-xl text-muted font-mono text-sm hover:border-accent/30 hover:text-accent transition-all disabled:opacity-50"
+            className="px-6 py-2 bg-surface border border-surface-light rounded-xl text-muted font-mono text-sm hover:border-accent/30 hover:text-accent transition-all disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:outline-none"
           >
             {communityFeed.isFetchingNextPage ? t.community.loading : t.community.loadMore}
           </button>

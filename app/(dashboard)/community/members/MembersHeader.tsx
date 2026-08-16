@@ -18,7 +18,7 @@ export function MembersHeader({ total }: { total: number }) {
       <h1 className="font-display text-3xl sm:text-4xl text-foreground uppercase leading-none">
         {t.community.rolesMembers}
       </h1>
-      <p className="mt-2 text-sm text-[var(--color-foreground-muted)] font-mono">
+      <p className="mt-2 text-sm text-foreground-muted font-mono">
         {t.community.memberCount.replace('{total}', total.toLocaleString()).replace('{label}', memberLabel)}
       </p>
     </motion.div>

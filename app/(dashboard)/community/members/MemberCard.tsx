@@ -6,9 +6,9 @@ import { useTranslation } from '@/lib/i18n/useTranslation';
 import { getInitialsAvatarUrl } from '@/lib/utils/avatar';
 
 const tierBadge = {
-  PRO: 'bg-[var(--color-accent)] text-white',
-  BASIC: 'bg-[var(--color-surface-light)] text-[var(--color-foreground-muted)]',
-  FREE: 'bg-transparent text-[var(--color-muted)] border border-[var(--color-border-subtle)]',
+  PRO: 'bg-accent text-white',
+  BASIC: 'bg-surface-light text-foreground-muted',
+  FREE: 'bg-transparent text-muted border border-white/5',
 } as const;
 
 export function MemberCard({ member }: { member: CommunityMemberItem }) {
@@ -33,9 +33,9 @@ export function MemberCard({ member }: { member: CommunityMemberItem }) {
 
   return (
     <Link href={`/community/members/${member.username || member.id}`} className="block">
-      <div className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-5 hover:border-[var(--color-accent)] transition-colors group cursor-pointer h-full">
+      <div className="bg-surface border border-white/5 rounded-2xl p-5 hover:border-accent transition-colors group cursor-pointer h-full">
         <div className="flex items-start gap-4 mb-3">
-          <div className="w-12 h-12 rounded-full bg-[var(--color-surface-light)] overflow-hidden shrink-0">
+          <div className="w-12 h-12 rounded-full bg-surface-light overflow-hidden shrink-0">
             <img
               src={avatarSrc}
               alt={member.name}
@@ -46,27 +46,27 @@ export function MemberCard({ member }: { member: CommunityMemberItem }) {
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="font-heading font-bold text-[var(--color-foreground)] text-sm truncate">
+              <h3 className="font-heading font-bold text-white text-sm truncate">
                 {member.name}
               </h3>
               <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full ${tierBadge[member.membershipTier as keyof typeof tierBadge] || tierBadge.FREE}`}>
                 {tierLabel[member.membershipTier as keyof typeof tierLabel] || member.membershipTier}
               </span>
             </div>
-            <p className="text-xs text-[var(--color-muted)] font-mono mt-0.5">
+            <p className="text-xs text-muted font-mono mt-0.5">
               @{member.username || t.community.anonymous} · {roleLabel[member.role] || member.role}
             </p>
           </div>
         </div>
 
         {member.headline && (
-          <p className="text-sm text-[var(--color-foreground-muted)] line-clamp-2 mb-3 leading-relaxed">
+          <p className="text-sm text-foreground-muted line-clamp-2 mb-3 leading-relaxed">
             {member.headline}
           </p>
         )}
 
         {(member.location || experienceLabel) && (
-          <div className="flex items-center gap-3 text-xs text-[var(--color-muted)] font-mono mb-3">
+          <div className="flex items-center gap-3 text-xs text-muted font-mono mb-3">
             {member.location && <span>📍 {member.location}</span>}
             {experienceLabel && <span>🕐 {experienceLabel}</span>}
           </div>
@@ -77,20 +77,20 @@ export function MemberCard({ member }: { member: CommunityMemberItem }) {
             {member.skills.slice(0, 4).map((skill) => (
               <span
                 key={skill}
-                className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-[var(--color-surface-light)] text-[var(--color-foreground-muted)]"
+                className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-surface-light text-foreground-muted"
               >
                 {skill}
               </span>
             ))}
             {member.skills.length > 4 && (
-              <span className="text-[10px] font-mono text-[var(--color-muted)]">
+              <span className="text-[10px] font-mono text-muted">
                 +{member.skills.length - 4}
               </span>
             )}
           </div>
         )}
 
-        <div className="flex items-center gap-4 text-xs text-[var(--color-muted)] font-mono pt-3 border-t border-[var(--color-border-subtle)]">
+        <div className="flex items-center gap-4 text-xs text-muted font-mono pt-3 border-t border-white/5">
           <span>{member.postCount} {t.community.postsLabel}</span>
           <span>{member.commentCount} {t.community.commentsLabel}</span>
           <span className="ml-auto">

@@ -136,26 +136,20 @@ const avatarColors = [
 ];
 
 export default function LiveChatFeed() {
-  const [visibleMessages, setVisibleMessages] = useState<ChatMessage[]>([]);
-  const [messageIndex, setMessageIndex] = useState(0);
+  // Lazy initializer: seed the first 5 messages once at mount (no setState in effect).
+  const [visibleMessages, setVisibleMessages] = useState<ChatMessage[]>(() => messages.slice(0, 5));
   const [isPaused, setIsPaused] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const tickRef = useRef(5);
 
   useEffect(() => {
     if (isPaused) return;
 
-    // Initial batch: show 5 messages immediately
-    if (visibleMessages.length === 0) {
-      setVisibleMessages(messages.slice(0, 5));
-      setMessageIndex(5);
-      return;
-    }
-
     const interval = setInterval(() => {
       setVisibleMessages((prev) => {
-        const nextIndex = messageIndex % messages.length;
+        const nextIndex = tickRef.current % messages.length;
+        tickRef.current += 1;
         const next = [...prev, messages[nextIndex]];
-        setMessageIndex((i) => i + 1);
         // Keep max 8 visible, remove oldest
         if (next.length > 8) {
           return next.slice(next.length - 8);
@@ -165,7 +159,7 @@ export default function LiveChatFeed() {
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [messageIndex, isPaused, visibleMessages.length]);
+  }, [isPaused]);
 
   // Auto-scroll to bottom
   useEffect(() => {

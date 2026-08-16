@@ -3,6 +3,7 @@
 import { memo } from 'react';
 import Link from 'next/link';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { formatRelativeTime } from '@/lib/utils/format-date';
 import type { FeedItem } from '../hooks/useFeeds';
 
 const TYPE_ICONS: Record<string, string> = {
@@ -26,24 +27,24 @@ export const FeedItemCard = memo(function FeedItemCard({ item }: { item: FeedIte
   const icon = TYPE_ICONS[item.type] ?? '🔔';
   const message = getTypeMessage(item.type, t);
   const preview = (item.metadata as Record<string, string> | undefined)?.preview;
-  const timeAgo = formatTimeAgo(item.createdAt, locale);
+  const timeAgo = formatRelativeTime(item.createdAt, { style: 'intl', locale });
 
   return (
-    <div className="flex items-start gap-3 p-4 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border-subtle)] hover:border-[var(--color-accent)]/20 transition-colors">
+    <div className="flex items-start gap-3 p-4 rounded-xl bg-surface border border-white/5 hover:border-accent/20 transition-colors">
       <span className="text-xl shrink-0 mt-0.5">{icon}</span>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5 flex-wrap">
           <Link
             href={`/profile/${actorUsername ?? item.actorId}`}
-            className="font-semibold text-[var(--color-foreground)] text-sm hover:text-[var(--color-accent)] transition-colors truncate max-w-[160px]"
+            className="font-semibold text-white text-sm hover:text-accent transition-colors truncate max-w-[160px]"
           >
             {actorName}
           </Link>
-          <span className="text-[var(--color-foreground-muted)] text-sm">{message}</span>
-          <span className="text-[var(--color-muted)] text-xs">· {timeAgo}</span>
+          <span className="text-foreground-muted text-sm">{message}</span>
+          <span className="text-muted text-xs">· {timeAgo}</span>
         </div>
         {preview && (
-          <p className="mt-1.5 text-sm text-[var(--color-foreground-muted)] line-clamp-2">
+          <p className="mt-1.5 text-sm text-foreground-muted line-clamp-2">
             {preview}
           </p>
         )}
@@ -79,21 +80,4 @@ function getTypeMessage(type: string, t: ReturnType<typeof useTranslation>['t'])
     default:
       return t.community.feedItemDidSomething;
   }
-}
-
-function formatTimeAgo(dateStr: string, locale: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diff / 60000);
-  const formatter = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
-
-  if (mins < 1) return formatter.format(0, 'second');
-  if (mins < 60) return formatter.format(-mins, 'minute');
-
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return formatter.format(-hours, 'hour');
-
-  const days = Math.floor(hours / 24);
-  if (days < 7) return formatter.format(-days, 'day');
-
-  return new Date(dateStr).toLocaleDateString(locale);
 }

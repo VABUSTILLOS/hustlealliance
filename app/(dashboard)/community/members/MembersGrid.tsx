@@ -10,7 +10,7 @@ export function MembersGrid({ members }: { members: CommunityMemberItem[] }) {
   if (members.length === 0) {
     return (
       <div className="py-20 text-center">
-        <p className="text-lg text-[var(--color-foreground-muted)] font-mono">
+        <p className="text-lg text-foreground-muted font-mono">
           {t.community.noMembersFound}
         </p>
       </div>

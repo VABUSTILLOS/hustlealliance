@@ -55,6 +55,7 @@ export interface GlobalFeedPost {
     avatar: string | null;
   };
   _count: { likes: number; comments: number };
+  isLiked?: boolean;
 }
 
 export function useGlobalFeed({ enabled = true }: { enabled?: boolean } = {}) {

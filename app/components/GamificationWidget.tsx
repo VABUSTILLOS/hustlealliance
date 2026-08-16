@@ -9,7 +9,10 @@ import { useToast } from './ToastProvider';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
 export default function GamificationWidget() {
-  const { gamification, checkDailyLogin, getNextBadge, clearLatestBadge } = useStore();
+  const gamification = useStore((s) => s.gamification);
+  const checkDailyLogin = useStore((s) => s.checkDailyLogin);
+  const getNextBadge = useStore((s) => s.getNextBadge);
+  const clearLatestBadge = useStore((s) => s.clearLatestBadge);
   const [xpAnimate, setXpAnimate] = useState(false);
   const { addToast } = useToast();
   const prevStreak = useRef(gamification.streak);

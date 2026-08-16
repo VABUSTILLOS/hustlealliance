@@ -53,6 +53,45 @@ export interface PaginatedResult<T> {
   nextCursor: string | null;
 }
 
+// ── Unread counts (single batched query) ───────────────────────────────
+
+interface UnreadCountRow {
+  conversationId: string;
+  cnt: number;
+}
+
+/**
+ * Fetch unread message counts for a user in a single query, optionally
+ * restricted to a set of conversations. Counts messages from other senders
+ * newer than the user's last-read timestamp per conversation (same semantics
+ * as the previous per-conversation queries, but one round-trip instead of N+1).
+ */
+async function fetchUnreadCounts(
+  userId: string,
+  conversationIds?: string[],
+): Promise<Map<string, number>> {
+  const where = conversationIds
+    ? `AND cp."conversationId" = ANY($2::text[])`
+    : "";
+  const params: unknown[] = conversationIds ? [userId, conversationIds] : [userId];
+  const rows = await prisma.$queryRawUnsafe<UnreadCountRow[]>(
+    `
+    SELECT cp."conversationId", COUNT(m.id)::int AS "cnt"
+    FROM "ConversationParticipant" cp
+    LEFT JOIN "Message" m
+      ON m."conversationId" = cp."conversationId"
+     AND m."senderId" <> $1
+     AND m."createdAt" > cp."lastReadAt"
+    WHERE cp."userId" = $1
+      AND cp."isArchived" = false
+      ${where}
+    GROUP BY cp."conversationId"
+    `,
+    ...params,
+  );
+  return new Map(rows.map((r) => [r.conversationId, r.cnt]));
+}
+
 // ── Helper ──────────────────────────────────────────────────────────────
 
 const PARTICIPANT_INCLUDE = {
@@ -93,32 +132,11 @@ export async function getConversations(
   const hasMore = conversations.length > limit;
   const items = (hasMore ? conversations.slice(0, limit) : conversations);
 
-  // Compute unread count per conversation in one batch
-  const participantRecords = await prisma.conversationParticipant.findMany({
-    where: {
-      userId,
-      conversationId: { in: items.map((c) => c.id) },
-    },
-    select: { conversationId: true, lastReadAt: true },
-  });
-  const lastReadMap = new Map(participantRecords.map((p) => [p.conversationId, p.lastReadAt]));
-
-  const unreadCounts = await Promise.all(
-    items.map((conv) => {
-      const lastReadAt = lastReadMap.get(conv.id);
-      if (!lastReadAt) return 0;
-      return prisma.message.count({
-        where: {
-          conversationId: conv.id,
-          senderId: { not: userId },
-          createdAt: { gt: lastReadAt },
-        },
-      });
-    }),
-  );
+  // Unread counts for all page conversations in one batched query
+  const unreadCounts = await fetchUnreadCounts(userId, items.map((c) => c.id));
 
   return {
-    items: items.map((conv, i) => ({
+    items: items.map((conv) => ({
       id: conv.id,
       name: conv.name,
       isGroup: conv.isGroup,
@@ -131,7 +149,7 @@ export async function getConversations(
             sender: conv.messages[0].sender,
           }
         : null,
-      unreadCount: unreadCounts[i],
+      unreadCount: unreadCounts.get(conv.id) ?? 0,
       createdAt: conv.createdAt.toISOString(),
       updatedAt: conv.updatedAt.toISOString(),
     })),
@@ -470,24 +488,10 @@ export async function markConversationRead(conversationId: string, userId: strin
  * Get total unread message count for a user across all conversations.
  */
 export async function getUnreadCount(userId: string): Promise<number> {
-  const conversations = await prisma.conversationParticipant.findMany({
-    where: { userId, isArchived: false },
-    select: { conversationId: true, lastReadAt: true },
-  });
-
-  if (!conversations.length) return 0;
+  const unreadCounts = await fetchUnreadCounts(userId);
 
   let total = 0;
-  for (const cp of conversations) {
-    const count = await prisma.message.count({
-      where: {
-        conversationId: cp.conversationId,
-        senderId: { not: userId },
-        createdAt: { gt: cp.lastReadAt },
-      },
-    });
-    total += count;
-  }
+  for (const cnt of unreadCounts.values()) total += cnt;
   return total;
 }
 

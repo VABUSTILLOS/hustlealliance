@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { getInitialsAvatarUrl, normalizeAvatarUrl } from '@/lib/utils/avatar';
+import { resolveAvatarUrl } from '@/lib/utils/avatar';
 import Link from "next/link";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import type { RSVPStatus } from "@/lib/generated/prisma/client";
@@ -63,7 +63,7 @@ export default function AttendeeList({
         >
           <div className="relative">
             <Image
-              src={normalizeAvatarUrl(a.user.avatar) ?? getInitialsAvatarUrl(a.user.name)}
+              src={resolveAvatarUrl(a.user.avatar, a.user.name)}
               alt={a.user.name}
               width={40}
               height={40}

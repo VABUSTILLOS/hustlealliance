@@ -25,6 +25,8 @@ export interface CommunityPostItem {
   isPinned: boolean;
   isEdited: boolean;
   imageUrls: string[];
+  /** Whether the requesting user has liked this post. Only set when the feed is fetched with a currentUserId. */
+  isLiked?: boolean;
 }
 
 export interface CommunityCommentItem {
@@ -40,6 +42,7 @@ export interface GetCommunityPostsOpts {
   limit?: number;
   space?: string;
   locale?: string;
+  currentUserId?: string;
 }
 
 export interface GetCommunityPostsResult {
@@ -56,7 +59,7 @@ export interface GetCommunityPostsResult {
  */
 export const getCommunityPosts = cache(
   async (opts: GetCommunityPostsOpts = {}): Promise<GetCommunityPostsResult> => {
-    const { sort = 'latest', cursor, limit = 20, space, locale } = opts;
+    const { sort = 'latest', cursor, limit = 20, space, locale, currentUserId } = opts;
 
     // Fetch limit+1 to determine if there are more items
     const take = limit + 1;
@@ -78,6 +81,15 @@ export const getCommunityPosts = cache(
           select: { id: true, name: true, username: true, avatar: true },
         },
         _count: { select: { comments: true, likes: true, shares: true } },
+        ...(currentUserId
+          ? {
+              likes: {
+                where: { userId: currentUserId },
+                select: { id: true },
+                take: 1,
+              },
+            }
+          : {}),
       },
     });
 
@@ -98,6 +110,7 @@ export const getCommunityPosts = cache(
       commentCount: post._count.comments,
       likeCount: post._count.likes,
       shareCount: post._count.shares,
+      isLiked: (post as { likes?: { id: string }[] }).likes?.length ? true : undefined,
       isPinned: post.isPinned,
       isEdited: post.isEdited,
       imageUrls: post.imageUrls,
@@ -155,39 +168,47 @@ export const getTrendingTopics = cache(
   async (limit = 5): Promise<TrendingTopic[]> => {
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-    const rows = await prisma.communityPost.groupBy({
-      by: ['space'],
-      where: {
-        space: { not: null },
-        createdAt: { gte: sevenDaysAgo },
-      },
-      _count: { id: true },
-      orderBy: { _count: { id: 'desc' } },
-      take: limit,
-    });
-
-    const spaces = rows.map((r) => r.space as string);
-
-    // Fetch comment counts per space
-    const commentData = await Promise.all(
-      spaces.map(async (space) => {
-        const count = await prisma.communityComment.count({
-          where: {
-            post: { space },
-            createdAt: { gte: sevenDaysAgo },
-          },
-        });
-        return { space, commentCount: count };
-      }),
+    // Post + comment counts per space in one query (previously N+1 comment counts)
+    const rows = await prisma.$queryRawUnsafe<{
+      space: string;
+      postCount: number;
+      commentCount: number;
+    }[]>(
+      `
+      SELECT p."space",
+             COUNT(DISTINCT p.id)::int AS "postCount",
+             COUNT(c.id)::int AS "commentCount"
+      FROM "CommunityPost" p
+      LEFT JOIN "CommunityComment" c
+        ON c."postId" = p."id"
+       AND c."createdAt" >= $1
+      WHERE p."space" IS NOT NULL
+        AND p."createdAt" >= $1
+      GROUP BY p."space"
+      ORDER BY "postCount" DESC
+      LIMIT $2
+      `,
+      sevenDaysAgo,
+      limit,
     );
 
-    const commentMap = new Map(commentData.map((d) => [d.space, d.commentCount]));
-
     return rows.map((row) => ({
-      space: row.space as string,
-      postCount: row._count.id,
-      commentCount: commentMap.get(row.space as string) ?? 0,
+      space: row.space,
+      postCount: row.postCount,
+      commentCount: row.commentCount,
     }));
+  },
+);
+
+// ── Community Stats ────────────────────────────────────────────────────
+
+export const getCommunityStats = cache(
+  async (): Promise<{ memberCount: number; postCount: number }> => {
+    const [memberCount, postCount] = await Promise.all([
+      prisma.user.count(),
+      prisma.communityPost.count({ where: { isDeleted: false } }),
+    ]);
+    return { memberCount, postCount };
   },
 );
 

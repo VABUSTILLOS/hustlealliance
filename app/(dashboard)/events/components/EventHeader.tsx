@@ -1,35 +1,14 @@
 "use client";
 
 import Image from "next/image";
-import { getInitialsAvatarUrl, normalizeAvatarUrl } from '@/lib/utils/avatar';
+import { resolveAvatarUrl } from '@/lib/utils/avatar';
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { formatDate, formatTimeRange, getEventCoverImage } from '@/lib/utils/format-date';
 import type { EventDetail } from "./hooks/useEvents";
-
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-}
-
-function formatTime(dateStr: string, endDateStr: string | null) {
-  const start = new Date(dateStr);
-  const fmt: Intl.DateTimeFormatOptions = { hour: "numeric", minute: "2-digit", timeZoneName: "short" };
-  const startTime = start.toLocaleTimeString("en-US", fmt);
-  if (!endDateStr) return startTime;
-  const end = new Date(endDateStr);
-  return `${startTime} – ${end.toLocaleTimeString("en-US", fmt)}`;
-}
-
-function getDefaultImage(slug: string) {
-  return `https://picsum.photos/seed/${slug}/1200/600.webp`;
-}
 
 export default function EventHeader({ event }: { event: EventDetail }) {
   const { t } = useTranslation();
-  const coverSrc = event.coverImage || getDefaultImage(event.slug);
+  const coverSrc = event.coverImage || getEventCoverImage(event.slug, 1200, 600);
 
   const statusBadge: Record<string, { label: string; color: string }> = {
     UPCOMING: { label: t.events?.statusLabels?.UPCOMING ?? "Upcoming", color: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" },
@@ -77,7 +56,7 @@ export default function EventHeader({ event }: { event: EventDetail }) {
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
             </svg>
-            <span>{formatTime(event.startDate, event.endDate)}</span>
+            <span>{formatTimeRange(event.startDate, event.endDate, { timeZoneName: "short" })}</span>
           </div>
           {event.location && (
             <div className="flex items-center gap-1.5 truncate">
@@ -92,7 +71,7 @@ export default function EventHeader({ event }: { event: EventDetail }) {
         {/* Host info */}
         <div className="flex items-center gap-3 mt-4 pt-4 border-t border-[var(--color-border-subtle)]">
           <Image
-            src={normalizeAvatarUrl(event.creator.avatar) ?? getInitialsAvatarUrl(event.creator.name)}
+            src={resolveAvatarUrl(event.creator.avatar, event.creator.name)}
             alt={event.creator.name}
             width={32}
             height={32}

@@ -17,7 +17,12 @@ export type AuthUser = {
  */
 export async function getCurrentUser(): Promise<AuthUser> {
   // TODO: IMPLEMENT REAL AUTH - REVERT FOR PRODUCTION
-  // Mock auth bypass — always return a top-tier admin user for development
+  // Test-mode: check if a test user cookie is set (user switcher)
+  const { resolveTestUser } = await import('@/lib/auth/test-user');
+  const testUser = await resolveTestUser();
+  if (testUser) return testUser;
+
+  // Fallback: always return the mock admin user for development
   const { MOCK_USER } = await import('@/lib/auth/mock');
   return MOCK_USER;
 }
