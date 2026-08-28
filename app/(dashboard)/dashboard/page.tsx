@@ -11,6 +11,7 @@ import { useDashboard } from '@/lib/hooks/useDashboard';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
 const UpcomingEventsWidgetLazy = lazy(() => import('@/app/components/UpcomingEventsWidget'));
+const GettingStartedChecklistLazy = lazy(() => import('@/app/(dashboard)/components/getting-started-checklist'));
 
 // ── Circular Progress ────────────────────────────────────────────────────
 function CircularProgress({ pct, size = 96, stroke = 6, glow = true }: { pct: number; size?: number; stroke?: number; glow?: boolean }) {
@@ -115,6 +116,13 @@ export default function DashboardPage() {
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-8 max-w-7xl mx-auto">
       <motion.div variants={stagger} initial="initial" animate="animate" className="space-y-6">
+
+        {/* ── Getting Started checklist (self-hides when done/dismissed) ─── */}
+        <motion.div variants={fadeUp}>
+          <Suspense fallback={null}>
+            <GettingStartedChecklistLazy />
+          </Suspense>
+        </motion.div>
 
         {/* ── Gamification Row: Streak + XP + Badge Progress ─── */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">

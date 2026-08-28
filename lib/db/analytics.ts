@@ -24,10 +24,6 @@ function toDaySeries(rows: DailyCountRow[]): Array<{ date: string; count: number
   return rows.map((r) => ({ date: new Date(r.bucket).toISOString().slice(0, 10), count: Number(r.count) }));
 }
 
-function toWeekSeries(rows: WeeklyCountRow[]): Array<{ date: string; count: number }> {
-  return rows.map((r) => ({ date: new Date(r.bucket).toISOString().slice(0, 10), count: Number(r.count) }));
-}
-
 // ─── Growth ─────────────────────────────────────────────────────────
 
 export type GrowthData = {

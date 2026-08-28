@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import StoreAnalyticsSections from './store-analytics';
 import LineChart from './components/line-chart';
@@ -104,22 +104,27 @@ function useAnalyticsFetch<T>(endpoint: string, days: number) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  const load = useCallback(() => {
-    setLoading(true);
-    setError(false);
-    fetch(`${endpoint}?days=${days}`)
-      .then((r) => {
-        if (!r.ok) throw new Error('failed');
-        return r.json();
-      })
-      .then(setData)
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
-  }, [endpoint, days]);
-
   useEffect(() => {
-    load();
-  }, [load]);
+    let cancelled = false;
+    const run = async () => {
+      setLoading(true);
+      setError(false);
+      try {
+        const r = await fetch(`${endpoint}?days=${days}`);
+        if (!r.ok) throw new Error('failed');
+        const json = await r.json();
+        if (!cancelled) setData(json);
+      } catch {
+        if (!cancelled) setError(true);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    void run();
+    return () => {
+      cancelled = true;
+    };
+  }, [endpoint, days]);
 
   return { data, loading, error };
 }
@@ -133,13 +138,21 @@ function CommunityAnalyticsSections({ range }: { range: (typeof RANGE_OPTIONS)[n
   const [funnelError, setFunnelError] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
     fetch('/api/admin/analytics/funnel')
       .then((r) => {
         if (!r.ok) throw new Error('failed');
         return r.json();
       })
-      .then(setFunnel)
-      .catch(() => setFunnelError(true));
+      .then((json) => {
+        if (!cancelled) setFunnel(json);
+      })
+      .catch(() => {
+        if (!cancelled) setFunnelError(true);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (

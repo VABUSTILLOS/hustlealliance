@@ -3,8 +3,8 @@
 #
 # If the target database was created via `prisma db push` it has no
 # _prisma_migrations history and `migrate deploy` fails with P3005.
-# In that case we baseline every migration EXCEPT the newest one
-# (the one this deploy introduces), then deploy again.
+# In that case we baseline every migration older than the cutoff below
+# (already represented in the db-push schema), then deploy the rest.
 set -uo pipefail
 
 OUT=$(npx prisma migrate deploy 2>&1) && { echo "$OUT"; exit 0; }

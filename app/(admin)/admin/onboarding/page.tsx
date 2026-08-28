@@ -57,26 +57,19 @@ export default function AdminOnboardingPage() {
       .finally(() => setLoadingQuestions(false));
   };
 
-  const loadWelcome = () => {
-    setLoadingWelcome(true);
+  useEffect(() => {
+    fetch("/api/admin/onboarding/questions")
+      .then((r) => r.json())
+      .then((data) => setQuestions(data.questions || []))
+      .finally(() => setLoadingQuestions(false));
     fetch("/api/admin/onboarding/welcome")
       .then((r) => r.json())
       .then((data) => setWelcome(data))
       .finally(() => setLoadingWelcome(false));
-  };
-
-  const loadResponses = () => {
-    setLoadingResponses(true);
     fetch("/api/admin/onboarding/responses")
       .then((r) => r.json())
       .then((data) => setResponses(data.responses || []))
       .finally(() => setLoadingResponses(false));
-  };
-
-  useEffect(() => {
-    loadQuestions();
-    loadWelcome();
-    loadResponses();
   }, []);
 
   async function addQuestion() {

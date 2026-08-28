@@ -23,10 +23,11 @@ const ITEM_LINKS: Record<string, string> = {
 export default function GettingStartedChecklist() {
   const [items, setItems] = useState<ChecklistItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [dismissed, setDismissed] = useState(true);
+  const [dismissed, setDismissed] = useState(
+    () => typeof window !== "undefined" && localStorage.getItem(DISMISS_KEY) === "true",
+  );
 
   useEffect(() => {
-    setDismissed(typeof window !== "undefined" && localStorage.getItem(DISMISS_KEY) === "true");
     fetch("/api/onboarding/checklist")
       .then((r) => r.json())
       .then((data) => setItems(data.items ?? []))
