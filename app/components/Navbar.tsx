@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import clsx from 'clsx';
 import { LazyMotion, LazyAnimatePresence } from '@/lib/framer/lazy-motion';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -14,11 +15,19 @@ import NotificationBell from '@/app/components/NotificationBell';
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const { t, locale, setLocale } = useTranslation();
   const { theme, toggleTheme } = useTheme();
   const isAuthenticated = useStore((s) => s.isAuthenticated);
   const user = useCurrentUser();
   const router = useRouter();
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 24);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   const links = [
     { href: '/dashboard', label: t.nav.dashboard },
@@ -32,9 +41,21 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-[var(--color-bg)]/80 border-b border-[var(--color-border-subtle)]">
+    <nav
+      className={clsx(
+        'fixed top-0 left-0 right-0 z-50 backdrop-blur-md border-b transition-all duration-300',
+        scrolled
+          ? 'bg-[var(--color-bg)]/95 border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.25)]'
+          : 'bg-[var(--color-bg)]/80 border-[var(--color-border-subtle)]'
+      )}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div
+          className={clsx(
+            'flex items-center justify-between transition-all duration-300',
+            scrolled ? 'h-14' : 'h-16'
+          )}
+        >
           {/* Logo */}
           <Link href="/" className="gradient-text text-xl sm:text-2xl font-heading font-bold tracking-tight">
             Hustle Alliance

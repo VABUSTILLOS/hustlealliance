@@ -3,6 +3,8 @@
 import { motion } from 'framer-motion';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import LiveChatFeed from './LiveChatFeed';
+import SpotlightCard from './ui/SpotlightCard';
+import { cardReveal, staggerContainer } from '@/lib/motion/variants';
 
 function DeviceMockup({ type, t }: { type: string; t: any }) {
   switch (type) {
@@ -111,18 +113,22 @@ export default function Pillars() {
           </h2>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
+        {/* Bento grid — tall feature card left, two stacked right */}
+        <motion.div
+          variants={staggerContainer(0.14)}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: '-50px' }}
+          className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8"
+        >
           {features.map((feature, i) => (
             <motion.div
               key={feature.title}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-50px' }}
-              transition={{ duration: 0.5, delay: i * 0.15 }}
-              className="group cursor-pointer"
+              variants={cardReveal}
+              className={i === 0 ? 'md:row-span-2' : undefined}
             >
-              <div className="bg-surface border border-surface-light rounded-2xl p-6 sm:p-8 transition-all duration-500 hover:-translate-y-2 hover:border-accent/30 hover:shadow-[0_20px_60px_rgba(255,59,48,0.1)]">
-                <div className="mb-8">
+              <SpotlightCard className="h-full p-6 sm:p-8 group cursor-pointer">
+                <div className={i === 0 ? 'mb-8' : 'mb-6'}>
                   <DeviceMockup type={feature.device} t={t} />
                 </div>
                 <h3 className="font-heading text-xl font-bold text-foreground mb-3 pb-3 relative inline-block">
@@ -132,10 +138,10 @@ export default function Pillars() {
                 <p className="text-zinc-300 font-body text-sm leading-relaxed">
                   {feature.description}
                 </p>
-              </div>
+              </SpotlightCard>
             </motion.div>
           ))}
-        </div>
+        </motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}

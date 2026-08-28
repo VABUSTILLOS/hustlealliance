@@ -2,7 +2,9 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import clsx from 'clsx';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { SPRING_INTERACTIVE } from '@/lib/motion/variants';
 
 interface FAQItem {
   q: string;
@@ -67,7 +69,12 @@ export default function FAQ() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.06 }}
-              className="rounded-xl bg-[var(--color-surface)] border border-[var(--color-border-subtle)] overflow-hidden"
+              className={clsx(
+                'rounded-xl border overflow-hidden transition-colors duration-300',
+                openIndex === i
+                  ? 'bg-accent/[0.04] border-accent/25'
+                  : 'bg-[var(--color-surface)] border-[var(--color-border-subtle)]'
+              )}
             >
               <button
                 onClick={() => setOpenIndex(openIndex === i ? null : i)}
@@ -95,7 +102,7 @@ export default function FAQ() {
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.25, ease: 'easeInOut' }}
+                    transition={SPRING_INTERACTIVE}
                     className="overflow-hidden"
                   >
                     <p className="px-6 pb-5 text-sm text-zinc-300 leading-relaxed">

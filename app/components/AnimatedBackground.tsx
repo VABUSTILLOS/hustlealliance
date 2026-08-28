@@ -1,6 +1,7 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 
 const Particle = ({ delay }: { delay: number }) => {
   const randomX = Math.random() * 100;
@@ -33,7 +34,33 @@ const Particle = ({ delay }: { delay: number }) => {
 };
 
 export default function AnimatedBackground() {
-  const particles = Array.from({ length: 15 }, (_, i) => i);
+  const reduceMotion = useReducedMotion();
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)');
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
+
+  const particles = Array.from({ length: isMobile ? 6 : 15 }, (_, i) => i);
+
+  // Static gradient fallback for users who prefer reduced motion
+  if (reduceMotion) {
+    return (
+      <div className="fixed inset-0 overflow-hidden bg-deep -z-10">
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              'radial-gradient(circle at 20% 50%, rgba(180, 76, 240, 0.25) 0%, rgba(11, 0, 20, 0) 50%)',
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-deep -z-10">

@@ -49,7 +49,7 @@ export function HomepageLazySection({ name }: { name: string }) {
       {isVisible && Component ? (
         <Component />
       ) : (
-        <div className="animate-pulse bg-surface/20 rounded-xl h-[300px]" />
+        <div className="skeleton-shimmer rounded-xl h-[300px]" />
       )}
     </div>
   );

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import clsx from 'clsx';
+import { useReducedMotion } from 'framer-motion';
 
 interface NeonButtonProps {
   children: React.ReactNode;
@@ -11,6 +12,8 @@ interface NeonButtonProps {
   className?: string;
   type?: 'button' | 'submit' | 'reset';
   disabled?: boolean;
+  /** Infinite glow pulse. Reserve for the single primary CTA per viewport. */
+  pulse?: boolean;
 }
 
 export default function NeonButton({
@@ -21,9 +24,13 @@ export default function NeonButton({
   className,
   type = 'button',
   disabled = false,
+  pulse = true,
 }: NeonButtonProps) {
+  const reduceMotion = useReducedMotion();
+  const animatePulse = pulse && !reduceMotion;
+
   const base =
-    'relative inline-flex items-center justify-center px-6 py-3 min-h-[48px] rounded-lg font-heading font-bold text-white transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-accent/50 disabled:opacity-50 disabled:cursor-not-allowed';
+    'relative inline-flex items-center justify-center px-6 py-3 min-h-[48px] rounded-lg font-heading font-bold text-white transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-accent/50 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.97]';
 
   const primary =
     'bg-accent hover:bg-accent-glow hover:scale-105';
@@ -41,8 +48,9 @@ export default function NeonButton({
     className
   );
 
-  const styleAttr =
-    variant === 'primary'
+  const styleAttr = !animatePulse
+    ? undefined
+    : variant === 'primary'
       ? { animation: 'cta-pulse 2s infinite' }
       : { animation: 'pulse-glow 2s infinite', boxShadow: '0 0 15px rgba(255, 59, 48, 0.4)' };
 

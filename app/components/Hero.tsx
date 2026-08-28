@@ -1,12 +1,14 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { useInView, useAnimate } from 'framer-motion';
+import { useInView, useAnimate, useScroll, useTransform, useReducedMotion, motion } from 'framer-motion';
 import { LazyMotion } from '@/lib/framer/lazy-motion';
 import Image from 'next/image';
 import NeonButton from './NeonButton';
 import EmailCapture from './EmailCapture';
+import Magnetic from './ui/Magnetic';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { EASE_APPLE, maskedLine, springPop, staggerContainer } from '@/lib/motion/variants';
 
 function AnimatedCounter({ end, suffix = '', prefix = '' }: { end: number; suffix?: string; prefix?: string }) {
   const [scope, animate] = useAnimate();
@@ -54,6 +56,13 @@ const item = {
 
 export default function Hero() {
   const { t } = useTranslation();
+  const sectionRef = useRef<HTMLElement>(null);
+  const reduceMotion = useReducedMotion();
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start start', 'end start'],
+  });
+  const photoY = useTransform(scrollYProgress, [0, 1], [0, 60]);
 
   const stats: { value: number; suffix?: string; prefix?: string; label: string }[] = [
     { value: 2400, suffix: '+', label: 'operators in the alliance' },
@@ -62,7 +71,7 @@ export default function Hero() {
   ];
 
   return (
-    <section className="relative min-h-screen flex flex-col lg:flex-row overflow-hidden">
+    <section ref={sectionRef} className="relative min-h-screen flex flex-col lg:flex-row overflow-hidden">
       {/* Left: Content */}
       <div className="relative z-10 flex flex-col justify-center w-full lg:w-3/5 px-6 sm:px-12 lg:px-16 xl:px-24 py-20 lg:py-0">
         <LazyMotion
@@ -80,16 +89,19 @@ export default function Hero() {
             {t.hero.eyebrow}
           </LazyMotion>
 
-          {/* Headline */}
-          <LazyMotion
-            as="h1"
-            variants={item}
-            className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl text-foreground leading-[0.9] mb-6 uppercase"
-          >
-            {t.hero.line1}
-            <br />
-            <span className="text-accent">{t.hero.line2}</span>
-          </LazyMotion>
+          {/* Headline — masked per-line reveal */}
+          <h1 className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl text-foreground leading-[0.9] mb-6 uppercase">
+            <span className="block overflow-hidden pb-[0.08em] -mb-[0.08em]">
+              <LazyMotion as="span" variants={maskedLine} className="block">
+                {t.hero.line1}
+              </LazyMotion>
+            </span>
+            <span className="block overflow-hidden pb-[0.1em] -mb-[0.1em]">
+              <LazyMotion as="span" variants={maskedLine} className="block text-accent">
+                {t.hero.line2}
+              </LazyMotion>
+            </span>
+          </h1>
 
           {/* Subheadline */}
           <LazyMotion
@@ -106,10 +118,12 @@ export default function Hero() {
             className="flex flex-col gap-3"
           >
             <div className="flex flex-col sm:flex-row gap-4">
-              <NeonButton variant="primary" href="/signup" className="text-base !py-4 !px-10 min-h-[48px]">
-                {t.hero.cta1}
-              </NeonButton>
-              <NeonButton variant="secondary" href="/preview/fundraising-101" className="text-base !py-4 !px-10 min-h-[48px]">
+              <Magnetic strength={0.2}>
+                <NeonButton variant="primary" href="/signup" className="text-base !py-4 !px-10 min-h-[48px]">
+                  {t.hero.cta1}
+                </NeonButton>
+              </Magnetic>
+              <NeonButton variant="secondary" pulse={false} href="/preview/fundraising-101" className="text-base !py-4 !px-10 min-h-[48px]">
                 {t.hero.cta2}
               </NeonButton>
             </div>
@@ -128,16 +142,16 @@ export default function Hero() {
           </LazyMotion>
         </LazyMotion>
 
-        {/* Stats row — consolidated inline */}
+        {/* Stats row — consolidated inline, staggered spring pops */}
         <LazyMotion
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1, duration: 0.6 }}
+          variants={staggerContainer(0.15, 1)}
+          initial="hidden"
+          animate="show"
           className="mt-16 lg:mt-20"
         >
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-base sm:text-lg text-zinc-300 font-body">
             {stats.map((stat, i) => (
-              <span key={stat.label} className="inline-flex items-baseline gap-1">
+              <LazyMotion as="span" variants={springPop} key={stat.label} className="inline-flex items-baseline gap-1">
                 <span className="font-display text-xl sm:text-2xl text-foreground tabular-nums leading-none">
                   <AnimatedCounter end={stat.value} suffix={stat.suffix ?? ''} prefix={stat.prefix ?? ''} />
                 </span>
@@ -147,7 +161,7 @@ export default function Hero() {
                 {i < stats.length - 1 && (
                   <span className="text-zinc-600 mx-2 select-none">·</span>
                 )}
-              </span>
+              </LazyMotion>
             ))}
           </div>
 
@@ -170,18 +184,26 @@ export default function Hero() {
         </LazyMotion>
       </div>
 
-      {/* Right: Full-bleed photography */}
+      {/* Right: Full-bleed photography — scroll parallax + settle-on-load */}
       <div className="relative w-full lg:w-2/5 h-48 sm:h-64 lg:h-auto lg:min-h-screen overflow-hidden">
         {/* B&W Photo */}
-        <Image
-          src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1200&h=1600&fit=crop&crop=faces"
-          alt={t.hero.imageAlt}
-          fill
-          priority
-          sizes="(max-width: 1024px) 100vw, 40vw"
-          className="object-cover"
-          style={{ filter: 'grayscale(100%) contrast(1.3) brightness(0.8)' }}
-        />
+        <motion.div
+          className="absolute inset-0"
+          style={{ y: reduceMotion ? 0 : photoY }}
+          initial={{ scale: 1.08 }}
+          animate={{ scale: 1 }}
+          transition={{ duration: 1.6, ease: EASE_APPLE }}
+        >
+          <Image
+            src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1200&h=1600&fit=crop&crop=faces"
+            alt={t.hero.imageAlt}
+            fill
+            priority
+            sizes="(max-width: 1024px) 100vw, 40vw"
+            className="object-cover"
+            style={{ filter: 'grayscale(100%) contrast(1.3) brightness(0.8)' }}
+          />
+        </motion.div>
         {/* Red overlay */}
         <div className="absolute inset-0 bg-accent/20 mix-blend-multiply" />
         {/* Gradient fade to black at bottom & left */}

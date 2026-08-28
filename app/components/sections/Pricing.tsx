@@ -1,11 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
 import clsx from 'clsx';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import SpotlightCard from '../ui/SpotlightCard';
+import { EASE_APPLE, SPRING_INTERACTIVE } from '@/lib/motion/variants';
 
 // ── Star rating component ───────────────────────────────────────────────
 function Stars() {
@@ -126,24 +128,30 @@ export default function Pricing() {
           className="flex flex-col items-center gap-2 mb-12"
         >
           <div className="inline-flex items-center rounded-full bg-surface border border-surface-light p-1">
-            <button
-              onClick={() => setAnnual(false)}
-              className={clsx(
-                'px-5 py-2 rounded-full text-xs font-mono font-bold uppercase tracking-wider transition-all duration-300 min-h-[40px]',
-                !annual ? 'bg-accent text-white' : 'text-zinc-400 hover:text-foreground'
-              )}
-            >
-              {t.pricing.billing.monthly}
-            </button>
-            <button
-              onClick={() => setAnnual(true)}
-              className={clsx(
-                'px-5 py-2 rounded-full text-xs font-mono font-bold uppercase tracking-wider transition-all duration-300 min-h-[40px]',
-                annual ? 'bg-accent text-white' : 'text-zinc-400 hover:text-foreground'
-              )}
-            >
-              {t.pricing.billing.annual}
-            </button>
+            {(['monthly', 'annual'] as const).map((mode) => {
+              const active = mode === 'annual' ? annual : !annual;
+              return (
+                <button
+                  key={mode}
+                  onClick={() => setAnnual(mode === 'annual')}
+                  className={clsx(
+                    'relative px-5 py-2 rounded-full text-xs font-mono font-bold uppercase tracking-wider transition-colors duration-200 min-h-[40px]',
+                    active ? 'text-white' : 'text-zinc-400 hover:text-foreground'
+                  )}
+                >
+                  {active && (
+                    <motion.span
+                      layoutId="billing-pill"
+                      transition={SPRING_INTERACTIVE}
+                      className="absolute inset-0 bg-accent rounded-full shadow-[0_0_20px_rgba(255,59,48,0.4)]"
+                    />
+                  )}
+                  <span className="relative z-10">
+                    {mode === 'annual' ? t.pricing.billing.annual : t.pricing.billing.monthly}
+                  </span>
+                </button>
+              );
+            })}
           </div>
           {annual && (
             <p className="text-xs text-emerald-400 font-mono">{t.pricing.billing.annualNote}</p>
@@ -161,12 +169,11 @@ export default function Pricing() {
               transition={{ duration: 0.5, delay: i * 0.12 }}
               className={clsx(tier.popular && 'md:-mt-6 md:mb-6')}
             >
-              <div
+              <SpotlightCard
+                accent={!!tier.popular}
                 className={clsx(
-                  'relative rounded-2xl p-8 border transition-all duration-500',
-                  tier.popular
-                    ? 'bg-surface border-accent/40 shadow-[0_0_60px_rgba(255,59,48,0.12)]'
-                    : 'bg-surface border-surface-light hover:border-white/15'
+                  'p-8',
+                  tier.popular && 'shadow-[0_0_60px_rgba(255,59,48,0.12)]'
                 )}
               >
                 {/* Popular badge */}
@@ -186,13 +193,22 @@ export default function Pricing() {
 
                 {/* Price */}
                 <div className="mb-8">
-                  <span
-                    className={clsx(
-                      'font-display text-5xl sm:text-6xl leading-none',
-                      tier.popular ? 'text-accent' : 'text-foreground'
-                    )}
-                  >
-                    ${tier.price}
+                  <span className="inline-flex overflow-hidden align-baseline">
+                    <AnimatePresence mode="popLayout" initial={false}>
+                      <motion.span
+                        key={annual ? 'annual' : 'monthly'}
+                        initial={{ y: 18, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        exit={{ y: -18, opacity: 0 }}
+                        transition={{ duration: 0.25, ease: EASE_APPLE }}
+                        className={clsx(
+                          'font-display text-5xl sm:text-6xl leading-none inline-block',
+                          tier.popular ? 'text-accent' : 'text-foreground'
+                        )}
+                      >
+                        ${tier.price}
+                      </motion.span>
+                    </AnimatePresence>
                   </span>
                   <span className="text-muted font-body text-sm ml-1">
                     {tier.period}
@@ -221,7 +237,7 @@ export default function Pricing() {
                 >
                   {tier.cta}
                 </Link>
-              </div>
+              </SpotlightCard>
             </motion.div>
           ))}
         </div>

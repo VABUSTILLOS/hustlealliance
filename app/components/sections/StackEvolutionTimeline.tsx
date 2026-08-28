@@ -1,8 +1,11 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { useRef } from 'react';
+import { motion, useScroll, useReducedMotion } from 'framer-motion';
 import Link from 'next/link';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import SpotlightCard from '../ui/SpotlightCard';
+import { cardReveal, staggerContainer } from '@/lib/motion/variants';
 
 function Checkmark() {
   return (
@@ -14,6 +17,12 @@ function Checkmark() {
 
 export default function StackEvolutionTimeline() {
   const { t } = useTranslation();
+  const timelineRef = useRef<HTMLDivElement>(null);
+  const reduceMotion = useReducedMotion();
+  const { scrollYProgress } = useScroll({
+    target: timelineRef,
+    offset: ['start 0.8', 'end 0.5'],
+  });
 
   const milestones = [t.stackTimeline.month1, t.stackTimeline.month6, t.stackTimeline.year1];
 
@@ -45,26 +54,39 @@ export default function StackEvolutionTimeline() {
         </motion.div>
 
         {/* Timeline */}
-        <div className="relative">
-          {/* Connecting line (desktop) */}
-          <div className="hidden md:block absolute top-6 left-[16.66%] right-[16.66%] h-px bg-gradient-to-r from-accent/60 via-accent/30 to-accent/60" />
-          {/* Connecting line (mobile) */}
-          <div className="md:hidden absolute left-6 top-6 bottom-6 w-px bg-gradient-to-b from-accent/60 via-accent/30 to-accent/60" />
+        <div ref={timelineRef} className="relative">
+          {/* Connecting line (desktop) — fills with scroll progress */}
+          <div className="hidden md:block absolute top-6 left-[16.66%] right-[16.66%] h-px bg-white/10">
+            <motion.div
+              className="h-full origin-left bg-gradient-to-r from-accent via-accent/70 to-accent shadow-[0_0_12px_rgba(255,59,48,0.5)]"
+              style={{ scaleX: reduceMotion ? 1 : scrollYProgress }}
+            />
+          </div>
+          {/* Connecting line (mobile) — fills with scroll progress */}
+          <div className="md:hidden absolute left-6 top-6 bottom-6 w-px bg-white/10">
+            <motion.div
+              className="w-full origin-top bg-gradient-to-b from-accent via-accent/70 to-accent shadow-[0_0_12px_rgba(255,59,48,0.5)]"
+              style={{ scaleY: reduceMotion ? 1 : scrollYProgress }}
+            />
+          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-8">
-            {milestones.map((milestone, i) => (
+          <motion.div
+            variants={staggerContainer(0.15)}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, margin: '-50px' }}
+            className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-8"
+          >
+            {milestones.map((milestone) => (
               <motion.div
                 key={milestone.label}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-50px' }}
-                transition={{ duration: 0.5, delay: i * 0.15 }}
+                variants={cardReveal}
                 className="relative pl-16 md:pl-0"
               >
                 {/* Node dot */}
                 <div className="absolute left-[19px] md:left-1/2 top-6 md:-translate-x-1/2 w-2.5 h-2.5 rounded-full bg-accent shadow-[0_0_20px_rgba(255,59,48,0.6)]" />
 
-                <div className="bg-surface border border-surface-light rounded-2xl p-6 sm:p-8 md:mt-16 transition-all duration-500 hover:-translate-y-2 hover:border-accent/30 hover:shadow-[0_20px_60px_rgba(255,59,48,0.1)]">
+                <SpotlightCard className="p-6 sm:p-8 md:mt-16 h-full">
                   <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent mb-3">
                     {milestone.label}
                   </p>
@@ -85,10 +107,10 @@ export default function StackEvolutionTimeline() {
                   <p className="font-mono text-[11px] uppercase tracking-wider text-emerald-400 border-t border-white/10 pt-4">
                     {t.stackTimeline.recurringBill}
                   </p>
-                </div>
+                </SpotlightCard>
               </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
 
         {/* CTA */}

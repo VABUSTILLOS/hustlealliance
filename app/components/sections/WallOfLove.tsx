@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { useState } from 'react';
 import { useTranslation } from '@/lib/i18n/useTranslation';
-import { getInitialsAvatarUrl, DEFAULT_AVATAR } from '@/lib/utils/avatar';
+import { getInitialsAvatarUrl } from '@/lib/utils/avatar';
+import SpotlightCard from '../ui/SpotlightCard';
 
 interface Testimonial {
   id: string;
@@ -98,6 +99,56 @@ const item = {
   show: { opacity: 1, y: 0 },
 };
 
+function TestimonialCard({ tm, className }: { tm: Testimonial; className?: string }) {
+  return (
+    <SpotlightCard className={`p-5 sm:p-6 flex flex-col h-full ${className ?? ''}`}>
+      {/* Quote */}
+      <div className="flex-1">
+        <svg className="w-8 h-8 text-[var(--color-accent)]/30 mb-3" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10H14.017zM0 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151C7.546 6.068 5.983 8.789 5.983 11H10v10H0z" />
+        </svg>
+        <p className="text-[var(--color-foreground-muted)] text-sm leading-relaxed mb-4">
+          {tm.quote}
+        </p>
+      </div>
+
+      {/* Result badge */}
+      <div className="mb-4">
+        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono font-bold">
+          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+          {tm.result}
+        </span>
+      </div>
+
+      {/* Author */}
+      <div className="flex items-center gap-3 pt-4 border-t border-white/10">
+        <Image
+          src={tm.avatar}
+          alt={tm.name}
+          width={40}
+          height={40}
+          className="rounded-full border-2 border-white/10 object-cover shrink-0"
+        />
+        <div className="min-w-0">
+          <p className="font-heading font-bold text-[var(--color-foreground)] text-sm">
+            {tm.name}
+          </p>
+          <p className="text-[var(--color-foreground-dim)] text-xs truncate">
+            {tm.role}, {tm.company}
+          </p>
+        </div>
+        {tm.path && (
+          <span className="ml-auto shrink-0 px-2 py-0.5 rounded-full bg-[var(--color-accent)]/10 text-[var(--color-accent)] text-[10px] font-mono font-bold">
+            {tm.path}
+          </span>
+        )}
+      </div>
+    </SpotlightCard>
+  );
+}
+
 export default function WallOfLove() {
   const { t } = useTranslation();
   const [filter, setFilter] = useState<string>('all');
@@ -160,70 +211,36 @@ export default function WallOfLove() {
           </div>
         </motion.div>
 
-        {/* Testimonial grid */}
-        <motion.div
-          variants={container}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
-        >
-          <AnimatePresence mode="popLayout">
-            {filtered.map((tm) => (
-            <motion.div
-              key={tm.id}
-              variants={item}
-              className="group p-5 sm:p-6 rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border-subtle)]
-                hover:border-[var(--color-accent)]/20 hover:shadow-[0_0_30px_rgba(255,59,48,0.06)]
-                transition-all duration-300 flex flex-col"
-            >
-              {/* Quote */}
-              <div className="flex-1">
-                <svg className="w-8 h-8 text-[var(--color-accent)]/30 mb-3" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10H14.017zM0 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151C7.546 6.068 5.983 8.789 5.983 11H10v10H0z" />
-                </svg>
-                <p className="text-[var(--color-foreground-muted)] text-sm leading-relaxed mb-4">
-                  {tm.quote}
-                </p>
-              </div>
-
-              {/* Result badge */}
-              <div className="mb-4">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono font-bold">
-                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                  {tm.result}
-                </span>
-              </div>
-
-              {/* Author */}
-              <div className="flex items-center gap-3 pt-4 border-t border-[var(--color-border-subtle)]">
-                <Image
-                  src={tm.avatar}
-                  alt={tm.name}
-                  width={40}
-                  height={40}
-                  className="rounded-full border-2 border-white/10 object-cover shrink-0"
+        {/* Testimonials — marquee for "All", grid when filtered */}
+        {filter === 'all' ? (
+          <div className="marquee-mask marquee-hover-pause overflow-hidden">
+            <div className="flex gap-4 sm:gap-6 w-max animate-marquee">
+              {[...testimonials, ...testimonials].map((tm, idx) => (
+                <TestimonialCard
+                  key={`${tm.id}-${idx}`}
+                  tm={tm}
+                  className="w-[300px] sm:w-[360px] shrink-0"
                 />
-                <div className="min-w-0">
-                  <p className="font-heading font-bold text-[var(--color-foreground)] text-sm">
-                    {tm.name}
-                  </p>
-                  <p className="text-[var(--color-foreground-dim)] text-xs truncate">
-                    {tm.role}, {tm.company}
-                  </p>
-                </div>
-                {tm.path && (
-                  <span className="ml-auto shrink-0 px-2 py-0.5 rounded-full bg-[var(--color-accent)]/10 text-[var(--color-accent)] text-[10px] font-mono font-bold">
-                    {tm.path}
-                  </span>
-                )}
-              </div>
-            </motion.div>
-          ))}
-          </AnimatePresence>
-        </motion.div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <motion.div
+            variants={container}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
+          >
+            <AnimatePresence mode="popLayout">
+              {filtered.map((tm) => (
+                <motion.div key={tm.id} variants={item}>
+                  <TestimonialCard tm={tm} />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
+        )}
 
         {/* Bottom CTA */}
         <motion.div
