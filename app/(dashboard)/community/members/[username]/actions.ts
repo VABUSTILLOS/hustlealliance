@@ -1,10 +1,30 @@
 'use server';
 
 import prisma from '@/lib/db/prisma';
+import { getCurrentUser } from '@/lib/auth/user';
 import { revalidatePath } from 'next/cache';
 
-export async function toggleFollow(followerId: string, followedId: string) {
-  'use server';
+async function requireUserId(): Promise<string> {
+  const user = await getCurrentUser();
+  if (!user) throw new Error('Unauthorized');
+  return user.id;
+}
+
+async function requireOwnedList(listId: string, ownerId: string) {
+  const list = await prisma.memberList.findUnique({
+    where: { id: listId },
+    select: { ownerId: true },
+  });
+  if (!list) throw new Error('List not found');
+  if (list.ownerId !== ownerId) throw new Error('Forbidden');
+  return list;
+}
+
+export async function toggleFollow(followedId: string) {
+  const followerId = await requireUserId();
+
+  if (followedId === followerId) throw new Error('Cannot follow yourself');
+
   const existing = await prisma.follow.findUnique({
     where: { followerId_followedId: { followerId, followedId } },
   });
@@ -21,15 +41,15 @@ export async function toggleFollow(followerId: string, followedId: string) {
 }
 
 export async function addToList(
-  ownerId: string,
   memberId: string,
   listId: string,
   note?: string,
 ) {
-  'use server';
+  const ownerId = await requireUserId();
+  await requireOwnedList(listId, ownerId);
+
   const existing = await prisma.memberListItem.findUnique({
     where: { listId_memberId: { listId, memberId } },
-    include: { list: { select: { ownerId: true } } },
   });
 
   if (!existing) {
@@ -41,16 +61,16 @@ export async function addToList(
   revalidatePath('/community/members/[username]', 'layout');
 }
 
-export async function createList(ownerId: string, name: string): Promise<string> {
-  'use server';
+export async function createList(name: string): Promise<string> {
+  const ownerId = await requireUserId();
   const list = await prisma.memberList.create({
     data: { ownerId, name },
   });
   return list.id;
 }
 
-export async function getLists(ownerId: string) {
-  'use server';
+export async function getLists() {
+  const ownerId = await requireUserId();
   return prisma.memberList.findMany({
     where: { ownerId },
     orderBy: { createdAt: 'desc' },
@@ -59,7 +79,9 @@ export async function getLists(ownerId: string) {
 }
 
 export async function removeFromList(listId: string, memberId: string) {
-  'use server';
+  const ownerId = await requireUserId();
+  await requireOwnedList(listId, ownerId);
+
   await prisma.memberListItem.deleteMany({
     where: { listId, memberId },
   });

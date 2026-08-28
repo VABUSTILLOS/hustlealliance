@@ -8,7 +8,7 @@ interface CreatePostInput {
   content: string;
   space?: string;
   imageUrls?: string[];
-  visibility?: "PUBLIC" | "SPACES_ONLY" | "GROUP_ONLY";
+  visibility?: "PUBLIC" | "CONNECTIONS_ONLY" | "GROUP_ONLY";
 }
 
 export function useCreatePost() {

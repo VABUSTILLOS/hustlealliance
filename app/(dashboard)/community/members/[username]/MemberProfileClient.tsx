@@ -36,21 +36,21 @@ export function MemberProfileClient({
     if (!currentUserId) return;
     setFollowing(!following);
     setFollowerCount((c: number) => following ? c - 1 : c + 1);
-    await toggleFollow(currentUserId, profile.id);
+    await toggleFollow(profile.id);
     router.refresh();
   }, [currentUserId, following, profile.id, router]);
 
   const openListModal = useCallback(async () => {
     if (!currentUserId) return;
     setShowListModal(true);
-    const userLists = await getLists(currentUserId);
+    const userLists = await getLists();
     setLists(userLists);
   }, [currentUserId]);
 
   const handleAddToList = useCallback(async (listId: string) => {
     if (!currentUserId || loading) return;
     setLoading(true);
-    await addToList(currentUserId, profile.id, listId, listNote || undefined);
+    await addToList(profile.id, listId, listNote || undefined);
     setAddedMessage(`✓ ${t.community.addToListTitle}`);
     setTimeout(() => { setAddedMessage(''); setShowListModal(false); setListNote(''); }, 1500);
     setLoading(false);
@@ -59,8 +59,8 @@ export function MemberProfileClient({
   const handleCreateAndAdd = useCallback(async () => {
     if (!currentUserId || !newListName.trim() || loading) return;
     setLoading(true);
-    const listId = await createList(currentUserId, newListName.trim());
-    await addToList(currentUserId, profile.id, listId, listNote || undefined);
+    const listId = await createList(newListName.trim());
+    await addToList(profile.id, listId, listNote || undefined);
     setAddedMessage(`✓ ${t.community.createAndAdd}: "${newListName}"`);
     setTimeout(() => { setAddedMessage(''); setShowListModal(false); setNewListName(''); setListNote(''); }, 1500);
     setLoading(false);

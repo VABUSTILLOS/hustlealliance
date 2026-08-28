@@ -9,16 +9,18 @@ import { LazyMotionDiv, LazyAnimatePresence } from '@/lib/framer/lazy-motion';
 import { useCurrentUser } from '@/lib/hooks/useCurrentUser';
 import { spaces as allSpaces } from '@/lib/data/spaces';
 import { useTranslation } from '@/lib/i18n/useTranslation';
-import type { FeedPost } from '@/lib/data/community';
+import { useCreatePost } from './hooks/useCreatePost';
+import { useToast } from '@/app/components/ToastProvider';
 
 const MAX_CHARS = 500;
 const MENTION_MIN_LENGTH = 2;
 
 export function PostCreator() {
-  const addPost = useStore((s) => s.addPost);
   const joinedSpaces = useStore((s) => s.joinedSpaces);
   const user = useCurrentUser();
   const { t } = useTranslation();
+  const { addToast } = useToast();
+  const createPost = useCreatePost();
 
   const [newPostText, setNewPostText] = useState('');
   const [newPostSpace, setNewPostSpace] = useState('');
@@ -115,7 +117,7 @@ export function PostCreator() {
 
       if (!res.ok) {
         const data = await res.json();
-        alert(data.error || 'Upload failed');
+        addToast({ message: data.error || 'Upload failed', type: 'error' });
         return;
       }
 
@@ -131,24 +133,25 @@ export function PostCreator() {
     }
   };
 
-  const handlePost = () => {
-    if (!newPostText.trim() || isOverLimit) return;
-    const newPost: FeedPost = {
-      id: crypto.randomUUID(),
-      author: { username: user?.username ?? 'member', name: user?.name ?? 'Member', avatar: user?.avatar ?? DEFAULT_AVATAR },
-      text: newPostText,
-      image: previewImage || undefined,
-      timestamp: 'Just now',
-      likes: 0,
-      liked: false,
-      comments: [],
-      space: newPostSpace || undefined,
-    };
-    addPost(newPost);
-    setNewPostText('');
-    setPreviewImage(null);
-    setNewPostSpace('');
-    setVisibility('PUBLIC');
+  const handlePost = async () => {
+    const content = newPostText.trim();
+    if (!content || isOverLimit || createPost.isPending) return;
+
+    try {
+      await createPost.mutateAsync({
+        content,
+        space: newPostSpace || undefined,
+        imageUrls: previewImage ? [previewImage] : undefined,
+        visibility,
+      });
+      setNewPostText('');
+      setPreviewImage(null);
+      setNewPostSpace('');
+      setVisibility('PUBLIC');
+      addToast({ message: t.community.postSuccess, type: 'success' });
+    } catch (err) {
+      addToast({ message: err instanceof Error ? err.message : t.community.postFailed, type: 'error' });
+    }
   };
 
   return (
@@ -274,15 +277,15 @@ export function PostCreator() {
 
             <button
               onClick={handlePost}
-              disabled={!newPostText.trim() || isOverLimit}
+              disabled={!newPostText.trim() || isOverLimit || createPost.isPending}
               className={clsx(
                 'px-4 py-2 rounded-xl font-heading font-bold text-sm transition-all focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:outline-none',
-                newPostText.trim() && !isOverLimit
+                newPostText.trim() && !isOverLimit && !createPost.isPending
                   ? 'bg-accent text-white hover:bg-accent-glow'
                   : 'bg-surface-light text-muted cursor-not-allowed'
               )}
             >
-              {t.community.post}
+              {createPost.isPending ? t.community.posting : t.community.post}
             </button>
           </div>
         </div>
