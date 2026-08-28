@@ -2,6 +2,7 @@
 
 import { useState, Suspense, lazy } from 'react';
 import dynamic from 'next/dynamic';
+import clsx from 'clsx';
 import { useStore } from '@/lib/store/useStore';
 import { useCurrentUser } from '@/lib/hooks/useCurrentUser';
 import { LazyMotionDiv, LazyAnimatePresence } from '@/lib/framer/lazy-motion';
@@ -32,6 +33,7 @@ export function CommunityFeedClient({ initialData, trending, activeTab }: Commun
   const joinedSpaces = useStore((s) => s.joinedSpaces);
 
   const [sort, setSort] = useState<SortMode>('latest');
+  const [spaceFilter, setSpaceFilter] = useState<string | null>(null);
   const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
   // Optimistic like-state overrides keyed by post id. The server's isLiked flag
   // is authoritative; this only holds posts the user toggled since the last
@@ -48,7 +50,9 @@ export function CommunityFeedClient({ initialData, trending, activeTab }: Commun
 
   const communityFeed = useCommunityFeed({
     sort: sort === 'my-spaces' ? 'latest' : sort,
-    initialData: activeTab === 'spaces' ? { pages: [initialData], pageParams: [undefined] } : undefined,
+    space: spaceFilter ?? undefined,
+    // Server-rendered initialData is the unfiltered feed — only use it when no space filter is active.
+    initialData: activeTab === 'spaces' && !spaceFilter ? { pages: [initialData], pageParams: [undefined] } : undefined,
     enabled: activeTab === 'spaces',
   });
 
@@ -247,16 +251,25 @@ export function CommunityFeedClient({ initialData, trending, activeTab }: Commun
           <span className="font-mono text-[10px] uppercase tracking-widest text-muted shrink-0">
             {t.community.trending}
           </span>
-          {trending.map((topic) => (
-            <button
-              key={topic.space}
-              onClick={() => setSort('latest')}
-              className="shrink-0 px-3 py-1.5 rounded-full text-xs font-mono bg-surface-light text-foreground-muted hover:text-white hover:bg-accent/20 transition-colors border border-white/5 focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:outline-none"
-            >
-              {topic.space}
-              <span className="ml-1.5 text-muted">{topic.postCount}</span>
-            </button>
-          ))}
+          {trending.map((topic) => {
+            const isActive = spaceFilter === topic.space;
+            return (
+              <button
+                key={topic.space}
+                onClick={() => setSpaceFilter(isActive ? null : topic.space)}
+                aria-pressed={isActive}
+                className={clsx(
+                  'shrink-0 px-3 py-1.5 rounded-full text-xs font-mono transition-colors border focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:outline-none',
+                  isActive
+                    ? 'bg-accent/20 text-white border-accent/40'
+                    : 'bg-surface-light text-foreground-muted hover:text-white hover:bg-accent/20 border-white/5',
+                )}
+              >
+                {topic.space}
+                <span className="ml-1.5 text-muted">{topic.postCount}</span>
+              </button>
+            );
+          })}
         </div>
       )}
 

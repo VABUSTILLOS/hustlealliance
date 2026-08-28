@@ -105,6 +105,13 @@ enum PostVisibility {
   GROUP_ONLY
 }
 
+enum ReactionType {
+  LIKE
+  LOVE
+  FIRE
+  CLAP
+}
+
 enum FriendshipStatus {
   PENDING
   ACCEPTED
@@ -269,6 +276,9 @@ model User {
   // ── NEW: Post/comment likes ──
   postLikes          PostLike[]
   commentLikes       CommentLike[]
+  postBookmarks      PostBookmark[]
+  pollVotes          PollVote[]
+  communityGroupFiles CommunityGroupFile[]
 
   // ── NEW: Messages ──
   sentMessages       Message[]              @relation("MessageSender")
@@ -713,11 +723,13 @@ model CommunityPost {
   group      CommunityGroup? @relation(fields: [groupId], references: [id], onDelete: SetNull)
   createdAt  DateTime       @default(now())
 
-  author   User              @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  comments CommunityComment[]
-  likes    PostLike[]
-  shares   CommunityShare[]
-  reports  CommunityReport[]
+  author    User              @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments  CommunityComment[]
+  likes     PostLike[]
+  shares    CommunityShare[]
+  reports   CommunityReport[]
+  bookmarks PostBookmark[]
+  poll      Poll?
 
   @@index([authorId, createdAt])
   @@index([groupId, createdAt])
@@ -890,10 +902,11 @@ model BlockedUser {
 // ── Post Likes ─────────────────────────────────────────────────────────
 
 model PostLike {
-  id        String   @id @default(uuid())
+  id        String       @id @default(uuid())
   postId    String
   userId    String
-  createdAt DateTime @default(now())
+  type      ReactionType @default(LIKE)
+  createdAt DateTime     @default(now())
 
   post CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
   user User          @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -936,13 +949,71 @@ model CommunityReport {
   @@index([userId])
 }
 
+// ── Post Bookmarks ─────────────────────────────────────────────────────
+
+model PostBookmark {
+  id        String   @id @default(uuid())
+  postId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  post CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([userId, createdAt])
+}
+
+// ── Polls ───────────────────────────────────────────────────────────────
+
+model Poll {
+  id        String    @id @default(uuid())
+  postId    String    @unique
+  question  String
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+
+  post    CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  options PollOption[]
+  votes   PollVote[]
+}
+
+model PollOption {
+  id     String @id @default(uuid())
+  pollId String
+  text   String
+  order  Int    @default(0)
+
+  poll  Poll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  votes PollVote[]
+
+  @@index([pollId])
+}
+
+model PollVote {
+  id        String   @id @default(uuid())
+  pollId    String
+  optionId  String
+  userId    String
+  createdAt DateTime @default(now())
+
+  poll   Poll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  option PollOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  user   User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([pollId, userId])
+  @@index([optionId])
+  @@index([userId])
+}
+
 // ── Comment Likes ──────────────────────────────────────────────────────
 
 model CommentLike {
-  id        String   @id @default(uuid())
+  id        String       @id @default(uuid())
   commentId String
   userId    String
-  createdAt DateTime @default(now())
+  type      ReactionType @default(LIKE)
+  createdAt DateTime     @default(now())
 
   comment CommunityComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
   user    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -1048,6 +1119,7 @@ model CommunityGroup {
   groupPosts CommunityGroupPost[]
   posts    CommunityPost[]
   events   Event[]
+  files    CommunityGroupFile[]
 
   @@index([slug])
   @@index([visibility, memberCount])
@@ -1100,6 +1172,24 @@ model CommunityGroupComment {
   author User               @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
   @@index([postId, createdAt])
+}
+
+// ── Group Files ────────────────────────────────────────────────────────
+
+model CommunityGroupFile {
+  id         String   @id @default(uuid())
+  groupId    String
+  uploaderId String
+  fileName   String
+  fileUrl    String
+  fileSize   Int
+  mimeType   String
+  createdAt  DateTime @default(now())
+
+  group    CommunityGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  uploader User           @relation(fields: [uploaderId], references: [id], onDelete: Cascade)
+
+  @@index([groupId, createdAt])
 }
 
 // ── Events ──────────────────────────────────────────────────────────────

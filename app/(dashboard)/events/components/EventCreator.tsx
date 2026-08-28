@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { useCreateEvent } from "./hooks/useEvents";
 import type { EventType } from "@/lib/generated/prisma/client";
@@ -16,6 +16,8 @@ function slugify(str: string) {
 export default function EventCreator() {
   const { t } = useTranslation();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const groupId = searchParams.get("groupId") ?? undefined;
   const createMutation = useCreateEvent();
 
   const [title, setTitle] = useState("");
@@ -64,6 +66,7 @@ export default function EventCreator() {
         endDate: endDt?.toISOString(),
         coverImage: coverImage || undefined,
         maxAttendees: maxAttendees ? parseInt(maxAttendees) : undefined,
+        groupId,
       });
       router.push(`/events/${event.slug}`);
     } catch (err) {

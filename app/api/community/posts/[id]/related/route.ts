@@ -18,6 +18,15 @@ export async function GET(
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
+    // Posts without a space have no meaningful "related" set
+    if (!post.space) {
+      return NextResponse.json([], {
+        headers: {
+          "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+        },
+      });
+    }
+
     // Fetch related posts from the same space, excluding current post
     const related = await prisma.communityPost.findMany({
       where: {

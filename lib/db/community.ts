@@ -74,8 +74,9 @@ export const getCommunityPosts = cache(
       ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
       orderBy:
         sort === 'popular'
-          ? { comments: { _count: 'desc' } }
-          : { createdAt: 'desc' },
+          ? // Tiebreakers keep cursor pagination stable when comment counts tie
+            [{ comments: { _count: 'desc' } }, { createdAt: 'desc' }, { id: 'desc' }]
+          : [{ createdAt: 'desc' }, { id: 'desc' }],
       include: {
         author: {
           select: { id: true, name: true, username: true, avatar: true },
@@ -110,7 +111,7 @@ export const getCommunityPosts = cache(
       commentCount: post._count.comments,
       likeCount: post._count.likes,
       shareCount: post._count.shares,
-      isLiked: (post as { likes?: { id: string }[] }).likes?.length ? true : undefined,
+      isLiked: ((post as { likes?: { id: string }[] }).likes?.length ?? 0) > 0,
       isPinned: post.isPinned,
       isEdited: post.isEdited,
       imageUrls: post.imageUrls,

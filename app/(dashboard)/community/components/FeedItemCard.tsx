@@ -34,12 +34,18 @@ export const FeedItemCard = memo(function FeedItemCard({ item }: { item: FeedIte
       <span className="text-xl shrink-0 mt-0.5">{icon}</span>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5 flex-wrap">
-          <Link
-            href={`/profile/${actorUsername ?? item.actorId}`}
-            className="font-semibold text-white text-sm hover:text-accent transition-colors truncate max-w-[160px]"
-          >
-            {actorName}
-          </Link>
+          {actorUsername ? (
+            <Link
+              href={`/profile/${actorUsername}`}
+              className="font-semibold text-white text-sm hover:text-accent transition-colors truncate max-w-[160px]"
+            >
+              {actorName}
+            </Link>
+          ) : (
+            <span className="font-semibold text-white text-sm truncate max-w-[160px]">
+              {actorName}
+            </span>
+          )}
           <span className="text-foreground-muted text-sm">{message}</span>
           <span className="text-muted text-xs">· {timeAgo}</span>
         </div>

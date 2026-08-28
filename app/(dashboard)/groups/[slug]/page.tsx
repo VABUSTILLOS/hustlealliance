@@ -7,6 +7,7 @@ import { useGroup, useGroupMembers, useGroupFeed, useJoinGroup, useLeaveGroup } 
 import { GroupHeader } from '../components/GroupHeader';
 import { GroupTabs } from '../components/GroupTabs';
 import { MemberList } from '../components/MemberList';
+import { GroupEventsTab } from '../components/GroupEventsTab';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { getInitialsAvatarUrl, DEFAULT_AVATAR } from '@/lib/utils/avatar';
 import Image from 'next/image';
@@ -203,17 +204,12 @@ export default function GroupDetailPage({
         </motion.div>
       )}
 
-      {/* Events tab (placeholder) */}
+      {/* Events tab */}
       {activeTab === 'events' && (
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center py-16"
-        >
-          <div className="text-5xl mb-3">📅</div>
-          <h2 className="font-display text-xl text-foreground uppercase mb-2">Coming Soon</h2>
-          <p className="text-muted text-sm">Group events will be available in a future update.</p>
-        </motion.div>
+        <GroupEventsTab
+          groupId={group.id}
+          isMember={group.currentUserMember ?? false}
+        />
       )}
     </div>
   );

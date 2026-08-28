@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const user = await getCurrentUser();
-    const data = await getCommunityPosts({ sort, cursor, limit, space, currentUserId: user.id });
+    const data = await getCommunityPosts({ sort, cursor, limit, space, currentUserId: user?.id });
     return NextResponse.json(data, {
       headers: {
         // Response is user-specific (isLiked depends on the requesting user) — never cache publicly.

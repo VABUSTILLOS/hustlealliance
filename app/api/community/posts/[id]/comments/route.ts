@@ -50,6 +50,14 @@ export async function POST(
       return NextResponse.json({ error: "Content required" }, { status: 400 });
     }
 
+    const post = await prisma.communityPost.findFirst({
+      where: { id: postId, isDeleted: false },
+      select: { authorId: true, author: { select: { email: true } } },
+    });
+    if (!post) {
+      return NextResponse.json({ error: "Post not found" }, { status: 404 });
+    }
+
     const comment = await prisma.communityComment.create({
       data: {
         content: content.trim(),
@@ -63,11 +71,7 @@ export async function POST(
     });
 
     // Fire-and-forget: notify post author
-    const post = await prisma.communityPost.findUnique({
-      where: { id: postId },
-      select: { authorId: true, author: { select: { email: true } } },
-    });
-    if (post && post.authorId !== user.id) {
+    if (post.authorId !== user.id) {
       notifyCommentAdded(
         post.authorId,
         post.author.email,

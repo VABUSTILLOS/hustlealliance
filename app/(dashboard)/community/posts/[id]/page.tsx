@@ -5,10 +5,9 @@ import { getPostDetailCached } from '@/lib/db/community';
 import { getInitialsAvatarUrl } from '@/lib/utils/avatar';
 import { getCommentsForPost } from '@/lib/db/community';
 import { getCurrentUser } from '@/lib/auth/user';
-import { PostCard } from '../../components/PostCard';
+import prisma from '@/lib/db/prisma';
+import { PostDetailPost } from './PostDetailPost';
 import { CommunityHeader } from '../../CommunityHeader';
-
-export const revalidate = 60;
 
 interface PostDetailPageProps {
   params: Promise<{ id: string }>;
@@ -19,9 +18,15 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
   const user = await getCurrentUser();
   const communityT = translations.en.community;
 
-  const [post, comments] = await Promise.all([
+  const [post, comments, like] = await Promise.all([
     getPostDetailCached(id),
     getCommentsForPost(id),
+    user
+      ? prisma.postLike.findUnique({
+          where: { postId_userId: { postId: id, userId: user.id } },
+          select: { id: true },
+        })
+      : Promise.resolve(null),
   ]);
 
   if (!post) {
@@ -79,11 +84,11 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
         </Link>
       </div>
 
-      <PostCard
+      <PostDetailPost
         post={mappedPost}
         currentUserId={user?.id}
         currentUserRole={user?.role}
-        commentsOpen={true}
+        initialIsLiked={!!like}
         commentChildren={
           <div className="mt-4 pt-4 border-t border-surface-light space-y-3">
             {comments.length === 0 ? (

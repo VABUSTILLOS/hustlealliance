@@ -254,7 +254,9 @@ export function PostCard({
         <div className="flex-1 min-w-0">
           <p className="font-heading font-bold text-foreground text-sm">{post.author.name}</p>
           <div className="flex items-center gap-2">
-            <p className="font-mono text-[10px] text-muted">@{post.author.username}</p>
+            {post.author.username && (
+              <p className="font-mono text-[10px] text-muted">@{post.author.username}</p>
+            )}
             <span className="text-muted text-[10px]">·</span>
             <p className="font-mono text-[10px] text-muted">{timeAgo(post.createdAt)}</p>
             {post.isEdited && (

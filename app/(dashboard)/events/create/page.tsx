@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import EventCreator from "../components/EventCreator";
@@ -28,7 +29,9 @@ export default function CreateEventPage() {
         {t.events?.createSubtitle ?? "Host a new event for the community"}
       </p>
 
-      <EventCreator />
+      <Suspense fallback={null}>
+        <EventCreator />
+      </Suspense>
     </div>
   );
 }
