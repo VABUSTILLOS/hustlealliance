@@ -7,7 +7,15 @@
 # (already represented in the db-push schema), then deploy the rest.
 set -uo pipefail
 
-OUT=$(npx prisma migrate deploy 2>&1) && { echo "$OUT"; exit 0; }
+# Diagnostics: show the DB target (credentials redacted) so build hangs are debuggable.
+echo "migrate-deploy: DATABASE_URL=$(node -e 'try{const u=new URL(process.env.DATABASE_URL||"");console.log(u.protocol+"//"+u.hostname+":"+(u.port||"5432"))}catch{console.log("UNSET-OR-INVALID")}')"
+
+OUT=$(timeout 180 npx prisma migrate deploy 2>&1) && { echo "$OUT"; exit 0; }
+RC=$?
+if [ $RC -eq 124 ]; then
+  echo "migrate deploy timed out after 180s — database unreachable from build machine." >&2
+  exit 1
+fi
 echo "$OUT"
 
 if ! grep -q "P3005" <<<"$OUT"; then
@@ -24,4 +32,9 @@ for m in $(ls -1 prisma/migrations | grep -E '^[0-9]' | sort); do
   npx prisma migrate resolve --applied "$m"
 done
 
-npx prisma migrate deploy
+timeout 180 npx prisma migrate deploy
+RC=$?
+if [ $RC -eq 124 ]; then
+  echo "migrate deploy timed out after 180s — database unreachable from build machine." >&2
+  exit 1
+fi
