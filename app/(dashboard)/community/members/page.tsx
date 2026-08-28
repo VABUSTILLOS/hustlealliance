@@ -22,10 +22,11 @@ export default async function MembersPage({
   const role = VALID_ROLES.includes(sp.role as any) ? (sp.role as GetCommunityMembersOpts['role']) : undefined;
   const tier = VALID_TIERS.includes(sp.tier as any) ? (sp.tier as GetCommunityMembersOpts['tier']) : undefined;
   const search = sp.search || undefined;
+  const online = sp.online === '1';
 
   let result: GetCommunityMembersResult = { items: [], total: 0, hasMore: false, nextCursor: null };
   try {
-    result = await getCommunityMembers({ sort, role, tier, search, limit: 36 });
+    result = await getCommunityMembers({ sort, role, tier, search, limit: 36, online });
   } catch (err) {
     console.error('[community] Failed to load members:', (err as Error).message);
   }
@@ -38,12 +39,13 @@ export default async function MembersPage({
         initialRole={role}
         initialTier={tier}
         initialSearch={search}
+        initialOnline={online}
       />
       <MembersGrid
         members={result.items}
         initialHasMore={result.hasMore}
         initialCursor={result.nextCursor}
-        filters={{ sort, role, tier, search }}
+        filters={{ sort, role, tier, search, online: online ? '1' : undefined }}
       />
     </div>
   );

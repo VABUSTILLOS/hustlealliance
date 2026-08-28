@@ -28,9 +28,10 @@ export async function GET(req: NextRequest) {
   const search = searchParams.get("search") || undefined;
   const cursor = searchParams.get("cursor") ?? undefined;
   const limit = Math.min(parseInt(searchParams.get("limit") ?? "36") || 36, 100);
+  const online = searchParams.get("online") === "1";
 
   try {
-    const result = await getCommunityMembers({ sort, role, tier, search, cursor, limit });
+    const result = await getCommunityMembers({ sort, role, tier, search, cursor, limit, online });
     return NextResponse.json(result);
   } catch (err) {
     console.error("[api/community/members] Error:", (err as Error).message);

@@ -9,6 +9,7 @@ interface MembersFiltersProps {
   initialRole?: string;
   initialTier?: string;
   initialSearch?: string;
+  initialOnline?: boolean;
 }
 
 export function MembersFilters({
@@ -16,6 +17,7 @@ export function MembersFilters({
   initialRole,
   initialTier,
   initialSearch,
+  initialOnline,
 }: MembersFiltersProps) {
   const { t } = useTranslation();
   const router = useRouter();
@@ -111,6 +113,19 @@ export function MembersFilters({
           </option>
         ))}
       </select>
+
+      <button
+        type="button"
+        onClick={() => updateParams({ online: initialOnline ? '' : '1' })}
+        aria-pressed={!!initialOnline}
+        className={`px-4 py-2 rounded-xl border text-sm font-mono transition-colors cursor-pointer ${
+          initialOnline
+            ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300'
+            : 'bg-surface border-white/5 text-muted hover:text-white'
+        }`}
+      >
+        ● Online
+      </button>
     </div>
   );
 }

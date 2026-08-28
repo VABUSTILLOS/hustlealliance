@@ -444,6 +444,7 @@ export interface GetCommunityMembersOpts {
   search?: string;
   cursor?: string;
   limit?: number;
+  online?: boolean;
 }
 
 export interface GetCommunityMembersResult {
@@ -455,10 +456,11 @@ export interface GetCommunityMembersResult {
 
 export const getCommunityMembers = cache(
   async (opts: GetCommunityMembersOpts = {}): Promise<GetCommunityMembersResult> => {
-    const { sort = 'activity', role, tier, search, cursor, limit = 24 } = opts;
+    const { sort = 'activity', role, tier, search, cursor, limit = 24, online } = opts;
     const take = limit + 1;
 
     const where: Record<string, unknown> = {};
+    if (online) where.lastSeenAt = { gte: new Date(Date.now() - 10 * 60 * 1000) };
     if (role) where.role = role.toUpperCase();
     if (tier) where.membershipTier = tier.toUpperCase();
     if (search) {
