@@ -15,6 +15,13 @@ async function getMembership(groupId: string, userId: string) {
   });
 }
 
+// Public URLs look like `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${path}`
+function storagePathFromUrl(fileUrl: string): string | null {
+  const marker = `/object/public/${BUCKET}/`;
+  const idx = fileUrl.indexOf(marker);
+  return idx === -1 ? null : fileUrl.slice(idx + marker.length);
+}
+
 // GET /api/groups/[id]/files — list group files (members only for non-public groups)
 export async function GET(
   req: NextRequest,
@@ -23,6 +30,7 @@ export async function GET(
   try {
     const { id: groupId } = await params;
     const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const group = await prisma.communityGroup.findUnique({
       where: { id: groupId },
@@ -71,6 +79,7 @@ export async function POST(
   try {
     const { id: groupId } = await params;
     const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const membership = await getMembership(groupId, user.id);
     if (!membership || membership.status !== 'ACTIVE') {
@@ -136,12 +145,13 @@ export async function DELETE(
   try {
     const { id: groupId } = await params;
     const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const fileId = new URL(req.url).searchParams.get('fileId');
     if (!fileId) return NextResponse.json({ error: "fileId is required" }, { status: 400 });
 
     const file = await prisma.communityGroupFile.findUnique({
       where: { id: fileId },
-      select: { id: true, groupId: true, uploaderId: true },
+      select: { id: true, groupId: true, uploaderId: true, fileUrl: true },
     });
     if (!file || file.groupId !== groupId) {
       return NextResponse.json({ error: "File not found" }, { status: 404 });
@@ -156,6 +166,14 @@ export async function DELETE(
     if (!canDelete) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     await prisma.communityGroupFile.delete({ where: { id: fileId } });
+
+    const storagePath = storagePathFromUrl(file.fileUrl);
+    if (storagePath) {
+      const supabase = createSupabaseAdmin(SUPABASE_URL, SUPABASE_ANON_KEY);
+      const { error: removeError } = await supabase.storage.from(BUCKET).remove([storagePath]);
+      if (removeError) console.error('[GroupFiles] Storage remove error:', removeError);
+    }
+
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error('[DELETE /api/groups/[id]/files]', err);

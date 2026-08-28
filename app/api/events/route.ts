@@ -1,7 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { listEvents, createEvent } from "@/lib/db/events";
 import { getCurrentUser } from "@/lib/auth/user";
+import prisma from "@/lib/db/prisma";
 import type { EventType, EventStatus } from "@/lib/generated/prisma/client";
+
+async function isActiveGroupMember(groupId: string, userId: string) {
+  const membership = await prisma.communityGroupMember.findUnique({
+    where: { groupId_userId: { groupId, userId } },
+    select: { status: true },
+  });
+  return membership?.status === "ACTIVE";
+}
 
 // GET /api/events
 export async function GET(req: NextRequest) {
@@ -16,6 +25,20 @@ export async function GET(req: NextRequest) {
   const limit = parseInt(searchParams.get("limit") ?? "20");
 
   try {
+    if (groupId) {
+      const group = await prisma.communityGroup.findUnique({
+        where: { id: groupId },
+        select: { visibility: true },
+      });
+      if (!group) return NextResponse.json({ error: "Group not found" }, { status: 404 });
+      if (group.visibility !== "PUBLIC") {
+        const user = await getCurrentUser();
+        if (!user || !(await isActiveGroupMember(groupId, user.id))) {
+          return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
+      }
+    }
+
     const result = await listEvents({
       groupId,
       status,
@@ -39,6 +62,12 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
+    if (body.groupId && !(await isActiveGroupMember(body.groupId, user.id))) {
+      return NextResponse.json(
+        { error: "Only group members can create group events" },
+        { status: 403 },
+      );
+    }
     const event = await createEvent({
       ...body,
       startDate: new Date(body.startDate),

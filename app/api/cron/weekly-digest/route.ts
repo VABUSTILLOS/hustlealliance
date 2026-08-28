@@ -3,6 +3,10 @@ import prisma from '@/lib/db/prisma';
 import { sendEmail } from '@/lib/email/resend';
 import { weeklyDigestEmail, type DigestPost } from '@/lib/email/templates';
 
+// Sending digests to hundreds of users takes longer than the default
+// serverless timeout — allow up to 5 minutes.
+export const maxDuration = 300;
+
 // GET /api/cron/weekly-digest
 // Called by Vercel Cron weekly to send each opted-in user a summary of the
 // week's top community posts plus their unread notification count.
@@ -63,17 +67,26 @@ export async function GET(request: NextRequest) {
       take: 500,
     });
 
+    // All unread counts in one query instead of one per user
+    const unreadByUser = new Map<string, number>(
+      (
+        await prisma.notification.groupBy({
+          by: ['userId'],
+          where: { userId: { in: users.map((u) => u.id) }, read: false },
+          _count: { _all: true },
+        })
+      ).map((r) => [r.userId, r._count._all]),
+    );
+
     let digestsSent = 0;
 
-    for (const user of users) {
-      if (!user.email) continue;
+    const sendToUser = async (user: (typeof users)[number]) => {
+      if (!user.email) return;
       try {
-        const unreadCount = await prisma.notification.count({
-          where: { userId: user.id, read: false },
-        });
+        const unreadCount = unreadByUser.get(user.id) ?? 0;
 
         // Skip users with nothing new and no community activity to report
-        if (unreadCount === 0 && topPosts.length === 0) continue;
+        if (unreadCount === 0 && topPosts.length === 0) return;
 
         const { subject, html } = weeklyDigestEmail(
           user.name || 'Hustler',
@@ -85,6 +98,12 @@ export async function GET(request: NextRequest) {
       } catch (err) {
         console.error(`[CRON] Weekly digest failed for user ${user.id}:`, err);
       }
+    };
+
+    // Bounded concurrency to stay within the function timeout
+    const CHUNK = 10;
+    for (let i = 0; i < users.length; i += CHUNK) {
+      await Promise.all(users.slice(i, i + CHUNK).map(sendToUser));
     }
 
     return NextResponse.json({

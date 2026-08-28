@@ -14,6 +14,9 @@ export const REACTIONS: { type: ReactionTypeKey; emoji: string; label: string }[
 
 const EMOJI_BY_TYPE = Object.fromEntries(REACTIONS.map((r) => [r.type, r.emoji])) as Record<ReactionTypeKey, string>;
 
+// Stable default so the prop-sync comparison doesn't retrigger every render
+const EMPTY_COUNTS: Record<string, number> = {};
+
 interface ReactionButtonProps {
   /** Full like endpoint, e.g. /api/community/posts/{id}/like */
   endpoint: string;
@@ -32,7 +35,7 @@ export function ReactionButton({
   endpoint,
   initialCount,
   initialMyReaction = null,
-  initialCounts = {},
+  initialCounts = EMPTY_COUNTS,
   size = 'md',
 }: ReactionButtonProps) {
   const [myReaction, setMyReaction] = useState<ReactionTypeKey | null>(
@@ -46,12 +49,19 @@ export function ReactionButton({
   const didLongPress = useRef(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Sync when parent data changes (e.g. feed refetch)
-  useEffect(() => {
+  // Sync when parent data changes (e.g. feed refetch) — render-time adjustment
+  // pattern instead of an effect (react-hooks/set-state-in-effect)
+  const [prevSync, setPrevSync] = useState({ initialCount, initialMyReaction, initialCounts });
+  if (
+    prevSync.initialCount !== initialCount ||
+    prevSync.initialMyReaction !== initialMyReaction ||
+    prevSync.initialCounts !== initialCounts
+  ) {
+    setPrevSync({ initialCount, initialMyReaction, initialCounts });
     setMyReaction((initialMyReaction as ReactionTypeKey | null) ?? null);
     setTotal(initialCount);
     setCounts(initialCounts);
-  }, [initialCount, initialMyReaction, initialCounts]);
+  }
 
   useEffect(() => {
     if (!pickerOpen) return;
@@ -92,21 +102,24 @@ export function ReactionButton({
         : await fetch(endpoint, { method: 'DELETE' });
       if (!res.ok) throw new Error();
     } catch {
-      // Rollback
-      applyOptimisticRollback(prev);
+      // Rollback: undo the optimistic application of `next`, restore `prev`
+      applyOptimisticRollback(next, prev);
     }
   };
 
-  const applyOptimisticRollback = (restore: ReactionTypeKey | null) => {
+  const applyOptimisticRollback = (
+    applied: ReactionTypeKey | null,
+    restore: ReactionTypeKey | null,
+  ) => {
     setCounts((prev) => {
       const c = { ...prev };
-      if (myReaction) c[myReaction] = Math.max(0, (c[myReaction] ?? 0) - 1);
+      if (applied) c[applied] = Math.max(0, (c[applied] ?? 0) - 1);
       if (restore) c[restore] = (c[restore] ?? 0) + 1;
       return c;
     });
     setTotal((prev) => {
-      if (myReaction && !restore) return prev - 1;
-      if (!myReaction && restore) return prev + 1;
+      if (applied && !restore) return prev - 1;
+      if (!applied && restore) return prev + 1;
       return prev;
     });
     setMyReaction(restore);

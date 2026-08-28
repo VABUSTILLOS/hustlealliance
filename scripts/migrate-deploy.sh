@@ -16,9 +16,11 @@ if ! grep -q "P3005" <<<"$OUT"; then
 fi
 
 echo "No migration history found — baselining existing migrations..."
-NEWEST=$(ls -1 prisma/migrations | grep -E '^[0-9]' | sort | tail -n 1)
+# Everything older than this cutoff is assumed to already be represented in
+# the db-push-created schema; migrations from the cutoff onward actually run.
+CUTOFF="20260828000000_community_engagement"
 for m in $(ls -1 prisma/migrations | grep -E '^[0-9]' | sort); do
-  if [ "$m" = "$NEWEST" ]; then continue; fi
+  if [[ ! "$m" < "$CUTOFF" ]]; then continue; fi
   npx prisma migrate resolve --applied "$m"
 done
 

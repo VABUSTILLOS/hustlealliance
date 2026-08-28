@@ -163,11 +163,11 @@ async function processStoreCheckout(session: StripeCheckoutSession, userId: stri
     const product = productMap.get(productId);
     if (!product) continue;
 
-    await fulfillProduct(product, userId);
+    await fulfillProduct(product, userId, order.id);
 
     if (product.type === 'BUNDLE' && product.bundleItems.length > 0) {
       for (const bundleItem of product.bundleItems) {
-        await fulfillProduct(bundleItem.product, userId);
+        await fulfillProduct(bundleItem.product, userId, order.id);
       }
     }
 
@@ -205,8 +205,22 @@ async function processStoreCheckout(session: StripeCheckoutSession, userId: stri
 }
 
 // Grants an Entitlement/Enrollment for COURSE products (linked via metadata.courseId),
+// creates a ChallengeEnrollment for CHALLENGE products (linked via Challenge.productId),
 // and marks other product types simply fulfilled (StoreOrderItem already records the purchase).
-async function fulfillProduct(product: { id: string; type: string; metadata: unknown; price: number }, userId: string) {
+async function fulfillProduct(
+  product: { id: string; type: string; metadata: unknown; price: number },
+  userId: string,
+  orderId?: string,
+) {
+  if (product.type === 'CHALLENGE') {
+    if (!orderId) return;
+    const challenge = await prisma.challenge.findUnique({ where: { productId: product.id } });
+    if (!challenge) return;
+    const { enrollFromPaidOrder } = await import('@/lib/db/challenges');
+    await enrollFromPaidOrder({ challengeId: challenge.id, userId, storeOrderId: orderId });
+    return;
+  }
+
   if (product.type !== 'COURSE') return;
   const meta = (product.metadata as Record<string, unknown> | null) ?? {};
   const courseId = typeof meta.courseId === 'string' ? meta.courseId : undefined;

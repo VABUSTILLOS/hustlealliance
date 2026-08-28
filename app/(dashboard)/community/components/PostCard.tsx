@@ -26,6 +26,9 @@ function detectPostType(content: string): PostType {
   return 'default';
 }
 
+// Stable empty object so ReactionButton's prop-sync doesn't retrigger every render
+const EMPTY_REACTION_COUNTS: Record<string, number> = {};
+
 const POST_TYPE_STYLES: Record<PostType, string> = {
   milestone: 'border-l-2 border-l-accent bg-gradient-to-r from-accent/5 to-transparent',
   question: 'border-l-2 border-l-amber-500/50',
@@ -329,7 +332,7 @@ export function PostCard({
           endpoint={`/api/community/posts/${post.id}/like`}
           initialCount={post.likeCount}
           initialMyReaction={post.myReaction ?? (isLiked ? 'LIKE' : null)}
-          initialCounts={post.reactionCounts ?? {}}
+          initialCounts={post.reactionCounts ?? EMPTY_REACTION_COUNTS}
         />
 
         <button

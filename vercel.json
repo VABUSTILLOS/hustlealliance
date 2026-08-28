@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npx prisma generate && next build",
+  "buildCommand": "bash scripts/migrate-deploy.sh && npx prisma generate && next build",
   "headers": [
     {
       "source": "/(.*)",
@@ -44,6 +44,10 @@
     {
       "path": "/api/cron/automations",
       "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/cron/broadcasts",
+      "schedule": "*/5 * * * *"
     }
   ]
 }

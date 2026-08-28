@@ -89,6 +89,11 @@ enum NotificationType {
   EVENT_REMINDER
   NEW_MESSAGE
   JOB_APPLICATION_UPDATE
+  // ── NAS.IO-inspired features ──
+  BROADCAST
+  CHALLENGE_REMINDER
+  CHALLENGE_COMPLETED
+  WELCOME
 }
 
 enum DripScheduleType {
@@ -202,6 +207,7 @@ enum ProductType {
   MEMBERSHIP
   BUNDLE
   COACHING
+  CHALLENGE
 }
 
 enum DiscountType {
@@ -270,6 +276,37 @@ enum FeedItemType {
   BADGE_EARNED
   JOB_POSTED
   PRODUCT_LISTED
+  CHALLENGE_CREATED
+  CHALLENGE_COMPLETED
+  BROADCAST
+}
+
+enum ChallengeStatus {
+  DRAFT
+  UPCOMING
+  ACTIVE
+  ENDED
+  CANCELLED
+}
+
+enum BroadcastStatus {
+  DRAFT
+  SCHEDULED
+  SENDING
+  SENT
+  FAILED
+}
+
+enum BroadcastChannel {
+  EMAIL
+  IN_APP
+  FEED
+}
+
+enum OnboardingQuestionType {
+  TEXT
+  SELECT
+  MULTI_SELECT
 }
 
 model User {
@@ -383,6 +420,13 @@ model User {
   campaignRecipients CampaignRecipient[]
   automationRuns     AutomationRun[]
   aiGenerations      AiGeneration[]
+
+  // ── NAS.IO-inspired features ──
+  onboardedAt          DateTime?
+  challengesCreated    Challenge[]            @relation("ChallengeCreator")
+  challengeEnrollments ChallengeEnrollment[]
+  onboardingAnswers    OnboardingAnswer[]
+  broadcastsCreated    Broadcast[]            @relation("BroadcastCreator")
 }
 
 model Category {
@@ -1390,6 +1434,7 @@ model Product {
   bundleItems       BundleItem[] @relation("BundleParent")
   includedInBundles BundleItem[] @relation("BundleChild")
   coupons           Coupon[]
+  challenge         Challenge?
 
   @@index([type, isPublished])
   @@index([slug])
@@ -1409,6 +1454,7 @@ model StoreOrder {
   user  User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   items StoreOrderItem[]
   couponRedemptions CouponRedemption[]
+  challengeEnrollments ChallengeEnrollment[]
 
   @@index([userId, createdAt])
   @@index([stripePaymentIntentId])
@@ -1665,4 +1711,134 @@ model AiGeneration {
   user User @relation(fields: [createdBy], references: [id], onDelete: Cascade)
 
   @@index([kind, createdAt])
+}
+
+// ── NAS.IO-inspired features ─────────────────────────────────────────────
+
+model Challenge {
+  id              String          @id @default(uuid())
+  title           String
+  slug            String          @unique
+  description     String?
+  coverImage      String?
+  status          ChallengeStatus @default(DRAFT)
+  startDate       DateTime
+  endDate         DateTime
+  price           Float           @default(0) // 0 = free
+  currency        String          @default("USD")
+  maxParticipants Int?
+  productId       String?         @unique // linked Product (type CHALLENGE) for paid challenges
+  creatorId       String
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  creator     User                  @relation("ChallengeCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  product     Product?              @relation(fields: [productId], references: [id], onDelete: SetNull)
+  tasks       ChallengeTask[]
+  enrollments ChallengeEnrollment[]
+
+  @@index([status, startDate])
+  @@index([slug])
+}
+
+model ChallengeTask {
+  id          String   @id @default(uuid())
+  challengeId String
+  dayNumber   Int
+  title       String
+  description String?
+  sortOrder   Int      @default(0)
+
+  challenge  Challenge                  @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  completions ChallengeTaskCompletion[]
+
+  @@unique([challengeId, dayNumber])
+  @@index([challengeId, sortOrder])
+}
+
+model ChallengeEnrollment {
+  id           String    @id @default(uuid())
+  challengeId  String
+  userId       String
+  storeOrderId String? // set for paid challenges once the StoreOrder is PAID
+  joinedAt     DateTime  @default(now())
+  completedAt  DateTime?
+
+  challenge  Challenge                @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  user       User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  storeOrder StoreOrder?              @relation(fields: [storeOrderId], references: [id], onDelete: SetNull)
+  completions ChallengeTaskCompletion[]
+
+  @@unique([challengeId, userId])
+  @@index([userId])
+}
+
+model ChallengeTaskCompletion {
+  id           String   @id @default(uuid())
+  enrollmentId String
+  taskId       String
+  proofText    String?
+  completedAt  DateTime @default(now())
+
+  enrollment ChallengeEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  task       ChallengeTask       @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@unique([enrollmentId, taskId])
+}
+
+model Broadcast {
+  id            String             @id @default(uuid())
+  name          String
+  subject       String
+  body          String // HTML for email channel, markdown-ish for in-app/feed
+  channels      BroadcastChannel[]
+  segmentFilter Json? // { tiers, roles, purchasedProductIds, enrolledCourseIds, lastActiveDays }
+  status        BroadcastStatus    @default(DRAFT)
+  scheduledAt   DateTime?
+  sentAt        DateTime?
+  emailCount    Int                @default(0)
+  inAppCount    Int                @default(0)
+  feedPostId    String?
+  createdById   String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  createdBy User? @relation("BroadcastCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([status, scheduledAt])
+}
+
+model OnboardingQuestion {
+  id        String                  @id @default(uuid())
+  question  String
+  type      OnboardingQuestionType  @default(TEXT)
+  options   String[]                @default([])
+  sortOrder Int                     @default(0)
+  isActive  Boolean                 @default(true)
+  createdAt DateTime                @default(now())
+  updatedAt DateTime                @updatedAt
+
+  answers OnboardingAnswer[]
+
+  @@index([isActive, sortOrder])
+}
+
+model OnboardingAnswer {
+  id         String   @id @default(uuid())
+  questionId String
+  userId     String
+  answer     String // plain text, or JSON array string for MULTI_SELECT
+  createdAt  DateTime @default(now())
+
+  question OnboardingQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([questionId, userId])
+  @@index([userId])
+}
+
+model SiteSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
 }
