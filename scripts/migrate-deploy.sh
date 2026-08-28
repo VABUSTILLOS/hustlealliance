@@ -44,7 +44,7 @@ while [ $attempt -lt 15 ]; do
     continue
   fi
 
-  MIG=$(sed -n 's/^Migration name: //p' <<<"$OUT" | head -1)
+  MIG=$(grep -i "migration name:" <<<"$OUT" | sed -E 's/.*[Mm]igration [Nn]ame:[[:space:]]*//' | tr -d '[:space:]' | head -1)
   if [ -n "$MIG" ] && grep -qi "already exists" <<<"$OUT"; then
     echo "Drift baseline: marking $MIG as applied (its objects already exist)..."
     npx prisma migrate resolve --applied "$MIG" || { echo "resolve failed" >&2; exit 1; }
