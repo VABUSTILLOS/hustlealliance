@@ -15,6 +15,7 @@ import { PostCardEditForm } from './PostCardEditForm';
 import { PostCardModals } from './PostCardModals';
 import { ReactionButton } from './ReactionButton';
 import { PollCard } from './PollCard';
+import { RichPostContent } from './RichPostContent';
 
 type PostType = 'milestone' | 'question' | 'data' | 'default';
 
@@ -302,12 +303,13 @@ export function PostCard({
           onCancel={() => { setEditMode(false); setEditText(post.content); }}
         />
       ) : (
-        <p className={clsx(
-          'text-foreground-muted text-sm mb-3 leading-relaxed whitespace-pre-wrap',
-          postType === 'data' && 'font-mono',
-        )}>
-          {post.content}
-        </p>
+        <RichPostContent
+          content={post.content}
+          className={clsx(
+            'text-foreground-muted text-sm mb-3 leading-relaxed whitespace-pre-wrap',
+            postType === 'data' && 'font-mono',
+          )}
+        />
       )}
 
       {post.imageUrls.length > 0 && (

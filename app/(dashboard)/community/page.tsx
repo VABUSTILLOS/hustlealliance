@@ -1,5 +1,6 @@
 import { CommunityHeader } from './CommunityHeader';
 import { getTrendingTopics, getCommunityStats } from '@/lib/db/community';
+import { getTrendingHashtags } from '@/lib/hashtags/parser';
 import type { TrendingTopic } from '@/lib/db/community';
 import { PostFeedSkeleton } from './PostFeedSkeleton';
 import { CommunitySidebar } from './CommunitySidebar';
@@ -22,11 +23,13 @@ export default async function CommunityPage({
 
   // Fetch trending topics & community stats gracefully
   let trending: TrendingTopic[] = [];
+  let trendingTags: { name: string; postCount: number }[] = [];
   let stats = { memberCount: 0, postCount: 0 };
   try {
-    [trending, stats] = await Promise.all([
+    [trending, stats, trendingTags] = await Promise.all([
       getTrendingTopics(5),
       getCommunityStats(),
+      getTrendingHashtags(5),
     ]);
   } catch (err) {
     console.error('[community] Failed to load sidebar data:', (err as Error).message);
@@ -42,7 +45,7 @@ export default async function CommunityPage({
           </Suspense>
         </div>
         <aside className="hidden lg:block w-80 shrink-0">
-          <CommunitySidebar trending={trending} memberCount={stats.memberCount} postCount={stats.postCount} />
+          <CommunitySidebar trending={trending} trendingTags={trendingTags} memberCount={stats.memberCount} postCount={stats.postCount} />
         </aside>
       </div>
     </div>

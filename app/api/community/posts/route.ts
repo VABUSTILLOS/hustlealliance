@@ -3,6 +3,7 @@ import { createPost, getFeedPosts } from "@/lib/db/posts";
 import { fanoutToFollowers, fanoutToGroupMembers } from "@/lib/db/feed";
 import { getCurrentUser } from "@/lib/auth/user";
 import { extractMentions } from "@/lib/mentions/parser";
+import { syncPostHashtags } from "@/lib/hashtags/parser";
 import { notifyMentioned } from "@/lib/notifications/service";
 import prisma from "@/lib/db/prisma";
 
@@ -12,9 +13,10 @@ export async function GET(req: NextRequest) {
   const groupId = searchParams.get("groupId") ?? undefined;
   const cursor = searchParams.get("cursor") ?? undefined;
   const limit = parseInt(searchParams.get("limit") ?? "20");
+  const tag = searchParams.get("tag") ?? undefined;
 
   try {
-    const posts = await getFeedPosts({ space, groupId, cursor, limit });
+    const posts = await getFeedPosts({ space, groupId, cursor, limit, tag });
     return NextResponse.json(posts);
   } catch (err) {
     return NextResponse.json({ error: (err as Error).message }, { status: 500 });
@@ -29,6 +31,9 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { poll, ...postData } = body;
     const post = await createPost({ ...postData, authorId: user.id });
+
+    // Index hashtags (fire-and-forget)
+    syncPostHashtags(post.id, post.content).catch(() => {});
 
     // Attach a poll when the post includes one (Mighty Networks-style poll posts)
     if (poll?.question && Array.isArray(poll.options)) {

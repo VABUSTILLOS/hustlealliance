@@ -35,7 +35,7 @@ export function MemberCard({ member }: { member: CommunityMemberItem }) {
     <Link href={`/community/members/${member.username || member.id}`} className="block">
       <div className="bg-surface border border-white/5 rounded-2xl p-5 hover:border-accent transition-colors group cursor-pointer h-full">
         <div className="flex items-start gap-4 mb-3">
-          <div className="w-12 h-12 rounded-full bg-surface-light overflow-hidden shrink-0">
+          <div className="relative w-12 h-12 rounded-full bg-surface-light overflow-hidden shrink-0">
             <img
               src={avatarSrc}
               alt={member.name}
@@ -43,6 +43,9 @@ export function MemberCard({ member }: { member: CommunityMemberItem }) {
               height={48}
               className="w-full h-full object-cover"
             />
+            {member.isOnline && (
+              <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-400 border-2 border-surface" />
+            )}
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">

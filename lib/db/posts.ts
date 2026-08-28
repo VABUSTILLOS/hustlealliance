@@ -46,15 +46,17 @@ export async function getFeedPosts(params: {
   space?: string;
   groupId?: string;
   visibility?: PostVisibility;
+  tag?: string;
   limit?: number;
   cursor?: string;
 }) {
-  const { userId, space, groupId, visibility, limit = 20, cursor } = params;
+  const { userId, space, groupId, visibility, tag, limit = 20, cursor } = params;
 
   const where: Record<string, unknown> = { isDeleted: false };
   if (space) where.space = space;
   if (groupId) where.groupId = groupId;
   if (visibility) where.visibility = visibility;
+  if (tag) where.hashtags = { some: { hashtag: { name: tag.toLowerCase() } } };
 
   const posts = await prisma.communityPost.findMany({
     where,

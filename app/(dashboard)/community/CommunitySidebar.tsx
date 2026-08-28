@@ -3,14 +3,21 @@
 import Link from "next/link";
 import type { TrendingTopic } from "@/lib/db/community";
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { OnlineNow } from './components/OnlineNow';
+
+interface TrendingHashtag {
+  name: string;
+  postCount: number;
+}
 
 interface CommunitySidebarProps {
   trending: TrendingTopic[];
+  trendingTags?: TrendingHashtag[];
   memberCount?: number;
   postCount?: number;
 }
 
-export function CommunitySidebar({ trending, memberCount, postCount }: CommunitySidebarProps) {
+export function CommunitySidebar({ trending, trendingTags = [], memberCount, postCount }: CommunitySidebarProps) {
   const { t } = useTranslation();
 
   const links = [
@@ -23,6 +30,8 @@ export function CommunitySidebar({ trending, memberCount, postCount }: Community
 
   return (
     <aside className="space-y-6">
+      <OnlineNow />
+
       <div className="bg-surface border border-white/5 rounded-2xl p-5">
         <h3 className="font-heading font-bold text-white text-sm mb-4 uppercase tracking-wider">
           {t.community.quickLinks}
@@ -65,6 +74,30 @@ export function CommunitySidebar({ trending, memberCount, postCount }: Community
                 </span>
                 <span className="text-xs text-muted font-mono">
                   {topic.postCount} {t.community.postsLabel}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {trendingTags.length > 0 && (
+        <div className="bg-surface border border-white/5 rounded-2xl p-5">
+          <h3 className="font-heading font-bold text-white text-sm mb-4 uppercase tracking-wider">
+            Trending topics
+          </h3>
+          <div className="space-y-2">
+            {trendingTags.map((tag) => (
+              <Link
+                key={tag.name}
+                href={`/community/hashtag/${encodeURIComponent(tag.name)}`}
+                className="flex items-center justify-between px-3 py-2 rounded-xl hover:bg-surface-light transition-colors focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:outline-none"
+              >
+                <span className="text-sm text-accent font-mono">
+                  #{tag.name}
+                </span>
+                <span className="text-xs text-muted font-mono">
+                  {tag.postCount} {t.community.postsLabel}
                 </span>
               </Link>
             ))}

@@ -434,6 +434,7 @@ export interface CommunityMemberItem {
   postCount: number;
   commentCount: number;
   joinedAt: string;
+  isOnline: boolean;
 }
 
 export interface GetCommunityMembersOpts {
@@ -496,6 +497,7 @@ export const getCommunityMembers = cache(
           role: true,
           membershipTier: true,
           createdAt: true,
+          lastSeenAt: true,
           profile: {
             select: {
               headline: true,
@@ -503,6 +505,7 @@ export const getCommunityMembers = cache(
               industries: true,
               skills: true,
               yearsExperience: true,
+              privacySettings: true,
             },
           },
           _count: {
@@ -514,6 +517,7 @@ export const getCommunityMembers = cache(
     ]);
 
     const hasMore = users.length > limit;
+    const onlineCutoff = Date.now() - 10 * 60 * 1000;
     const items = (hasMore ? users.slice(0, limit) : users).map((u: any) => ({
       id: u.id,
       name: u.name,
@@ -529,6 +533,10 @@ export const getCommunityMembers = cache(
       postCount: u._count.posts,
       commentCount: u._count.comments,
       joinedAt: u.createdAt.toISOString(),
+      isOnline:
+        !!u.lastSeenAt &&
+        new Date(u.lastSeenAt).getTime() >= onlineCutoff &&
+        u.profile?.privacySettings?.showOnlineStatus !== false,
     }));
 
     return {

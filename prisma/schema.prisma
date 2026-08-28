@@ -85,6 +85,7 @@ enum NotificationType {
   GROUP_INVITE
   GROUP_JOIN_REQUEST
   GROUP_POST
+  GROUP_ANNOUNCEMENT
   EVENT_INVITE
   EVENT_REMINDER
   NEW_MESSAGE
@@ -324,6 +325,7 @@ model User {
   coverPhoto          String?
   createdAt           DateTime       @default(now())
   updatedAt           DateTime       @updatedAt
+  lastSeenAt          DateTime?
 
   // ── Existing LMS relations ──
   enrollments       Enrollment[]
@@ -831,6 +833,7 @@ model CommunityPost {
   reports   CommunityReport[]
   bookmarks PostBookmark[]
   poll      Poll?
+  hashtags  PostHashtag[]
 
   @@index([authorId, createdAt])
   @@index([groupId, createdAt])
@@ -1841,4 +1844,26 @@ model SiteSetting {
   key       String   @id
   value     Json
   updatedAt DateTime @updatedAt
+}
+
+// ── Hashtags / trending topics (Mighty Networks parity) ──
+
+model Hashtag {
+  id        String   @id @default(uuid())
+  name      String   @unique // lowercase, no '#'
+  postCount Int      @default(0)
+  createdAt DateTime @default(now())
+
+  posts PostHashtag[]
+}
+
+model PostHashtag {
+  postId    String
+  hashtagId String
+
+  post    CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  hashtag Hashtag       @relation(fields: [hashtagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, hashtagId])
+  @@index([hashtagId])
 }
