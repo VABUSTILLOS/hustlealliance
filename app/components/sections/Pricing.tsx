@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -36,35 +37,29 @@ function Checkmark() {
 // ── Main component ──────────────────────────────────────────────────────
 export default function Pricing() {
   const { t } = useTranslation();
+  const [annual, setAnnual] = useState(true);
 
   const tiers = [
     {
-      name: t.pricing.starter.name,
-      price: t.pricing.starter.price,
-      period: t.pricing.starter.period,
-      description: t.pricing.starter.desc,
-      features: [...t.pricing.starter.features],
-      cta: t.pricing.starter.cta,
+      name: t.pricing.basic.name,
+      price: t.pricing.basic.price,
+      period: t.pricing.basic.period,
+      description: t.pricing.basic.desc,
+      features: [...t.pricing.basic.features],
+      cta: t.pricing.basic.cta,
+      href: '/signup',
       variant: 'outline' as const,
     },
     {
-      name: t.pricing.builder.name,
-      price: t.pricing.builder.price,
-      period: t.pricing.builder.period,
-      description: t.pricing.builder.desc,
-      features: [...t.pricing.builder.features],
-      cta: t.pricing.builder.cta,
+      name: t.pricing.pro.name,
+      price: annual ? t.pricing.pro.priceAnnual : t.pricing.pro.priceMonthly,
+      period: annual ? t.pricing.billing.perMonthAnnual : t.pricing.billing.perMonthMonthly,
+      description: t.pricing.pro.desc,
+      features: [...t.pricing.pro.features],
+      cta: t.pricing.pro.cta,
+      href: '/signup?plan=pro',
       variant: 'solid' as const,
       popular: true,
-    },
-    {
-      name: t.pricing.alliance.name,
-      price: t.pricing.alliance.price,
-      period: t.pricing.alliance.period,
-      description: t.pricing.alliance.desc,
-      features: [...t.pricing.alliance.features],
-      cta: t.pricing.alliance.cta,
-      variant: 'outline' as const,
     },
   ];
 
@@ -122,8 +117,41 @@ export default function Pricing() {
           </p>
         </motion.div>
 
+        {/* ── Billing toggle ────────────────── */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.2 }}
+          className="flex flex-col items-center gap-2 mb-12"
+        >
+          <div className="inline-flex items-center rounded-full bg-surface border border-surface-light p-1">
+            <button
+              onClick={() => setAnnual(false)}
+              className={clsx(
+                'px-5 py-2 rounded-full text-xs font-mono font-bold uppercase tracking-wider transition-all duration-300 min-h-[40px]',
+                !annual ? 'bg-accent text-white' : 'text-zinc-400 hover:text-foreground'
+              )}
+            >
+              {t.pricing.billing.monthly}
+            </button>
+            <button
+              onClick={() => setAnnual(true)}
+              className={clsx(
+                'px-5 py-2 rounded-full text-xs font-mono font-bold uppercase tracking-wider transition-all duration-300 min-h-[40px]',
+                annual ? 'bg-accent text-white' : 'text-zinc-400 hover:text-foreground'
+              )}
+            >
+              {t.pricing.billing.annual}
+            </button>
+          </div>
+          {annual && (
+            <p className="text-xs text-emerald-400 font-mono">{t.pricing.billing.annualNote}</p>
+          )}
+        </motion.div>
+
         {/* ── Tier cards ─────────────────────── */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-start mb-28">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 items-start mb-28 max-w-4xl mx-auto">
           {tiers.map((tier, i) => (
             <motion.div
               key={tier.name}
@@ -183,7 +211,7 @@ export default function Pricing() {
 
                 {/* CTA */}
                 <Link
-                  href="/signup"
+                  href={tier.href}
                   className={clsx(
                     'w-full py-3 min-h-[48px] rounded-xl font-heading font-bold text-sm uppercase tracking-wider transition-all duration-300 inline-block text-center',
                     tier.variant === 'solid'

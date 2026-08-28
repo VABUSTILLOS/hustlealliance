@@ -18,6 +18,8 @@ export default function Home() {
       <HomepageLazySection name="ValueProposition" />
       {/* Features — "Everything you need to build" */}
       <HomepageLazySection name="Pillars" />
+      {/* Stack equity timeline — Month 1 / Month 6 / Year 1 compounding */}
+      <HomepageLazySection name="StackEvolutionTimeline" />
       {/* Free lessons — "Taste the knowledge before you commit" */}
       <HomepageLazySection name="QuickPreviewCTA" />
       {/* Social proof — testimonials */}

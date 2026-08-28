@@ -7,6 +7,7 @@ import type { ComponentType } from 'react';
 const sectionMap: Record<string, () => Promise<{ default: ComponentType<any> }>> = {
   QuickPreviewCTA: () => import('./sections/QuickPreviewCTA'),
   Pillars: () => import('./Pillars'),
+  StackEvolutionTimeline: () => import('./sections/StackEvolutionTimeline'),
   GamificationSection: () => import('./sections/GamificationSection'),
   ResourceLibrary: () => import('./sections/ResourceLibrary'),
   ValueProposition: () => import('./sections/ValueProposition'),

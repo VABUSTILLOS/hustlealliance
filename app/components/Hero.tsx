@@ -8,7 +8,7 @@ import NeonButton from './NeonButton';
 import EmailCapture from './EmailCapture';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
-function AnimatedCounter({ end, suffix = '' }: { end: number; suffix?: string }) {
+function AnimatedCounter({ end, suffix = '', prefix = '' }: { end: number; suffix?: string; prefix?: string }) {
   const [scope, animate] = useAnimate();
   const inView = useInView(scope, { once: true, margin: '-100px' });
   const displayRef = useRef<HTMLSpanElement>(null);
@@ -29,6 +29,7 @@ function AnimatedCounter({ end, suffix = '' }: { end: number; suffix?: string })
 
   return (
     <span ref={scope} className="font-display tabular-nums">
+      {prefix}
       <span ref={displayRef}>{end.toLocaleString()}</span>
       {suffix}
     </span>
@@ -54,10 +55,10 @@ const item = {
 export default function Hero() {
   const { t } = useTranslation();
 
-  const stats = [
-    { value: 2400, suffix: '+', label: 'active founders' },
-    { value: 180, suffix: '+', label: 'tactical playbooks' },
-    { value: 30, suffix: '-Day', label: 'Money-Back Guarantee' },
+  const stats: { value: number; suffix?: string; prefix?: string; label: string }[] = [
+    { value: 2400, suffix: '+', label: 'operators in the alliance' },
+    { value: 120, suffix: '+', label: 'verified free-forever tools' },
+    { value: 0, prefix: '$', label: 'subscription rent to start' },
   ];
 
   return (
@@ -138,7 +139,7 @@ export default function Hero() {
             {stats.map((stat, i) => (
               <span key={stat.label} className="inline-flex items-baseline gap-1">
                 <span className="font-display text-xl sm:text-2xl text-foreground tabular-nums leading-none">
-                  <AnimatedCounter end={stat.value} suffix={stat.suffix} />
+                  <AnimatedCounter end={stat.value} suffix={stat.suffix ?? ''} prefix={stat.prefix ?? ''} />
                 </span>
                 <span className="text-zinc-300">
                   {stat.label}
