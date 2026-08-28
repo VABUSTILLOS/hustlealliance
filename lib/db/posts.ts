@@ -49,22 +49,57 @@ export async function getFeedPosts(params: {
   limit?: number;
   cursor?: string;
 }) {
-  const { space, groupId, visibility, limit = 20, cursor } = params;
+  const { userId, space, groupId, visibility, limit = 20, cursor } = params;
 
   const where: Record<string, unknown> = { isDeleted: false };
   if (space) where.space = space;
   if (groupId) where.groupId = groupId;
   if (visibility) where.visibility = visibility;
 
-  return prisma.communityPost.findMany({
+  const posts = await prisma.communityPost.findMany({
     where,
     include: {
       author: { select: { id: true, name: true, username: true, avatar: true } },
       _count: { select: { likes: true, comments: true } },
+      poll: {
+        include: {
+          options: {
+            orderBy: { order: "asc" },
+            include: { _count: { select: { votes: true } } },
+          },
+          ...(userId
+            ? {
+                votes: {
+                  where: { userId },
+                  select: { optionId: true },
+                  take: 1,
+                },
+              }
+            : {}),
+        },
+      },
     },
     take: limit,
     ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
     orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
+  });
+
+  return posts.map((post) => {
+    const poll = post.poll;
+    return {
+      ...post,
+      poll: poll
+        ? {
+            id: poll.id,
+            question: poll.question,
+            expiresAt: poll.expiresAt?.toISOString() ?? null,
+            totalVotes: poll.options.reduce((sum, o) => sum + o._count.votes, 0),
+            myVoteOptionId:
+              (poll as { votes?: { optionId: string }[] }).votes?.[0]?.optionId ?? null,
+            options: poll.options.map((o) => ({ id: o.id, text: o.text, votes: o._count.votes })),
+          }
+        : null,
+    };
   });
 }
 
@@ -77,6 +112,14 @@ export async function getPostById(postId: string) {
       likes: {
         take: 20,
         include: { user: { select: { id: true, name: true, avatar: true } } },
+      },
+      poll: {
+        include: {
+          options: {
+            orderBy: { order: "asc" },
+            include: { _count: { select: { votes: true } } },
+          },
+        },
       },
       comments: {
         take: 50,

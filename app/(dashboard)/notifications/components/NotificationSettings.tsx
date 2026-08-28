@@ -18,6 +18,7 @@ const EMAIL_CATEGORIES: CategoryToggle[] = [
   { key: 'email_friend_request', label: 'Friend requests', description: 'When someone sends a friend request' },
   { key: 'email_group', label: 'Group activity', description: 'Group invites and join requests' },
   { key: 'email_event', label: 'Events', description: 'Event invites and reminders' },
+  { key: 'email_digest', label: 'Weekly digest', description: 'A weekly summary of top community posts' },
 ];
 
 const BROWSER_CATEGORIES: CategoryToggle[] = [

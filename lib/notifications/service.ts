@@ -8,7 +8,34 @@ import {
   contentUnlockedEmail,
   quizPassedEmail,
   xpMilestoneEmail,
+  mentionedEmail,
+  commentReplyEmail,
+  groupInviteEmail,
 } from '@/lib/email/templates';
+
+export type EmailPreferenceKey =
+  | 'email_follow' | 'email_like' | 'email_comment' | 'email_mention'
+  | 'email_message' | 'email_friend_request' | 'email_group' | 'email_event'
+  | 'email_digest';
+
+/**
+ * Check whether a user has opted into a given email category.
+ * Defaults to true when no preference row exists (matching the settings route defaults).
+ */
+export async function shouldSendEmail(userId: string, key: EmailPreferenceKey): Promise<boolean> {
+  try {
+    const record = await prisma.notificationPreference.findUnique({
+      where: { userId },
+      select: { preferences: true },
+    });
+    if (!record || typeof record.preferences !== 'object' || record.preferences === null) return true;
+    const prefs = record.preferences as Record<string, unknown>;
+    return prefs[key] !== false;
+  } catch (err) {
+    console.error('[Notifications] Preference check failed:', err);
+    return false;
+  }
+}
 import { courseEnrollmentEmail, liveClassReminderEmail } from '@/lib/email/resend';
 
 type NotificationType =
@@ -259,6 +286,8 @@ export async function notifyCommentAdded(
   userId: string, userEmail: string,
   commenterName: string, postId: string, commentPreview: string,
 ) {
+  const emailAllowed = await shouldSendEmail(userId, 'email_comment');
+  const { html } = commentReplyEmail(commenterName, postId, commentPreview);
   return createNotification({
     userId, userEmail,
     type: 'COMMENTED',
@@ -266,6 +295,8 @@ export async function notifyCommentAdded(
     body: `${commenterName} commented on your post.`,
     sourceId: postId,
     metadata: { commenterName, postId, preview: commentPreview.slice(0, 100) },
+    sendEmailNow: emailAllowed,
+    emailHtml: html,
   });
 }
 
@@ -273,6 +304,8 @@ export async function notifyMentioned(
   userId: string, userEmail: string,
   mentionedByName: string, entityId: string, entityType: string,
 ) {
+  const emailAllowed = await shouldSendEmail(userId, 'email_mention');
+  const { html } = mentionedEmail(mentionedByName, entityType, entityId);
   return createNotification({
     userId, userEmail,
     type: 'MENTIONED',
@@ -280,6 +313,8 @@ export async function notifyMentioned(
     body: `${mentionedByName} mentioned you in a ${entityType}.`,
     sourceId: entityId,
     metadata: { mentionedByName, entityId, entityType },
+    sendEmailNow: emailAllowed,
+    emailHtml: html,
   });
 }
 
@@ -314,6 +349,8 @@ export async function notifyGroupInvite(
   userId: string, userEmail: string,
   inviterName: string, groupName: string, groupId: string,
 ) {
+  const emailAllowed = await shouldSendEmail(userId, 'email_group');
+  const { html } = groupInviteEmail(inviterName, groupName, groupId);
   return createNotification({
     userId, userEmail,
     type: 'GROUP_INVITE',
@@ -321,6 +358,8 @@ export async function notifyGroupInvite(
     body: `${inviterName} invited you to join "${groupName}".`,
     sourceId: groupId,
     metadata: { inviterName, groupName, groupId },
+    sendEmailNow: emailAllowed,
+    emailHtml: html,
   });
 }
 

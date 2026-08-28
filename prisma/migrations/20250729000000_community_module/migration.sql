@@ -121,6 +121,23 @@ DROP TABLE "GroupReply";
 DROP TABLE "GroupFile";
 
 -- CreateTable
+CREATE TABLE "CourseStudyGroup" (
+    "id" TEXT NOT NULL,
+    "courseId" TEXT NOT NULL,
+    "description" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "CourseStudyGroup_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "CourseStudyGroup_courseId_key" ON "CourseStudyGroup"("courseId");
+
+-- AddForeignKey
+ALTER TABLE "CourseStudyGroup" ADD CONSTRAINT "CourseStudyGroup_courseId_fkey" FOREIGN KEY ("courseId") REFERENCES "Course"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- CreateTable
 CREATE TABLE "CourseGroupMember" (
     "id" TEXT NOT NULL,
     "groupId" TEXT NOT NULL,

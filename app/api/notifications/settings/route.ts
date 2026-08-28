@@ -12,6 +12,7 @@ type NotificationPreferenceKey =
   | 'email_friend_request'
   | 'email_group'
   | 'email_event'
+  | 'email_digest'
   | 'browser_follow'
   | 'browser_like'
   | 'browser_comment'
@@ -24,6 +25,7 @@ type NotificationPreferenceKey =
 const DEFAULT_PREFS: Record<NotificationPreferenceKey, boolean> = {
   email_follow: true, email_like: true, email_comment: true, email_mention: true,
   email_message: true, email_friend_request: true, email_group: true, email_event: true,
+  email_digest: true,
   browser_follow: true, browser_like: true, browser_comment: true, browser_mention: true,
   browser_message: true, browser_friend_request: true, browser_group: true, browser_event: true,
 };

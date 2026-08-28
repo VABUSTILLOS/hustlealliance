@@ -7,6 +7,8 @@ interface PostCardMenuProps {
   isAdmin: boolean;
   isPinned: boolean;
   copied: boolean;
+  isBookmarked?: boolean;
+  onToggleBookmark?: () => void;
   onEdit: () => void;
   onDelete: () => void;
   onPin: () => void;
@@ -20,6 +22,8 @@ export function PostCardMenu({
   isAdmin,
   isPinned,
   copied,
+  isBookmarked = false,
+  onToggleBookmark,
   onEdit,
   onDelete,
   onPin,
@@ -60,6 +64,15 @@ export function PostCardMenu({
           className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-surface-light transition-colors flex items-center gap-2"
         >
           📌 {isPinned ? t.community.unpin : t.community.pin}
+        </button>
+      )}
+      {onToggleBookmark && (
+        <button
+          onClick={onToggleBookmark}
+          role="menuitem"
+          className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-surface-light transition-colors flex items-center gap-2"
+        >
+          🔖 {isBookmarked ? 'Unsave post' : 'Save post'}
         </button>
       )}
       <button

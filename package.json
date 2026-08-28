@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "bash scripts/migrate-deploy.sh && next build",
     "build:full": "npx prisma generate && next build",
     "db:migrate": "npx prisma migrate deploy",
     "db:seed": "npx tsx prisma/seed.ts && npx tsx prisma/seed-community.ts && npx tsx prisma/seed-blog-posts.ts && npx tsx prisma/seed-expand-all.ts",

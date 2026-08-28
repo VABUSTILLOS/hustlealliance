@@ -19,7 +19,7 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
   const communityT = translations.en.community;
 
   const [post, comments, like] = await Promise.all([
-    getPostDetailCached(id),
+    getPostDetailCached(id, user?.id),
     getCommentsForPost(id),
     user
       ? prisma.postLike.findUnique({
@@ -66,6 +66,7 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
     isPinned: post.isPinned,
     isEdited: post.isEdited,
     imageUrls: post.imageUrls,
+    poll: post.poll ?? null,
   };
 
   return (

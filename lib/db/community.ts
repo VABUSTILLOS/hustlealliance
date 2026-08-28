@@ -32,6 +32,25 @@ export interface CommunityPostItem {
   reactionCounts?: ReactionCounts;
   /** The requesting user's reaction type on this post, if any. */
   myReaction?: string | null;
+  /** Attached poll, if this is a poll post. */
+  poll?: PollData | null;
+  /** Whether the requesting user has bookmarked this post. */
+  isBookmarked?: boolean;
+}
+
+export interface PollOptionData {
+  id: string;
+  text: string;
+  votes: number;
+}
+
+export interface PollData {
+  id: string;
+  question: string;
+  expiresAt: string | null;
+  totalVotes: number;
+  myVoteOptionId: string | null;
+  options: PollOptionData[];
 }
 
 export interface CommunityCommentItem {
@@ -87,9 +106,31 @@ export const getCommunityPosts = cache(
           select: { id: true, name: true, username: true, avatar: true },
         },
         _count: { select: { comments: true, likes: true, shares: true } },
+        poll: {
+          include: {
+            options: {
+              orderBy: { order: 'asc' as const },
+              include: { _count: { select: { votes: true } } },
+            },
+            ...(currentUserId
+              ? {
+                  votes: {
+                    where: { userId: currentUserId },
+                    select: { optionId: true },
+                    take: 1,
+                  },
+                }
+              : {}),
+          },
+        },
         ...(currentUserId
           ? {
               likes: {
+                where: { userId: currentUserId },
+                select: { id: true },
+                take: 1,
+              },
+              bookmarks: {
                 where: { userId: currentUserId },
                 select: { id: true },
                 take: 1,
@@ -109,6 +150,13 @@ export const getCommunityPosts = cache(
 
     const items = pagePosts.map((post) => {
       const summary = reactionSummaries.get(post.id);
+      const poll = (post as { poll?: {
+        id: string;
+        question: string;
+        expiresAt: Date | null;
+        options: { id: string; text: string; _count: { votes: number } }[];
+        votes?: { optionId: string }[];
+      } | null }).poll;
       return {
         id: post.id,
         author: {
@@ -126,8 +174,19 @@ export const getCommunityPosts = cache(
         likeCount: post._count.likes,
         shareCount: post._count.shares,
         isLiked: ((post as { likes?: { id: string }[] }).likes?.length ?? 0) > 0,
+        isBookmarked: ((post as { bookmarks?: { id: string }[] }).bookmarks?.length ?? 0) > 0,
         reactionCounts: summary?.counts ?? {},
         myReaction: summary?.myReaction ?? null,
+        poll: poll
+          ? {
+              id: poll.id,
+              question: poll.question,
+              expiresAt: poll.expiresAt?.toISOString() ?? null,
+              totalVotes: poll.options.reduce((sum, o) => sum + o._count.votes, 0),
+              myVoteOptionId: poll.votes?.[0]?.optionId ?? null,
+              options: poll.options.map((o) => ({ id: o.id, text: o.text, votes: o._count.votes })),
+            }
+          : null,
         isPinned: post.isPinned,
         isEdited: post.isEdited,
         imageUrls: post.imageUrls,
@@ -290,15 +349,33 @@ export interface PostDetail {
   likeCount: number;
   commentCount: number;
   shareCount: number;
+  poll?: PollData | null;
 }
 
 export const getPostDetailCached = cache(
-  async (postId: string): Promise<PostDetail | null> => {
+  async (postId: string, currentUserId?: string): Promise<PostDetail | null> => {
     const post = await prisma.communityPost.findFirst({
       where: { id: postId, isDeleted: false },
       include: {
         author: { select: { id: true, name: true, username: true, avatar: true } },
         _count: { select: { likes: true, comments: true, shares: true } },
+        poll: {
+          include: {
+            options: {
+              orderBy: { order: 'asc' as const },
+              include: { _count: { select: { votes: true } } },
+            },
+            ...(currentUserId
+              ? {
+                  votes: {
+                    where: { userId: currentUserId },
+                    select: { optionId: true },
+                    take: 1,
+                  },
+                }
+              : {}),
+          },
+        },
       },
     });
 
@@ -325,6 +402,17 @@ export const getPostDetailCached = cache(
       likeCount: post._count.likes,
       commentCount: post._count.comments,
       shareCount: post._count.shares,
+      poll: post.poll
+        ? {
+            id: post.poll.id,
+            question: post.poll.question,
+            expiresAt: post.poll.expiresAt?.toISOString() ?? null,
+            totalVotes: post.poll.options.reduce((sum, o) => sum + o._count.votes, 0),
+            myVoteOptionId:
+              (post.poll as { votes?: { optionId: string }[] }).votes?.[0]?.optionId ?? null,
+            options: post.poll.options.map((o) => ({ id: o.id, text: o.text, votes: o._count.votes })),
+          }
+        : null,
     };
   },
 );

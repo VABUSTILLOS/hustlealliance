@@ -27,7 +27,27 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const post = await createPost({ ...body, authorId: user.id });
+    const { poll, ...postData } = body;
+    const post = await createPost({ ...postData, authorId: user.id });
+
+    // Attach a poll when the post includes one (Mighty Networks-style poll posts)
+    if (poll?.question && Array.isArray(poll.options)) {
+      const options = poll.options
+        .filter((o: unknown): o is string => typeof o === "string" && o.trim().length > 0)
+        .slice(0, 4);
+      if (options.length >= 2) {
+        await prisma.poll.create({
+          data: {
+            postId: post.id,
+            question: String(poll.question).trim(),
+            expiresAt: poll.expiresAt ? new Date(poll.expiresAt) : null,
+            options: {
+              create: options.map((text: string, i: number) => ({ text: text.trim(), order: i })),
+            },
+          },
+        });
+      }
+    }
 
     // Extract and persist mentions
     const mentions = extractMentions(body.content ?? "");

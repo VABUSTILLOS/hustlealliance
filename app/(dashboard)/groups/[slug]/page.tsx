@@ -8,8 +8,9 @@ import { GroupHeader } from '../components/GroupHeader';
 import { GroupTabs } from '../components/GroupTabs';
 import { MemberList } from '../components/MemberList';
 import { GroupEventsTab } from '../components/GroupEventsTab';
+import { GroupFilesTab } from '../components/GroupFilesTab';
 import { useTranslation } from '@/lib/i18n/useTranslation';
-import { getInitialsAvatarUrl, DEFAULT_AVATAR } from '@/lib/utils/avatar';
+import { getInitialsAvatarUrl } from '@/lib/utils/avatar';
 import Image from 'next/image';
 
 export default function GroupDetailPage({
@@ -19,7 +20,7 @@ export default function GroupDetailPage({
 }) {
   const { slug } = use(params);
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<'feed' | 'members' | 'about' | 'events'>('feed');
+  const [activeTab, setActiveTab] = useState<'feed' | 'members' | 'about' | 'events' | 'files'>('feed');
 
   const { data: group, isLoading, error } = useGroup(slug);
   const { data: members } = useGroupMembers(group?.id ?? '');
@@ -209,6 +210,15 @@ export default function GroupDetailPage({
         <GroupEventsTab
           groupId={group.id}
           isMember={group.currentUserMember ?? false}
+        />
+      )}
+
+      {/* Files tab */}
+      {activeTab === 'files' && (
+        <GroupFilesTab
+          groupId={group.id}
+          isMember={group.currentUserMember ?? false}
+          isAdmin={isAdmin}
         />
       )}
     </div>

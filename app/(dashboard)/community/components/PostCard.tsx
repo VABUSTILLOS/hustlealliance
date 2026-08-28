@@ -14,6 +14,7 @@ import { PostCardMenu } from './PostCardMenu';
 import { PostCardEditForm } from './PostCardEditForm';
 import { PostCardModals } from './PostCardModals';
 import { ReactionButton } from './ReactionButton';
+import { PollCard } from './PollCard';
 
 type PostType = 'milestone' | 'question' | 'data' | 'default';
 
@@ -75,6 +76,7 @@ export function PostCard({
   const [shareComment, setShareComment] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(post.isBookmarked ?? false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const isOwner = currentUserId === post.author.id;
@@ -97,6 +99,23 @@ export function PostCard({
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [menuOpen]);
+
+  const handleToggleBookmark = useCallback(async () => {
+    const next = !isBookmarked;
+    setIsBookmarked(next);
+    try {
+      const res = await fetch('/api/community/bookmarks', {
+        method: next ? 'POST' : 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ postId: post.id }),
+      });
+      if (!res.ok) throw new Error();
+      addToast({ message: next ? 'Post saved' : 'Removed from saved', type: 'success' });
+    } catch {
+      setIsBookmarked(!next);
+      addToast({ message: 'Failed to update bookmark', type: 'error' });
+    }
+  }, [isBookmarked, post.id, addToast]);
 
   const handleSaveEdit = useCallback(async () => {
     if (!editText.trim() || editText === post.content) {
@@ -303,6 +322,8 @@ export function PostCard({
         </div>
       )}
 
+      {post.poll && <PollCard poll={post.poll} />}
+
       <div className="flex items-center gap-4">
         <ReactionButton
           endpoint={`/api/community/posts/${post.id}/like`}
@@ -354,6 +375,8 @@ export function PostCard({
               isAdmin={isAdmin}
               isPinned={post.isPinned}
               copied={copied}
+              isBookmarked={isBookmarked}
+              onToggleBookmark={() => { handleToggleBookmark(); setMenuOpen(false); }}
               onEdit={() => { setEditMode(true); setMenuOpen(false); }}
               onDelete={() => { handleDelete(); setMenuOpen(false); }}
               onPin={() => { handlePin(); setMenuOpen(false); }}

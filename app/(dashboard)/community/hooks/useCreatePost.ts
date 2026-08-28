@@ -9,6 +9,11 @@ interface CreatePostInput {
   space?: string;
   imageUrls?: string[];
   visibility?: "PUBLIC" | "CONNECTIONS_ONLY" | "GROUP_ONLY";
+  poll?: {
+    question: string;
+    options: string[];
+    expiresAt?: string;
+  };
 }
 
 export function useCreatePost() {

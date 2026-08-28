@@ -18,6 +18,7 @@ export function CommunitySidebar({ trending, memberCount, postCount }: Community
     { label: t.community.sidebarEvents, href: '#', icon: '📅', soon: true },
     { label: t.community.sidebarMessages, href: '#', icon: '💬', soon: true },
     { label: t.community.sidebarMembers, href: '#', icon: '🙋', soon: true },
+    { label: 'Saved posts', href: '/community/saved', icon: '🔖', soon: false },
   ];
 
   return (

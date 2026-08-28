@@ -27,6 +27,8 @@ export function PostCreator() {
   const [visibility, setVisibility] = useState<'PUBLIC' | 'CONNECTIONS_ONLY'>('PUBLIC');
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [pollMode, setPollMode] = useState(false);
+  const [pollOptions, setPollOptions] = useState<string[]>(['', '']);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // @mention state
@@ -133,9 +135,12 @@ export function PostCreator() {
     }
   };
 
+  const validPollOptions = pollOptions.map((o) => o.trim()).filter(Boolean);
+  const pollValid = !pollMode || validPollOptions.length >= 2;
+
   const handlePost = async () => {
     const content = newPostText.trim();
-    if (!content || isOverLimit || createPost.isPending) return;
+    if (!content || isOverLimit || !pollValid || createPost.isPending) return;
 
     try {
       await createPost.mutateAsync({
@@ -143,11 +148,16 @@ export function PostCreator() {
         space: newPostSpace || undefined,
         imageUrls: previewImage ? [previewImage] : undefined,
         visibility,
+        ...(pollMode
+          ? { poll: { question: content, options: validPollOptions.slice(0, 4) } }
+          : {}),
       });
       setNewPostText('');
       setPreviewImage(null);
       setNewPostSpace('');
       setVisibility('PUBLIC');
+      setPollMode(false);
+      setPollOptions(['', '']);
       addToast({ message: t.community.postSuccess, type: 'success' });
     } catch (err) {
       addToast({ message: err instanceof Error ? err.message : t.community.postFailed, type: 'error' });
@@ -211,6 +221,43 @@ export function PostCreator() {
             </span>
           </div>
 
+          {/* Poll options editor */}
+          {pollMode && (
+            <div className="space-y-2 rounded-xl border border-surface-light bg-surface-light/40 p-3">
+              <p className="text-[10px] font-mono uppercase tracking-wider text-muted">Poll options</p>
+              {pollOptions.map((option, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <input
+                    value={option}
+                    onChange={(e) =>
+                      setPollOptions((opts) => opts.map((o, j) => (j === i ? e.target.value : o)))
+                    }
+                    placeholder={`Option ${i + 1}`}
+                    maxLength={80}
+                    className="flex-1 bg-surface border border-white/10 rounded-lg px-3 py-1.5 text-foreground text-xs outline-none placeholder:text-muted"
+                  />
+                  {pollOptions.length > 2 && (
+                    <button
+                      onClick={() => setPollOptions((opts) => opts.filter((_, j) => j !== i))}
+                      className="text-muted hover:text-red-400 text-xs"
+                      aria-label={`Remove option ${i + 1}`}
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+              ))}
+              {pollOptions.length < 4 && (
+                <button
+                  onClick={() => setPollOptions((opts) => [...opts, ''])}
+                  className="text-accent text-xs font-mono hover:text-accent-glow"
+                >
+                  + Add option
+                </button>
+              )}
+            </div>
+          )}
+
           {previewImage && (
             <div className="relative inline-block">
               <Image src={previewImage} alt={t.community.previewImage} width={400} height={300} className="max-h-48 rounded-lg" style={{ width: 'auto', height: 'auto' }} />
@@ -251,6 +298,24 @@ export function PostCreator() {
                 onChange={handleImageUpload}
               />
 
+              {/* Poll toggle */}
+              <button
+                onClick={() => {
+                  setPollMode((v) => !v);
+                  setPollOptions(['', '']);
+                }}
+                className={clsx(
+                  'p-2 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:outline-none',
+                  pollMode ? 'text-accent bg-accent/10' : 'text-muted hover:text-foreground hover:bg-surface-light',
+                )}
+                title="Create a poll"
+                aria-pressed={pollMode}
+              >
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M18 20V10M12 20V4M6 20v-6" />
+                </svg>
+              </button>
+
               {/* Space selector */}
               <select
                 value={newPostSpace}
@@ -277,10 +342,10 @@ export function PostCreator() {
 
             <button
               onClick={handlePost}
-              disabled={!newPostText.trim() || isOverLimit || createPost.isPending}
+              disabled={!newPostText.trim() || isOverLimit || !pollValid || createPost.isPending}
               className={clsx(
                 'px-4 py-2 rounded-xl font-heading font-bold text-sm transition-all focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:outline-none',
-                newPostText.trim() && !isOverLimit && !createPost.isPending
+                newPostText.trim() && !isOverLimit && pollValid && !createPost.isPending
                   ? 'bg-accent text-white hover:bg-accent-glow'
                   : 'bg-surface-light text-muted cursor-not-allowed'
               )}

@@ -200,6 +200,54 @@ enum ProductType {
   PHYSICAL
   COURSE
   MEMBERSHIP
+  BUNDLE
+  COACHING
+}
+
+enum DiscountType {
+  PERCENT
+  FIXED
+}
+
+enum LandingPageStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum CampaignStatus {
+  DRAFT
+  SCHEDULED
+  SENDING
+  SENT
+}
+
+enum CampaignRecipientStatus {
+  PENDING
+  SENT
+  OPENED
+  CLICKED
+  BOUNCED
+  FAILED
+}
+
+enum AutomationTrigger {
+  SIGNUP
+  ENROLLMENT
+  PURCHASE
+  DRIP
+}
+
+enum AutomationRunStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+enum ReferralStatus {
+  PENDING
+  CONVERTED
+  REWARDED
 }
 
 enum StoreOrderStatus {
@@ -326,6 +374,15 @@ model User {
 
   // ── NEW: Notification preferences ──
   notificationPreference NotificationPreference?
+
+  // ── Skillplate suite (admin) ──
+  referralCode       String?             @unique
+  referralsMade      Referral[]          @relation("ReferralReferrer")
+  referralUsed       Referral?           @relation("ReferralReferee")
+  couponRedemptions  CouponRedemption[]
+  campaignRecipients CampaignRecipient[]
+  automationRuns     AutomationRun[]
+  aiGenerations      AiGeneration[]
 }
 
 model Category {
@@ -1320,11 +1377,19 @@ model Product {
   stock       Int         @default(0)
   isPublished Boolean     @default(false)
   metadata    Json?       // Course ID for course products, file URL for digital
+  stripePriceId      String?
+  recurringInterval  String? // 'month' | 'year' for MEMBERSHIP subscriptions
+  upsellProductId    String?
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
   orders  StoreOrderItem[]
   reviews StoreReview[]
+  upsellProduct     Product?     @relation("ProductUpsell", fields: [upsellProductId], references: [id])
+  upsellOf          Product[]    @relation("ProductUpsell")
+  bundleItems       BundleItem[] @relation("BundleParent")
+  includedInBundles BundleItem[] @relation("BundleChild")
+  coupons           Coupon[]
 
   @@index([type, isPublished])
   @@index([slug])
@@ -1343,6 +1408,7 @@ model StoreOrder {
 
   user  User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   items StoreOrderItem[]
+  couponRedemptions CouponRedemption[]
 
   @@index([userId, createdAt])
   @@index([stripePaymentIntentId])
@@ -1437,4 +1503,166 @@ model MemberListItem {
 
   @@unique([listId, memberId])
   @@index([memberId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Skillplate suite (admin-only business tools)
+// ─────────────────────────────────────────────────────────────
+
+model BundleItem {
+  id        String  @id @default(uuid())
+  bundleId  String
+  productId String
+  quantity  Int     @default(1)
+
+  bundle  Product @relation("BundleParent", fields: [bundleId], references: [id], onDelete: Cascade)
+  product Product @relation("BundleChild", fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([bundleId, productId])
+  @@index([productId])
+}
+
+model Coupon {
+  id                   String       @id @default(uuid())
+  code                 String       @unique
+  description          String?
+  discountType         DiscountType
+  amount               Float // percent (0-100) or fixed amount in currency
+  currency             String       @default("USD")
+  productId            String? // null = applies to all products
+  maxUses              Int?
+  usedCount            Int          @default(0)
+  expiresAt            DateTime?
+  isActive             Boolean      @default(true)
+  stripePromotionCodeId String?
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+
+  product         Product?           @relation(fields: [productId], references: [id], onDelete: SetNull)
+  redemptions     CouponRedemption[]
+  referralRewards Referral[]
+
+  @@index([isActive, expiresAt])
+}
+
+model CouponRedemption {
+  id        String   @id @default(uuid())
+  couponId  String
+  orderId   String
+  userId    String
+  createdAt DateTime @default(now())
+
+  coupon Coupon     @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  order  StoreOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  user   User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([couponId, orderId])
+  @@index([userId])
+}
+
+model LandingPage {
+  id          String            @id @default(uuid())
+  slug        String            @unique
+  title       String
+  status      LandingPageStatus @default(DRAFT)
+  blocks      Json // block tree from the drag-and-drop builder
+  seo         Json? // { title, description, ogImage }
+  publishedAt DateTime?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@index([status, slug])
+}
+
+model EmailCampaign {
+  id            String         @id @default(uuid())
+  name          String
+  subject       String
+  html          String
+  segmentFilter Json? // { tiers, roles, purchasedProductIds, enrolledCourseIds, lastActiveDays }
+  status        CampaignStatus @default(DRAFT)
+  scheduledAt   DateTime?
+  sentAt        DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  recipients CampaignRecipient[]
+}
+
+model CampaignRecipient {
+  id         String                  @id @default(uuid())
+  campaignId String
+  userId     String
+  status     CampaignRecipientStatus @default(PENDING)
+  sentAt     DateTime?
+  openedAt   DateTime?
+  clickedAt  DateTime?
+
+  campaign EmailCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, userId])
+  @@index([userId])
+}
+
+model EmailAutomation {
+  id           String            @id @default(uuid())
+  name         String
+  trigger      AutomationTrigger
+  subject      String
+  html         String
+  delayMinutes Int               @default(0)
+  isActive     Boolean           @default(true)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  runs AutomationRun[]
+}
+
+model AutomationRun {
+  id           String              @id @default(uuid())
+  automationId String
+  userId       String
+  status       AutomationRunStatus @default(PENDING)
+  runAt        DateTime // when the email should be sent
+  sentAt       DateTime?
+  createdAt    DateTime            @default(now())
+
+  automation EmailAutomation @relation(fields: [automationId], references: [id], onDelete: Cascade)
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status, runAt])
+  @@index([userId])
+}
+
+model Referral {
+  id             String         @id @default(uuid())
+  code           String
+  referrerId     String
+  refereeId      String?        @unique // a user can only be referred once
+  status         ReferralStatus @default(PENDING)
+  rewardCouponId String?
+  createdAt      DateTime       @default(now())
+  convertedAt    DateTime?
+
+  referrer     User    @relation("ReferralReferrer", fields: [referrerId], references: [id], onDelete: Cascade)
+  referee      User?   @relation("ReferralReferee", fields: [refereeId], references: [id], onDelete: SetNull)
+  rewardCoupon Coupon? @relation(fields: [rewardCouponId], references: [id], onDelete: SetNull)
+
+  @@index([code])
+  @@index([referrerId, status])
+}
+
+model AiGeneration {
+  id        String   @id @default(uuid())
+  kind      String // course-outline | lesson-content | product-description | landing-page | email-copy | business-idea
+  prompt    String
+  model     String?
+  output    Json?
+  createdBy String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+
+  @@index([kind, createdAt])
 }

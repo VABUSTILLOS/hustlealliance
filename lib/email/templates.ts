@@ -86,3 +86,72 @@ export function xpMilestoneEmail(milestoneName: string, totalXP: number) {
     ),
   };
 }
+
+// ─── Community templates ───────────────────────────────────────────
+
+const SITE_URL = 'https://hustlealliance.vercel.app';
+
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+export function mentionedEmail(mentionedByName: string, entityType: string, entityId: string) {
+  const url = entityType === 'post' ? `${SITE_URL}/community/posts/${entityId}` : `${SITE_URL}/community`;
+  return {
+    subject: `💬 ${mentionedByName} mentioned you`,
+    html: wrapHtml('You were mentioned',
+      `<p><strong>${escapeHtml(mentionedByName)}</strong> mentioned you in a ${escapeHtml(entityType)}.</p>
+      ${button('View it now', url)}`
+    ),
+  };
+}
+
+export function commentReplyEmail(commenterName: string, postId: string, commentPreview: string) {
+  return {
+    subject: `💬 ${commenterName} commented on your post`,
+    html: wrapHtml('New comment',
+      `<p><strong>${escapeHtml(commenterName)}</strong> commented on your post:</p>
+      <blockquote style="border-left:3px solid #FF3B30;padding-left:12px;color:#c0c0c0;margin:12px 0">${escapeHtml(commentPreview.slice(0, 200))}</blockquote>
+      ${button('Reply', `${SITE_URL}/community/posts/${postId}`)}`
+    ),
+  };
+}
+
+export function groupInviteEmail(inviterName: string, groupName: string, groupId: string) {
+  return {
+    subject: `👥 ${inviterName} invited you to "${groupName}"`,
+    html: wrapHtml('Group invitation',
+      `<p><strong>${escapeHtml(inviterName)}</strong> invited you to join the group <strong>"${escapeHtml(groupName)}"</strong>.</p>
+      ${button('View group', `${SITE_URL}/groups/${groupId}`)}`
+    ),
+  };
+}
+
+export interface DigestPost {
+  id: string;
+  authorName: string;
+  excerpt: string;
+  likeCount: number;
+  commentCount: number;
+}
+
+export function weeklyDigestEmail(userName: string, topPosts: DigestPost[], unreadCount: number) {
+  const items = topPosts.map((p) => `
+    <div style="padding:12px 0;border-bottom:1px solid #1A1A1A">
+      <p style="margin:0 0 4px;color:#fff;font-size:14px"><strong>${escapeHtml(p.authorName)}</strong></p>
+      <p style="margin:0 0 6px;color:#c0c0c0;font-size:13px">${escapeHtml(p.excerpt)}</p>
+      <p style="margin:0;color:#8A8A8A;font-size:12px">❤️ ${p.likeCount} · 💬 ${p.commentCount} · <a href="${SITE_URL}/community/posts/${p.id}" style="color:#FF3B30;text-decoration:none">Read →</a></p>
+    </div>`).join('');
+
+  return {
+    subject: `📬 Your week on Hustle Alliance`,
+    html: wrapHtml(`Hi ${escapeHtml(userName)}, here's your week`,
+      `<p>You have <strong>${unreadCount}</strong> unread notification${unreadCount === 1 ? '' : 's'}.</p>
+      <h3 style="margin:16px 0 4px;font-size:15px">🔥 Top posts this week</h3>
+      ${items || '<p style="color:#8A8A8A;font-size:13px">Quiet week — be the first to post!</p>'}
+      ${button('Open community', `${SITE_URL}/community`)}
+      <p style="color:#8A8A8A;font-size:12px">Don't want these emails? Update your <a href="${SITE_URL}/settings/notifications" style="color:#8A8A8A">notification settings</a>.</p>`
+    ),
+  };
+}
