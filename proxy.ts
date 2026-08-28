@@ -24,12 +24,15 @@ export async function proxy(request: NextRequest) {
     path.startsWith('/admin') ||
     path.startsWith('/instructor');
 
-  // Only do Supabase SSR session check for protected routes
-  if (isProtected) {
+  // Only do Supabase SSR session check for protected routes.
+  // Skip when the env holds a placeholder (local dev without Supabase) —
+  // the admin layout enforces auth via getCurrentUser() server-side anyway.
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || SUPABASE_URL;
+  if (isProtected && /^https?:\/\//.test(supabaseUrl)) {
     let response = NextResponse.next({ request });
 
     const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL || SUPABASE_URL,
+      supabaseUrl,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || SUPABASE_ANON_KEY,
       {
         cookies: {

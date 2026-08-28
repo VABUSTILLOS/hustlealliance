@@ -49,6 +49,7 @@ export async function getProductBySlug(slug: string) {
         take: 10,
       },
       _count: { select: { reviews: true } },
+      upsellProduct: { select: { id: true, title: true, slug: true, price: true, images: true } },
     },
   });
 }
@@ -63,6 +64,7 @@ export async function getProductById(id: string) {
         take: 10,
       },
       _count: { select: { reviews: true } },
+      upsellProduct: { select: { id: true, title: true, slug: true, price: true, images: true } },
     },
   });
 }

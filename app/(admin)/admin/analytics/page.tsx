@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import StoreAnalyticsSections from './store-analytics';
 
 type ChartDataPoint = { month: string; count?: number; amount?: number };
 type Analytics = {
@@ -121,6 +122,8 @@ export default function AdminAnalyticsPage() {
           ))}
         </div>
       </div>
+
+      <StoreAnalyticsSections />
     </div>
   );
 }

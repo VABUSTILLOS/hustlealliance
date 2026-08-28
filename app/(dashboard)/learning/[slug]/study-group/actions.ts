@@ -43,6 +43,9 @@ async function requireEnrollment(email: string, courseSlug: string) {
       },
       select: { id: true },
     });
+    // Referrals: every new user gets a shareable code.
+    const { ensureReferralCode } = await import('@/lib/referrals/code');
+    await ensureReferralCode(dbUser.id);
   }
 
   const course = await prisma.course.findUnique({

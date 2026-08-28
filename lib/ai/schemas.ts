@@ -1,0 +1,107 @@
+import { z } from 'zod';
+
+/**
+ * Zod schemas for every supported AI Studio generation "kind".
+ * Shared by the API route (structured output validation) and any
+ * server-side callers (lib/ai/generate.ts).
+ */
+
+export const courseOutlineSchema = z.object({
+  title: z.string(),
+  description: z.string(),
+  modules: z.array(
+    z.object({
+      title: z.string(),
+      lessons: z.array(
+        z.object({
+          title: z.string(),
+          summary: z.string(),
+        })
+      ),
+    })
+  ),
+});
+
+export const lessonContentSchema = z.object({
+  body: z.string().describe('Full lesson content in markdown'),
+  keyPoints: z.array(z.string()),
+  quizQuestions: z.array(
+    z.object({
+      question: z.string(),
+      options: z.array(z.string()),
+      correctIndex: z.number().int(),
+    })
+  ),
+});
+
+export const productDescriptionSchema = z.object({
+  headline: z.string(),
+  shortDescription: z.string(),
+  longDescription: z.string(),
+  featureBullets: z.array(z.string()),
+});
+
+export const landingPageSchema = z.object({
+  headline: z.string(),
+  subheadline: z.string(),
+  featureSections: z.array(
+    z.object({
+      title: z.string(),
+      body: z.string(),
+    })
+  ),
+  ctaText: z.string(),
+  faqItems: z.array(
+    z.object({
+      question: z.string(),
+      answer: z.string(),
+    })
+  ),
+});
+
+export const emailCopySchema = z.object({
+  subject: z.string(),
+  previewText: z.string(),
+  htmlBody: z.string(),
+});
+
+export const businessIdeaSchema = z.object({
+  audience: z.string(),
+  positioning: z.string(),
+  productCatalog: z.array(
+    z.object({
+      name: z.string(),
+      description: z.string(),
+      priceRangeUsd: z.string(),
+    })
+  ),
+});
+
+export const aiGenerationKinds = [
+  'course-outline',
+  'lesson-content',
+  'product-description',
+  'landing-page',
+  'email-copy',
+  'business-idea',
+] as const;
+
+export type AiGenerationKind = (typeof aiGenerationKinds)[number];
+
+export const schemaByKind = {
+  'course-outline': courseOutlineSchema,
+  'lesson-content': lessonContentSchema,
+  'product-description': productDescriptionSchema,
+  'landing-page': landingPageSchema,
+  'email-copy': emailCopySchema,
+  'business-idea': businessIdeaSchema,
+} satisfies Record<AiGenerationKind, z.ZodTypeAny>;
+
+export type CourseOutline = z.infer<typeof courseOutlineSchema>;
+export type LessonContent = z.infer<typeof lessonContentSchema>;
+export type ProductDescription = z.infer<typeof productDescriptionSchema>;
+export type LandingPage = z.infer<typeof landingPageSchema>;
+export type EmailCopy = z.infer<typeof emailCopySchema>;
+export type BusinessIdea = z.infer<typeof businessIdeaSchema>;
+
+export type OutputForKind<K extends AiGenerationKind> = z.infer<(typeof schemaByKind)[K]>;

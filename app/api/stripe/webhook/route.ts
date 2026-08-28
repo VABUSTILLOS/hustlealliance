@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
 import { MembershipTier } from '@/lib/generated/prisma/client';
+import { attributeReferralConversion } from '@/lib/referrals/attribute';
 
 let stripe: any = null;
 function getStripe() {
@@ -77,7 +78,9 @@ async function processCompletedCheckout(session: any) {
 
   const amount = session.amount_total ? session.amount_total / 100 : 0;
 
-  if (type === 'subscription') {
+  if (type === 'store') {
+    await processStoreCheckout(session, userId, amount);
+  } else if (type === 'subscription') {
     const newTier = tier === 'PRO' ? MembershipTier.PRO : MembershipTier.BASIC;
     await prisma.user.update({
       where: { id: userId },
@@ -110,6 +113,115 @@ async function processCompletedCheckout(session: any) {
     }
     console.log(`[Webhook] Entitlement granted to ${userId} for ${type} ${courseId || lessonId}`);
   }
+}
+
+// ── Store checkout: creates StoreOrder + StoreOrderItems, fulfills bundle
+// items (course entitlements / nested products), records coupon redemption,
+// and upgrades membership tier for MEMBERSHIP products with a recurring interval.
+interface StripeCheckoutSession {
+  id: string;
+  currency?: string;
+  metadata?: Record<string, string>;
+}
+
+async function processStoreCheckout(session: StripeCheckoutSession, userId: string, amount: number) {
+  const metadata = session.metadata || {};
+  const productIds: string[] = (metadata.productIds || '').split(',').filter(Boolean);
+  const quantities: number[] = (metadata.quantities || '').split(',').filter(Boolean).map(Number);
+  if (productIds.length === 0) { console.error('[Webhook] Store checkout with no productIds'); return; }
+
+  // Idempotency: skip if we've already recorded this Stripe session.
+  const existing = await prisma.storeOrder.findFirst({ where: { stripePaymentIntentId: session.id } });
+  if (existing) { console.log('[Webhook] Store order already processed for session', session.id); return; }
+
+  const products = await prisma.product.findMany({
+    where: { id: { in: productIds } },
+    include: { bundleItems: { include: { product: true } } },
+  });
+  const productMap = new Map(products.map((p) => [p.id, p]));
+
+  const order = await prisma.storeOrder.create({
+    data: {
+      userId,
+      status: 'PAID',
+      totalAmount: amount,
+      currency: (session.currency || 'usd').toUpperCase(),
+      stripePaymentIntentId: session.id,
+      paidAt: new Date(),
+      items: {
+        create: productIds.map((productId, idx) => {
+          const product = productMap.get(productId);
+          const quantity = quantities[idx] || 1;
+          const unitPrice = product?.price ?? 0;
+          return { productId, quantity, unitPrice, totalPrice: unitPrice * quantity };
+        }),
+      },
+    },
+  });
+
+  for (const productId of productIds) {
+    const product = productMap.get(productId);
+    if (!product) continue;
+
+    await fulfillProduct(product, userId);
+
+    if (product.type === 'BUNDLE' && product.bundleItems.length > 0) {
+      for (const bundleItem of product.bundleItems) {
+        await fulfillProduct(bundleItem.product, userId);
+      }
+    }
+
+    // Recurring membership products upgrade the user's tier immediately.
+    if (product.type === 'MEMBERSHIP' && product.recurringInterval) {
+      const meta = (product.metadata as Record<string, unknown> | null) ?? {};
+      const productTier = meta.tier === 'PRO' ? MembershipTier.PRO : MembershipTier.BASIC;
+      const days = product.recurringInterval === 'year' ? 365 : 30;
+      await prisma.user.update({
+        where: { id: userId },
+        data: { membershipTier: productTier, membershipExpiresAt: new Date(Date.now() + days * 86400000) },
+      });
+    }
+  }
+
+  if (metadata.couponCode) {
+    const coupon = await prisma.coupon.findUnique({ where: { code: metadata.couponCode } });
+    if (coupon) {
+      await prisma.couponRedemption.upsert({
+        where: { couponId_orderId: { couponId: coupon.id, orderId: order.id } },
+        create: { couponId: coupon.id, orderId: order.id, userId },
+        update: {},
+      });
+      await prisma.coupon.update({ where: { id: coupon.id }, data: { usedCount: { increment: 1 } } });
+    }
+  }
+
+  try {
+    await attributeReferralConversion(userId, order.id);
+  } catch (e) {
+    console.error('[Webhook] Referral attribution failed (non-fatal)', e);
+  }
+
+  console.log(`[Webhook] Store order ${order.id} fulfilled for ${userId}`);
+}
+
+// Grants an Entitlement/Enrollment for COURSE products (linked via metadata.courseId),
+// and marks other product types simply fulfilled (StoreOrderItem already records the purchase).
+async function fulfillProduct(product: { id: string; type: string; metadata: unknown; price: number }, userId: string) {
+  if (product.type !== 'COURSE') return;
+  const meta = (product.metadata as Record<string, unknown> | null) ?? {};
+  const courseId = typeof meta.courseId === 'string' ? meta.courseId : undefined;
+  if (!courseId) return;
+
+  await prisma.entitlement.upsert({
+    where: { userId_courseId: { userId, courseId } },
+    create: { userId, courseId, price: product.price },
+    update: { price: product.price },
+  });
+  await prisma.enrollment.upsert({
+    where: { userId_courseId: { userId, courseId } },
+    create: { userId, courseId },
+    update: {},
+  });
 }
 
 async function handleSubscriptionChange(subscription: any) {

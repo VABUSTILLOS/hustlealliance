@@ -1,7 +1,9 @@
 "use client";
 
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Package, Clock, CheckCircle, XCircle, RefreshCw } from "lucide-react";
+import { ArrowLeft, Package, Clock, CheckCircle, XCircle, RefreshCw, Sparkles } from "lucide-react";
 import { useOrders } from "../components/hooks/useStore";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 
@@ -32,6 +34,46 @@ const STATUS_LABELS: Record<string, string> = {
 export default function OrdersPage() {
   const { t } = useTranslation();
   const { data: orders, isLoading, error } = useOrders();
+  const searchParams = useSearchParams();
+  const upsellProductId = searchParams.get("upsell");
+  const checkoutSuccess = searchParams.get("checkout") === "success";
+
+  const [upsellProduct, setUpsellProduct] = useState<{ id: string; title: string; price: number } | null>(null);
+  const [addingUpsell, setAddingUpsell] = useState(false);
+  const [upsellDismissed, setUpsellDismissed] = useState(false);
+
+  useEffect(() => {
+    if (!checkoutSuccess || !upsellProductId) return;
+    let cancelled = false;
+    fetch(`/api/store/products/${upsellProductId}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!cancelled && data) setUpsellProduct({ id: data.id, title: data.title, price: data.price });
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [checkoutSuccess, upsellProductId]);
+
+  const handleAddUpsell = async () => {
+    if (!upsellProduct) return;
+    setAddingUpsell(true);
+    try {
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "store",
+          items: [{ productId: upsellProduct.id, quantity: 1 }],
+          successUrl: `${window.location.origin}/store/orders?checkout=success`,
+          cancelUrl: `${window.location.origin}/store/orders`,
+        }),
+      });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+    } finally {
+      setAddingUpsell(false);
+    }
+  };
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-8 max-w-3xl mx-auto">
@@ -50,6 +92,35 @@ export default function OrdersPage() {
         </h1>
         <p className="text-gray-500 mt-1">{t.store.orderHistorySubtitle}</p>
       </div>
+
+      {upsellProduct && !upsellDismissed && (
+        <div className="mb-6 p-4 rounded-xl border border-dashed border-purple-300 bg-purple-50 flex items-start gap-3">
+          <Sparkles className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-gray-900">
+              Complete your order with {upsellProduct.title}
+            </p>
+            <p className="text-xs text-gray-500 mt-0.5">
+              Add it now for just ${upsellProduct.price.toFixed(2)} — one click, no re-entering payment info.
+            </p>
+            <div className="flex gap-2 mt-3">
+              <button
+                onClick={handleAddUpsell}
+                disabled={addingUpsell}
+                className="px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors disabled:opacity-50"
+              >
+                {addingUpsell ? "Redirecting…" : `Add for $${upsellProduct.price.toFixed(2)}`}
+              </button>
+              <button
+                onClick={() => setUpsellDismissed(true)}
+                className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700"
+              >
+                No thanks
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {isLoading && (
         <div className="space-y-3">

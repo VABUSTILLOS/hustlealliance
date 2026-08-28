@@ -74,7 +74,16 @@ export default function NewCoursePage() {
 
   return (
     <div className="p-4 md:p-8 max-w-3xl">
-      <h1 className="text-2xl font-heading font-bold text-foreground mb-8">{t.admin.courses.createNew}</h1>
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-2xl font-heading font-bold text-foreground">{t.admin.courses.createNew}</h1>
+        <button
+          type="button"
+          onClick={() => router.push('/admin/ai-studio')}
+          className="px-4 py-2 bg-surface border border-surface-light text-foreground rounded-xl text-sm font-medium hover:border-accent transition-colors"
+        >
+          ✨ Generate with AI
+        </button>
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
