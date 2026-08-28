@@ -44,6 +44,17 @@ while [ $attempt -lt 15 ]; do
     continue
   fi
 
+  # P3009: a previously failed migration blocks everything. It failed with an
+  # "already exists" drift error (see git history), so mark it applied and retry.
+  if grep -q "P3009" <<<"$OUT"; then
+    FAILED=$(grep -oE 'The `[^`]+` migration' <<<"$OUT" | head -1 | sed 's/^The `//; s/` migration$//')
+    if [ -n "$FAILED" ]; then
+      echo "Resolving previously failed migration $FAILED as applied..."
+      npx prisma migrate resolve --applied "$FAILED" || { echo "resolve failed" >&2; exit 1; }
+      continue
+    fi
+  fi
+
   MIG=$(grep -i "migration name:" <<<"$OUT" | sed -E 's/.*[Mm]igration [Nn]ame:[[:space:]]*//' | tr -d '[:space:]' | head -1)
   if [ -n "$MIG" ] && grep -qi "already exists" <<<"$OUT"; then
     echo "Drift baseline: marking $MIG as applied (its objects already exist)..."
