@@ -11,6 +11,13 @@ const ICONS: Record<BlockType, string> = {
   image: '🖼️',
   video: '🎬',
   embed: '🔗',
+  countdown: '⏱️',
+  stats: '📊',
+  'logo-cloud': '🏢',
+  'lead-form': '📧',
+  'buy-button': '🛒',
+  gallery: '🖼️',
+  spacer: '↕️',
 };
 
 /** Left-hand palette of insertable block types. Click to append to canvas. */

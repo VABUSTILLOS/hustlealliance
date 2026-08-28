@@ -1,19 +1,20 @@
 import { Resend } from 'resend';
+import { getEmailSender } from '@/lib/settings';
 
 const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
   : null;
 
-const FROM_EMAIL = process.env.EMAIL_FROM || 'hustlealliance@resend.dev';
-
 export async function sendEmail(params: { to: string; subject: string; html: string }) {
+  const sender = await getEmailSender();
+  const from = sender.fromName ? `${sender.fromName} <${sender.fromEmail}>` : sender.fromEmail;
   if (!resend) {
     console.log(`[Email] DEMO → ${params.to}: "${params.subject}"`);
     return { id: `demo_${Date.now()}`, demo: true };
   }
   try {
     const { data, error } = await resend.emails.send({
-      from: FROM_EMAIL, to: [params.to], subject: params.subject, html: params.html,
+      from, to: [params.to], subject: params.subject, html: params.html,
     });
     if (error) { console.error('[Email] Resend error:', error); return null; }
     return data;

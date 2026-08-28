@@ -10,25 +10,46 @@ export async function PUT(
     await requireAdmin();
     const { id } = await params;
     const body = await request.json();
-    const { name, trigger, subject, html, delayMinutes, isActive } = body as {
+    const { name, trigger, subject, html, delayMinutes, isActive, steps } = body as {
       name?: string;
       trigger?: 'SIGNUP' | 'ENROLLMENT' | 'PURCHASE' | 'DRIP';
       subject?: string;
       html?: string;
       delayMinutes?: number;
       isActive?: boolean;
+      steps?: { order: number; subject: string; html: string; delayMinutes: number }[];
     };
+
+    const firstStep = steps?.[0];
 
     const automation = await prisma.emailAutomation.update({
       where: { id },
       data: {
         ...(name !== undefined ? { name } : {}),
         ...(trigger !== undefined ? { trigger } : {}),
-        ...(subject !== undefined ? { subject } : {}),
-        ...(html !== undefined ? { html } : {}),
-        ...(delayMinutes !== undefined ? { delayMinutes } : {}),
+        ...(subject !== undefined ? { subject: firstStep?.subject ?? subject } : firstStep ? { subject: firstStep.subject } : {}),
+        ...(html !== undefined ? { html: firstStep?.html ?? html } : firstStep ? { html: firstStep.html } : {}),
+        ...(delayMinutes !== undefined
+          ? { delayMinutes: firstStep?.delayMinutes ?? delayMinutes }
+          : firstStep
+            ? { delayMinutes: firstStep.delayMinutes ?? 0 }
+            : {}),
         ...(isActive !== undefined ? { isActive } : {}),
+        ...(steps !== undefined
+          ? {
+              steps: {
+                deleteMany: {},
+                create: steps.map((s, i) => ({
+                  order: i,
+                  subject: s.subject,
+                  html: s.html,
+                  delayMinutes: s.delayMinutes ?? 0,
+                })),
+              },
+            }
+          : {}),
       },
+      include: { steps: { orderBy: { order: 'asc' } } },
     });
 
     return NextResponse.json({ automation });

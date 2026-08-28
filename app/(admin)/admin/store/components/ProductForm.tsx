@@ -16,6 +16,7 @@ export type ProductFormValue = {
   isPublished: boolean;
   stripePriceId: string;
   recurringInterval: string;
+  trialDays: number | null;
   upsellProductId: string;
   bundleItems: { productId: string; quantity: number }[];
   courseId: string; // for type=COURSE, stored in metadata
@@ -36,6 +37,7 @@ const EMPTY_FORM: ProductFormValue = {
   isPublished: false,
   stripePriceId: '',
   recurringInterval: '',
+  trialDays: null,
   upsellProductId: '',
   bundleItems: [],
   courseId: '',
@@ -131,6 +133,7 @@ export function ProductForm({
       metadata,
       stripePriceId: form.stripePriceId || null,
       recurringInterval: form.type === 'MEMBERSHIP' ? (form.recurringInterval || null) : null,
+      trialDays: form.type === 'MEMBERSHIP' && form.trialDays ? form.trialDays : null,
       upsellProductId: form.upsellProductId || null,
       bundleItems: form.type === 'BUNDLE' ? form.bundleItems : [],
     };
@@ -295,18 +298,32 @@ export function ProductForm({
       </div>
 
       {form.type === 'MEMBERSHIP' && (
-        <div>
-          <label className="block text-sm text-muted mb-1.5">Recurring interval</label>
-          <select
-            name="recurringInterval"
-            value={form.recurringInterval}
-            onChange={handleChange}
-            className="w-full px-4 py-2 bg-surface border border-surface-light rounded-xl text-foreground text-sm focus:outline-none focus:border-accent"
-          >
-            <option value="">One-time (not recurring)</option>
-            <option value="month">Monthly</option>
-            <option value="year">Yearly</option>
-          </select>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm text-muted mb-1.5">Recurring interval</label>
+            <select
+              name="recurringInterval"
+              value={form.recurringInterval}
+              onChange={handleChange}
+              className="w-full px-4 py-2 bg-surface border border-surface-light rounded-xl text-foreground text-sm focus:outline-none focus:border-accent"
+            >
+              <option value="">One-time (not recurring)</option>
+              <option value="month">Monthly</option>
+              <option value="year">Yearly</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm text-muted mb-1.5">Free trial (days)</label>
+            <input
+              type="number"
+              min={0}
+              name="trialDays"
+              value={form.trialDays ?? ''}
+              onChange={(e) => setForm((prev) => ({ ...prev, trialDays: e.target.value ? Number(e.target.value) : null }))}
+              placeholder="0"
+              className="w-full px-4 py-2 bg-surface border border-surface-light rounded-xl text-foreground text-sm focus:outline-none focus:border-accent"
+            />
+          </div>
         </div>
       )}
 

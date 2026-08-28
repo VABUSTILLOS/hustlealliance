@@ -95,6 +95,33 @@ export function useChallenge(slug: string) {
   });
 }
 
+export type LeaderboardEntry = {
+  rank: number;
+  user: { id: string; name: string; username: string | null; avatar: string | null };
+  tasksCompleted: number;
+  lastCompletedAt: string | null;
+  completedAt: string | null;
+  isCurrentUser: boolean;
+};
+
+export type ChallengeLeaderboard = {
+  entries: LeaderboardEntry[];
+  currentUser: LeaderboardEntry | null;
+  totalParticipants: number;
+};
+
+export function useChallengeLeaderboard(slug: string) {
+  return useQuery<ChallengeLeaderboard>({
+    queryKey: ["challenge-leaderboard", slug],
+    queryFn: async () => {
+      const res = await fetch(`/api/challenges/${slug}/leaderboard`);
+      if (!res.ok) throw new Error("Failed to load leaderboard");
+      return res.json();
+    },
+    enabled: !!slug,
+  });
+}
+
 // ── Mutation Hooks ─────────────────────────────────────────────────────
 
 export function useEnrollInChallenge(slug: string) {

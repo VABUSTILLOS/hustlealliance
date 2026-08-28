@@ -16,6 +16,7 @@ import { PostCardModals } from './PostCardModals';
 import { ReactionButton } from './ReactionButton';
 import { PollCard } from './PollCard';
 import { RichPostContent } from './RichPostContent';
+import { VideoEmbeds } from './VideoEmbeds';
 
 type PostType = 'milestone' | 'question' | 'data' | 'default';
 
@@ -326,6 +327,8 @@ export function PostCard({
           ))}
         </div>
       )}
+
+      <VideoEmbeds content={post.content} />
 
       {post.poll && <PollCard poll={post.poll} />}
 

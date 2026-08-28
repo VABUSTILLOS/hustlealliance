@@ -9,6 +9,7 @@ import { GroupTabs } from '../components/GroupTabs';
 import { MemberList } from '../components/MemberList';
 import { GroupEventsTab } from '../components/GroupEventsTab';
 import { GroupFilesTab } from '../components/GroupFilesTab';
+import { AnnounceComposer } from '../components/AnnounceComposer';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { getInitialsAvatarUrl } from '@/lib/utils/avatar';
 import Image from 'next/image';
@@ -85,6 +86,7 @@ export default function GroupDetailPage({
       {/* Feed tab */}
       {activeTab === 'feed' && (
         <div className="space-y-4">
+          {isAdmin && <AnnounceComposer groupId={group.id} />}
           {feedPosts.length === 0 ? (
             <p className="text-muted text-sm py-8 text-center">{t.spaces.noPosts}</p>
           ) : (

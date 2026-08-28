@@ -7,7 +7,7 @@ export async function GET() {
     await requireAdmin();
     const automations = await prisma.emailAutomation.findMany({
       orderBy: { createdAt: 'desc' },
-      include: { _count: { select: { runs: true } } },
+      include: { _count: { select: { runs: true } }, steps: { orderBy: { order: 'asc' } } },
     });
     return NextResponse.json({ automations });
   } catch (err) {
@@ -15,32 +15,52 @@ export async function GET() {
   }
 }
 
+type StepInput = { order: number; subject: string; html: string; delayMinutes: number };
+
 export async function POST(request: NextRequest) {
   try {
     await requireAdmin();
     const body = await request.json();
-    const { name, trigger, subject, html, delayMinutes, isActive } = body as {
+    const { name, trigger, subject, html, delayMinutes, isActive, steps } = body as {
       name: string;
       trigger: 'SIGNUP' | 'ENROLLMENT' | 'PURCHASE' | 'DRIP';
       subject: string;
       html: string;
       delayMinutes?: number;
       isActive?: boolean;
+      steps?: StepInput[];
     };
 
     if (!name || !trigger || !subject || !html) {
       return NextResponse.json({ error: 'name, trigger, subject, and html are required' }, { status: 400 });
     }
 
+    // Legacy subject/html/delayMinutes fields stay populated from the first step for back-compat
+    // with any code path that still reads them directly (e.g. single-step automations).
+    const firstStep = steps?.[0];
+
     const automation = await prisma.emailAutomation.create({
       data: {
         name,
         trigger,
-        subject,
-        html,
-        delayMinutes: delayMinutes ?? 0,
+        subject: firstStep?.subject ?? subject,
+        html: firstStep?.html ?? html,
+        delayMinutes: firstStep?.delayMinutes ?? delayMinutes ?? 0,
         isActive: isActive ?? true,
+        ...(steps?.length
+          ? {
+              steps: {
+                create: steps.map((s, i) => ({
+                  order: i,
+                  subject: s.subject,
+                  html: s.html,
+                  delayMinutes: s.delayMinutes ?? 0,
+                })),
+              },
+            }
+          : {}),
       },
+      include: { steps: { orderBy: { order: 'asc' } } },
     });
 
     return NextResponse.json({ automation }, { status: 201 });

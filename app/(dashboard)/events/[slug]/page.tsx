@@ -11,6 +11,7 @@ import EventHeader from "../components/EventHeader";
 import EventTabs from "../components/EventTabs";
 import RSVPButtons from "../components/RSVPButton";
 import AttendeeList from "../components/AttendeeList";
+import { AddToCalendar } from "../components/AddToCalendar";
 import { formatDate, formatTimeRange } from '@/lib/utils/format-date';
 
 type Tab = "details" | "discussion" | "attendees";
@@ -130,6 +131,15 @@ export default function EventDetailPage() {
           )}
         </div>
         <div className="flex items-center gap-2">
+          <AddToCalendar
+            event={{
+              title: event.title,
+              description: event.description,
+              location: event.location,
+              startDate: event.startDate,
+              endDate: event.endDate,
+            }}
+          />
           <button
             onClick={handleShare}
             className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[var(--color-border-subtle)] text-sm text-muted hover:text-foreground hover:border-accent/30 transition-colors"

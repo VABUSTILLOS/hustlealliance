@@ -1,8 +1,11 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import BarChart from './components/bar-chart';
+import LineChart from './components/line-chart';
 
 type RevenuePoint = { date: string; revenue: number; orders: number };
+type CohortRow = { month: string; size: number; retention: Array<number | null> };
 type ProductRow = { productId: string; title: string; slug: string; revenue: number; units: number };
 type CouponRow = {
   couponId: string;
@@ -38,47 +41,66 @@ type StoreAnalytics = {
   funnel: Funnel;
   campaigns: CampaignRow[];
   referrals: ReferralFunnel;
+  revenueSeries: RevenuePoint[];
+  cohorts: CohortRow[];
 };
 
 const RANGE_OPTIONS = [7, 30, 90] as const;
 
-function LineChart({ data }: { data: RevenuePoint[] }) {
-  const chartH = 160;
-  const chartW = 600;
-  const values = data.map((d) => d.revenue);
-  const maxVal = Math.max(...values, 1);
-
-  if (data.length === 0) {
-    return <p className="text-sm text-muted">No revenue data yet for this range.</p>;
-  }
-
-  const points = data.map((d, i) => {
-    const x = data.length > 1 ? (i / (data.length - 1)) * (chartW - 60) + 50 : chartW / 2;
-    const y = chartH - (d.revenue / maxVal) * chartH;
-    return { x, y, d };
-  });
-  const path = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
-
+function CsvButton({ section, range }: { section: string; range: number }) {
   return (
-    <svg width="100%" height={chartH + 30} viewBox={`0 0 ${chartW} ${chartH + 30}`} preserveAspectRatio="xMidYMid meet">
-      {[0, 0.25, 0.5, 0.75, 1].map((pct) => (
-        <g key={pct}>
-          <line x1={40} y1={chartH - pct * chartH} x2={chartW - 20} y2={chartH - pct * chartH} stroke="#1C1C1E" strokeWidth={0.5} />
-          <text x={34} y={chartH - pct * chartH + 4} fill="#8A8A8A" fontSize={10} textAnchor="end">
-            ${Math.round(maxVal * pct)}
-          </text>
-        </g>
-      ))}
-      <path d={path} fill="none" stroke="#FF3B30" strokeWidth={2} />
-      {points.map((p, i) => (
-        <circle key={i} cx={p.x} cy={p.y} r={2.5} fill="#FF3B30" />
-      ))}
-      {points.map((p, i) => (
-        <text key={i} x={p.x} y={chartH + 16} fill="#8A8A8A" fontSize={8} textAnchor="middle">
-          {p.d.date.slice(5)}
-        </text>
-      ))}
-    </svg>
+    <a
+      href={`/api/admin/analytics/store/export?section=${section}&range=${range}`}
+      className="text-xs px-2 py-1 rounded border border-surface-light text-muted hover:text-foreground hover:border-foreground/40 transition-colors"
+      download
+    >
+      CSV
+    </a>
+  );
+}
+
+function retentionColor(pct: number | null): string {
+  if (pct == null) return 'bg-surface-light/30 text-muted';
+  if (pct >= 75) return 'bg-green-500/30 text-foreground';
+  if (pct >= 50) return 'bg-green-500/20 text-foreground';
+  if (pct >= 25) return 'bg-yellow-500/20 text-foreground';
+  if (pct > 0) return 'bg-red-500/20 text-foreground';
+  return 'bg-surface-light/50 text-muted';
+}
+
+function CohortRetentionTable({ cohorts }: { cohorts: CohortRow[] }) {
+  if (cohorts.every((c) => c.size === 0)) {
+    return <p className="text-sm text-muted">No membership cohorts yet.</p>;
+  }
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="text-left text-muted border-b border-surface-light/50">
+            <th className="py-2 pr-4 font-normal">Cohort</th>
+            <th className="py-2 pr-4 font-normal">Size</th>
+            <th className="py-2 pr-4 font-normal">M1</th>
+            <th className="py-2 pr-4 font-normal">M2</th>
+            <th className="py-2 font-normal">M3</th>
+          </tr>
+        </thead>
+        <tbody>
+          {cohorts.map((c) => (
+            <tr key={c.month} className="border-b border-surface-light/30 last:border-0">
+              <td className="py-2 pr-4 text-foreground font-mono">{c.month}</td>
+              <td className="py-2 pr-4 text-muted font-mono">{c.size}</td>
+              {c.retention.map((pct, i) => (
+                <td key={i} className="py-1 pr-4">
+                  <span className={`inline-block w-full text-center rounded px-2 py-1 font-mono ${retentionColor(pct)}`}>
+                    {pct == null ? '—' : `${pct}%`}
+                  </span>
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
@@ -149,14 +171,38 @@ export default function StoreAnalyticsSections() {
         <>
           {/* Revenue over time */}
           <div className="glass-card p-6 mb-6">
-            <p className="text-sm text-muted mb-3">Revenue over time (last {range} days)</p>
-            <LineChart data={data.revenue} />
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-sm text-muted">Revenue over time (last {range} days)</p>
+              <CsvButton section="revenue" range={range} />
+            </div>
+            <LineChart
+              data={data.revenueSeries.map((d) => ({ label: d.date.slice(5), value: d.revenue }))}
+              color="#FF3B30"
+            />
+          </div>
+
+          {/* Orders over time */}
+          <div className="glass-card p-6 mb-6">
+            <p className="text-sm text-muted mb-3">Orders over time (last {range} days)</p>
+            <BarChart
+              data={data.revenueSeries.map((d) => ({ label: d.date.slice(5), value: d.orders }))}
+              color="#3B82F6"
+            />
+          </div>
+
+          {/* Membership cohort retention */}
+          <div className="glass-card p-6 mb-6">
+            <h3 className="text-foreground font-heading font-bold mb-4">Membership Cohort Retention</h3>
+            <CohortRetentionTable cohorts={data.cohorts} />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             {/* Sales by product */}
             <div className="glass-card p-6">
-              <h3 className="text-foreground font-heading font-bold mb-4">Sales by Product</h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-foreground font-heading font-bold">Sales by Product</h3>
+                <CsvButton section="products" range={range} />
+              </div>
               {data.products.length === 0 ? (
                 <p className="text-sm text-muted">No product sales yet.</p>
               ) : (
@@ -178,7 +224,10 @@ export default function StoreAnalyticsSections() {
 
             {/* Coupon usage */}
             <div className="glass-card p-6">
-              <h3 className="text-foreground font-heading font-bold mb-4">Coupon Usage</h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-foreground font-heading font-bold">Coupon Usage</h3>
+                <CsvButton section="coupons" range={range} />
+              </div>
               {data.coupons.length === 0 ? (
                 <p className="text-sm text-muted">No coupon redemptions yet.</p>
               ) : (
@@ -227,7 +276,10 @@ export default function StoreAnalyticsSections() {
 
             {/* Referral funnel */}
             <div className="glass-card p-6">
-              <h3 className="text-foreground font-heading font-bold mb-4">Referral Funnel</h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-foreground font-heading font-bold">Referral Funnel</h3>
+                <CsvButton section="referrals" range={range} />
+              </div>
               <div className="space-y-4">
                 <FunnelBar
                   label="Referred"
@@ -250,7 +302,10 @@ export default function StoreAnalyticsSections() {
 
           {/* Campaign performance */}
           <div className="glass-card p-6">
-            <h3 className="text-foreground font-heading font-bold mb-4">Campaign Performance</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-foreground font-heading font-bold">Campaign Performance</h3>
+              <CsvButton section="campaigns" range={range} />
+            </div>
             {data.campaigns.length === 0 ? (
               <p className="text-sm text-muted">No email campaigns yet.</p>
             ) : (

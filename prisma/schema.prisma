@@ -326,6 +326,8 @@ model User {
   createdAt           DateTime       @default(now())
   updatedAt           DateTime       @updatedAt
   lastSeenAt          DateTime?
+  tags                String[]       @default([])
+  emailUnsubscribed   Boolean        @default(false)
 
   // ── Existing LMS relations ──
   enrollments       Enrollment[]
@@ -1426,6 +1428,7 @@ model Product {
   metadata    Json?       // Course ID for course products, file URL for digital
   stripePriceId      String?
   recurringInterval  String? // 'month' | 'year' for MEMBERSHIP subscriptions
+  trialDays          Int? // free trial length for MEMBERSHIP subscriptions
   upsellProductId    String?
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
@@ -1451,6 +1454,7 @@ model StoreOrder {
   currency  String          @default("USD")
   stripePaymentIntentId String?
   paidAt    DateTime?
+  abandonedEmailSentAt DateTime? // stamped by the abandoned-cart recovery cron
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
 
@@ -1616,6 +1620,7 @@ model LandingPage {
   status      LandingPageStatus @default(DRAFT)
   blocks      Json // block tree from the drag-and-drop builder
   seo         Json? // { title, description, ogImage }
+  theme       Json? // { background, accent, headingFont } per-page overrides
   publishedAt DateTime?
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
@@ -1631,6 +1636,8 @@ model EmailCampaign {
   segmentFilter Json? // { tiers, roles, purchasedProductIds, enrolledCourseIds, lastActiveDays }
   status        CampaignStatus @default(DRAFT)
   scheduledAt   DateTime?
+  variantSubjectB String? // A/B test subject variant
+  abTestSize    Int? // % of segment receiving the A/B sample split before winner send
   sentAt        DateTime?
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
@@ -1665,7 +1672,21 @@ model EmailAutomation {
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
 
-  runs AutomationRun[]
+  runs  AutomationRun[]
+  steps EmailAutomationStep[]
+}
+
+model EmailAutomationStep {
+  id           String  @id @default(uuid())
+  automationId String
+  order        Int
+  subject      String
+  html         String
+  delayMinutes Int     @default(0) // delay after the previous step
+
+  automation EmailAutomation @relation(fields: [automationId], references: [id], onDelete: Cascade)
+
+  @@unique([automationId, order])
 }
 
 model AutomationRun {
@@ -1674,6 +1695,7 @@ model AutomationRun {
   userId       String
   status       AutomationRunStatus @default(PENDING)
   runAt        DateTime // when the email should be sent
+  currentStep  Int                 @default(0) // index into EmailAutomationStep for multi-step sequences
   sentAt       DateTime?
   createdAt    DateTime            @default(now())
 

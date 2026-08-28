@@ -17,16 +17,18 @@ import { Prisma } from '@/lib/generated/prisma/client';
  *   funnel     — landing pages published -> orders started -> paid orders
  *   campaigns  — per-campaign sent/opened/clicked/bounced rates
  *   referrals  — referred -> converted -> rewarded funnel
+ *   revenueSeries — zero-filled per-day revenue + order counts across the range
+ *   cohorts    — monthly signup cohorts of membership purchasers + M1-M3 retention
  *   all        — every section combined (default)
  */
 
-function rangeToDays(range: string | null): number {
+export function rangeToDays(range: string | null): number {
   const n = Number(range);
   if (n === 7 || n === 30 || n === 90) return n;
   return 30;
 }
 
-async function getRevenueOverTime(days: number) {
+export async function getRevenueOverTime(days: number) {
   const since = new Date();
   since.setDate(since.getDate() - days);
   since.setHours(0, 0, 0, 0);
@@ -48,7 +50,7 @@ async function getRevenueOverTime(days: number) {
   }));
 }
 
-async function getSalesByProduct() {
+export async function getSalesByProduct() {
   const items = await prisma.storeOrderItem.groupBy({
     by: ['productId'],
     _sum: { totalPrice: true, quantity: true },
@@ -73,7 +75,7 @@ async function getSalesByProduct() {
   }));
 }
 
-async function getCouponUsage() {
+export async function getCouponUsage() {
   const redemptions = await prisma.couponRedemption.groupBy({
     by: ['couponId'],
     _count: { _all: true },
@@ -144,7 +146,7 @@ async function getConversionFunnel() {
   };
 }
 
-async function getCampaignPerformance() {
+export async function getCampaignPerformance() {
   const campaigns = await prisma.emailCampaign.findMany({
     select: { id: true, name: true, status: true, sentAt: true },
     orderBy: { createdAt: 'desc' },
@@ -193,7 +195,7 @@ async function getCampaignPerformance() {
   });
 }
 
-async function getReferralFunnel() {
+export async function getReferralFunnel() {
   const [referred, converted, rewarded] = await Promise.all([
     prisma.referral.count(),
     prisma.referral.count({ where: { status: { in: ['CONVERTED', 'REWARDED'] } } }),
@@ -201,6 +203,112 @@ async function getReferralFunnel() {
   ]);
 
   return { referred, converted, rewarded };
+}
+
+/** Zero-filled per-day revenue + order-count series across the selected range. */
+async function getRevenueSeries(days: number) {
+  const since = new Date();
+  since.setDate(since.getDate() - (days - 1));
+  since.setHours(0, 0, 0, 0);
+
+  const rows = await prisma.$queryRaw<Array<{ day: Date; revenue: Prisma.Decimal | number | null; orders: bigint }>>`
+    SELECT date_trunc('day', "paidAt") AS day,
+           SUM("totalAmount") AS revenue,
+           COUNT(*) AS orders
+    FROM "StoreOrder"
+    WHERE "paidAt" >= ${since} AND status IN ('PAID', 'FULFILLED')
+    GROUP BY day
+    ORDER BY day ASC
+  `;
+
+  const byDate = new Map(
+    rows.map((r) => [
+      new Date(r.day).toISOString().slice(0, 10),
+      { revenue: Number(r.revenue ?? 0), orders: Number(r.orders) },
+    ])
+  );
+
+  const series: Array<{ date: string; revenue: number; orders: number }> = [];
+  const cursor = new Date(since);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  while (cursor <= today) {
+    const key = cursor.toISOString().slice(0, 10);
+    const entry = byDate.get(key);
+    series.push({ date: key, revenue: entry?.revenue ?? 0, orders: entry?.orders ?? 0 });
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  return series;
+}
+
+/**
+ * Monthly signup cohorts (last 6 months) for MEMBERSHIP purchasers: users who
+ * have at least one PAID/FULFILLED order containing a MEMBERSHIP product.
+ * Retention at month+N = % of the cohort still "active" (membershipExpiresAt
+ * is null [lifetime] or > that month boundary) at that offset.
+ */
+async function getMembershipCohorts() {
+  const membershipOrderItems = await prisma.storeOrderItem.findMany({
+    where: {
+      product: { type: 'MEMBERSHIP' },
+      order: { status: { in: ['PAID', 'FULFILLED'] } },
+    },
+    select: { order: { select: { userId: true, paidAt: true, createdAt: true } } },
+  });
+
+  if (membershipOrderItems.length === 0) return [];
+
+  // First membership purchase date per user -> assigns the signup cohort.
+  const firstPurchaseByUser = new Map<string, Date>();
+  for (const item of membershipOrderItems) {
+    const userId = item.order.userId;
+    const purchasedAt = item.order.paidAt ?? item.order.createdAt;
+    const existing = firstPurchaseByUser.get(userId);
+    if (!existing || purchasedAt < existing) {
+      firstPurchaseByUser.set(userId, purchasedAt);
+    }
+  }
+
+  const userIds = Array.from(firstPurchaseByUser.keys());
+  const users = await prisma.user.findMany({
+    where: { id: { in: userIds } },
+    select: { id: true, membershipExpiresAt: true },
+  });
+  const expiresByUser = new Map(users.map((u) => [u.id, u.membershipExpiresAt]));
+
+  const now = new Date();
+  const cohortStarts: Date[] = [];
+  for (let i = 5; i >= 0; i--) {
+    cohortStarts.push(new Date(now.getFullYear(), now.getMonth() - i, 1));
+  }
+
+  return cohortStarts.map((start) => {
+    const end = new Date(start.getFullYear(), start.getMonth() + 1, 1);
+    const cohortUserIds = userIds.filter((uid) => {
+      const purchasedAt = firstPurchaseByUser.get(uid)!;
+      return purchasedAt >= start && purchasedAt < end;
+    });
+    const size = cohortUserIds.length;
+
+    const retention = [1, 2, 3].map((offset) => {
+      const boundary = new Date(start.getFullYear(), start.getMonth() + offset, 1);
+      if (size === 0) return 0;
+      if (boundary > now) return null; // not enough time has passed yet
+      const activeCount = cohortUserIds.reduce((count, uid) => {
+        const expiresAt = expiresByUser.get(uid);
+        const active = expiresAt == null || expiresAt > boundary;
+        return active ? count + 1 : count;
+      }, 0);
+      return Number(((activeCount / size) * 100).toFixed(1));
+    });
+
+    return {
+      month: start.toISOString().slice(0, 7),
+      size,
+      retention,
+    };
+  });
 }
 
 export async function GET(request: NextRequest) {
@@ -230,6 +338,12 @@ export async function GET(request: NextRequest) {
     }
     if (section === 'referrals' || section === 'all') {
       result.referrals = await getReferralFunnel();
+    }
+    if (section === 'revenueSeries' || section === 'all') {
+      result.revenueSeries = await getRevenueSeries(days);
+    }
+    if (section === 'cohorts' || section === 'all') {
+      result.cohorts = await getMembershipCohorts();
     }
 
     return NextResponse.json(result, {

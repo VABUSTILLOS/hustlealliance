@@ -351,6 +351,158 @@ export function Inspector({
           {field('Raw HTML (used if no URL)', textArea('html'))}
         </div>
       );
+    case 'countdown':
+      return (
+        <div className="p-4">
+          {field('Heading', textInput('heading'))}
+          {field(
+            'Target date/time',
+            <input
+              type="datetime-local"
+              value={(props.targetDate as string) ? (props.targetDate as string).slice(0, 16) : ''}
+              onChange={(e) => set('targetDate', e.target.value ? new Date(e.target.value).toISOString() : '')}
+              className="w-full px-3 py-2 bg-surface-light rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+            />
+          )}
+          {field('Expired message', textInput('expiredMessage'))}
+        </div>
+      );
+    case 'stats':
+      return (
+        <div className="p-4">
+          {field(
+            'Items',
+            listEditor('items', { value: '', label: '' }, (item: { value?: string; label?: string }, _i, update) => (
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  type="text"
+                  value={item.value || ''}
+                  placeholder="Value (e.g. 10k+)"
+                  onChange={(e) => update({ ...item, value: e.target.value })}
+                  className="px-2 py-1.5 bg-surface rounded text-sm"
+                />
+                <input
+                  type="text"
+                  value={item.label || ''}
+                  placeholder="Label"
+                  onChange={(e) => update({ ...item, label: e.target.value })}
+                  className="px-2 py-1.5 bg-surface rounded text-sm"
+                />
+              </div>
+            ))
+          )}
+        </div>
+      );
+    case 'logo-cloud':
+      return (
+        <div className="p-4">
+          {field('Heading', textInput('heading'))}
+          {field(
+            'Logos',
+            listEditor('logos', { src: '', alt: '' }, (item: { src?: string; alt?: string }, _i, update) => (
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  value={item.src || ''}
+                  placeholder="Logo URL"
+                  onChange={(e) => update({ ...item, src: e.target.value })}
+                  className="w-full px-2 py-1.5 bg-surface rounded text-sm"
+                />
+                <input
+                  type="text"
+                  value={item.alt || ''}
+                  placeholder="Alt text"
+                  onChange={(e) => update({ ...item, alt: e.target.value })}
+                  className="w-full px-2 py-1.5 bg-surface rounded text-sm"
+                />
+              </div>
+            ))
+          )}
+        </div>
+      );
+    case 'lead-form':
+      return (
+        <div className="p-4">
+          {field('Heading', textInput('heading'))}
+          {field('Subheading', textArea('subheading'))}
+          {field('Button label', textInput('buttonLabel'))}
+          {field('Success message', textArea('successMessage'))}
+          {field('Tag (applied to lead)', textInput('tag'))}
+        </div>
+      );
+    case 'buy-button':
+      return (
+        <div className="p-4">
+          {field('Product slug', textInput('productSlug'))}
+          {field('Label', textInput('label'))}
+          {field(
+            'Style',
+            <select
+              value={(props.style as string) || 'primary'}
+              onChange={(e) => set('style', e.target.value)}
+              className="w-full px-3 py-2 bg-surface-light rounded-lg text-sm text-foreground"
+            >
+              <option value="primary">Primary</option>
+              <option value="secondary">Secondary</option>
+            </select>
+          )}
+        </div>
+      );
+    case 'gallery':
+      return (
+        <div className="p-4">
+          {field(
+            'Columns',
+            <select
+              value={String((props.columns as number) || 3)}
+              onChange={(e) => set('columns', Number(e.target.value))}
+              className="w-full px-3 py-2 bg-surface-light rounded-lg text-sm text-foreground"
+            >
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+            </select>
+          )}
+          {field(
+            'Images',
+            listEditor('images', { src: '', alt: '' }, (item: { src?: string; alt?: string }, _i, update) => (
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  value={item.src || ''}
+                  placeholder="Image URL"
+                  onChange={(e) => update({ ...item, src: e.target.value })}
+                  className="w-full px-2 py-1.5 bg-surface rounded text-sm"
+                />
+                <input
+                  type="text"
+                  value={item.alt || ''}
+                  placeholder="Alt text"
+                  onChange={(e) => update({ ...item, alt: e.target.value })}
+                  className="w-full px-2 py-1.5 bg-surface rounded text-sm"
+                />
+              </div>
+            ))
+          )}
+        </div>
+      );
+    case 'spacer':
+      return (
+        <div className="p-4">
+          {field(
+            'Size',
+            <select
+              value={(props.size as string) || 'md'}
+              onChange={(e) => set('size', e.target.value)}
+              className="w-full px-3 py-2 bg-surface-light rounded-lg text-sm text-foreground"
+            >
+              <option value="sm">Small</option>
+              <option value="md">Medium</option>
+              <option value="lg">Large</option>
+            </select>
+          )}
+        </div>
+      );
     default:
       return <div className="p-6 text-sm text-muted">No editable properties.</div>;
   }

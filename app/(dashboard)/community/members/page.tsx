@@ -1,5 +1,6 @@
 import { getCommunityMembers } from '@/lib/db/community';
 import type { GetCommunityMembersOpts, GetCommunityMembersResult } from '@/lib/db/community';
+import { PeopleYouMayKnow } from '../components/PeopleYouMayKnow';
 import { MembersHeader } from './MembersHeader';
 import { MembersGrid } from './MembersGrid';
 import { MembersFilters } from './MembersFilters';
@@ -18,9 +19,18 @@ export default async function MembersPage({
 }) {
   const sp = await searchParams;
 
-  const sort = (VALID_SORTS.includes(sp.sort as any) ? sp.sort : 'activity') as GetCommunityMembersOpts['sort'];
-  const role = VALID_ROLES.includes(sp.role as any) ? (sp.role as GetCommunityMembersOpts['role']) : undefined;
-  const tier = VALID_TIERS.includes(sp.tier as any) ? (sp.tier as GetCommunityMembersOpts['tier']) : undefined;
+  const sortParam = sp.sort ?? '';
+  const roleParam = sp.role ?? '';
+  const tierParam = sp.tier ?? '';
+  const sort: GetCommunityMembersOpts['sort'] = (VALID_SORTS as readonly string[]).includes(sortParam)
+    ? (sortParam as GetCommunityMembersOpts['sort'])
+    : 'activity';
+  const role = (VALID_ROLES as readonly string[]).includes(roleParam)
+    ? (roleParam as GetCommunityMembersOpts['role'])
+    : undefined;
+  const tier = (VALID_TIERS as readonly string[]).includes(tierParam)
+    ? (tierParam as GetCommunityMembersOpts['tier'])
+    : undefined;
   const search = sp.search || undefined;
   const online = sp.online === '1';
 
@@ -34,6 +44,7 @@ export default async function MembersPage({
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-8 max-w-7xl mx-auto">
       <MembersHeader total={result.total} />
+      <PeopleYouMayKnow />
       <MembersFilters
         initialSort={sort}
         initialRole={role}

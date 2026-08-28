@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useCallback, useRef, use } from 'react';
 import Link from 'next/link';
-import { createDefaultBlock, type Block, type BlockType, type Seo } from '@/lib/pages/blocks';
+import { createDefaultBlock, type Block, type BlockType, type Seo, type Theme } from '@/lib/pages/blocks';
 import { BlockPalette } from '../../components/BlockPalette';
 import { Canvas } from '../../components/Canvas';
 import { Inspector } from '../../components/Inspector';
+import { ThemePanel } from '../../components/ThemePanel';
 
 type LandingPage = {
   id: string;
@@ -14,6 +15,7 @@ type LandingPage = {
   status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
   blocks: Block[];
   seo: Seo;
+  theme?: Theme;
 };
 
 const HISTORY_LIMIT = 50;

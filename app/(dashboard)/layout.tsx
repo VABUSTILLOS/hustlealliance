@@ -5,12 +5,14 @@ import { ReactQueryProvider as LayoutQueryProvider } from '@/lib/hooks/queryClie
 import { DashboardShell } from './dashboard-shell';
 import { ToastContainer } from './toast-container';
 import { PresenceHeartbeat } from './components/PresenceHeartbeat';
+import OnboardingRedirect from './components/OnboardingRedirect';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <LayoutQueryProvider>
       <ToastContainer>
         <PresenceHeartbeat />
+        <OnboardingRedirect />
         <DashboardShell>{children}</DashboardShell>
       </ToastContainer>
     </LayoutQueryProvider>

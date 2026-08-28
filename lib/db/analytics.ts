@@ -209,10 +209,24 @@ export type EngagementData = {
     messages: number;
     lessonCompletions: number;
   };
+  /** Percent change vs the immediately preceding window of the same length. */
+  deltas: {
+    posts: number | null;
+    comments: number | null;
+    likes: number | null;
+    messages: number | null;
+    lessonCompletions: number | null;
+  };
 };
+
+function pctChange(current: number, prior: number): number | null {
+  if (prior === 0) return current > 0 ? 100 : null;
+  return Number((((current - prior) / prior) * 100).toFixed(1));
+}
 
 export async function getEngagementAnalytics(days: number): Promise<EngagementData> {
   const since = sinceDate(days);
+  const priorSince = sinceDate(days * 2);
 
   const [postsRows, commentsRows, likesRows, messagesRows, lessonRows] = await Promise.all([
     prisma.$queryRaw<WeeklyCountRow[]>`
@@ -235,6 +249,15 @@ export async function getEngagementAnalytics(days: number): Promise<EngagementDa
       SELECT date_trunc('week', "completedAt") AS bucket, COUNT(*) AS count
       FROM "LessonProgress" WHERE "completed" = true AND "completedAt" >= ${since} GROUP BY bucket ORDER BY bucket ASC
     `,
+  ]);
+
+  // Prior-window totals (the `days` period ending at `since`) for deltas.
+  const [priorPosts, priorComments, priorLikes, priorMessages, priorLessons] = await Promise.all([
+    prisma.communityPost.count({ where: { createdAt: { gte: priorSince, lt: since } } }),
+    prisma.communityComment.count({ where: { createdAt: { gte: priorSince, lt: since } } }),
+    prisma.postLike.count({ where: { createdAt: { gte: priorSince, lt: since } } }),
+    prisma.message.count({ where: { createdAt: { gte: priorSince, lt: since } } }),
+    prisma.lessonProgress.count({ where: { completed: true, completedAt: { gte: priorSince, lt: since } } }),
   ]);
 
   const buckets = new Map<string, { posts: number; comments: number; likes: number; messages: number; lessonCompletions: number }>();
@@ -269,7 +292,17 @@ export async function getEngagementAnalytics(days: number): Promise<EngagementDa
     { posts: 0, comments: 0, likes: 0, messages: 0, lessonCompletions: 0 },
   );
 
-  return { series, totals };
+  return {
+    series,
+    totals,
+    deltas: {
+      posts: pctChange(totals.posts, priorPosts),
+      comments: pctChange(totals.comments, priorComments),
+      likes: pctChange(totals.likes, priorLikes),
+      messages: pctChange(totals.messages, priorMessages),
+      lessonCompletions: pctChange(totals.lessonCompletions, priorLessons),
+    },
+  };
 }
 
 // ─── Revenue ─────────────────────────────────────────────────────────
@@ -279,12 +312,15 @@ export type RevenueData = {
   byType: Array<{ type: string; amount: number }>;
   topProducts: Array<{ title: string; revenue: number; units: number }>;
   totals: { total: number };
+  /** Percent change vs the immediately preceding window of the same length. */
+  deltas: { total: number | null };
 };
 
 export async function getRevenueAnalytics(days: number): Promise<RevenueData> {
   const since = sinceDate(days);
+  const priorSince = sinceDate(days * 2);
 
-  const [orderRows, storeOrderRows, storeItemsByType, courseOrders, topStoreProducts] = await Promise.all([
+  const [orderRows, storeOrderRows, storeItemsByType, courseOrders, topStoreProducts, priorOrders, priorStoreOrders] = await Promise.all([
     prisma.$queryRaw<Array<{ bucket: Date; amount: number | null }>>`
       SELECT date_trunc('day', "createdAt") AS bucket, SUM("amount") AS amount
       FROM "Order" WHERE status = 'COMPLETED' AND "createdAt" >= ${since}
@@ -317,6 +353,15 @@ export async function getRevenueAnalytics(days: number): Promise<RevenueData> {
       ORDER BY revenue DESC
       LIMIT 5
     `,
+    // Prior-window totals for the delta.
+    prisma.order.aggregate({
+      where: { status: 'COMPLETED', createdAt: { gte: priorSince, lt: since } },
+      _sum: { amount: true },
+    }),
+    prisma.storeOrder.aggregate({
+      where: { status: 'PAID', createdAt: { gte: priorSince, lt: since } },
+      _sum: { totalAmount: true },
+    }),
   ]);
 
   const byDate = new Map<string, number>();
@@ -343,8 +388,9 @@ export async function getRevenueAnalytics(days: number): Promise<RevenueData> {
   }));
 
   const total = series.reduce((sum, s) => sum + s.amount, 0);
+  const priorTotal = Number(priorOrders._sum.amount ?? 0) + Number(priorStoreOrders._sum.totalAmount ?? 0);
 
-  return { series, byType, topProducts, totals: { total } };
+  return { series, byType, topProducts, totals: { total }, deltas: { total: pctChange(total, priorTotal) } };
 }
 
 // ─── Funnel ──────────────────────────────────────────────────────────
@@ -354,10 +400,11 @@ export type FunnelData = {
 };
 
 export async function getFunnelAnalytics(): Promise<FunnelData> {
-  const [totalSignups, onboarded, firstPostUsers, orderBuyers, storeBuyers] = await Promise.all([
+  const [totalSignups, onboarded, firstPostUsers, challengeParticipants, orderBuyers, storeBuyers] = await Promise.all([
     prisma.user.count(),
     prisma.user.count({ where: { onboardedAt: { not: null } } }),
     prisma.communityPost.groupBy({ by: ['authorId'] }),
+    prisma.challengeEnrollment.groupBy({ by: ['userId'] }),
     prisma.order.groupBy({ by: ['userId'], where: { status: 'COMPLETED' } }),
     prisma.storeOrder.groupBy({ by: ['userId'], where: { status: 'PAID' } }),
   ]);
@@ -369,6 +416,7 @@ export async function getFunnelAnalytics(): Promise<FunnelData> {
       { label: 'Total signups', count: totalSignups },
       { label: 'Onboarded', count: onboarded },
       { label: 'First post', count: firstPostUsers.length },
+      { label: 'Joined a challenge', count: challengeParticipants.length },
       { label: 'First purchase', count: buyerIds.size },
     ],
   };

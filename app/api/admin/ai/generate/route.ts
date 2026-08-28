@@ -8,6 +8,7 @@ const bodySchema = z.object({
   kind: z.enum(aiGenerationKinds),
   prompt: z.string().min(1, 'prompt is required'),
   model: z.string().optional(),
+  steer: z.string().optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -23,8 +24,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { kind, prompt, model } = parsed.data;
-    const result = await generateAiContent({ kind, prompt, model, createdBy: user.id });
+    const { kind, prompt, model, steer } = parsed.data;
+    const result = await generateAiContent({ kind, prompt, model, steer, createdBy: user.id });
 
     return NextResponse.json({
       kind,

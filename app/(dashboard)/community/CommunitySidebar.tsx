@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { TrendingTopic } from "@/lib/db/community";
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { OnlineNow } from './components/OnlineNow';
+import { PeopleYouMayKnow } from './components/PeopleYouMayKnow';
 
 interface TrendingHashtag {
   name: string;
@@ -31,6 +32,8 @@ export function CommunitySidebar({ trending, trendingTags = [], memberCount, pos
   return (
     <aside className="space-y-6">
       <OnlineNow />
+
+      <PeopleYouMayKnow compact />
 
       <div className="bg-surface border border-white/5 rounded-2xl p-5">
         <h3 className="font-heading font-bold text-white text-sm mb-4 uppercase tracking-wider">

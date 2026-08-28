@@ -27,6 +27,13 @@ export const BLOCK_TYPES = [
   'image',
   'video',
   'embed',
+  'countdown',
+  'stats',
+  'logo-cloud',
+  'lead-form',
+  'buy-button',
+  'gallery',
+  'spacer',
 ] as const;
 
 export type BlockType = (typeof BLOCK_TYPES)[number];
@@ -137,6 +144,59 @@ export const EmbedPropsSchema = z.object({
   url: z.string().optional().default(''),
 });
 
+export const CountdownPropsSchema = z.object({
+  heading: z.string().optional().default(''),
+  targetDate: z.string().optional().default(''),
+  expiredMessage: z.string().optional().default('Offer expired'),
+});
+
+export const StatItemSchema = z.object({
+  value: z.string().default(''),
+  label: z.string().default(''),
+});
+
+export const StatsPropsSchema = z.object({
+  items: z.array(StatItemSchema).default([]),
+});
+
+export const LogoItemSchema = z.object({
+  src: z.string().default(''),
+  alt: z.string().optional().default(''),
+});
+
+export const LogoCloudPropsSchema = z.object({
+  heading: z.string().optional().default(''),
+  logos: z.array(LogoItemSchema).default([]),
+});
+
+export const LeadFormPropsSchema = z.object({
+  heading: z.string().optional().default('Get instant access'),
+  subheading: z.string().optional().default(''),
+  buttonLabel: z.string().optional().default('Subscribe'),
+  successMessage: z.string().optional().default("You're in! Check your inbox."),
+  tag: z.string().optional().default(''),
+});
+
+export const BuyButtonPropsSchema = z.object({
+  productSlug: z.string().optional().default(''),
+  label: z.string().optional().default('Buy now'),
+  style: z.enum(['primary', 'secondary']).optional().default('primary'),
+});
+
+export const GalleryImageSchema = z.object({
+  src: z.string().default(''),
+  alt: z.string().optional().default(''),
+});
+
+export const GalleryPropsSchema = z.object({
+  images: z.array(GalleryImageSchema).default([]),
+  columns: z.union([z.literal(2), z.literal(3), z.literal(4)]).optional().default(3),
+});
+
+export const SpacerPropsSchema = z.object({
+  size: z.enum(['sm', 'md', 'lg']).optional().default('md'),
+});
+
 /** Maps a block type to its props schema. Used for per-type validation. */
 export const BLOCK_PROPS_SCHEMAS = {
   hero: HeroPropsSchema,
@@ -149,6 +209,13 @@ export const BLOCK_PROPS_SCHEMAS = {
   image: ImagePropsSchema,
   video: VideoPropsSchema,
   embed: EmbedPropsSchema,
+  countdown: CountdownPropsSchema,
+  stats: StatsPropsSchema,
+  'logo-cloud': LogoCloudPropsSchema,
+  'lead-form': LeadFormPropsSchema,
+  'buy-button': BuyButtonPropsSchema,
+  gallery: GalleryPropsSchema,
+  spacer: SpacerPropsSchema,
 } as const satisfies Record<BlockType, z.ZodTypeAny>;
 
 /**
@@ -185,6 +252,17 @@ export const SeoSchema = z
   .nullable();
 export type Seo = z.infer<typeof SeoSchema>;
 
+export const ThemeSchema = z
+  .object({
+    background: z.string().optional(),
+    accent: z.string().optional(),
+    headingFont: z.enum(['inter', 'bebas', 'mono']).optional(),
+  })
+  .partial()
+  .optional()
+  .nullable();
+export type Theme = z.infer<typeof ThemeSchema>;
+
 /** Validates and coerces a raw blocks array, throwing a ZodError on failure. */
 export function parsePageDocument(input: unknown): PageDocument {
   return PageDocumentSchema.parse(input) as PageDocument;
@@ -212,6 +290,13 @@ export const BLOCK_LABELS: Record<BlockType, string> = {
   image: 'Image',
   video: 'Video',
   embed: 'Embed',
+  countdown: 'Countdown',
+  stats: 'Stats',
+  'logo-cloud': 'Logo Cloud',
+  'lead-form': 'Lead Form',
+  'buy-button': 'Buy Button',
+  gallery: 'Gallery',
+  spacer: 'Spacer',
 };
 
 /** Returns a fresh block of the given type with sensible default props. */

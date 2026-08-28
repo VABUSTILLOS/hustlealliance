@@ -58,6 +58,7 @@ type NotificationType =
   | 'GROUP_INVITE'
   | 'GROUP_JOIN_REQUEST'
   | 'GROUP_POST'
+  | 'GROUP_ANNOUNCEMENT'
   | 'EVENT_INVITE'
   | 'EVENT_REMINDER'
   | 'NEW_MESSAGE'
@@ -360,6 +361,23 @@ export async function notifyGroupInvite(
     metadata: { inviterName, groupName, groupId },
     sendEmailNow: emailAllowed,
     emailHtml: html,
+  });
+}
+
+export async function notifyGroupAnnouncement(
+  userId: string, userEmail: string,
+  groupName: string, groupId: string, groupSlug: string, content: string, postId: string,
+) {
+  const emailAllowed = await shouldSendEmail(userId, 'email_group');
+  return createNotification({
+    userId, userEmail,
+    type: 'GROUP_ANNOUNCEMENT',
+    title: `Announcement from ${groupName}`,
+    body: content.length > 140 ? `${content.slice(0, 140)}…` : content,
+    sourceId: postId,
+    metadata: { groupName, groupId, groupSlug, postId },
+    sendEmailNow: emailAllowed,
+    emailHtml: `<p><strong>${groupName}</strong> has a new announcement:</p><p>${content}</p><p><a href="/groups/${groupSlug}">View in group</a></p>`,
   });
 }
 

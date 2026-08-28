@@ -9,6 +9,7 @@ import {
   useEnrollInChallenge,
   useCompleteChallengeTask,
 } from "../components/hooks/useChallenges";
+import LeaderboardSection from "../components/LeaderboardSection";
 
 export default function ChallengeDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
@@ -146,8 +147,10 @@ export default function ChallengeDetailPage({ params }: { params: Promise<{ slug
 
       {/* Daily tasks */}
       {challenge.enrolled && (
-        <div className="space-y-6">
-          {tasksByDay.map(([day, tasks]) => (
+        <>
+          <LeaderboardSection slug={slug} totalTasks={totalTasks} />
+          <div className="space-y-6">
+            {tasksByDay.map(([day, tasks]) => (
             <div key={day}>
               <h3 className="text-sm font-semibold text-muted uppercase tracking-wide mb-2">Day {day}</h3>
               <div className="space-y-3">
@@ -200,7 +203,8 @@ export default function ChallengeDetailPage({ params }: { params: Promise<{ slug
               </div>
             </div>
           ))}
-        </div>
+          </div>
+        </>
       )}
     </div>
   );

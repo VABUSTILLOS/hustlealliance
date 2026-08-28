@@ -65,6 +65,12 @@ export default function AdminStorePage() {
         </div>
         <div className="flex gap-3">
           <Link
+            href="/admin/store/orders"
+            className="px-4 py-2.5 bg-surface border border-surface-light text-foreground rounded-xl font-medium text-sm hover:bg-surface-light transition-colors"
+          >
+            Orders
+          </Link>
+          <Link
             href="/admin/store/coupons"
             className="px-4 py-2.5 bg-surface border border-surface-light text-foreground rounded-xl font-medium text-sm hover:bg-surface-light transition-colors"
           >

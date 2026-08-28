@@ -10,7 +10,7 @@ interface MembersGridProps {
   initialHasMore?: boolean;
   initialCursor?: string | null;
   /** Current filter params, forwarded when loading more pages */
-  filters?: { sort?: string; role?: string; tier?: string; search?: string };
+  filters?: { sort?: string; role?: string; tier?: string; search?: string; online?: string };
 }
 
 export function MembersGrid({
@@ -37,6 +37,7 @@ export function MembersGrid({
         if (filters.role) params.set('role', filters.role);
         if (filters.tier) params.set('tier', filters.tier);
         if (filters.search) params.set('search', filters.search);
+        if (filters.online) params.set('online', filters.online);
       }
       params.set('cursor', cursor);
       params.set('limit', '36');

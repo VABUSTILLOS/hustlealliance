@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 
 type LandingPageSummary = {
   id: string;
@@ -21,12 +20,10 @@ const statusColors: Record<string, string> = {
 };
 
 export default function AdminPagesPage() {
-  const router = useRouter();
   const [pages, setPages] = useState<LandingPageSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
-  const [creating, setCreating] = useState(false);
 
   const fetchPages = useCallback(() => {
     setLoading(true);
@@ -41,23 +38,6 @@ export default function AdminPagesPage() {
   }, [search, statusFilter]);
 
   useEffect(() => { fetchPages(); }, [fetchPages]);
-
-  const handleCreate = async () => {
-    setCreating(true);
-    try {
-      const res = await fetch('/api/admin/pages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: 'Untitled Page' }),
-      });
-      const data = await res.json();
-      if (res.ok && data.page) {
-        router.push(`/admin/pages/${data.page.id}/edit`);
-      }
-    } finally {
-      setCreating(false);
-    }
-  };
 
   const handleDuplicate = async (id: string) => {
     const res = await fetch(`/api/admin/pages/${id}/duplicate`, { method: 'POST' });
@@ -77,13 +57,12 @@ export default function AdminPagesPage() {
           <h1 className="text-2xl font-heading font-bold text-foreground">Landing Pages</h1>
           <p className="text-muted text-sm mt-1">{pages.length} page{pages.length === 1 ? '' : 's'}</p>
         </div>
-        <button
-          onClick={handleCreate}
-          disabled={creating}
-          className="px-4 py-2.5 bg-accent text-white rounded-xl font-medium text-sm hover:bg-accent/90 transition-colors disabled:opacity-50"
+        <Link
+          href="/admin/pages/new"
+          className="px-4 py-2.5 bg-accent text-white rounded-xl font-medium text-sm hover:bg-accent/90 transition-colors"
         >
-          {creating ? 'Creating…' : 'New Page'}
-        </button>
+          New Page
+        </Link>
       </div>
 
       <div className="flex gap-3 mb-6">

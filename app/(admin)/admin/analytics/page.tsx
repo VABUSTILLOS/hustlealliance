@@ -84,6 +84,7 @@ type EngagementData = {
     lessonCompletions: number;
   }[];
   totals: { posts: number; comments: number; likes: number; messages: number; lessonCompletions: number };
+  deltas?: { posts: number | null; comments: number | null; likes: number | null; messages: number | null; lessonCompletions: number | null };
 };
 
 type RevenueData = {
@@ -91,7 +92,13 @@ type RevenueData = {
   byType: { type: string; amount: number }[];
   topProducts: { title: string; revenue: number; units: number }[];
   totals: { total: number };
+  deltas?: { total: number | null };
 };
+
+function deltaLabel(value: number | null | undefined): string | undefined {
+  if (value === null || value === undefined) return undefined;
+  return `${value >= 0 ? '▲' : '▼'} ${Math.abs(value)}% vs prev period`;
+}
 
 type FunnelData = {
   steps: { label: string; count: number }[];
@@ -237,11 +244,11 @@ function CommunityAnalyticsSections({ range }: { range: (typeof RANGE_OPTIONS)[n
         {engagement.data && (
           <>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-              <StatCard label="Posts" value={engagement.data.totals.posts} />
-              <StatCard label="Comments" value={engagement.data.totals.comments} />
-              <StatCard label="Likes" value={engagement.data.totals.likes} />
-              <StatCard label="Messages" value={engagement.data.totals.messages} />
-              <StatCard label="Lesson completions" value={engagement.data.totals.lessonCompletions} />
+              <StatCard label="Posts" value={engagement.data.totals.posts} delta={deltaLabel(engagement.data.deltas?.posts)} />
+              <StatCard label="Comments" value={engagement.data.totals.comments} delta={deltaLabel(engagement.data.deltas?.comments)} />
+              <StatCard label="Likes" value={engagement.data.totals.likes} delta={deltaLabel(engagement.data.deltas?.likes)} />
+              <StatCard label="Messages" value={engagement.data.totals.messages} delta={deltaLabel(engagement.data.deltas?.messages)} />
+              <StatCard label="Lesson completions" value={engagement.data.totals.lessonCompletions} delta={deltaLabel(engagement.data.deltas?.lessonCompletions)} />
             </div>
             <p className="text-sm text-muted mb-3">Weekly posts &amp; comments</p>
             <SvgBarChart
@@ -260,7 +267,7 @@ function CommunityAnalyticsSections({ range }: { range: (typeof RANGE_OPTIONS)[n
         {revenue.data && (
           <>
             <div className="mb-6">
-              <StatCard label="Total revenue" value={`$${revenue.data.totals.total.toFixed(2)}`} />
+              <StatCard label="Total revenue" value={`$${revenue.data.totals.total.toFixed(2)}`} delta={deltaLabel(revenue.data.deltas?.total)} />
             </div>
             <p className="text-sm text-muted mb-3">Daily revenue (last {range} days)</p>
             <LineChart
@@ -330,9 +337,20 @@ export default function AdminAnalyticsPage() {
 
   return (
     <div className="p-4 md:p-8">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
         <h1 className="text-2xl font-heading font-bold text-foreground">{t.admin.analytics.title}</h1>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center flex-wrap">
+          <div className="flex gap-2 mr-2">
+            {(['growth', 'engagement', 'revenue'] as const).map((type) => (
+              <a
+                key={type}
+                href={`/api/admin/analytics/export?type=${type}&days=${range}`}
+                className="px-3 py-1 rounded-md text-sm border border-surface-light text-muted hover:text-foreground transition-colors capitalize"
+              >
+                ⬇ {type} CSV
+              </a>
+            ))}
+          </div>
           {RANGE_OPTIONS.map((r) => (
             <button
               key={r}

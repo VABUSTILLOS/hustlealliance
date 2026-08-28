@@ -225,6 +225,118 @@ export async function getChallengeProgress(challengeId: string, userId: string) 
   };
 }
 
+// ── Member: leaderboard ─────────────────────────────────────────────────
+
+/**
+ * Ranks enrollments by tasks completed (desc), tie-broken by who reached
+ * that count first. Returns the top N plus the requesting user's own rank.
+ */
+export async function getChallengeLeaderboard(challengeId: string, userId?: string, limit = 20) {
+  const enrollments = await prisma.challengeEnrollment.findMany({
+    where: { challengeId },
+    include: {
+      user: { select: { id: true, name: true, username: true, avatar: true } },
+      completions: { select: { completedAt: true } },
+    },
+  });
+
+  const ranked = enrollments
+    .map((e) => ({
+      user: e.user,
+      tasksCompleted: e.completions.length,
+      lastCompletedAt: e.completions.reduce<Date | null>(
+        (latest, c) => (latest && latest > c.completedAt ? latest : c.completedAt),
+        null,
+      ),
+      completedAt: e.completedAt,
+      isCurrentUser: userId === e.user.id,
+    }))
+    .sort((a, b) => {
+      if (b.tasksCompleted !== a.tasksCompleted) return b.tasksCompleted - a.tasksCompleted;
+      const aTime = a.lastCompletedAt?.getTime() ?? Number.MAX_SAFE_INTEGER;
+      const bTime = b.lastCompletedAt?.getTime() ?? Number.MAX_SAFE_INTEGER;
+      return aTime - bTime;
+    });
+
+  const entries = ranked.slice(0, limit).map((entry, idx) => ({ rank: idx + 1, ...entry }));
+  const currentUserIndex = userId ? ranked.findIndex((e) => e.isCurrentUser) : -1;
+
+  return {
+    entries,
+    currentUser:
+      currentUserIndex >= 0
+        ? { rank: currentUserIndex + 1, ...ranked[currentUserIndex] }
+        : null,
+    totalParticipants: enrollments.length,
+  };
+}
+
+// ── Cron: reminders ─────────────────────────────────────────────────────
+
+/**
+ * Sends CHALLENGE_REMINDER notifications to members enrolled in ACTIVE
+ * challenges who still have incomplete tasks. Skips anyone reminded in the
+ * last 24h (dedupe via existing notification rows). Returns counts.
+ */
+export async function sendChallengeReminders() {
+  const now = new Date();
+  const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+  const activeChallenges = await prisma.challenge.findMany({
+    where: { status: "ACTIVE", startDate: { lte: now }, endDate: { gte: now } },
+    select: { id: true, title: true, slug: true, _count: { select: { tasks: true } } },
+  });
+
+  let reminded = 0;
+  let skipped = 0;
+
+  for (const challenge of activeChallenges) {
+    const totalTasks = challenge._count.tasks;
+    if (totalTasks === 0) continue;
+
+    const enrollments = await prisma.challengeEnrollment.findMany({
+      where: { challengeId: challenge.id, completedAt: null },
+      select: { userId: true, _count: { select: { completions: true } } },
+    });
+
+    const pending = enrollments.filter((e) => e._count.completions < totalTasks);
+    if (pending.length === 0) continue;
+
+    const recentlyReminded = await prisma.notification.findMany({
+      where: {
+        type: "CHALLENGE_REMINDER",
+        sourceId: challenge.id,
+        createdAt: { gte: dayAgo },
+        userId: { in: pending.map((e) => e.userId) },
+      },
+      select: { userId: true },
+    });
+    const remindedIds = new Set(recentlyReminded.map((n) => n.userId));
+
+    const toNotify = pending.filter((e) => !remindedIds.has(e.userId));
+    skipped += pending.length - toNotify.length;
+
+    const data = toNotify.map((e) => {
+      const remaining = totalTasks - e._count.completions;
+      return {
+        userId: e.userId,
+        type: "CHALLENGE_REMINDER" as const,
+        title: `Keep going on "${challenge.title}"`,
+        body: `You have ${remaining} task${remaining === 1 ? "" : "s"} left. Don't break your momentum!`,
+        sourceId: challenge.id,
+        metadata: { challengeId: challenge.id, slug: challenge.slug },
+      };
+    });
+
+    for (let i = 0; i < data.length; i += 500) {
+      await prisma.notification.createMany({ data: data.slice(i, i + 500) });
+    }
+    reminded += toNotify.length;
+  }
+
+  return { challenges: activeChallenges.length, reminded, skipped };
+}
+
 // ── Admin: CRUD ──────────────────────────────────────────────────────────
 
 export interface AdminChallengeFilters {
@@ -418,6 +530,66 @@ export async function updateChallenge(id: string, input: Partial<ChallengeInput>
 
 export async function deleteChallenge(id: string) {
   return prisma.challenge.delete({ where: { id } });
+}
+
+/**
+ * Clones a challenge (including tasks) into a new DRAFT. Paid copies get a
+ * fresh linked Product via syncChallengeProduct; enrollments are not copied.
+ */
+export async function duplicateChallenge(id: string, creatorId: string) {
+  const source = await prisma.challenge.findUnique({
+    where: { id },
+    include: { tasks: true },
+  });
+  if (!source) throw new Error("Challenge not found");
+
+  const slug = `${source.slug}-copy-${Date.now().toString(36)}`;
+
+  const copy = await prisma.challenge.create({
+    data: {
+      title: `${source.title} (Copy)`,
+      slug,
+      description: source.description,
+      coverImage: source.coverImage,
+      status: "DRAFT",
+      startDate: source.startDate,
+      endDate: source.endDate,
+      price: source.price,
+      currency: source.currency,
+      maxParticipants: source.maxParticipants,
+      creatorId,
+      tasks: {
+        createMany: {
+          data: source.tasks.map((t) => ({
+            dayNumber: t.dayNumber,
+            title: t.title,
+            description: t.description,
+            sortOrder: t.sortOrder,
+          })),
+        },
+      },
+    },
+    include: { tasks: true },
+  });
+
+  if (source.price > 0) {
+    const productId = await syncChallengeProduct({
+      challengeId: copy.id,
+      productId: null,
+      title: copy.title,
+      slug: copy.slug,
+      description: copy.description,
+      price: copy.price,
+      currency: copy.currency,
+    });
+    return prisma.challenge.update({
+      where: { id: copy.id },
+      data: { productId },
+      include: { tasks: true, product: true },
+    });
+  }
+
+  return copy;
 }
 
 export interface ChallengeTaskInput {

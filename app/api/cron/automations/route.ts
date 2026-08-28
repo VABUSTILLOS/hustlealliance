@@ -78,8 +78,10 @@ export async function GET(request: NextRequest) {
     const dueRuns = await prisma.automationRun.findMany({
       where: { status: 'PENDING', runAt: { lte: now } },
       include: {
-        user: { select: { email: true } },
-        automation: { select: { subject: true, html: true } },
+        user: { select: { email: true, emailUnsubscribed: true } },
+        automation: {
+          select: { subject: true, html: true, steps: { orderBy: { order: 'asc' } } },
+        },
       },
     });
 
@@ -87,28 +89,52 @@ export async function GET(request: NextRequest) {
     let failedCount = 0;
 
     for (const run of dueRuns) {
+      if (run.user.emailUnsubscribed) {
+        await prisma.automationRun.update({ where: { id: run.id }, data: { status: 'FAILED' } });
+        failedCount++;
+        continue;
+      }
       if (!run.user.email) {
         await prisma.automationRun.update({ where: { id: run.id }, data: { status: 'FAILED' } });
         failedCount++;
         continue;
       }
+
+      // Multi-step automations send whichever step `currentStep` points at; automations
+      // without steps fall back to the legacy single subject/html/delayMinutes fields.
+      const steps = run.automation.steps;
+      const step = steps.length > 0 ? steps[run.currentStep] : null;
+      const subject = step?.subject ?? run.automation.subject;
+      const stepHtml = step?.html ?? run.automation.html;
+
       try {
-        const html = instrumentHtml(run.automation.html, run.id);
-        const result = await sendCampaignEmail({
-          to: run.user.email,
-          subject: run.automation.subject,
-          html,
-        });
-        if (result) {
+        const html = instrumentHtml(stepHtml, run.id, run.userId);
+        const result = await sendCampaignEmail({ to: run.user.email, subject, html });
+        if (!result) {
+          await prisma.automationRun.update({ where: { id: run.id }, data: { status: 'FAILED' } });
+          failedCount++;
+          continue;
+        }
+
+        const nextStepIndex = run.currentStep + 1;
+        const nextStep = steps[nextStepIndex];
+        if (steps.length > 0 && nextStep) {
+          // More steps remain: reschedule for the next step's delay and advance currentStep.
+          await prisma.automationRun.update({
+            where: { id: run.id },
+            data: {
+              currentStep: nextStepIndex,
+              runAt: new Date(Date.now() + nextStep.delayMinutes * 60 * 1000),
+              sentAt: new Date(),
+            },
+          });
+        } else {
           await prisma.automationRun.update({
             where: { id: run.id },
             data: { status: 'SENT', sentAt: new Date() },
           });
-          sentCount++;
-        } else {
-          await prisma.automationRun.update({ where: { id: run.id }, data: { status: 'FAILED' } });
-          failedCount++;
         }
+        sentCount++;
       } catch (err) {
         console.error(`[CRON /automations] Send failed for run ${run.id}:`, err);
         await prisma.automationRun.update({ where: { id: run.id }, data: { status: 'FAILED' } });

@@ -26,6 +26,7 @@ const statusColors: Record<string, string> = {
 export default function AdminChallengesPage() {
   const [challenges, setChallenges] = useState<AdminChallenge[]>([]);
   const [loading, setLoading] = useState(true);
+  const [duplicating, setDuplicating] = useState<string | null>(null);
 
   const load = () => {
     setLoading(true);
@@ -39,6 +40,19 @@ export default function AdminChallengesPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
   }, []);
+
+  async function handleDuplicate(id: string) {
+    setDuplicating(id);
+    try {
+      const res = await fetch(`/api/admin/challenges/${id}/duplicate`, { method: "POST" });
+      if (!res.ok) throw new Error((await res.json()).error || "Duplicate failed");
+      load();
+    } catch (err) {
+      alert((err as Error).message);
+    } finally {
+      setDuplicating(null);
+    }
+  }
 
   return (
     <div className="p-4 md:p-8">
@@ -70,6 +84,7 @@ export default function AdminChallengesPage() {
                 <th className="p-4">Price</th>
                 <th className="p-4">Tasks</th>
                 <th className="p-4">Participants</th>
+                <th className="p-4">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -94,6 +109,15 @@ export default function AdminChallengesPage() {
                   </td>
                   <td className="p-4 text-foreground">{c._count.tasks}</td>
                   <td className="p-4 text-foreground">{c._count.enrollments}</td>
+                  <td className="p-4">
+                    <button
+                      onClick={() => handleDuplicate(c.id)}
+                      disabled={duplicating === c.id}
+                      className="px-3 py-1.5 rounded-lg border border-surface-light text-xs text-muted hover:text-foreground hover:border-accent/50 transition disabled:opacity-50"
+                    >
+                      {duplicating === c.id ? "Duplicating…" : "Duplicate"}
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>

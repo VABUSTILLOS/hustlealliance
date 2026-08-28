@@ -141,6 +141,15 @@ export async function POST(request: NextRequest) {
 
       const usePromotionCode = stripePromotionCodeId && !stripePromotionCodeId.startsWith('demo_');
 
+      // Installments (Klarna/Afterpay) for one-time store purchases — gated by a
+      // SiteSetting so it can be toggled without a deploy once currency/country
+      // eligibility has been verified; Stripe only surfaces them when eligible.
+      let installmentsEnabled = false;
+      if (mode === 'payment') {
+        const installmentsSetting = await db.siteSetting.findUnique({ where: { key: 'installmentsEnabled' } });
+        installmentsEnabled = installmentsSetting?.value === true;
+      }
+
       const session = await stripeClient.checkout.sessions.create({
         mode,
         line_items: lineItems,
@@ -150,6 +159,10 @@ export async function POST(request: NextRequest) {
         customer_email: user.email,
         allow_promotion_codes: !usePromotionCode,
         ...(usePromotionCode ? { discounts: [{ promotion_code: stripePromotionCodeId }] } : {}),
+        ...(mode === 'subscription' && subscriptionProduct?.trialDays
+          ? { subscription_data: { trial_period_days: subscriptionProduct.trialDays } }
+          : {}),
+        ...(installmentsEnabled ? { payment_method_types: ['card', 'klarna', 'afterpay_clearpay'] } : {}),
       });
 
       return NextResponse.json({ url: session.url, sessionId: session.id });

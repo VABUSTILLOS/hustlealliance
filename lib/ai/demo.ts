@@ -80,6 +80,72 @@ export function demoOutputForKind<K extends AiGenerationKind>(
         { name: `${idea} Pro Bundle`, description: 'A premium offer with deeper support.', priceRangeUsd: '$99-$299' },
       ],
     },
+    quiz: {
+      title: `${idea} Quiz`,
+      questions: Array.from({ length: 5 }, (_, i) => ({
+        question: `Demo question ${i + 1} about ${idea}?`,
+        options: ['Option A', 'Option B', 'Option C', 'Option D'],
+        correctIndex: 0,
+        explanation: `Option A is correct because it best reflects the core idea of ${idea}.`,
+      })),
+    },
+    'email-sequence': {
+      name: `${idea} Welcome Sequence`,
+      emails: [
+        {
+          subject: `Welcome to ${idea}! 🚀`,
+          html: `<div><h1>Welcome!</h1><p>Demo-mode email 1 of 3 for "${idea}".</p></div>`,
+          delayDays: 0,
+        },
+        {
+          subject: `Getting the most out of ${idea}`,
+          html: `<div><h1>Tips</h1><p>Demo-mode email 2 of 3 for "${idea}".</p></div>`,
+          delayDays: 2,
+        },
+        {
+          subject: `Don't miss out on ${idea}`,
+          html: `<div><h1>Last call</h1><p>Demo-mode email 3 of 3 for "${idea}".</p></div>`,
+          delayDays: 5,
+        },
+      ],
+    },
+    'video-script': {
+      title: `${idea}: The Video`,
+      hook: `Ever wondered how to master ${idea} in record time?`,
+      sections: [
+        { heading: 'Intro', talkingPoints: [`Why ${idea} matters`, 'What you will learn'], durationSec: 30 },
+        { heading: 'Main Content', talkingPoints: ['Core concept #1', 'Core concept #2', 'A quick example'], durationSec: 120 },
+        { heading: 'Wrap-up', talkingPoints: ['Recap key points', 'Encourage action'], durationSec: 30 },
+      ],
+      cta: `Ready to get started with ${idea}? Link in the description.`,
+    },
+    'social-posts': {
+      posts: [
+        {
+          platform: 'twitter',
+          content: `Demo-mode post about ${idea}. Connect AI_GATEWAY_API_KEY for real copy.`,
+          hashtags: ['#hustle', '#sidehustle'],
+        },
+        {
+          platform: 'linkedin',
+          content: `Thinking about ${idea}? Here's a demo-mode take on why it matters for your career.`,
+          hashtags: ['#careergrowth', '#entrepreneurship'],
+        },
+        {
+          platform: 'instagram',
+          content: `${idea} ✨ (demo-mode caption — connect AI_GATEWAY_API_KEY for real copy)`,
+          hashtags: ['#hustlealliance', '#motivation'],
+        },
+      ],
+    },
+    'copy-rewrite': {
+      improved: `${idea}\n\n(Demo-mode improved version — connect AI_GATEWAY_API_KEY for a real rewrite.)`,
+      alternatives: [
+        `Alternative take #1 on: ${idea}`,
+        `Alternative take #2 on: ${idea}`,
+      ],
+      rationale: 'Demo-mode rationale: tightened language, added a clearer benefit statement, and stronger call to action.',
+    },
   };
 
   return outputs[kind];

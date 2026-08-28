@@ -77,6 +77,7 @@ export interface AdminProductInput {
   metadata?: Record<string, unknown> | null;
   stripePriceId?: string | null;
   recurringInterval?: string | null;
+  trialDays?: number | null;
   upsellProductId?: string | null;
   bundleItems?: BundleItemInput[];
 }
@@ -99,6 +100,7 @@ export async function createAdminProduct(input: AdminProductInput) {
       metadata: (data.metadata ?? Prisma.JsonNull) as Prisma.InputJsonValue,
       stripePriceId: data.stripePriceId ?? null,
       recurringInterval: data.recurringInterval ?? null,
+      trialDays: data.trialDays ?? null,
       upsellProductId: data.upsellProductId ?? null,
       ...(bundleItems && bundleItems.length > 0
         ? {
@@ -140,6 +142,7 @@ export async function updateAdminProduct(id: string, input: Partial<AdminProduct
       ...(data.metadata !== undefined ? { metadata: (data.metadata ?? Prisma.JsonNull) as Prisma.InputJsonValue } : {}),
       ...(data.stripePriceId !== undefined ? { stripePriceId: data.stripePriceId } : {}),
       ...(data.recurringInterval !== undefined ? { recurringInterval: data.recurringInterval } : {}),
+      ...(data.trialDays !== undefined ? { trialDays: data.trialDays } : {}),
       ...(data.upsellProductId !== undefined ? { upsellProductId: data.upsellProductId } : {}),
     },
     include: { bundleItems: true },
@@ -280,4 +283,56 @@ export async function validateAndComputeCoupon(params: {
   const newTotal = Math.max(0, Math.round((params.subtotal - discountAmount) * 100) / 100);
 
   return { valid: true, coupon, discountAmount, newTotal };
+}
+
+// ── Admin Orders ─────────────────────────────────────────────────────────
+
+export interface AdminOrderFilters {
+  status?: string;
+  search?: string;
+  limit?: number;
+  offset?: number;
+}
+
+export async function getAdminOrders(filters: AdminOrderFilters = {}) {
+  const where: Prisma.StoreOrderWhereInput = {};
+  if (filters.status) where.status = filters.status as Prisma.StoreOrderWhereInput["status"];
+  if (filters.search) {
+    where.user = {
+      OR: [
+        { email: { contains: filters.search, mode: "insensitive" } },
+        { name: { contains: filters.search, mode: "insensitive" } },
+      ],
+    };
+  }
+
+  const limit = filters.limit ?? 20;
+  const offset = filters.offset ?? 0;
+
+  const [orders, total] = await Promise.all([
+    prisma.storeOrder.findMany({
+      where,
+      include: {
+        user: { select: { id: true, name: true, email: true } },
+        items: { select: { id: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      take: limit,
+      skip: offset,
+    }),
+    prisma.storeOrder.count({ where }),
+  ]);
+
+  return { orders, total };
+}
+
+export async function getAdminOrderById(id: string) {
+  return prisma.storeOrder.findUnique({
+    where: { id },
+    include: {
+      user: { select: { id: true, name: true, email: true } },
+      items: { include: { product: { select: { id: true, title: true, slug: true, type: true, metadata: true } } } },
+      couponRedemptions: { include: { coupon: { select: { code: true, discountType: true, amount: true } } } },
+    },
+  });
 }

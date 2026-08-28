@@ -1,5 +1,6 @@
 import prisma from '@/lib/db/prisma';
 import { generateUniqueReferralCode } from './code';
+import { getReferralReward } from '@/lib/settings';
 
 /**
  * Attribute a converted purchase to a referral, if the buyer was referred.
@@ -17,7 +18,7 @@ import { generateUniqueReferralCode } from './code';
  *
  * On first successful conversion it:
  *  1. Marks the Referral CONVERTED (sets convertedAt).
- *  2. Issues a 20%-off, single-use Coupon reward to the referrer.
+ *  2. Issues a Coupon reward (configured in Admin → Settings → Referral Reward) to the referrer.
  *  3. Marks the Referral REWARDED and links `rewardCouponId`.
  */
 export async function attributeReferralConversion(refereeUserId: string, orderId: string): Promise<void> {
@@ -33,14 +34,15 @@ export async function attributeReferralConversion(refereeUserId: string, orderId
     data: { status: 'CONVERTED', convertedAt: new Date() },
   });
 
+  const reward = await getReferralReward();
   const rewardCode = `REF-${(await generateUniqueReferralCode()).slice(0, 8)}`;
   const coupon = await prisma.coupon.create({
     data: {
       code: rewardCode,
       description: 'Referral reward — thanks for spreading the word!',
       discountType: 'PERCENT',
-      amount: 20,
-      maxUses: 1,
+      amount: reward.percentOff,
+      maxUses: reward.maxUses,
       isActive: true,
     },
   });

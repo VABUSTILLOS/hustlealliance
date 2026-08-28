@@ -18,6 +18,12 @@ export type SegmentFilter = {
   lastActiveBeforeDays?: number;
   /** Only users last active within this many days (i.e. active users) */
   lastActiveAfterDays?: number;
+  /** Only users who have ALL of these tags */
+  tags?: string[];
+  /** Exclude users who have ANY of these tags */
+  excludeTags?: string[];
+  /** Include users who have unsubscribed from email (default: excluded) */
+  includeUnsubscribed?: boolean;
 };
 
 /**
@@ -71,7 +77,21 @@ export function resolveSegmentFilter(filter: SegmentFilter | null | undefined): 
     });
   }
 
+  if (filter.tags?.length) {
+    // Prisma's `hasEvery` requires the user to have ALL listed tags.
+    and.push({ tags: { hasEvery: filter.tags } });
+  }
+
+  if (filter.excludeTags?.length) {
+    and.push({ NOT: { tags: { hasSome: filter.excludeTags } } });
+  }
+
   if (and.length) where.AND = and;
+
+  // Segments never target unsubscribed users unless explicitly opted in.
+  if (!filter.includeUnsubscribed) {
+    where.emailUnsubscribed = false;
+  }
 
   return where;
 }

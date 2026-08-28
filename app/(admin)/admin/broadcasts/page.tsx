@@ -34,6 +34,7 @@ const channelLabels: Record<string, string> = {
 export default function BroadcastsPage() {
   const [broadcasts, setBroadcasts] = useState<Broadcast[]>([]);
   const [loading, setLoading] = useState(true);
+  const [duplicating, setDuplicating] = useState<string | null>(null);
 
   const load = () => {
     setLoading(true);
@@ -45,6 +46,19 @@ export default function BroadcastsPage() {
 
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load(); }, []);
+
+  async function handleDuplicate(id: string) {
+    setDuplicating(id);
+    try {
+      const res = await fetch(`/api/admin/broadcasts/${id}/duplicate`, { method: 'POST' });
+      if (!res.ok) throw new Error((await res.json()).error || 'Duplicate failed');
+      load();
+    } catch (err) {
+      alert((err as Error).message);
+    } finally {
+      setDuplicating(null);
+    }
+  }
 
   return (
     <div className="p-4 md:p-8">
@@ -76,6 +90,7 @@ export default function BroadcastsPage() {
                 <th className="px-4 py-3 font-medium">Status</th>
                 <th className="px-4 py-3 font-medium">Sent / Scheduled</th>
                 <th className="px-4 py-3 font-medium">Counts</th>
+                <th className="px-4 py-3 font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -113,6 +128,15 @@ export default function BroadcastsPage() {
                     {b.inAppCount > 0 && <div>In-app: {b.inAppCount}</div>}
                     {b.feedPostId && <div>Feed: posted</div>}
                     {!b.emailCount && !b.inAppCount && !b.feedPostId && '—'}
+                  </td>
+                  <td className="px-4 py-3">
+                    <button
+                      onClick={() => handleDuplicate(b.id)}
+                      disabled={duplicating === b.id}
+                      className="px-3 py-1.5 rounded-lg border border-surface-light text-xs text-muted hover:text-foreground hover:border-accent/50 transition disabled:opacity-50"
+                    >
+                      {duplicating === b.id ? 'Duplicating…' : 'Duplicate'}
+                    </button>
                   </td>
                 </tr>
               ))}

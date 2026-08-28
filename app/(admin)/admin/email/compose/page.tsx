@@ -8,7 +8,16 @@ type SegmentFilter = {
   roles?: string[];
   lastActiveBeforeDays?: number;
   lastActiveAfterDays?: number;
+  tags?: string[];
+  excludeTags?: string[];
 };
+
+type AbTest = {
+  variantByUserId: Record<string, 'A' | 'B'>;
+  decidedAt: string;
+  winner?: 'A' | 'B';
+  winnerDecidedAt?: string;
+} | null;
 
 function ComposerInner() {
   const router = useRouter();
@@ -26,6 +35,11 @@ function ComposerInner() {
   const [aiLoading, setAiLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [variantSubjectB, setVariantSubjectB] = useState('');
+  const [abTestSize, setAbTestSize] = useState(20);
+  const [abTest, setAbTest] = useState<AbTest>(null);
+  const [tagsInput, setTagsInput] = useState('');
+  const [excludeTagsInput, setExcludeTagsInput] = useState('');
 
   useEffect(() => {
     if (!campaignId) return;
@@ -39,6 +53,11 @@ function ComposerInner() {
         setHtml(c.html);
         setStatus(c.status);
         setSegment(c.segmentFilter || {});
+        setVariantSubjectB(c.variantSubjectB || '');
+        setAbTestSize(c.abTestSize ?? 20);
+        setAbTest(c.abTest ?? null);
+        setTagsInput((c.segmentFilter?.tags || []).join(', '));
+        setExcludeTagsInput((c.segmentFilter?.excludeTags || []).join(', '));
       });
   }, [campaignId]);
 
@@ -54,9 +73,16 @@ function ComposerInner() {
   }, []);
 
   useEffect(() => {
-    refreshCount(segment);
+    const finalSegment: SegmentFilter = {
+      ...segment,
+      tags: tagsInput.split(',').map((t) => t.trim()).filter(Boolean),
+      excludeTags: excludeTagsInput.split(',').map((t) => t.trim()).filter(Boolean),
+    };
+    if (!finalSegment.tags?.length) delete finalSegment.tags;
+    if (!finalSegment.excludeTags?.length) delete finalSegment.excludeTags;
+    refreshCount(finalSegment);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(segment)]);
+  }, [JSON.stringify(segment), tagsInput, excludeTagsInput]);
 
   const toggleTier = (tier: string) => {
     setSegment((s) => {
@@ -71,7 +97,21 @@ function ComposerInner() {
     setSaving(true);
     setMessage(null);
     try {
-      const payload = { name, subject, html, segmentFilter: segment };
+      const finalSegment: SegmentFilter = {
+        ...segment,
+        tags: tagsInput.split(',').map((t) => t.trim()).filter(Boolean),
+        excludeTags: excludeTagsInput.split(',').map((t) => t.trim()).filter(Boolean),
+      };
+      if (!finalSegment.tags?.length) delete finalSegment.tags;
+      if (!finalSegment.excludeTags?.length) delete finalSegment.excludeTags;
+      const payload = {
+        name,
+        subject,
+        html,
+        segmentFilter: finalSegment,
+        variantSubjectB: variantSubjectB || undefined,
+        abTestSize: variantSubjectB ? abTestSize : undefined,
+      };
       const res = campaignId
         ? await fetch(`/api/admin/email/campaigns/${campaignId}`, {
             method: 'PUT',
@@ -128,8 +168,13 @@ function ComposerInner() {
       const res = await fetch(`/api/admin/email/campaigns/${campaignId}/send`, { method: 'POST' });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to send');
-      setMessage(`Sent to ${data.sentCount}/${data.total} recipients (${data.failedCount} failed).`);
-      setStatus('SENT');
+      if (data.abTestStarted) {
+        setMessage(`A/B sample sent to ${data.sentCount}/${data.total} recipients. Winner will be sent automatically in ~4h.`);
+        setStatus('SENDING');
+      } else {
+        setMessage(`Sent to ${data.sentCount}/${data.total} recipients (${data.failedCount} failed).`);
+        setStatus('SENT');
+      }
     } catch (err) {
       setMessage(err instanceof Error ? err.message : 'Failed to send campaign');
     }
@@ -258,9 +303,73 @@ function ComposerInner() {
               days
             </label>
           </div>
+          <div className="flex gap-4 items-center flex-wrap mt-3">
+            <label className="text-xs text-muted flex items-center gap-2 flex-1 min-w-[200px]">
+              Has all tags
+              <input
+                disabled={!isDraft}
+                value={tagsInput}
+                onChange={(e) => setTagsInput(e.target.value)}
+                placeholder="vip, beta"
+                className="flex-1 px-2 py-1 bg-surface-light border border-surface-light rounded-lg text-foreground text-xs disabled:opacity-50"
+              />
+            </label>
+            <label className="text-xs text-muted flex items-center gap-2 flex-1 min-w-[200px]">
+              Excludes tags
+              <input
+                disabled={!isDraft}
+                value={excludeTagsInput}
+                onChange={(e) => setExcludeTagsInput(e.target.value)}
+                placeholder="unsubscribed-test"
+                className="flex-1 px-2 py-1 bg-surface-light border border-surface-light rounded-lg text-foreground text-xs disabled:opacity-50"
+              />
+            </label>
+          </div>
           <p className="text-sm text-foreground mt-4">
             Matches <strong>{recipientCount ?? '…'}</strong> users
           </p>
+        </div>
+
+        <div className="bg-surface border border-surface-light rounded-2xl p-4">
+          <h3 className="text-sm font-medium text-foreground mb-3">A/B subject test (optional)</h3>
+          <div className="flex gap-4 flex-wrap items-center">
+            <input
+              placeholder="Variant B subject"
+              disabled={!isDraft}
+              value={variantSubjectB}
+              onChange={(e) => setVariantSubjectB(e.target.value)}
+              className="flex-1 min-w-[240px] px-4 py-2 bg-surface-light border border-surface-light rounded-xl text-foreground text-sm disabled:opacity-50"
+            />
+            <label className="text-xs text-muted flex items-center gap-2">
+              Sample size
+              <input
+                type="number"
+                min={1}
+                max={100}
+                disabled={!isDraft}
+                value={abTestSize}
+                onChange={(e) => setAbTestSize(Number(e.target.value))}
+                className="w-16 px-2 py-1 bg-surface-light border border-surface-light rounded-lg text-foreground text-xs disabled:opacity-50"
+              />
+              %
+            </label>
+          </div>
+          <p className="text-xs text-muted mt-2">
+            When set, {abTestSize}% of the segment is split 50/50 between subject A/B first; the winner (by open rate)
+            is sent to the remainder ~4h later.
+          </p>
+          {abTest && (
+            <div className="mt-3 text-xs text-foreground">
+              {abTest.winner ? (
+                <p>
+                  Winner: <strong>Subject {abTest.winner}</strong> (decided{' '}
+                  {abTest.winnerDecidedAt ? new Date(abTest.winnerDecidedAt).toLocaleString() : ''})
+                </p>
+              ) : (
+                <p className="text-muted">Sample sent — awaiting winner decision.</p>
+              )}
+            </div>
+          )}
         </div>
 
         {isDraft && (

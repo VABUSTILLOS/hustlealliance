@@ -16,6 +16,11 @@ export async function GET() {
       },
     });
 
+    const abSettings = await prisma.siteSetting.findMany({
+      where: { key: { in: campaigns.filter((c) => c.variantSubjectB).map((c) => `abtest:${c.id}`) } },
+    });
+    const abByCampaignId = new Map(abSettings.map((s) => [s.key.replace('abtest:', ''), s.value]));
+
     const withStats = campaigns.map(({ recipients, ...c }) => {
       const stats = {
         total: recipients.length,
@@ -25,7 +30,8 @@ export async function GET() {
         bounced: recipients.filter((r) => r.status === 'BOUNCED').length,
         failed: recipients.filter((r) => r.status === 'FAILED').length,
       };
-      return { ...c, stats };
+      const abTest = abByCampaignId.get(c.id) ?? null;
+      return { ...c, stats, abTest };
     });
 
     return NextResponse.json({ campaigns: withStats });
@@ -38,11 +44,13 @@ export async function POST(request: NextRequest) {
   try {
     await requireAdmin();
     const body = await request.json();
-    const { name, subject, html, segmentFilter } = body as {
+    const { name, subject, html, segmentFilter, variantSubjectB, abTestSize } = body as {
       name: string;
       subject: string;
       html: string;
       segmentFilter?: SegmentFilter;
+      variantSubjectB?: string;
+      abTestSize?: number;
     };
 
     if (!name || !subject || !html) {
@@ -58,6 +66,8 @@ export async function POST(request: NextRequest) {
         subject,
         html,
         segmentFilter: segmentFilter ? (segmentFilter as object) : undefined,
+        variantSubjectB: variantSubjectB || undefined,
+        abTestSize: variantSubjectB ? (abTestSize ?? 20) : undefined,
       },
     });
 

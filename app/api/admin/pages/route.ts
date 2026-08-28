@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin, authErrorResponse } from '@/lib/auth/guard';
 import { prisma } from '@/lib/db/prisma';
 import { Prisma } from '@/lib/generated/prisma/client';
-import { safeParsePageDocument } from '@/lib/pages/blocks';
+import { safeParsePageDocument, ThemeSchema } from '@/lib/pages/blocks';
 
 function slugify(input: string): string {
   return input
@@ -77,6 +77,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid blocks', issues: blocksResult.error.issues }, { status: 400 });
     }
 
+    const themeResult = ThemeSchema.safeParse(body.theme ?? undefined);
+    if (!themeResult.success) {
+      return NextResponse.json({ error: 'Invalid theme', issues: themeResult.error.issues }, { status: 400 });
+    }
+
     const page = await prisma.landingPage.create({
       data: {
         title,
@@ -84,6 +89,7 @@ export async function POST(request: NextRequest) {
         status: 'DRAFT',
         blocks: blocksResult.data as unknown as Prisma.InputJsonValue,
         seo: (body.seo ?? undefined) as Prisma.InputJsonValue | undefined,
+        theme: (themeResult.data ?? undefined) as Prisma.InputJsonValue | undefined,
       },
     });
 

@@ -1,3 +1,6 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import type {
   Block,
   HeroPropsSchema,
@@ -10,6 +13,13 @@ import type {
   ImagePropsSchema,
   VideoPropsSchema,
   EmbedPropsSchema,
+  CountdownPropsSchema,
+  StatsPropsSchema,
+  LogoCloudPropsSchema,
+  LeadFormPropsSchema,
+  BuyButtonPropsSchema,
+  GalleryPropsSchema,
+  SpacerPropsSchema,
 } from '@/lib/pages/blocks';
 import type { z } from 'zod';
 
@@ -234,6 +244,183 @@ function EmbedBlock({ props }: { props: Partial<z.infer<typeof EmbedPropsSchema>
   return null;
 }
 
+function pad(n: number) {
+  return String(n).padStart(2, '0');
+}
+
+function CountdownBlock({ props }: { props: Partial<z.infer<typeof CountdownPropsSchema>> }) {
+  const target = props.targetDate ? new Date(props.targetDate).getTime() : NaN;
+  const [remaining, setRemaining] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (Number.isNaN(target)) return;
+    const tick = () => setRemaining(Math.max(0, target - Date.now()));
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [target]);
+
+  if (Number.isNaN(target)) return null;
+
+  const expired = remaining !== null && remaining <= 0;
+  const days = remaining ? Math.floor(remaining / (1000 * 60 * 60 * 24)) : 0;
+  const hours = remaining ? Math.floor((remaining / (1000 * 60 * 60)) % 24) : 0;
+  const minutes = remaining ? Math.floor((remaining / (1000 * 60)) % 60) : 0;
+  const seconds = remaining ? Math.floor((remaining / 1000) % 60) : 0;
+
+  return (
+    <section className="px-6 py-16 text-center">
+      {props.heading ? (
+        <h2 className="text-2xl md:text-3xl font-heading font-bold text-foreground mb-6">{props.heading}</h2>
+      ) : null}
+      {expired ? (
+        <p className="text-muted text-lg">{props.expiredMessage || 'Offer expired'}</p>
+      ) : remaining === null ? null : (
+        <div className="flex items-center justify-center gap-4 md:gap-8">
+          {[
+            { label: 'Days', value: days },
+            { label: 'Hrs', value: hours },
+            { label: 'Min', value: minutes },
+            { label: 'Sec', value: seconds },
+          ].map((unit) => (
+            <div key={unit.label} className="flex flex-col items-center">
+              <span className="text-3xl md:text-5xl font-bold text-accent tabular-nums">{pad(unit.value)}</span>
+              <span className="text-xs uppercase tracking-wide text-muted mt-1">{unit.label}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function StatsBlock({ props }: { props: Partial<z.infer<typeof StatsPropsSchema>> }) {
+  return (
+    <section className="px-6 py-16">
+      <div className="flex flex-wrap items-center justify-center gap-8 md:gap-16 max-w-4xl mx-auto">
+        {(props.items || []).map((item, i) => (
+          <div key={i} className="text-center">
+            <div className="text-3xl md:text-4xl font-heading font-bold text-foreground">{item.value}</div>
+            <div className="text-sm text-muted mt-1">{item.label}</div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function LogoCloudBlock({ props }: { props: Partial<z.infer<typeof LogoCloudPropsSchema>> }) {
+  return (
+    <section className="px-6 py-12">
+      {props.heading ? (
+        <p className="text-center text-sm text-muted mb-6 uppercase tracking-wide">{props.heading}</p>
+      ) : null}
+      <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12 max-w-4xl mx-auto">
+        {(props.logos || []).map((logo, i) => (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            key={i}
+            src={logo.src}
+            alt={logo.alt || ''}
+            className="h-8 md:h-10 w-auto grayscale opacity-70 hover:opacity-100 transition-opacity"
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function LeadFormBlock({ props }: { props: Partial<z.infer<typeof LeadFormPropsSchema>> }) {
+  const [email, setEmail] = useState('');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) return;
+    setStatus('loading');
+    try {
+      const pageSlug = typeof window !== 'undefined' ? window.location.pathname.split('/').pop() : undefined;
+      const res = await fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, tag: props.tag || undefined, pageSlug }),
+      });
+      setStatus(res.ok ? 'success' : 'error');
+    } catch {
+      setStatus('error');
+    }
+  };
+
+  return (
+    <section className="px-6 py-16 max-w-lg mx-auto text-center">
+      {props.heading ? <h2 className="text-2xl md:text-3xl font-heading font-bold text-foreground mb-2">{props.heading}</h2> : null}
+      {props.subheading ? <p className="text-muted mb-6">{props.subheading}</p> : null}
+      {status === 'success' ? (
+        <p className="text-accent font-medium">{props.successMessage || "You're in! Check your inbox."}</p>
+      ) : (
+        <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
+          <input
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+            className="flex-1 px-4 py-2.5 rounded-xl bg-surface-light text-foreground text-sm placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent"
+          />
+          <button
+            type="submit"
+            disabled={status === 'loading'}
+            className="px-5 py-2.5 bg-accent text-white rounded-xl font-medium text-sm hover:bg-accent/90 transition-colors disabled:opacity-50"
+          >
+            {status === 'loading' ? 'Submitting…' : props.buttonLabel || 'Subscribe'}
+          </button>
+        </form>
+      )}
+      {status === 'error' ? <p className="text-red-400 text-sm mt-2">Something went wrong. Try again.</p> : null}
+    </section>
+  );
+}
+
+function BuyButtonBlock({ props }: { props: Partial<z.infer<typeof BuyButtonPropsSchema>> }) {
+  if (!props.productSlug) return null;
+  const secondary = props.style === 'secondary';
+  return (
+    <section className="px-6 py-10 text-center">
+      <a
+        href={`/store/products/${props.productSlug}`}
+        className={`inline-block px-6 py-3 rounded-xl font-medium transition-colors ${
+          secondary
+            ? 'bg-surface-light text-foreground hover:bg-border'
+            : 'bg-accent text-white hover:bg-accent/90'
+        }`}
+      >
+        {props.label || 'Buy now'}
+      </a>
+    </section>
+  );
+}
+
+function GalleryBlock({ props }: { props: Partial<z.infer<typeof GalleryPropsSchema>> }) {
+  const cols = props.columns || 3;
+  const gridCols = cols === 2 ? 'grid-cols-1 md:grid-cols-2' : cols === 4 ? 'grid-cols-2 md:grid-cols-4' : 'grid-cols-2 md:grid-cols-3';
+  return (
+    <section className="px-6 py-10 max-w-5xl mx-auto">
+      <div className={`grid ${gridCols} gap-4`}>
+        {(props.images || []).map((img, i) => (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img key={i} src={img.src} alt={img.alt || ''} className="rounded-xl w-full aspect-square object-cover" />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+const SPACER_SIZES: Record<string, string> = { sm: 'h-8', md: 'h-16', lg: 'h-32' };
+
+function SpacerBlock({ props }: { props: Partial<z.infer<typeof SpacerPropsSchema>> }) {
+  return <div className={SPACER_SIZES[props.size || 'md']} aria-hidden="true" />;
+}
+
 /** Renders a single block by type, dispatching to its presentational component. */
 export function BlockRenderer({ block }: { block: Block }) {
   switch (block.type) {
@@ -257,6 +444,20 @@ export function BlockRenderer({ block }: { block: Block }) {
       return <VideoBlock props={block.props} />;
     case 'embed':
       return <EmbedBlock props={block.props} />;
+    case 'countdown':
+      return <CountdownBlock props={block.props} />;
+    case 'stats':
+      return <StatsBlock props={block.props} />;
+    case 'logo-cloud':
+      return <LogoCloudBlock props={block.props} />;
+    case 'lead-form':
+      return <LeadFormBlock props={block.props} />;
+    case 'buy-button':
+      return <BuyButtonBlock props={block.props} />;
+    case 'gallery':
+      return <GalleryBlock props={block.props} />;
+    case 'spacer':
+      return <SpacerBlock props={block.props} />;
     default:
       return null;
   }

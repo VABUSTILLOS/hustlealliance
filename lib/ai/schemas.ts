@@ -77,6 +77,58 @@ export const businessIdeaSchema = z.object({
   ),
 });
 
+export const quizSchema = z.object({
+  title: z.string(),
+  questions: z.array(
+    z.object({
+      question: z.string(),
+      options: z.array(z.string()).length(4),
+      correctIndex: z.number().int().min(0).max(3),
+      explanation: z.string().optional(),
+    })
+  ),
+});
+
+export const emailSequenceSchema = z.object({
+  name: z.string(),
+  emails: z.array(
+    z.object({
+      subject: z.string(),
+      html: z.string(),
+      delayDays: z.number().int().min(0),
+    })
+  ),
+});
+
+export const videoScriptSchema = z.object({
+  title: z.string(),
+  hook: z.string(),
+  sections: z.array(
+    z.object({
+      heading: z.string(),
+      talkingPoints: z.array(z.string()),
+      durationSec: z.number().int().min(1),
+    })
+  ),
+  cta: z.string(),
+});
+
+export const socialPostsSchema = z.object({
+  posts: z.array(
+    z.object({
+      platform: z.enum(['twitter', 'linkedin', 'instagram']),
+      content: z.string(),
+      hashtags: z.array(z.string()),
+    })
+  ),
+});
+
+export const copyRewriteSchema = z.object({
+  improved: z.string(),
+  alternatives: z.array(z.string()).length(2),
+  rationale: z.string(),
+});
+
 export const aiGenerationKinds = [
   'course-outline',
   'lesson-content',
@@ -84,6 +136,11 @@ export const aiGenerationKinds = [
   'landing-page',
   'email-copy',
   'business-idea',
+  'quiz',
+  'email-sequence',
+  'video-script',
+  'social-posts',
+  'copy-rewrite',
 ] as const;
 
 export type AiGenerationKind = (typeof aiGenerationKinds)[number];
@@ -95,6 +152,11 @@ export const schemaByKind = {
   'landing-page': landingPageSchema,
   'email-copy': emailCopySchema,
   'business-idea': businessIdeaSchema,
+  quiz: quizSchema,
+  'email-sequence': emailSequenceSchema,
+  'video-script': videoScriptSchema,
+  'social-posts': socialPostsSchema,
+  'copy-rewrite': copyRewriteSchema,
 } satisfies Record<AiGenerationKind, z.ZodTypeAny>;
 
 export type CourseOutline = z.infer<typeof courseOutlineSchema>;
@@ -103,5 +165,10 @@ export type ProductDescription = z.infer<typeof productDescriptionSchema>;
 export type LandingPage = z.infer<typeof landingPageSchema>;
 export type EmailCopy = z.infer<typeof emailCopySchema>;
 export type BusinessIdea = z.infer<typeof businessIdeaSchema>;
+export type Quiz = z.infer<typeof quizSchema>;
+export type EmailSequence = z.infer<typeof emailSequenceSchema>;
+export type VideoScript = z.infer<typeof videoScriptSchema>;
+export type SocialPosts = z.infer<typeof socialPostsSchema>;
+export type CopyRewrite = z.infer<typeof copyRewriteSchema>;
 
 export type OutputForKind<K extends AiGenerationKind> = z.infer<(typeof schemaByKind)[K]>;

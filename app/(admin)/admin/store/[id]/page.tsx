@@ -28,6 +28,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
           isPublished: p.isPublished,
           stripePriceId: p.stripePriceId ?? '',
           recurringInterval: p.recurringInterval ?? '',
+          trialDays: p.trialDays ?? null,
           upsellProductId: p.upsellProductId ?? '',
           bundleItems: (p.bundleItems ?? []).map((b: { productId: string; quantity: number }) => ({
             productId: b.productId,

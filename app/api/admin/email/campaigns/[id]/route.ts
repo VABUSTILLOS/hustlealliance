@@ -15,7 +15,10 @@ export async function GET(
       include: { recipients: { include: { user: { select: { id: true, email: true, name: true } } } } },
     });
     if (!campaign) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-    return NextResponse.json({ campaign });
+    const abSetting = campaign.variantSubjectB
+      ? await prisma.siteSetting.findUnique({ where: { key: `abtest:${id}` } })
+      : null;
+    return NextResponse.json({ campaign: { ...campaign, abTest: abSetting?.value ?? null } });
   } catch (err) {
     return authErrorResponse(err);
   }
@@ -29,12 +32,14 @@ export async function PUT(
     await requireAdmin();
     const { id } = await params;
     const body = await request.json();
-    const { name, subject, html, segmentFilter, scheduledAt } = body as {
+    const { name, subject, html, segmentFilter, scheduledAt, variantSubjectB, abTestSize } = body as {
       name?: string;
       subject?: string;
       html?: string;
       segmentFilter?: SegmentFilter | null;
       scheduledAt?: string | null;
+      variantSubjectB?: string | null;
+      abTestSize?: number | null;
     };
 
     const existing = await prisma.emailCampaign.findUnique({ where: { id } });
@@ -55,6 +60,8 @@ export async function PUT(
         ...(scheduledAt !== undefined
           ? { scheduledAt: scheduledAt ? new Date(scheduledAt) : null, status: scheduledAt ? 'SCHEDULED' : 'DRAFT' }
           : {}),
+        ...(variantSubjectB !== undefined ? { variantSubjectB: variantSubjectB || null } : {}),
+        ...(abTestSize !== undefined ? { abTestSize: abTestSize } : {}),
       },
     });
 
