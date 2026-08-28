@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/db/prisma";
+import { reactToComment, unreactToComment } from "@/lib/db/reactions";
 import { getCurrentUser } from "@/lib/auth/user";
+import type { ReactionType } from "@/lib/generated/prisma/client";
+
+const VALID_TYPES: ReactionType[] = ["LIKE", "LOVE", "FIRE", "CLAP"];
 
 export async function POST(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const user = await getCurrentUser();
@@ -12,13 +15,19 @@ export async function POST(
 
   const { id: commentId } = await params;
 
+  let type: ReactionType = "LIKE";
   try {
-    await prisma.commentLike.create({
-      data: { commentId, userId: user.id },
-    });
-    return NextResponse.json({ liked: true });
+    const body = await req.json();
+    if (body?.type && VALID_TYPES.includes(body.type)) type = body.type;
   } catch {
-    return NextResponse.json({ error: "Already liked" }, { status: 409 });
+    // No body — plain like
+  }
+
+  try {
+    const reaction = await reactToComment(commentId, user.id, type);
+    return NextResponse.json({ liked: true, type: reaction.type });
+  } catch {
+    return NextResponse.json({ error: "Failed to react" }, { status: 500 });
   }
 }
 
@@ -33,9 +42,7 @@ export async function DELETE(
   const { id: commentId } = await params;
 
   try {
-    await prisma.commentLike.delete({
-      where: { commentId_userId: { commentId, userId: user.id } },
-    });
+    await unreactToComment(commentId, user.id);
     return NextResponse.json({ liked: false });
   } catch {
     return NextResponse.json({ error: "Not liked" }, { status: 404 });

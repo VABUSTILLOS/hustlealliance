@@ -1,6 +1,7 @@
 import { cache } from 'react';
 import prisma from '@/lib/db/prisma';
 import { normalizeAvatarUrl } from '@/lib/utils/avatar';
+import { getPostReactionSummaries, type ReactionCounts } from '@/lib/db/reactions';
 
 // ── Return types (matching existing FeedPost / Community shapes) ──
 
@@ -27,6 +28,10 @@ export interface CommunityPostItem {
   imageUrls: string[];
   /** Whether the requesting user has liked this post. Only set when the feed is fetched with a currentUserId. */
   isLiked?: boolean;
+  /** Reaction counts grouped by type (e.g. { LIKE: 3, FIRE: 1 }). */
+  reactionCounts?: ReactionCounts;
+  /** The requesting user's reaction type on this post, if any. */
+  myReaction?: string | null;
 }
 
 export interface CommunityCommentItem {
@@ -95,27 +100,39 @@ export const getCommunityPosts = cache(
     });
 
     const hasMore = posts.length > limit;
-    const items = (hasMore ? posts.slice(0, limit) : posts).map((post) => ({
-      id: post.id,
-      author: {
-        id: post.author.id,
-        name: post.author.name,
-        username: post.author.username,
-        avatar: normalizeAvatarUrl(post.author.avatar),
-      },
-      content: post.content,
-      excerpt: post.excerpt,
-      locale: post.locale,
-      space: post.space,
-      createdAt: post.createdAt.toISOString(),
-      commentCount: post._count.comments,
-      likeCount: post._count.likes,
-      shareCount: post._count.shares,
-      isLiked: ((post as { likes?: { id: string }[] }).likes?.length ?? 0) > 0,
-      isPinned: post.isPinned,
-      isEdited: post.isEdited,
-      imageUrls: post.imageUrls,
-    }));
+    const pagePosts = hasMore ? posts.slice(0, limit) : posts;
+
+    const reactionSummaries = await getPostReactionSummaries(
+      pagePosts.map((p) => p.id),
+      currentUserId,
+    );
+
+    const items = pagePosts.map((post) => {
+      const summary = reactionSummaries.get(post.id);
+      return {
+        id: post.id,
+        author: {
+          id: post.author.id,
+          name: post.author.name,
+          username: post.author.username,
+          avatar: normalizeAvatarUrl(post.author.avatar),
+        },
+        content: post.content,
+        excerpt: post.excerpt,
+        locale: post.locale,
+        space: post.space,
+        createdAt: post.createdAt.toISOString(),
+        commentCount: post._count.comments,
+        likeCount: post._count.likes,
+        shareCount: post._count.shares,
+        isLiked: ((post as { likes?: { id: string }[] }).likes?.length ?? 0) > 0,
+        reactionCounts: summary?.counts ?? {},
+        myReaction: summary?.myReaction ?? null,
+        isPinned: post.isPinned,
+        isEdited: post.isEdited,
+        imageUrls: post.imageUrls,
+      };
+    });
 
     const nextCursor = hasMore ? items[items.length - 1]?.id ?? null : null;
 

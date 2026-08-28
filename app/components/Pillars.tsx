@@ -113,22 +113,21 @@ export default function Pillars() {
           </h2>
         </motion.div>
 
-        {/* Bento grid — tall feature card left, two stacked right */}
+        {/* Cards — uniform inline grid */}
         <motion.div
           variants={staggerContainer(0.14)}
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, margin: '-50px' }}
-          className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8"
+          className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8"
         >
-          {features.map((feature, i) => (
+          {features.map((feature) => (
             <motion.div
               key={feature.title}
               variants={cardReveal}
-              className={i === 0 ? 'md:row-span-2' : undefined}
             >
               <SpotlightCard className="h-full p-6 sm:p-8 group cursor-pointer">
-                <div className={i === 0 ? 'mb-8' : 'mb-6'}>
+                <div className="mb-6">
                   <DeviceMockup type={feature.device} t={t} />
                 </div>
                 <h3 className="font-heading text-xl font-bold text-foreground mb-3 pb-3 relative inline-block">

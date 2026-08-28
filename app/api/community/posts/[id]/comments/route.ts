@@ -9,6 +9,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id: postId } = await params;
+  const user = await getCurrentUser();
 
   try {
     const comments = await prisma.communityComment.findMany({
@@ -16,14 +17,28 @@ export async function GET(
       include: {
         author: { select: { id: true, name: true, username: true, avatar: true } },
         _count: { select: { likes: true } },
+        ...(user
+          ? {
+              likes: {
+                where: { userId: user.id },
+                select: { type: true },
+                take: 1,
+              },
+            }
+          : {}),
       },
       take: 50,
       orderBy: { createdAt: "asc" },
     });
 
-    return NextResponse.json(comments, {
+    const payload = comments.map((c) => {
+      const { likes, ...rest } = c as typeof c & { likes?: { type: string }[] };
+      return { ...rest, myReaction: likes?.[0]?.type ?? null };
+    });
+
+    return NextResponse.json(payload, {
       headers: {
-        "Cache-Control": "public, s-maxage=5, stale-while-revalidate=15",
+        "Cache-Control": "private, no-cache",
       },
     });
   } catch (err) {

@@ -39,7 +39,12 @@ export default async function MembersPage({
         initialTier={tier}
         initialSearch={search}
       />
-      <MembersGrid members={result.items} />
+      <MembersGrid
+        members={result.items}
+        initialHasMore={result.hasMore}
+        initialCursor={result.nextCursor}
+        filters={{ sort, role, tier, search }}
+      />
     </div>
   );
 }

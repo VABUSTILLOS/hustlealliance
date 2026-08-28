@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import type { MemberProfile } from '@/lib/db/community';
-import { toggleFollow, addToList, createList, getLists, removeFromList } from './actions';
+import { toggleFollow, addToList, createList, getLists } from './actions';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
 const tierBadgeClass: Record<string, string> = {
