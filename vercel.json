@@ -56,6 +56,14 @@
     {
       "path": "/api/cron/broadcasts",
       "schedule": "30 6 * * *"
+    },
+    {
+      "path": "/api/cron/scheduled-campaigns",
+      "schedule": "45 6 * * *"
+    },
+    {
+      "path": "/api/cron/abandoned-cart",
+      "schedule": "50 6 * * *"
     }
   ]
 }
