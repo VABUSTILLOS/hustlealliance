@@ -10,6 +10,13 @@ set -uo pipefail
 # Diagnostics: show the DB target (credentials redacted) so build hangs are debuggable.
 echo "migrate-deploy: DATABASE_URL=$(node -e 'try{const u=new URL(process.env.DATABASE_URL||"");console.log(u.protocol+"//"+u.hostname+":"+(u.port||"5432"))}catch{console.log("UNSET-OR-INVALID")}')"
 
+# Supabase transaction pooler (port 6543) hangs Prisma migrations (advisory
+# locks need session state). Rewrite to the session pooler (port 5432) on the
+# same host — same credentials, migration-safe.
+DATABASE_URL=$(node -e 'try{const u=new URL(process.env.DATABASE_URL||"");if(u.hostname.endsWith("pooler.supabase.com")&&u.port==="6543")u.port="5432";console.log(u.toString())}catch{console.log(process.env.DATABASE_URL||"")}')
+export DATABASE_URL
+echo "migrate-deploy: using $(node -e 'try{const u=new URL(process.env.DATABASE_URL);console.log(u.protocol+"//"+u.hostname+":"+(u.port||"5432"))}catch{console.log("?")}') for migrations"
+
 OUT=$(timeout 180 npx prisma migrate deploy 2>&1) && { echo "$OUT"; exit 0; }
 RC=$?
 if [ $RC -eq 124 ]; then
