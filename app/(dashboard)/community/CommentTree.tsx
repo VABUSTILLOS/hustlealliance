@@ -8,6 +8,7 @@ import { getInitialsAvatarUrl, DEFAULT_AVATAR } from '@/lib/utils/avatar';
 import { useCurrentUser } from '@/lib/hooks/useCurrentUser';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { useAddComment } from './hooks/useAddComment';
+import { ReactionButton } from './components/ReactionButton';
 
 interface CommentData {
   id: string;
@@ -20,6 +21,7 @@ interface CommentData {
     avatar: string | null;
   };
   _count?: { likes: number };
+  myReaction?: string | null;
 }
 
 interface CommentTreeProps {
@@ -79,6 +81,14 @@ const CommentTreeInner = memo(function CommentTreeInner({
                   {c.author.name}
                 </p>
                 <p className="text-foreground-muted text-xs">{c.content}</p>
+                <div className="mt-1">
+                  <ReactionButton
+                    endpoint={`/api/community/comments/${c.id}/like`}
+                    initialCount={c._count?.likes ?? 0}
+                    initialMyReaction={c.myReaction ?? null}
+                    size="sm"
+                  />
+                </div>
               </div>
             </div>
           ))

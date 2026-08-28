@@ -13,6 +13,7 @@ import { useToast } from '@/app/components/ToastProvider';
 import { PostCardMenu } from './PostCardMenu';
 import { PostCardEditForm } from './PostCardEditForm';
 import { PostCardModals } from './PostCardModals';
+import { ReactionButton } from './ReactionButton';
 
 type PostType = 'milestone' | 'question' | 'data' | 'default';
 
@@ -57,7 +58,6 @@ export function PostCard({
   currentUserRole,
   isLiked = false,
   commentsOpen = false,
-  onToggleLike,
   onToggleComments,
   onDelete,
   onPin,
@@ -304,25 +304,12 @@ export function PostCard({
       )}
 
       <div className="flex items-center gap-4">
-        <button
-          onClick={onToggleLike}
-          className="flex items-center gap-1.5 group focus-visible:ring-2 focus-visible:ring-accent/50 rounded-lg px-1 -mx-1"
-          aria-label={isLiked ? 'Unlike post' : 'Like post'}
-        >
-          <svg
-            className={clsx('w-4 h-4 transition-colors', isLiked ? 'text-accent fill-accent' : 'text-muted group-hover:text-accent')}
-            viewBox="0 0 24 24"
-            fill={isLiked ? 'currentColor' : 'none'}
-            stroke="currentColor"
-            strokeWidth="2"
-            aria-hidden="true"
-          >
-            <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
-          </svg>
-          <span className={clsx('text-xs font-mono', isLiked ? 'text-accent' : 'text-muted')}>
-            {post.likeCount + (isLiked && !post.isLiked ? 1 : (!isLiked && post.isLiked ? -1 : 0))}
-          </span>
-        </button>
+        <ReactionButton
+          endpoint={`/api/community/posts/${post.id}/like`}
+          initialCount={post.likeCount}
+          initialMyReaction={post.myReaction ?? (isLiked ? 'LIKE' : null)}
+          initialCounts={post.reactionCounts ?? {}}
+        />
 
         <button
           onClick={onToggleComments}
