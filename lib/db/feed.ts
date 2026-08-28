@@ -130,7 +130,7 @@ export async function getGlobalFeed(params: {
     createdAt: post.createdAt,
     author: post.author,
     _count: post._count,
-    isLiked: (post as { likes?: { id: string }[] }).likes?.length ? true : undefined,
+    isLiked: ((post as { likes?: { id: string }[] }).likes?.length ?? 0) > 0,
   }));
 }
 

@@ -43,7 +43,11 @@ function applyLikePatch(
       return page.map((item) => {
         const post = item as GlobalFeedPost;
         return post.id === postId
-          ? { ...post, _count: { ...post._count, likes: post._count.likes + delta } }
+          ? {
+              ...post,
+              isLiked: liked,
+              _count: { ...post._count, likes: post._count.likes + delta },
+            }
           : post;
       });
     }
