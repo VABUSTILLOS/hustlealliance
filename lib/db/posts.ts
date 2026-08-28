@@ -1,6 +1,7 @@
 import prisma from "@/lib/db/prisma";
 import { normalizeAvatarUrl } from "@/lib/utils/avatar";
-import type { PostVisibility } from "@/lib/generated/prisma/client";
+import type { PostVisibility, ReactionType } from "@/lib/generated/prisma/client";
+import { reactToPost, unreactToPost } from "@/lib/db/reactions";
 
 // ── Create (with mention parsing) ──────────────────────────────────────
 
@@ -167,16 +168,12 @@ export async function deletePost(postId: string, authorId: string) {
 
 // ── Likes ───────────────────────────────────────────────────────────────
 
-export async function likePost(postId: string, userId: string) {
-  return prisma.postLike.create({
-    data: { postId, userId },
-  });
+export async function likePost(postId: string, userId: string, type: ReactionType = 'LIKE') {
+  return reactToPost(postId, userId, type);
 }
 
 export async function unlikePost(postId: string, userId: string) {
-  return prisma.postLike.delete({
-    where: { postId_userId: { postId, userId } },
-  });
+  return unreactToPost(postId, userId);
 }
 
 export async function getPostLikes(postId: string, limit = 50) {
