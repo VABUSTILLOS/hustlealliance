@@ -1,6 +1,7 @@
 import "server-only";
 import prisma from "@/lib/db/prisma";
 import { OnboardingQuestionType } from "@/lib/generated/prisma/client";
+import type { AuthUser } from "@/lib/auth/user";
 
 const WELCOME_SETTING_KEY = "onboarding.welcome";
 
@@ -18,6 +19,40 @@ const DEFAULT_WELCOME: WelcomeSettings = {
 };
 
 // ── Member-facing ────────────────────────────────────────────────────────
+
+/**
+ * Mock/test auth users (see lib/auth/mock.ts, lib/auth/test-user.ts) have no
+ * row in the User table, which makes every onboarding write fail (FK violation
+ * on answers, "record not found" on complete). Ensure a real row exists and
+ * return it, so callers can use its actual id.
+ */
+export async function ensureDbUser(user: AuthUser) {
+  const byId = await prisma.user.findUnique({ where: { id: user.id } });
+  if (byId) return byId;
+
+  const byEmail = await prisma.user.findUnique({ where: { email: user.email } });
+  if (byEmail) return byEmail;
+
+  try {
+    return await prisma.user.create({
+      data: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        membershipTier: user.membershipTier,
+        avatar: user.avatar,
+      },
+    });
+  } catch {
+    // Lost a race with a concurrent create — re-read.
+    const created =
+      (await prisma.user.findUnique({ where: { id: user.id } })) ??
+      (await prisma.user.findUnique({ where: { email: user.email } }));
+    if (created) return created;
+    throw new Error("Failed to ensure user record");
+  }
+}
 
 export async function getActiveQuestions() {
   return prisma.onboardingQuestion.findMany({

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth/user";
-import { getActiveQuestions, getAnswersForUser } from "@/lib/db/onboarding";
+import { getActiveQuestions, getAnswersForUser, ensureDbUser } from "@/lib/db/onboarding";
 
 // GET /api/onboarding/questions
 export async function GET() {
@@ -8,9 +8,10 @@ export async function GET() {
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
+    const dbUser = await ensureDbUser(user);
     const [questions, answers] = await Promise.all([
       getActiveQuestions(),
-      getAnswersForUser(user.id),
+      getAnswersForUser(dbUser.id),
     ]);
     return NextResponse.json({ questions, answers });
   } catch (err) {
