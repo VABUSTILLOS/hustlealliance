@@ -4,6 +4,8 @@ import { use, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+import { interpolateMsg } from "@/lib/i18n/getErrorMsg";
 import {
   useChallenge,
   useEnrollInChallenge,
@@ -14,6 +16,7 @@ import LeaderboardSection from "../components/LeaderboardSection";
 export default function ChallengeDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
   const router = useRouter();
+  const { t } = useTranslation();
   const { data: challenge, isLoading, error } = useChallenge(slug);
   const enrollMutation = useEnrollInChallenge(slug);
   const completeMutation = useCompleteChallengeTask(slug);
@@ -66,9 +69,9 @@ export default function ChallengeDetailPage({ params }: { params: Promise<{ slug
   if (error || !challenge) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-16 text-center">
-        <p className="text-red-500">Challenge not found</p>
+        <p className="text-red-500">{t.challenges.notFound}</p>
         <Link href="/challenges" className="text-accent text-sm mt-2 inline-block">
-          Back to challenges
+          {t.challenges.backToChallenges}
         </Link>
       </div>
     );
@@ -85,7 +88,7 @@ export default function ChallengeDetailPage({ params }: { params: Promise<{ slug
         )}
         <div className="absolute top-3 right-3">
           <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-black/60 text-white backdrop-blur-sm">
-            {challenge.price > 0 ? `$${challenge.price.toFixed(0)} ${challenge.currency}` : "Free"}
+            {challenge.price > 0 ? `$${challenge.price.toFixed(0)} ${challenge.currency}` : t.challenges.free}
           </span>
         </div>
       </div>
@@ -93,7 +96,7 @@ export default function ChallengeDetailPage({ params }: { params: Promise<{ slug
       <h1 className="text-2xl sm:text-3xl font-heading font-bold text-foreground mb-2">{challenge.title}</h1>
       <p className="text-sm text-muted mb-4">
         {new Date(challenge.startDate).toLocaleDateString()} – {new Date(challenge.endDate).toLocaleDateString()} ·{" "}
-        {challenge._count.enrollments} joined
+        {interpolateMsg(t.challenges.joinedCount, { count: String(challenge._count.enrollments) })}
       </p>
       {challenge.description && <p className="text-sm text-foreground/80 mb-6">{challenge.description}</p>}
 
@@ -102,28 +105,31 @@ export default function ChallengeDetailPage({ params }: { params: Promise<{ slug
         <div className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-6 mb-8 text-center">
           {challenge.paywalled ? (
             <>
-              <p className="text-foreground font-semibold mb-1">This is a paid challenge</p>
+              <p className="text-foreground font-semibold mb-1">{t.challenges.paidChallenge}</p>
               <p className="text-sm text-muted mb-4">
-                Unlock all {totalTasks} daily tasks for ${challenge.price.toFixed(0)} {challenge.currency}
+                {interpolateMsg(t.challenges.unlockAll, {
+                  count: String(totalTasks),
+                  price: `$${challenge.price.toFixed(0)} ${challenge.currency}`,
+                })}
               </p>
               <button
                 onClick={handleEnroll}
                 disabled={enrollMutation.isPending}
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-accent text-white text-sm font-semibold hover:bg-accent/90 transition-colors disabled:opacity-50"
               >
-                {enrollMutation.isPending ? "Redirecting…" : "Unlock challenge"}
+                {enrollMutation.isPending ? t.challenges.redirecting : t.challenges.unlockChallenge}
               </button>
             </>
           ) : (
             <>
-              <p className="text-foreground font-semibold mb-1">Ready to join?</p>
-              <p className="text-sm text-muted mb-4">This challenge is free — join now and start completing daily tasks.</p>
+              <p className="text-foreground font-semibold mb-1">{t.challenges.readyToJoin}</p>
+              <p className="text-sm text-muted mb-4">{t.challenges.freeChallengeSubtitle}</p>
               <button
                 onClick={handleEnroll}
                 disabled={enrollMutation.isPending}
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-accent text-white text-sm font-semibold hover:bg-accent/90 transition-colors disabled:opacity-50"
               >
-                {enrollMutation.isPending ? "Joining…" : "Join challenge"}
+                {enrollMutation.isPending ? t.challenges.joining : t.challenges.joinChallenge}
               </button>
             </>
           )}
@@ -133,10 +139,14 @@ export default function ChallengeDetailPage({ params }: { params: Promise<{ slug
         <div className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-5 mb-8">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-foreground">
-              {challenge.enrollment?.completedAt ? "Challenge complete! 🎉" : "Your progress"}
+              {challenge.enrollment?.completedAt ? t.challenges.challengeComplete : t.challenges.yourProgress}
             </span>
             <span className="text-sm text-muted">
-              {completedCount}/{totalTasks} tasks ({percentage}%)
+              {interpolateMsg(t.challenges.tasksProgress, {
+                done: String(completedCount),
+                total: String(totalTasks),
+                pct: String(percentage),
+              })}
             </span>
           </div>
           <div className="h-2 rounded-full bg-[var(--color-border-subtle)] overflow-hidden">
@@ -152,7 +162,7 @@ export default function ChallengeDetailPage({ params }: { params: Promise<{ slug
           <div className="space-y-6">
             {tasksByDay.map(([day, tasks]) => (
             <div key={day}>
-              <h3 className="text-sm font-semibold text-muted uppercase tracking-wide mb-2">Day {day}</h3>
+              <h3 className="text-sm font-semibold text-muted uppercase tracking-wide mb-2">{interpolateMsg(t.challenges.day, { day: String(day) })}</h3>
               <div className="space-y-3">
                 {tasks.map((task) => {
                   const done = completedTaskIds.has(task.id);
@@ -190,7 +200,7 @@ export default function ChallengeDetailPage({ params }: { params: Promise<{ slug
                                 type="text"
                                 value={proofDrafts[task.id] ?? ""}
                                 onChange={(e) => setProofDrafts((d) => ({ ...d, [task.id]: e.target.value }))}
-                                placeholder="Optional proof / notes"
+                                placeholder={t.challenges.proofPlaceholder}
                                 className="flex-1 px-3 py-1.5 rounded-lg bg-[var(--color-bg)] border border-[var(--color-border-subtle)] text-xs text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/30"
                               />
                             </div>

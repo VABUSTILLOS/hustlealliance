@@ -1,44 +1,44 @@
-import Link from 'next/link';
+'use client';
 
-export const metadata = {
-  title: 'Privacy Policy — Hustle Alliance',
-  description: 'Privacy policy for Hustle Alliance.',
-};
+import Link from 'next/link';
+import { useTranslation } from '@/lib/i18n/useTranslation';
+import { interpolateMsg } from '@/lib/i18n/getErrorMsg';
 
 export default function PrivacyPage() {
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen bg-black text-foreground font-body">
       <div className="max-w-3xl mx-auto px-4 py-24">
         <Link href="/" className="text-sm text-accent hover:text-accent-glow transition-colors mb-8 inline-block">
-          ← Back to Home
+          {t.privacy.backHome}
         </Link>
-        <h1 className="font-display text-3xl sm:text-4xl text-foreground uppercase mb-8">Privacy Policy</h1>
+        <h1 className="font-display text-3xl sm:text-4xl text-foreground uppercase mb-8">{t.privacy.title}</h1>
         <div className="prose prose-invert max-w-none space-y-6">
           <p className="text-zinc-300 text-sm leading-relaxed">
-            Last updated: {new Date().getFullYear()}
+            {interpolateMsg(t.privacy.lastUpdated, { year: new Date().getFullYear() })}
           </p>
           <section>
-            <h2 className="font-heading text-lg font-bold text-foreground mt-8 mb-3">1. Information We Collect</h2>
+            <h2 className="font-heading text-lg font-bold text-foreground mt-8 mb-3">{t.privacy.section1Title}</h2>
             <p className="text-zinc-300 text-sm leading-relaxed">
-              When you create an account with Hustle Alliance, we collect your name, email address, and any profile information you choose to provide. We also collect usage data to improve our platform and your experience.
+              {t.privacy.section1Body}
             </p>
           </section>
           <section>
-            <h2 className="font-heading text-lg font-bold text-foreground mt-8 mb-3">2. How We Use Your Information</h2>
+            <h2 className="font-heading text-lg font-bold text-foreground mt-8 mb-3">{t.privacy.section2Title}</h2>
             <p className="text-zinc-300 text-sm leading-relaxed">
-              We use your information to provide and improve our services, communicate with you about your account, and send you relevant content and updates. We never sell your personal data to third parties.
+              {t.privacy.section2Body}
             </p>
           </section>
           <section>
-            <h2 className="font-heading text-lg font-bold text-foreground mt-8 mb-3">3. Data Security</h2>
+            <h2 className="font-heading text-lg font-bold text-foreground mt-8 mb-3">{t.privacy.section3Title}</h2>
             <p className="text-zinc-300 text-sm leading-relaxed">
-              We implement industry-standard security measures to protect your data. Your information is stored securely and accessed only by authorized personnel.
+              {t.privacy.section3Body}
             </p>
           </section>
           <section>
-            <h2 className="font-heading text-lg font-bold text-foreground mt-8 mb-3">4. Contact</h2>
+            <h2 className="font-heading text-lg font-bold text-foreground mt-8 mb-3">{t.privacy.section4Title}</h2>
             <p className="text-zinc-300 text-sm leading-relaxed">
-              If you have any questions about this privacy policy, contact us at privacy@hustlealliance.com.
+              {t.privacy.section4Body}
             </p>
           </section>
         </div>

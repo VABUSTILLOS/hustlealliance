@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { prisma } from '@/lib/db/prisma';
+import { getServerT } from '@/lib/i18n/server';
+import { interpolateMsg } from '@/lib/i18n/getErrorMsg';
 import PageTracker from '@/app/components/page-tracker';
 import PayButton from './pay-button';
 
@@ -12,20 +14,22 @@ type Props = {
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { t } = await getServerT();
   const { productId } = await params;
   const product = await prisma.product.findFirst({
     where: { OR: [{ id: productId }, { slug: productId }] },
     select: { title: true, description: true },
   });
-  if (!product) return { title: 'Checkout' };
+  if (!product) return { title: t.pay.checkoutTitle };
   return {
-    title: `Buy ${product.title}`,
+    title: interpolateMsg(t.pay.buyTitle, { title: product.title }),
     description: product.description.slice(0, 160),
     robots: { index: false },
   };
 }
 
 export default async function PaymentLinkPage({ params, searchParams }: Props) {
+  const { t } = await getServerT();
   const { productId } = await params;
   const { coupon, ref } = await searchParams;
 
@@ -57,12 +61,14 @@ export default async function PaymentLinkPage({ params, searchParams }: Props) {
         </div>
 
         {coupon && (
-          <p className="mt-3 text-xs text-emerald-400">Coupon <span className="font-mono">{coupon}</span> will be applied at checkout.</p>
+          <p className="mt-3 text-xs text-emerald-400">
+            {interpolateMsg(t.pay.couponApplied, { code: coupon })}
+          </p>
         )}
 
         {soldOut ? (
           <div className="mt-6 w-full py-3 rounded-xl bg-surface-light text-center text-muted font-medium">
-            Sold out
+            {t.pay.soldOut}
           </div>
         ) : (
           <PayButton
@@ -74,7 +80,9 @@ export default async function PaymentLinkPage({ params, searchParams }: Props) {
         )}
 
         {product.trackStock && !soldOut && product.stock <= 5 && (
-          <p className="mt-3 text-xs text-amber-400 text-center">Only {product.stock} left</p>
+          <p className="mt-3 text-xs text-amber-400 text-center">
+            {interpolateMsg(t.pay.onlyLeft, { n: product.stock })}
+          </p>
         )}
       </div>
     </main>

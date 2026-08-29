@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { getAttribution } from '@/app/components/page-tracker';
 
 type Props = {
@@ -11,6 +12,7 @@ type Props = {
 };
 
 export default function PayButton({ productId, couponCode, referralCode, path }: Props) {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,11 +43,11 @@ export default function PayButton({ productId, couponCode, referralCode, path }:
           window.location.href = `/login?next=${encodeURIComponent(path)}`;
           return;
         }
-        throw new Error(data.error || 'Checkout failed');
+        throw new Error(data.error || t.pay.checkoutFailed);
       }
       window.location.href = data.url;
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Checkout failed');
+      setError(e instanceof Error ? e.message : t.pay.checkoutFailed);
       setLoading(false);
     }
   };
@@ -57,7 +59,7 @@ export default function PayButton({ productId, couponCode, referralCode, path }:
         disabled={loading}
         className="w-full py-3 rounded-xl bg-accent text-white font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
       >
-        {loading ? 'Redirecting to checkout…' : 'Buy now'}
+        {loading ? t.pay.redirecting : t.pay.buyNow}
       </button>
       {error && <p className="mt-2 text-xs text-red-400 text-center">{error}</p>}
     </div>

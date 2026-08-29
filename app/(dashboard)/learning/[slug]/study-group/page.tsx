@@ -1,4 +1,5 @@
 import prisma from '@/lib/db/prisma';
+import { getServerT } from '@/lib/i18n/server';
 import { StudyGroupClient } from './client';
 import { ensureStudyGroupTables, ensureStudyGroupForCourse } from '@/lib/db/init-study-groups';
 
@@ -10,6 +11,7 @@ export default async function StudyGroupPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+  const { t } = await getServerT();
 
   try {
     // Ensure study group tables exist before querying
@@ -24,8 +26,8 @@ export default async function StudyGroupPage({
     if (!course) {
       return (
         <div className="min-h-screen p-8 text-center">
-          <h1 className="text-xl font-bold text-red-500">Course not found</h1>
-          <p className="text-muted mt-2">The course &quot;{slug}&quot; does not exist.</p>
+          <h1 className="text-xl font-bold text-red-500">{t.studyGroup.notFound}</h1>
+          <p className="text-muted mt-2">{t.studyGroup.notFoundSubtitle.replace('{slug}', slug)}</p>
         </div>
       );
     }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { SOPContent } from '@/lib/data/resources-content/types';
 
 interface SopViewerProps {
@@ -10,6 +11,7 @@ interface SopViewerProps {
 }
 
 export function SopViewer({ title, description, content }: SopViewerProps) {
+  const { t } = useTranslation();
   const [checkedSteps, setCheckedSteps] = useState<Set<number>>(new Set());
 
   const toggleStep = (step: number) => {
@@ -30,7 +32,7 @@ export function SopViewer({ title, description, content }: SopViewerProps) {
       {/* Header */}
       <div className="space-y-2">
         <span className="px-2.5 py-1 rounded-lg bg-accent/10 border border-accent/20 text-accent text-[10px] font-bold uppercase tracking-wider">
-          Standard Operating Procedure
+          {t.resourceViewer.sopBadge}
         </span>
         <h1 className="text-2xl lg:text-3xl font-heading font-bold text-foreground">{title}</h1>
         <p className="text-muted">{description}</p>
@@ -39,15 +41,15 @@ export function SopViewer({ title, description, content }: SopViewerProps) {
       {/* SOP Meta */}
       <div className="grid grid-cols-3 gap-4">
         <div className="p-4 rounded-xl bg-surface-light/30 border border-surface-light text-center">
-          <p className="text-xs text-muted uppercase tracking-wider mb-1">Purpose</p>
+          <p className="text-xs text-muted uppercase tracking-wider mb-1">{t.resourceViewer.purpose}</p>
           <p className="text-foreground font-medium text-sm">{content.purpose}</p>
         </div>
         <div className="p-4 rounded-xl bg-surface-light/30 border border-surface-light text-center">
-          <p className="text-xs text-muted uppercase tracking-wider mb-1">Frequency</p>
+          <p className="text-xs text-muted uppercase tracking-wider mb-1">{t.resourceViewer.frequency}</p>
           <p className="text-foreground font-medium text-sm">{content.frequency}</p>
         </div>
         <div className="p-4 rounded-xl bg-surface-light/30 border border-surface-light text-center">
-          <p className="text-xs text-muted uppercase tracking-wider mb-1">Owner</p>
+          <p className="text-xs text-muted uppercase tracking-wider mb-1">{t.resourceViewer.owner}</p>
           <p className="text-foreground font-medium text-sm">{content.owner}</p>
         </div>
       </div>
@@ -55,7 +57,7 @@ export function SopViewer({ title, description, content }: SopViewerProps) {
       {/* Progress bar */}
       <div className="space-y-1">
         <div className="flex items-center justify-between text-xs">
-          <span className="text-muted">Progress</span>
+          <span className="text-muted">{t.resourceViewer.progress}</span>
           <span className="text-foreground font-medium">{progress}%</span>
         </div>
         <div className="h-2 rounded-full bg-surface-light overflow-hidden">
@@ -106,7 +108,7 @@ export function SopViewer({ title, description, content }: SopViewerProps) {
       {/* KPIs */}
       {content.kpis.length > 0 && (
         <div className="p-4 rounded-xl bg-surface-light/30 border border-surface-light space-y-2">
-          <h3 className="text-xs font-heading font-bold text-foreground uppercase tracking-wider">KPIs to Track</h3>
+          <h3 className="text-xs font-heading font-bold text-foreground uppercase tracking-wider">{t.resourceViewer.kpisToTrack}</h3>
           <div className="flex flex-wrap gap-2">
             {content.kpis.map((kpi, i) => (
               <span key={i} className="px-3 py-1.5 rounded-lg bg-surface border border-surface-light text-foreground text-xs font-medium">

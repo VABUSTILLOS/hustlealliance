@@ -4,6 +4,7 @@ import { useState, useEffect, use } from 'react';
 import { getInitialsAvatarUrl, DEFAULT_AVATAR } from '@/lib/utils/avatar';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 type LessonDetail = {
   lessonId: string;
@@ -24,6 +25,7 @@ type StudentDetail = {
 };
 
 export default function StudentDetailPage({ params }: { params: Promise<{ id: string; userId: string }> }) {
+  const { t } = useTranslation();
   const { id, userId } = use(params);
   const [data, setData] = useState<StudentDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -36,8 +38,8 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
       .finally(() => setLoading(false));
   }, [id, userId]);
 
-  if (loading) return <div className="p-8 text-muted">Loading...</div>;
-  if (!data) return <div className="p-8 text-muted">Student not found.</div>;
+  if (loading) return <div className="p-8 text-muted">{t.instructor.courses.studentDetail.loading}</div>;
+  if (!data) return <div className="p-8 text-muted">{t.instructor.courses.studentDetail.notFound}</div>;
 
   // Group lessons by module
   const modules = new Map<string, LessonDetail[]>();
@@ -49,7 +51,7 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
   return (
     <div className="p-4 md:p-8">
       <div className="flex items-center gap-4 mb-8">
-        <Link href={`/instructor/courses/${id}`} className="text-muted hover:text-foreground">← Back to students</Link>
+        <Link href={`/instructor/courses/${id}`} className="text-muted hover:text-foreground">{t.instructor.courses.studentDetail.backToStudents}</Link>
       </div>
 
       <div className="glass-card p-6 mb-8">
@@ -68,15 +70,15 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
         </div>
         <div className="flex gap-6">
           <div>
-            <p className="text-muted text-xs">Course</p>
+            <p className="text-muted text-xs">{t.instructor.courses.studentDetail.course}</p>
             <p className="text-foreground text-sm">{data.course.title}</p>
           </div>
           <div>
-            <p className="text-muted text-xs">Progress</p>
+            <p className="text-muted text-xs">{t.instructor.courses.studentDetail.progress}</p>
             <p className="text-foreground text-sm font-mono">{data.progressPct}%</p>
           </div>
           <div>
-            <p className="text-muted text-xs">Lessons Complete</p>
+            <p className="text-muted text-xs">{t.instructor.courses.studentDetail.lessonsComplete}</p>
             <p className="text-foreground text-sm font-mono">{data.lessons.filter((l) => l.completed).length}/{data.lessons.length}</p>
           </div>
         </div>
@@ -110,9 +112,9 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
                     {l.completed ? (
                       <span className="text-green-400 text-xs">{new Date(l.completedAt!).toLocaleDateString()}</span>
                     ) : l.lastAccessedAt ? (
-                      <span className="text-muted text-xs">Last: {new Date(l.lastAccessedAt).toLocaleDateString()}</span>
+                      <span className="text-muted text-xs">{t.instructor.courses.studentDetail.lastActive}: {new Date(l.lastAccessedAt).toLocaleDateString()}</span>
                     ) : (
-                      <span className="text-muted text-xs">Not started</span>
+                      <span className="text-muted text-xs">{t.instructor.courses.studentDetail.notStarted}</span>
                     )}
                   </div>
                 </div>

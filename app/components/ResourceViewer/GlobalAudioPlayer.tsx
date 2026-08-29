@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { useStore } from '@/lib/store/useStore';
 
 export interface AudioTrack {
@@ -26,6 +27,7 @@ interface AudioPlayerState {
 
 // This component mounts ONCE at the app level and persists across navigation
 export function GlobalAudioPlayer() {
+  const { t } = useTranslation();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [state, setState] = useState<AudioPlayerState>({
     isPlaying: false,
@@ -263,7 +265,7 @@ export function GlobalAudioPlayer() {
             {/* Chapters */}
             {currentTrack.chapters && currentTrack.chapters.length > 0 && (
               <div className="space-y-1 max-h-32 overflow-y-auto">
-                <p className="text-xs text-muted uppercase tracking-wider font-medium">Chapters</p>
+                <p className="text-xs text-muted uppercase tracking-wider font-medium">{t.resourceViewer.chapters}</p>
                 {currentTrack.chapters.map((ch, i) => (
                   <button
                     key={i}

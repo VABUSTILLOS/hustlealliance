@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 import { resolveAvatarUrl } from "@/lib/utils/avatar";
 import type { ChallengeCard as ChallengeCardType } from "./hooks/useChallenges";
 
@@ -14,6 +15,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default function ChallengeCard({ challenge }: { challenge: ChallengeCardType }) {
+  const { t } = useTranslation();
   const start = new Date(challenge.startDate);
   const end = new Date(challenge.endDate);
   const month = start.toLocaleString("en-US", { month: "short" });
@@ -43,7 +45,7 @@ export default function ChallengeCard({ challenge }: { challenge: ChallengeCardT
         </div>
         <div className="absolute top-3 right-3 flex gap-1">
           <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-black/60 text-white backdrop-blur-sm">
-            {challenge.price > 0 ? `$${challenge.price.toFixed(0)}` : "Free"}
+            {challenge.price > 0 ? `$${challenge.price.toFixed(0)}` : t.challenges.free}
           </span>
         </div>
       </div>
@@ -55,11 +57,11 @@ export default function ChallengeCard({ challenge }: { challenge: ChallengeCardT
               {challenge.title}
             </h3>
             <p className="text-xs text-muted mt-1 line-clamp-2">
-              {challenge.description ?? "No description"}
+              {challenge.description ?? t.challenges.noDescription}
             </p>
           </div>
           <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium shrink-0 ${statusColors[challenge.status] ?? statusColors.UPCOMING}`}>
-            {challenge.status}
+            {t.challenges.status[challenge.status.toLowerCase() as keyof typeof t.challenges.status] ?? challenge.status}
           </span>
         </div>
 
@@ -85,7 +87,7 @@ export default function ChallengeCard({ challenge }: { challenge: ChallengeCardT
           </div>
           <div className="flex items-center gap-3 text-xs text-muted">
             {enrolled && (
-              <span className="text-accent font-medium">Joined</span>
+              <span className="text-accent font-medium">{t.challenges.joined}</span>
             )}
             <div className="flex items-center gap-1">
               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

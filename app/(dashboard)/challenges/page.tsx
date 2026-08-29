@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 import { useChallenges } from "./components/hooks/useChallenges";
 import ChallengeCard from "./components/ChallengeCard";
 import type { ChallengeStatus } from "@/lib/generated/prisma/client";
@@ -9,6 +10,7 @@ import type { ChallengeStatus } from "@/lib/generated/prisma/client";
 type Tab = "ACTIVE" | "UPCOMING" | "PAST" | "JOINED";
 
 export default function ChallengesPage() {
+  const { t } = useTranslation();
   const [tab, setTab] = useState<Tab>("ACTIVE");
   const [search, setSearch] = useState("");
 
@@ -34,10 +36,10 @@ export default function ChallengesPage() {
   }, [data, tab]);
 
   const tabs: { value: Tab; label: string }[] = [
-    { value: "ACTIVE", label: "Active" },
-    { value: "UPCOMING", label: "Upcoming" },
-    { value: "PAST", label: "Past" },
-    { value: "JOINED", label: "Joined" },
+    { value: "ACTIVE", label: t.challenges.tabActive },
+    { value: "UPCOMING", label: t.challenges.tabUpcoming },
+    { value: "PAST", label: t.challenges.tabPast },
+    { value: "JOINED", label: t.challenges.tabJoined },
   ];
 
   return (
@@ -45,23 +47,23 @@ export default function ChallengesPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-heading font-bold text-foreground">Challenges</h1>
-          <p className="text-sm text-muted mt-1">Join time-boxed community challenges and build new habits</p>
+          <h1 className="text-2xl sm:text-3xl font-heading font-bold text-foreground">{t.challenges.pageTitle}</h1>
+          <p className="text-sm text-muted mt-1">{t.challenges.pageSubtitle}</p>
         </div>
       </div>
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3 mb-6">
         <div className="flex bg-[var(--color-bg)] rounded-xl p-1 border border-[var(--color-border-subtle)]">
-          {tabs.map((t) => (
+          {tabs.map((tabItem) => (
             <button
-              key={t.value}
-              onClick={() => setTab(t.value)}
+              key={tabItem.value}
+              onClick={() => setTab(tabItem.value)}
               className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                tab === t.value ? "bg-white dark:bg-gray-800 shadow-sm text-foreground" : "text-muted"
+                tab === tabItem.value ? "bg-white dark:bg-gray-800 shadow-sm text-foreground" : "text-muted"
               }`}
             >
-              {t.label}
+              {tabItem.label}
             </button>
           ))}
         </div>
@@ -74,7 +76,7 @@ export default function ChallengesPage() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search challenges..."
+            placeholder={t.challenges.searchPlaceholder}
             className="w-full pl-9 pr-4 py-2 rounded-xl bg-[var(--color-bg)] border border-[var(--color-border-subtle)] text-sm text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent"
           />
         </div>
@@ -96,7 +98,7 @@ export default function ChallengesPage() {
         </div>
       ) : error ? (
         <div className="text-center py-12">
-          <p className="text-red-500">Failed to load challenges</p>
+          <p className="text-red-500">{t.challenges.loadFailed}</p>
         </div>
       ) : challenges.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -107,10 +109,10 @@ export default function ChallengesPage() {
       ) : (
         <div className="text-center py-16">
           <div className="text-5xl mb-4 opacity-50">🏆</div>
-          <h3 className="text-lg font-semibold text-foreground mb-1">No challenges found</h3>
-          <p className="text-sm text-muted mb-4">Check back soon for new challenges to join.</p>
+          <h3 className="text-lg font-semibold text-foreground mb-1">{t.challenges.noChallenges}</h3>
+          <p className="text-sm text-muted mb-4">{t.challenges.noChallengesSubtitle}</p>
           <Link href="/dashboard" className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-accent text-white text-sm font-semibold">
-            Back to dashboard
+            {t.challenges.backToDashboard}
           </Link>
         </div>
       )}

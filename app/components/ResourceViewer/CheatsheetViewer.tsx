@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { CheatsheetContent } from '@/lib/data/resources-content/types';
 
 interface CheatsheetViewerProps {
@@ -10,6 +11,7 @@ interface CheatsheetViewerProps {
 }
 
 export function CheatsheetViewer({ title, description, content }: CheatsheetViewerProps) {
+  const { t } = useTranslation();
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set([0]));
 
   const toggleItem = (i: number) => {
@@ -26,7 +28,7 @@ export function CheatsheetViewer({ title, description, content }: CheatsheetView
       {/* Header */}
       <div className="space-y-2">
         <span className="px-2.5 py-1 rounded-lg bg-accent/10 border border-accent/20 text-accent text-[10px] font-bold uppercase tracking-wider">
-          Cheatsheet
+          {t.resourceViewer.cheatsheetBadge}
         </span>
         <h1 className="text-2xl lg:text-3xl font-heading font-bold text-foreground">{title}</h1>
         <p className="text-muted leading-relaxed">{content.intro}</p>
@@ -60,7 +62,7 @@ export function CheatsheetViewer({ title, description, content }: CheatsheetView
                 </div>
                 {item.example && (
                   <div className="p-3 rounded-lg bg-accent/5 border border-accent/10">
-                    <p className="text-xs font-heading font-bold text-accent uppercase tracking-wider mb-1">Example</p>
+                    <p className="text-xs font-heading font-bold text-accent uppercase tracking-wider mb-1">{t.resourceViewer.example}</p>
                     <p className="text-foreground text-sm">{item.example}</p>
                   </div>
                 )}
@@ -73,7 +75,7 @@ export function CheatsheetViewer({ title, description, content }: CheatsheetView
       {/* Tip */}
       {content.tip && (
         <div className="p-4 rounded-xl bg-surface-light/30 border border-surface-light">
-          <p className="text-xs font-heading font-bold text-foreground uppercase tracking-wider mb-1">💡 Pro Tip</p>
+          <p className="text-xs font-heading font-bold text-foreground uppercase tracking-wider mb-1">{t.resourceViewer.proTip}</p>
           <p className="text-muted text-sm">{content.tip}</p>
         </div>
       )}

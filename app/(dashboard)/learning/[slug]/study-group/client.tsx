@@ -2,6 +2,8 @@
 
 import { useRef } from 'react';
 import Link from 'next/link';
+import { useTranslation } from '@/lib/i18n/useTranslation';
+import { interpolateMsg } from '@/lib/i18n/getErrorMsg';
 import { CourseStudyGroup } from '@/app/components/CourseStudyGroup';
 import type { StudyGroupWithMembers } from './actions';
 
@@ -39,6 +41,10 @@ export function StudyGroupClient({
 }) {
   const emailRef = useRef(getEmailFromStorage());
   const memberCount = (group?.members ?? []).length;
+  const { t } = useTranslation();
+  const memberLabel = interpolateMsg(memberCount === 1 ? t.studyGroup.member : t.studyGroup.members, {
+    count: String(memberCount),
+  });
 
   if (!group) {
     return (
@@ -46,24 +52,24 @@ export function StudyGroupClient({
         <div className="border-b border-[var(--color-border-subtle)] bg-[var(--color-surface)]">
           <div className="px-4 sm:px-6 lg:px-8 py-4 max-w-7xl mx-auto">
             <div className="flex items-center gap-2 text-sm text-muted mb-1">
-              <Link href="/learning" className="hover:text-accent transition-colors">Learning</Link>
+              <Link href="/learning" className="hover:text-accent transition-colors">{t.studyGroup.breadcrumbLearning}</Link>
               <span>/</span>
-              <Link href={`/learning/${slug}`} className="hover:text-accent transition-colors">Course</Link>
+              <Link href={`/learning/${slug}`} className="hover:text-accent transition-colors">{t.studyGroup.breadcrumbCourse}</Link>
               <span>/</span>
-              <span className="text-foreground font-medium">Study Group</span>
+              <span className="text-foreground font-medium">{t.studyGroup.pageTitle}</span>
             </div>
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="font-heading font-bold text-2xl text-foreground">Study Group</h1>
-                <p className="text-muted text-sm mt-1">0 members</p>
+                <h1 className="font-heading font-bold text-2xl text-foreground">{t.studyGroup.pageTitle}</h1>
+                <p className="text-muted text-sm mt-1">{memberLabel}</p>
               </div>
-              <Link href={`/learning/${slug}`} className="text-sm text-accent hover:underline">← Back to course</Link>
+              <Link href={`/learning/${slug}`} className="text-sm text-accent hover:underline">{t.studyGroup.backToCourse}</Link>
             </div>
           </div>
         </div>
         <div className="p-8 text-center text-muted">
-          <p className="text-lg">Study group coming soon!</p>
-          <p className="text-sm mt-2">This course&apos;s study group hasn&apos;t been created yet.</p>
+          <p className="text-lg">{t.studyGroup.comingSoon}</p>
+          <p className="text-sm mt-2">{t.studyGroup.comingSoonSubtitle}</p>
         </div>
       </div>
     );
@@ -74,18 +80,18 @@ export function StudyGroupClient({
       <div className="border-b border-[var(--color-border-subtle)] bg-[var(--color-surface)]">
         <div className="px-4 sm:px-6 lg:px-8 py-4 max-w-7xl mx-auto">
           <div className="flex items-center gap-2 text-sm text-muted mb-1">
-            <Link href="/learning" className="hover:text-accent transition-colors">Learning</Link>
+            <Link href="/learning" className="hover:text-accent transition-colors">{t.studyGroup.breadcrumbLearning}</Link>
             <span>/</span>
-            <Link href={`/learning/${slug}`} className="hover:text-accent transition-colors">Course</Link>
+            <Link href={`/learning/${slug}`} className="hover:text-accent transition-colors">{t.studyGroup.breadcrumbCourse}</Link>
             <span>/</span>
-            <span className="text-foreground font-medium">Study Group</span>
+            <span className="text-foreground font-medium">{t.studyGroup.pageTitle}</span>
           </div>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="font-heading font-bold text-2xl text-foreground">Study Group</h1>
-              <p className="text-muted text-sm mt-1">{memberCount} member{memberCount !== 1 ? 's' : ''}</p>
+              <h1 className="font-heading font-bold text-2xl text-foreground">{t.studyGroup.pageTitle}</h1>
+              <p className="text-muted text-sm mt-1">{memberLabel}</p>
             </div>
-            <Link href={`/learning/${slug}`} className="text-sm text-accent hover:underline">← Back to course</Link>
+            <Link href={`/learning/${slug}`} className="text-sm text-accent hover:underline">{t.studyGroup.backToCourse}</Link>
           </div>
         </div>
       </div>

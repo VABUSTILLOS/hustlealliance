@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, Crown, ShoppingCart, Zap, Shield } from 'lucide-react';
 import clsx from 'clsx';
+import { useTranslation } from '@/lib/i18n/useTranslation';
+import { interpolateMsg } from '@/lib/i18n/getErrorMsg';
 
 export type UpgradeOption = {
   type: 'subscription' | 'purchase_course' | 'purchase_lesson';
@@ -30,12 +32,6 @@ const TIER_LABELS: Record<string, string> = {
   PRO: 'Pro',
 };
 
-const TIER_DESCRIPTIONS: Record<string, string> = {
-  FREE: 'Free members can access free courses and purchase premium content à la carte.',
-  BASIC: 'Basic members get all Free + Basic content, plus à la carte Pro purchases.',
-  PRO: 'Pro members get unlimited access to everything.',
-};
-
 export default function Paywall({
   requiredTier,
   userTier,
@@ -44,7 +40,21 @@ export default function Paywall({
   contentDescription,
   onPurchase,
 }: PaywallProps) {
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
+
+  const tierDescription = (tier: string) => {
+    switch (tier) {
+      case 'FREE':
+        return t.paywall.tierFree;
+      case 'BASIC':
+        return t.paywall.tierBasic;
+      case 'PRO':
+        return t.paywall.tierPro;
+      default:
+        return t.paywall.tierPro;
+    }
+  };
 
   const handleAction = async (option: UpgradeOption) => {
     if (onPurchase) {
@@ -125,12 +135,15 @@ export default function Paywall({
           </motion.div>
 
           <h2 className="font-display text-3xl lg:text-4xl text-foreground uppercase leading-tight mb-3">
-            {requiredTier === 'PRO' ? 'Pro Content' : 'Premium Content'}
+            {requiredTier === 'PRO' ? t.paywall.proContent : t.paywall.premiumContent}
           </h2>
 
           <p className="text-muted font-body text-base max-w-lg mx-auto">
             {contentDescription ||
-              `"${contentTitle}" requires ${TIER_LABELS[requiredTier]} access. Upgrade to unlock this content and more.`}
+              interpolateMsg(t.paywall.requiresAccess, {
+                title: contentTitle,
+                tier: TIER_LABELS[requiredTier],
+              })}
           </p>
         </div>
 
@@ -139,15 +152,14 @@ export default function Paywall({
           <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-surface-light">
             <Shield className="w-4 h-4 text-muted" />
             <span className="text-sm text-muted font-body">
-              You&apos;re on the{' '}
-              <span className="font-bold text-foreground">{TIER_LABELS[userTier]}</span> tier
+              {interpolateMsg(t.paywall.youreOnTier, { tier: TIER_LABELS[userTier] })}
             </span>
           </div>
           <span className="text-muted text-lg">→</span>
           <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 border border-accent/20">
             <Crown className="w-4 h-4 text-accent" />
             <span className="text-sm font-bold text-accent font-body">
-              {TIER_LABELS[requiredTier]} required
+              {interpolateMsg(t.paywall.tierRequired, { tier: TIER_LABELS[requiredTier] })}
             </span>
           </div>
         </div>
@@ -185,15 +197,16 @@ export default function Paywall({
 
                 <div className="text-left">
                   <span className="block text-sm font-heading font-bold text-foreground">
-                    {option.type === 'subscription' && `Upgrade to ${TIER_LABELS[option.tier || 'PRO']}`}
+                    {option.type === 'subscription' &&
+                      interpolateMsg(t.paywall.upgradeTo, { tier: TIER_LABELS[option.tier || 'PRO'] })}
                     {option.type === 'purchase_course' &&
-                      `Buy "${option.courseTitle}"`}
+                      interpolateMsg(t.paywall.buy, { title: option.courseTitle || '' })}
                     {option.type === 'purchase_lesson' &&
-                      `Buy "${option.lessonTitle}"`}
+                      interpolateMsg(t.paywall.buy, { title: option.lessonTitle || '' })}
                   </span>
                   {option.type === 'subscription' && (
                     <span className="block text-xs text-muted font-body mt-0.5">
-                      {TIER_DESCRIPTIONS[option.tier || 'PRO']}
+                      {tierDescription(option.tier || 'PRO')}
                     </span>
                   )}
                 </div>
@@ -202,7 +215,9 @@ export default function Paywall({
               <div className="text-right shrink-0">
                 {option.type === 'subscription' && (
                   <span className="text-xs font-mono text-muted uppercase tracking-wider">
-                    {option.tier === 'BASIC' ? 'From $19/mo' : 'From $49/mo'}
+                    {option.tier === 'BASIC'
+                      ? interpolateMsg(t.paywall.fromMonthly, { price: '$19' })
+                      : interpolateMsg(t.paywall.fromMonthly, { price: '$49' })}
                   </span>
                 )}
                 {option.type !== 'subscription' && option.price != null && (
@@ -217,7 +232,7 @@ export default function Paywall({
 
         {/* ── Footer note ──────────────────────── */}
         <p className="text-center text-xs text-muted font-body mt-8">
-          One-time purchases grant permanent access to this content.
+          {t.paywall.oneTimePurchase}
         </p>
       </div>
     </motion.div>

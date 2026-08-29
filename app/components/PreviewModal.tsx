@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { KeyInsight } from '@/lib/data/gamification';
 
 interface Props {
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export default function PreviewModal({ isOpen, onClose, title, slug, insights }: Props) {
+  const { t } = useTranslation();
   return (
     <AnimatePresence>
       {isOpen && (
@@ -45,7 +47,7 @@ export default function PreviewModal({ isOpen, onClose, title, slug, insights }:
 
             <div className="flex items-start justify-between mb-6">
               <div>
-                <h2 className="text-xl font-bold text-foreground">Quick Preview</h2>
+                <h2 className="text-xl font-bold text-foreground">{t.resourceViewer.quickPreview}</h2>
                 <p className="text-foreground-dim text-sm mt-1">{title}</p>
               </div>
               <button
@@ -87,7 +89,9 @@ export default function PreviewModal({ isOpen, onClose, title, slug, insights }:
             {/* Free lesson teaser section */}
             <div className="p-4 rounded-xl bg-accent/10 border border-accent/20 mb-6">
               <p className="text-foreground-dim text-sm text-center mb-3">
-                The first lesson is <strong className="text-foreground">free</strong> — no signup needed.
+                {t.resourceViewer.firstLessonBefore}{' '}
+                <strong className="text-foreground">{t.resourceViewer.free}</strong>{' '}
+                {t.resourceViewer.firstLessonAfter}
               </p>
               <Link
                 href={`/preview/${slug}`}
@@ -97,7 +101,7 @@ export default function PreviewModal({ isOpen, onClose, title, slug, insights }:
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <polyline points="9 18 15 12 9 6" />
                 </svg>
-                <span className="font-medium">Start the free preview now</span>
+                <span className="font-medium">{t.resourceViewer.startFreePreview}</span>
               </Link>
             </div>
 
@@ -108,7 +112,7 @@ export default function PreviewModal({ isOpen, onClose, title, slug, insights }:
               className="block w-full py-3 rounded-xl bg-accent text-white font-semibold text-center
                 hover:shadow-lg hover:shadow-accent/30 transition-all active:scale-[0.98]"
             >
-              Start Free Lesson →
+              {t.resourceViewer.startFreeLesson}
             </Link>
           </motion.div>
         </motion.div>

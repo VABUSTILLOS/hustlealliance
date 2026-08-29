@@ -1,10 +1,13 @@
 "use client";
 
 import Image from "next/image";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+import { interpolateMsg } from "@/lib/i18n/getErrorMsg";
 import { useChallengeLeaderboard, type LeaderboardEntry } from "./hooks/useChallenges";
 
 function LeaderboardRow({ entry, highlight }: { entry: LeaderboardEntry; highlight?: boolean }) {
-  const name = entry.user.name || entry.user.username || "Member";
+  const { t } = useTranslation();
+  const name = entry.user.name || entry.user.username || t.challenges.member;
   return (
     <li
       className={`flex items-center gap-3 px-4 py-2.5 rounded-lg ${
@@ -23,11 +26,11 @@ function LeaderboardRow({ entry, highlight }: { entry: LeaderboardEntry; highlig
       )}
       <span className="flex-1 text-sm text-foreground truncate">
         {name}
-        {entry.isCurrentUser && <span className="ml-2 text-xs text-accent">(you)</span>}
+        {entry.isCurrentUser && <span className="ml-2 text-xs text-accent">{t.challenges.you}</span>}
       </span>
       {entry.completedAt && (
         <span className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-accent/15 text-accent">
-          Done
+          {t.challenges.done}
         </span>
       )}
       <span className="text-sm text-muted tabular-nums">{entry.tasksCompleted} ✓</span>
@@ -36,6 +39,7 @@ function LeaderboardRow({ entry, highlight }: { entry: LeaderboardEntry; highlig
 }
 
 export default function LeaderboardSection({ slug, totalTasks }: { slug: string; totalTasks: number }) {
+  const { t } = useTranslation();
   const { data, isLoading } = useChallengeLeaderboard(slug);
 
   if (isLoading || !data || data.totalParticipants === 0) return null;
@@ -45,9 +49,12 @@ export default function LeaderboardSection({ slug, totalTasks }: { slug: string;
   return (
     <section className="bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl p-5 mb-8">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="font-semibold text-foreground">Leaderboard</h2>
+        <h2 className="font-semibold text-foreground">{t.challenges.leaderboard}</h2>
         <span className="text-xs text-muted">
-          {data.totalParticipants} participant{data.totalParticipants === 1 ? "" : "s"}
+          {interpolateMsg(
+            data.totalParticipants === 1 ? t.challenges.participant : t.challenges.participants,
+            { count: String(data.totalParticipants) }
+          )}
         </span>
       </div>
       <ul className="space-y-1">
@@ -63,7 +70,7 @@ export default function LeaderboardSection({ slug, totalTasks }: { slug: string;
       </ul>
       {data.currentUser && !data.currentUser.completedAt && data.currentUser.tasksCompleted < totalTasks && (
         <p className="text-xs text-muted mt-3">
-          Complete your remaining tasks to climb the board.
+          {t.challenges.climbBoard}
         </p>
       )}
     </section>

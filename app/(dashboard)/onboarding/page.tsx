@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+import { interpolateMsg } from "@/lib/i18n/getErrorMsg";
 
 type OnboardingQuestion = {
   id: string;
@@ -17,6 +19,7 @@ type ExistingAnswer = {
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [questions, setQuestions] = useState<OnboardingQuestion[]>([]);
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
@@ -65,7 +68,7 @@ export default function OnboardingPage() {
         setLoadError(null);
       } catch {
         if (!cancelled) {
-          setLoadError("We couldn't load your onboarding. Check your connection and try again.");
+          setLoadError(t.onboarding.loadFailed);
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -75,7 +78,7 @@ export default function OnboardingPage() {
     return () => {
       cancelled = true;
     };
-  }, [router, reloadKey]);
+  }, [router, reloadKey, t.onboarding.loadFailed]);
 
   const totalSteps = questions.length + 2; // welcome + questions + done
   const isWelcome = step === 0;
@@ -124,7 +127,7 @@ export default function OnboardingPage() {
     } catch {
       // Don't redirect on failure — OnboardingRedirect would bounce the user
       // straight back here, causing a redirect loop.
-      setFinishError("Something went wrong finishing setup. Please try again.");
+      setFinishError(t.onboarding.finishFailed);
     } finally {
       setSubmitting(false);
     }
@@ -133,7 +136,7 @@ export default function OnboardingPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-surface">
-        <p className="text-muted text-sm">Loading…</p>
+        <p className="text-muted text-sm">{t.onboarding.loading}</p>
       </div>
     );
   }
@@ -143,7 +146,7 @@ export default function OnboardingPage() {
       <div className="min-h-screen flex items-center justify-center bg-surface px-4">
         <div className="w-full max-w-lg bg-surface-light/40 border border-surface-light rounded-2xl p-8 text-center">
           <h1 className="text-xl font-heading font-semibold text-foreground mb-3">
-            Something went wrong
+            {t.onboarding.somethingWentWrong}
           </h1>
           <p className="text-muted text-sm mb-8">{loadError}</p>
           <button
@@ -154,7 +157,7 @@ export default function OnboardingPage() {
             }}
             className="w-full px-4 py-3 bg-accent rounded-xl text-white font-medium hover:opacity-90 transition"
           >
-            Try again
+            {t.onboarding.tryAgain}
           </button>
         </div>
       </div>
@@ -173,7 +176,10 @@ export default function OnboardingPage() {
               />
             </div>
             <p className="text-xs text-muted mt-2">
-              Step {step} of {totalSteps - 1}
+              {interpolateMsg(t.onboarding.stepProgress, {
+                step,
+                total: totalSteps - 1,
+              })}
             </p>
           </div>
         )}
@@ -181,16 +187,16 @@ export default function OnboardingPage() {
         {isWelcome && (
           <div className="text-center">
             <h1 className="text-2xl font-heading font-bold text-foreground mb-3">
-              Welcome! Let&apos;s get you set up.
+              {t.onboarding.welcome}
             </h1>
             <p className="text-muted text-sm mb-8">
-              Answer a few quick questions so we can personalize your experience.
+              {t.onboarding.welcomeSubtitle}
             </p>
             <button
               onClick={() => setStep(1)}
               className="w-full px-4 py-3 bg-accent rounded-xl text-white font-medium hover:opacity-90 transition"
             >
-              Get started
+              {t.onboarding.getStarted}
             </button>
           </div>
         )}
@@ -207,7 +213,7 @@ export default function OnboardingPage() {
                 onChange={(e) => setAnswer(currentQuestion.id, e.target.value)}
                 rows={4}
                 className="w-full bg-surface border border-surface-light rounded-xl p-3 text-foreground placeholder:text-muted focus:outline-none focus:border-accent"
-                placeholder="Type your answer…"
+                placeholder={t.onboarding.answerPlaceholder}
               />
             )}
 
@@ -260,13 +266,13 @@ export default function OnboardingPage() {
                 onClick={() => setStep((s) => Math.max(0, s - 1))}
                 className="px-4 py-2 bg-surface border border-surface-light rounded-xl text-sm text-foreground hover:border-accent transition"
               >
-                Back
+                {t.onboarding.back}
               </button>
               <button
                 onClick={() => setStep((s) => s + 1)}
                 className="px-4 py-2 bg-accent rounded-xl text-sm text-white font-medium hover:opacity-90 transition"
               >
-                {step === questions.length ? "Continue" : "Next"}
+                {step === questions.length ? t.onboarding.continue : t.onboarding.next}
               </button>
             </div>
           </div>
@@ -275,17 +281,17 @@ export default function OnboardingPage() {
         {isDone && (
           <div className="text-center">
             <h1 className="text-2xl font-heading font-bold text-foreground mb-3">
-              You&apos;re all set! 🎉
+              {t.onboarding.done}
             </h1>
             <p className="text-muted text-sm mb-8">
-              Thanks for sharing. Your dashboard is ready — let&apos;s go explore the community.
+              {t.onboarding.doneSubtitle}
             </p>
             <button
               onClick={handleFinish}
               disabled={submitting}
               className="w-full px-4 py-3 bg-accent rounded-xl text-white font-medium hover:opacity-90 transition disabled:opacity-60"
             >
-              {submitting ? "Finishing…" : "Go to dashboard"}
+              {submitting ? t.onboarding.finishing : t.onboarding.goToDashboard}
             </button>
             {finishError && (
               <p className="text-red-400 text-sm mt-4">{finishError}</p>
