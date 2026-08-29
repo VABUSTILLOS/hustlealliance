@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin, authErrorResponse } from "@/lib/auth/guard";
 import { getAdminProductById, updateAdminProduct, deleteAdminProduct, isUniqueConstraintError } from "@/lib/db/admin-store";
+import { logAdminActivity } from "@/lib/activity";
 
 export async function GET(
   _request: NextRequest,
@@ -27,8 +28,9 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  let user;
   try {
-    await requireAdmin();
+    user = await requireAdmin();
   } catch (err) {
     return authErrorResponse(err);
   }
@@ -37,6 +39,7 @@ export async function PUT(
     const { id } = await params;
     const body = await request.json();
     const product = await updateAdminProduct(id, body);
+    await logAdminActivity({ actorId: user.id, action: 'product.update', entity: 'Product', entityId: id, meta: { fields: Object.keys(body || {}) } });
     return NextResponse.json({ product });
   } catch (err) {
     console.error("[PUT /api/admin/products/[id]]", err);
@@ -51,8 +54,9 @@ export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  let user;
   try {
-    await requireAdmin();
+    user = await requireAdmin();
   } catch (err) {
     return authErrorResponse(err);
   }
@@ -60,6 +64,7 @@ export async function DELETE(
   try {
     const { id } = await params;
     await deleteAdminProduct(id);
+    await logAdminActivity({ actorId: user.id, action: 'product.delete', entity: 'Product', entityId: id });
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("[DELETE /api/admin/products/[id]]", err);

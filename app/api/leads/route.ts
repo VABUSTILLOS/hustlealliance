@@ -17,10 +17,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'A valid email is required' }, { status: 400 });
     }
 
-    const name = typeof body.name === 'string' && body.name.trim() ? body.name.trim() : email.split('@')[0];
+    const rawName = typeof body.name === 'string' && body.name.trim() ? body.name.trim() : '';
+    const name = rawName || email.split('@')[0];
     const tags: string[] = Array.isArray(body.tags)
       ? body.tags.filter((t: unknown) => typeof t === 'string')
       : [];
+    if (typeof body.tag === 'string' && body.tag.trim()) tags.push(body.tag.trim());
     const sourceTag = typeof body.source === 'string' && body.source ? `lead:${body.source}` : 'lead';
 
     // Attribution payload (optional, sent by the lead-form block / PageTracker).
@@ -50,7 +52,12 @@ export async function POST(request: NextRequest) {
     let contactId: string;
     if (existing) {
       const merged = Array.from(new Set([...existing.tags, sourceTag, ...tags]));
-      await prisma.user.update({ where: { id: existing.id }, data: { tags: merged } });
+      // Backfill the name when the contact only has the email-prefix fallback.
+      const backfillName = rawName && (!existing.name || existing.name === existing.email.split('@')[0]);
+      await prisma.user.update({
+        where: { id: existing.id },
+        data: { tags: merged, ...(backfillName ? { name: rawName } : {}) },
+      });
       contactId = existing.id;
     } else {
       const contact = await prisma.user.create({

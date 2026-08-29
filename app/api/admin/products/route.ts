@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin, authErrorResponse } from "@/lib/auth/guard";
 import { getAdminProducts, createAdminProduct, isUniqueConstraintError } from "@/lib/db/admin-store";
+import { logAdminActivity } from "@/lib/activity";
 import { ProductType } from "@/lib/generated/prisma/client";
 
 export async function GET(request: NextRequest) {
@@ -28,8 +29,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  let user;
   try {
-    await requireAdmin();
+    user = await requireAdmin();
   } catch (err) {
     return authErrorResponse(err);
   }
@@ -40,6 +42,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "title, slug, description, and price are required" }, { status: 400 });
     }
     const product = await createAdminProduct(body);
+    await logAdminActivity({ actorId: user.id, action: 'product.create', entity: 'Product', entityId: product.id, meta: { title: product.title, slug: product.slug } });
     return NextResponse.json({ product }, { status: 201 });
   } catch (err) {
     console.error("[POST /api/admin/products]", err);

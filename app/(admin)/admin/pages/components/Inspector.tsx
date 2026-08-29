@@ -1,6 +1,63 @@
 'use client';
 
+import { useState } from 'react';
 import type { Block } from '@/lib/pages/blocks';
+
+// Text-bearing props the AI improvement button knows how to rewrite.
+const AI_TEXT_KEYS = ['text', 'body', 'heading', 'title', 'description', 'subheading', 'quote'] as const;
+
+function ImproveWithAi({
+  block,
+  onChange,
+}: {
+  block: Block;
+  onChange: (props: Record<string, unknown>) => void;
+}) {
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+
+  const props = block.props as Record<string, unknown>;
+  const key = AI_TEXT_KEYS.find((k) => typeof props[k] === 'string' && (props[k] as string).trim().length > 0);
+  if (!key) return null;
+
+  const improve = async () => {
+    setLoading(true);
+    setMessage(null);
+    try {
+      const res = await fetch('/api/admin/ai/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ kind: 'copy-rewrite', prompt: props[key] }),
+      });
+      const data = await res.json();
+      const improved = data.output?.improved;
+      if (res.ok && improved) {
+        onChange({ ...props, [key]: improved });
+        setMessage(data.demo ? 'Demo rewrite applied (no AI key).' : 'Rewritten by AI.');
+      } else {
+        setMessage(data.error || 'AI improvement failed.');
+      }
+    } catch {
+      setMessage('AI improvement failed.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="mb-4">
+      <button
+        type="button"
+        onClick={improve}
+        disabled={loading}
+        className="w-full px-3 py-2 border border-accent/40 text-accent rounded-lg text-sm hover:bg-accent/10 transition-colors disabled:opacity-50"
+      >
+        {loading ? 'Improving…' : '✨ Improve text with AI'}
+      </button>
+      {message && <p className="text-xs text-muted mt-1.5">{message}</p>}
+    </div>
+  );
+}
 
 /**
  * Right-hand property inspector. Renders a form for the selected block's
@@ -108,6 +165,7 @@ export function Inspector({
     );
   };
 
+  const renderForm = () => {
   switch (block.type) {
     case 'hero':
       return (
@@ -428,6 +486,15 @@ export function Inspector({
           {field('Button label', textInput('buttonLabel'))}
           {field('Success message', textArea('successMessage'))}
           {field('Tag (applied to lead)', textInput('tag'))}
+          <label className="flex items-center gap-2 mb-4 text-sm text-foreground">
+            <input
+              type="checkbox"
+              checked={Boolean(props.collectName)}
+              onChange={(e) => set('collectName', e.target.checked)}
+            />
+            Collect name
+          </label>
+          {field('Thank-you redirect URL (optional)', textInput('thankYouRedirect', 'https://…'))}
         </div>
       );
     case 'buy-button':
@@ -506,4 +573,14 @@ export function Inspector({
     default:
       return <div className="p-6 text-sm text-muted">No editable properties.</div>;
   }
+  };
+
+  return (
+    <div>
+      <div className="px-4 pt-4">
+        <ImproveWithAi block={block} onChange={onChange} />
+      </div>
+      {renderForm()}
+    </div>
+  );
 }

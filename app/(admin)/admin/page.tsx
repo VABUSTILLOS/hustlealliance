@@ -18,6 +18,12 @@ type Stats = {
   }>;
   usersByRole: Array<{ role: string; count: number }>;
   usersByTier: Array<{ tier: string; count: number }>;
+  kpis?: {
+    todayRevenue: number;
+    newLeadsToday: number;
+    activeAutomations: number;
+    topPages: Array<{ id: string; title: string; slug: string; views: number }>;
+  };
 };
 
 export default function AdminPage() {
@@ -83,6 +89,43 @@ export default function AdminPage() {
           </div>
         ))}
       </div>
+
+      {/* Skillplate KPIs */}
+      {stats.kpis && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="glass-card p-6">
+            <p className="text-muted text-sm">Revenue today</p>
+            <p className="text-3xl font-heading font-bold mt-2 text-green-400">
+              ${stats.kpis.todayRevenue.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+            </p>
+          </div>
+          <div className="glass-card p-6">
+            <p className="text-muted text-sm">New leads today</p>
+            <p className="text-3xl font-heading font-bold mt-2 text-blue-400">{stats.kpis.newLeadsToday}</p>
+          </div>
+          <div className="glass-card p-6">
+            <p className="text-muted text-sm">Active automations</p>
+            <p className="text-3xl font-heading font-bold mt-2 text-purple-400">{stats.kpis.activeAutomations}</p>
+          </div>
+          <div className="glass-card p-6">
+            <p className="text-muted text-sm mb-3">Top pages (7d)</p>
+            {stats.kpis.topPages.length === 0 ? (
+              <p className="text-muted text-xs">No page views yet</p>
+            ) : (
+              <ul className="space-y-1.5">
+                {stats.kpis.topPages.map((p) => (
+                  <li key={p.id} className="flex justify-between items-center text-sm gap-2">
+                    <Link href={`/admin/pages/${p.id}/funnel`} className="text-foreground hover:text-accent truncate">
+                      {p.title}
+                    </Link>
+                    <span className="text-muted font-mono text-xs shrink-0">{p.views}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Role & Tier breakdowns */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">

@@ -57,12 +57,20 @@ export default function AdminPagesPage() {
           <h1 className="text-2xl font-heading font-bold text-foreground">Landing Pages</h1>
           <p className="text-muted text-sm mt-1">{pages.length} page{pages.length === 1 ? '' : 's'}</p>
         </div>
-        <Link
-          href="/admin/pages/new"
-          className="px-4 py-2.5 bg-accent text-white rounded-xl font-medium text-sm hover:bg-accent/90 transition-colors"
-        >
-          New Page
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/admin/pages/global-layout"
+            className="px-4 py-2.5 bg-surface border border-surface-light text-foreground rounded-xl font-medium text-sm hover:bg-surface-light/50 transition-colors"
+          >
+            Global Layout
+          </Link>
+          <Link
+            href="/admin/pages/new"
+            className="px-4 py-2.5 bg-accent text-white rounded-xl font-medium text-sm hover:bg-accent/90 transition-colors"
+          >
+            New Page
+          </Link>
+        </div>
       </div>
 
       <div className="flex gap-3 mb-6">

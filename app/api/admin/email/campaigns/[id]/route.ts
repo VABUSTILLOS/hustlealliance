@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
 import { requireAdmin, authErrorResponse } from '@/lib/auth/guard';
+import { logAdminActivity } from '@/lib/activity';
 import { resolveSegmentFilter, type SegmentFilter } from '@/lib/email/segments';
 
 export async function GET(
@@ -29,7 +30,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    await requireAdmin();
+    const user = await requireAdmin();
     const { id } = await params;
     const body = await request.json();
     const { name, subject, html, segmentFilter, scheduledAt, variantSubjectB, abTestSize } = body as {
@@ -65,6 +66,7 @@ export async function PUT(
       },
     });
 
+    await logAdminActivity({ actorId: user.id, action: 'campaign.update', entity: 'EmailCampaign', entityId: id });
     return NextResponse.json({ campaign });
   } catch (err) {
     return authErrorResponse(err);
@@ -76,9 +78,10 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    await requireAdmin();
+    const user = await requireAdmin();
     const { id } = await params;
     await prisma.emailCampaign.delete({ where: { id } });
+    await logAdminActivity({ actorId: user.id, action: 'campaign.delete', entity: 'EmailCampaign', entityId: id });
     return NextResponse.json({ success: true });
   } catch (err) {
     return authErrorResponse(err);

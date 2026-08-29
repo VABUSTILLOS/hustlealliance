@@ -21,6 +21,12 @@ export const SETTINGS_KEYS = [
   'emailSender',
   'referralReward',
   'installmentsEnabled',
+  'seoDefaults',
+  'socialLinks',
+  'analyticsSnippet',
+  'maintenanceMode',
+  'globalHeader',
+  'globalFooter',
 ] as const;
 
 export type SettingKey = (typeof SETTINGS_KEYS)[number];

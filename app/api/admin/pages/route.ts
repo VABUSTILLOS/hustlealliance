@@ -3,6 +3,7 @@ import { requireAdmin, authErrorResponse } from '@/lib/auth/guard';
 import { prisma } from '@/lib/db/prisma';
 import { Prisma } from '@/lib/generated/prisma/client';
 import { safeParsePageDocument, ThemeSchema } from '@/lib/pages/blocks';
+import { logAdminActivity } from '@/lib/activity';
 
 function slugify(input: string): string {
   return input
@@ -58,7 +59,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    await requireAdmin();
+    const user = await requireAdmin();
 
     const body = await request.json().catch(() => ({}));
     const title = typeof body.title === 'string' && body.title.trim() ? body.title.trim() : 'Untitled Page';
@@ -92,6 +93,13 @@ export async function POST(request: NextRequest) {
         theme: (themeResult.data ?? undefined) as Prisma.InputJsonValue | undefined,
       },
     });
+
+    // Initial snapshot so a freshly created page always has a v1 to restore to.
+    await prisma.landingPageVersion.create({
+      data: { pageId: page.id, blocks: blocksResult.data as unknown as Prisma.InputJsonValue },
+    });
+
+    await logAdminActivity({ actorId: user.id, action: 'page.create', entity: 'LandingPage', entityId: page.id, meta: { title: page.title, slug: page.slug } });
 
     return NextResponse.json({ page }, { status: 201 });
   } catch (err) {

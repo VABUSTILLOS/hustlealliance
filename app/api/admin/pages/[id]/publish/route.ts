@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin, authErrorResponse } from '@/lib/auth/guard';
 import { prisma } from '@/lib/db/prisma';
+import { logAdminActivity } from '@/lib/activity';
 
 /**
  * Toggle a landing page's publish state.
@@ -12,7 +13,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireAdmin();
+    const user = await requireAdmin();
     const { id } = await params;
     const body = await request.json().catch(() => ({}));
     const publish = body?.publish !== false;
@@ -25,6 +26,14 @@ export async function POST(
       data: publish
         ? { status: 'PUBLISHED', publishedAt: existing.publishedAt ?? new Date() }
         : { status: 'DRAFT' },
+    });
+
+    await logAdminActivity({
+      actorId: user.id,
+      action: publish ? 'page.publish' : 'page.unpublish',
+      entity: 'LandingPage',
+      entityId: id,
+      meta: { slug: page.slug },
     });
 
     return NextResponse.json({ page });

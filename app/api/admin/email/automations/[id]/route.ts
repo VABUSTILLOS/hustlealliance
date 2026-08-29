@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
 import { requireAdmin, authErrorResponse } from '@/lib/auth/guard';
+import { logAdminActivity } from '@/lib/activity';
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    await requireAdmin();
+    const user = await requireAdmin();
     const { id } = await params;
     const body = await request.json();
     const { name, trigger, subject, html, delayMinutes, isActive, steps } = body as {
@@ -52,6 +53,7 @@ export async function PUT(
       include: { steps: { orderBy: { order: 'asc' } } },
     });
 
+    await logAdminActivity({ actorId: user.id, action: 'automation.update', entity: 'EmailAutomation', entityId: id });
     return NextResponse.json({ automation });
   } catch (err) {
     return authErrorResponse(err);
@@ -63,9 +65,10 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    await requireAdmin();
+    const user = await requireAdmin();
     const { id } = await params;
     await prisma.emailAutomation.delete({ where: { id } });
+    await logAdminActivity({ actorId: user.id, action: 'automation.delete', entity: 'EmailAutomation', entityId: id });
     return NextResponse.json({ success: true });
   } catch (err) {
     return authErrorResponse(err);

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin, authErrorResponse } from '@/lib/auth/guard';
 import { prisma } from '@/lib/db/prisma';
+import { logAdminActivity } from '@/lib/activity';
 
 /** Duplicates a landing page as a new DRAFT with a "-copy" slug suffix. */
 export async function POST(
@@ -8,7 +9,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireAdmin();
+    const user = await requireAdmin();
     const { id } = await params;
 
     const existing = await prisma.landingPage.findUnique({ where: { id } });
@@ -27,8 +28,11 @@ export async function POST(
         status: 'DRAFT',
         blocks: existing.blocks as object,
         seo: existing.seo ?? undefined,
+        theme: existing.theme ?? undefined,
       },
     });
+
+    await logAdminActivity({ actorId: user.id, action: 'page.duplicate', entity: 'LandingPage', entityId: page.id, meta: { from: id, slug: page.slug } });
 
     return NextResponse.json({ page }, { status: 201 });
   } catch (err) {

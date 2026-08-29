@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
 import { requireAdmin, authErrorResponse } from '@/lib/auth/guard';
+import { logAdminActivity } from '@/lib/activity';
 import { resolveSegmentFilter, type SegmentFilter } from '@/lib/email/segments';
 
 export async function GET() {
@@ -42,7 +43,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    await requireAdmin();
+    const user = await requireAdmin();
     const body = await request.json();
     const { name, subject, html, segmentFilter, variantSubjectB, abTestSize } = body as {
       name: string;
@@ -71,6 +72,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    await logAdminActivity({ actorId: user.id, action: 'campaign.create', entity: 'EmailCampaign', entityId: campaign.id, meta: { name: campaign.name } });
     return NextResponse.json({ campaign }, { status: 201 });
   } catch (err) {
     return authErrorResponse(err);

@@ -3,6 +3,7 @@ import { requireAdmin, authErrorResponse } from '@/lib/auth/guard';
 import { prisma } from '@/lib/db/prisma';
 import { Prisma } from '@/lib/generated/prisma/client';
 import { safeParsePageDocument, ThemeSchema } from '@/lib/pages/blocks';
+import { logAdminActivity } from '@/lib/activity';
 
 export async function GET(
   _request: NextRequest,
@@ -31,7 +32,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireAdmin();
+    const user = await requireAdmin();
     const { id } = await params;
     const body = await request.json().catch(() => ({}));
 
@@ -88,6 +89,28 @@ export async function PUT(
 
     const page = await prisma.landingPage.update({ where: { id }, data });
 
+    // Snapshot the block tree whenever blocks are saved; keep the last 10.
+    if (data.blocks !== undefined) {
+      await prisma.landingPageVersion.create({ data: { pageId: id, blocks: data.blocks } });
+      const stale = await prisma.landingPageVersion.findMany({
+        where: { pageId: id },
+        orderBy: { createdAt: 'desc' },
+        skip: 10,
+        select: { id: true },
+      });
+      if (stale.length > 0) {
+        await prisma.landingPageVersion.deleteMany({ where: { id: { in: stale.map((v) => v.id) } } });
+      }
+    }
+
+    await logAdminActivity({
+      actorId: user.id,
+      action: 'page.update',
+      entity: 'LandingPage',
+      entityId: id,
+      meta: { fields: Object.keys(data) },
+    });
+
     return NextResponse.json({ page });
   } catch (err) {
     try {
@@ -104,10 +127,11 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireAdmin();
+    const user = await requireAdmin();
     const { id } = await params;
 
     await prisma.landingPage.delete({ where: { id } });
+    await logAdminActivity({ actorId: user.id, action: 'page.delete', entity: 'LandingPage', entityId: id });
 
     return NextResponse.json({ success: true });
   } catch (err) {

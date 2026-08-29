@@ -8,6 +8,7 @@ import Image from 'next/image';
 import type { AuthUser } from '@/lib/auth/user';
 import MobileBottomNav from '@/app/components/MobileBottomNav';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { CommandPalette } from './command-palette';
 
 export function AdminShell({ user, children }: { user: AuthUser; children: React.ReactNode }) {
   const pathname = usePathname();
@@ -128,6 +129,15 @@ export function AdminShell({ user, children }: { user: AuthUser; children: React
       ),
     },
     {
+      label: 'Activity',
+      href: '/admin/activity',
+      icon: (
+        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+        </svg>
+      ),
+    },
+    {
       label: 'AI Studio',
       href: '/admin/ai-studio',
       icon: (
@@ -231,6 +241,8 @@ export function AdminShell({ user, children }: { user: AuthUser; children: React
 
       {/* Mobile bottom nav (swipeable) */}
       <MobileBottomNav items={adminLinks} />
+
+      <CommandPalette />
     </div>
   );
 }

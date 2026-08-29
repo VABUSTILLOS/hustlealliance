@@ -445,15 +445,72 @@ export default function AiStudioPage() {
             Describe your idea, pick what to generate, and get structured drafts you can copy or apply directly.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setHistoryOpen((v) => !v)}
-          className="px-4 py-2 bg-surface border border-surface-light rounded-xl text-sm text-foreground hover:bg-surface-light/50 transition-colors shrink-0"
-        >
-          {historyOpen ? 'Hide history' : 'History'}
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="flex bg-surface border border-surface-light rounded-xl overflow-hidden">
+            {(['generate', 'chat'] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setMode(m)}
+                className={`px-4 py-2 text-sm transition-colors ${
+                  mode === m ? 'bg-accent text-white' : 'text-muted hover:text-foreground'
+                }`}
+              >
+                {m === 'generate' ? 'Generate' : 'Chat'}
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => setHistoryOpen((v) => !v)}
+            className="px-4 py-2 bg-surface border border-surface-light rounded-xl text-sm text-foreground hover:bg-surface-light/50 transition-colors"
+          >
+            {historyOpen ? 'Hide history' : 'History'}
+          </button>
+        </div>
       </div>
 
+      {mode === 'chat' ? (
+        <div className="bg-surface border border-surface-light rounded-2xl p-6">
+          <div className="space-y-3 mb-4 max-h-[480px] overflow-y-auto">
+            {chatMessages.length === 0 && (
+              <p className="text-muted text-sm">
+                Brainstorm and iterate conversationally. Ask for drafts, rewrites, angles — the thread keeps context.
+              </p>
+            )}
+            {chatMessages.map((m, i) => (
+              <div
+                key={i}
+                className={`px-4 py-3 rounded-xl text-sm whitespace-pre-wrap ${
+                  m.role === 'user'
+                    ? 'bg-accent/10 text-foreground ml-12'
+                    : 'bg-surface-light text-foreground mr-12'
+                }`}
+              >
+                {m.content}
+              </div>
+            ))}
+            {chatLoading && <p className="text-muted text-xs">Thinking…</p>}
+          </div>
+          <div className="flex gap-2">
+            <input
+              value={chatInput}
+              onChange={(e) => setChatInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && sendChat()}
+              placeholder="Ask the AI Studio assistant…"
+              className="flex-1 px-4 py-2.5 bg-surface-light border border-surface-light rounded-xl text-foreground text-sm placeholder:text-muted focus:outline-none focus:border-accent"
+            />
+            <button
+              type="button"
+              onClick={sendChat}
+              disabled={chatLoading || !chatInput.trim()}
+              className="px-6 py-2.5 bg-accent text-white rounded-xl font-medium text-sm hover:bg-accent/90 transition-colors disabled:opacity-50"
+            >
+              Send
+            </button>
+          </div>
+        </div>
+      ) : (
       <div className="flex gap-6 items-start">
         <div className="flex-1 min-w-0">
           <div className="space-y-6 bg-surface border border-surface-light rounded-2xl p-6">
@@ -468,6 +525,42 @@ export default function AiStudioPage() {
                 rows={kind === 'copy-rewrite' ? 6 : 3}
                 placeholder={activeKind.placeholder}
               />
+              <div className="flex items-center gap-2 mt-2 flex-wrap">
+                {presets.length > 0 && (
+                  <select
+                    value=""
+                    onChange={(e) => e.target.value && applyPreset(e.target.value)}
+                    className="px-3 py-1.5 bg-surface-light border border-surface-light rounded-lg text-foreground text-xs"
+                  >
+                    <option value="">Load preset…</option>
+                    {presets.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name} ({p.kind})
+                      </option>
+                    ))}
+                  </select>
+                )}
+                {idea.trim() && (
+                  <button
+                    type="button"
+                    onClick={savePreset}
+                    className="text-xs text-accent hover:underline"
+                  >
+                    Save as preset
+                  </button>
+                )}
+                {presets.slice(0, 3).map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => deletePreset(p.id)}
+                    title={`Delete preset "${p.name}"`}
+                    className="text-xs text-muted hover:text-red-400"
+                  >
+                    ✕ {p.name}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div>
@@ -602,6 +695,7 @@ export default function AiStudioPage() {
           </div>
         )}
       </div>
+      )}
     </div>
   );
 }

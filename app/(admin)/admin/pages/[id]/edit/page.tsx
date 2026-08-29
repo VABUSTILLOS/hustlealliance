@@ -30,6 +30,42 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [previewWidth, setPreviewWidth] = useState<'desktop' | 'mobile'>('desktop');
   const [dirty, setDirty] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [versions, setVersions] = useState<{ id: string; createdAt: string; blockCount: number }[]>([]);
+
+  const loadVersions = useCallback(() => {
+    fetch(`/api/admin/pages/${id}/versions`)
+      .then((r) => r.json())
+      .then((data) => setVersions(data.versions || []))
+      .catch(() => {});
+  }, [id]);
+
+  useEffect(() => {
+    if (settingsOpen) loadVersions();
+  }, [settingsOpen, loadVersions]);
+
+  const handleRestoreVersion = async (versionId: string) => {
+    const res = await fetch(`/api/admin/pages/${id}/versions/${versionId}/restore`, { method: 'POST' });
+    if (res.ok) {
+      const data = await res.json();
+      setHistory([data.page.blocks || []]);
+      setCursor(0);
+      setDirty(false);
+      loadVersions();
+    }
+  };
+
+  const updateSeo = (patch: Partial<Seo>) => {
+    if (!page) return;
+    setPage({ ...page, seo: { ...(page.seo || {}), ...patch } });
+    setDirty(true);
+  };
+
+  const updateTheme = (theme: Theme) => {
+    if (!page) return;
+    setPage({ ...page, theme });
+    setDirty(true);
+  };
 
   // Undo/redo history stack of block arrays. `history[cursor]` is current.
   const [history, setHistory] = useState<Block[][]>([]);
@@ -114,7 +150,7 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
       const res = await fetch(`/api/admin/pages/${page.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: page.title, blocks, seo: page.seo }),
+        body: JSON.stringify({ title: page.title, blocks, seo: page.seo, theme: page.theme ?? null }),
       });
       if (res.ok) {
         setLastSavedAt(new Date());
@@ -243,6 +279,14 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
           </span>
 
           <button
+            onClick={() => setSettingsOpen((v) => !v)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+              settingsOpen ? 'bg-accent/10 text-accent' : 'bg-surface-light text-foreground hover:bg-border'
+            }`}
+          >
+            Page settings
+          </button>
+          <button
             onClick={handleSave}
             disabled={saving || !dirty}
             className="px-3 py-1.5 bg-surface-light text-foreground rounded-lg text-xs font-medium hover:bg-border disabled:opacity-50 transition-colors"
@@ -285,6 +329,116 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
           />
         </aside>
       </div>
+
+      {settingsOpen && (
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/50" onClick={() => setSettingsOpen(false)}>
+          <div
+            className="w-full max-w-md h-full bg-surface border-l border-border/50 overflow-y-auto p-5 space-y-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between">
+              <h2 className="text-foreground font-semibold">Page settings</h2>
+              <button onClick={() => setSettingsOpen(false)} className="text-muted hover:text-foreground text-sm">✕</button>
+            </div>
+
+            <section>
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted mb-3">SEO</h3>
+              <label className="block mb-3">
+                <span className="block text-xs font-medium text-muted mb-1.5">Meta title</span>
+                <input
+                  type="text"
+                  value={page.seo?.title || ''}
+                  onChange={(e) => updateSeo({ title: e.target.value })}
+                  placeholder={page.title}
+                  className="w-full px-3 py-2 bg-surface-light rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+                />
+              </label>
+              <label className="block mb-3">
+                <span className="block text-xs font-medium text-muted mb-1.5">Meta description</span>
+                <textarea
+                  value={page.seo?.description || ''}
+                  onChange={(e) => updateSeo({ description: e.target.value })}
+                  rows={3}
+                  className="w-full px-3 py-2 bg-surface-light rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent resize-none"
+                />
+              </label>
+              <label className="block mb-3">
+                <span className="block text-xs font-medium text-muted mb-1.5">OG image URL</span>
+                <input
+                  type="text"
+                  value={page.seo?.ogImage || ''}
+                  onChange={(e) => updateSeo({ ogImage: e.target.value })}
+                  placeholder="https://…"
+                  className="w-full px-3 py-2 bg-surface-light rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+                />
+              </label>
+              {/* Social share preview */}
+              <div className="rounded-xl border border-border/50 overflow-hidden bg-surface-light">
+                {page.seo?.ogImage ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={page.seo.ogImage} alt="" className="w-full aspect-[1.91/1] object-cover" />
+                ) : (
+                  <div className="w-full aspect-[1.91/1] flex items-center justify-center text-muted text-xs">No OG image</div>
+                )}
+                <div className="p-3">
+                  <div className="text-sm font-medium text-foreground truncate">{page.seo?.title || page.title}</div>
+                  <div className="text-xs text-muted line-clamp-2 mt-0.5">{page.seo?.description || 'No description set.'}</div>
+                </div>
+              </div>
+            </section>
+
+            <ThemePanel theme={page.theme ?? null} onChange={updateTheme} />
+
+            <section>
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted mb-3">Custom code (admin-only)</h3>
+              <label className="block mb-3">
+                <span className="block text-xs font-medium text-muted mb-1.5">Inject at top of page (head code)</span>
+                <textarea
+                  value={page.theme?.headCode || ''}
+                  onChange={(e) => updateTheme({ ...(page.theme || {}), headCode: e.target.value })}
+                  rows={3}
+                  placeholder="<script>…</script>"
+                  className="w-full px-3 py-2 bg-surface-light rounded-lg text-xs font-mono text-foreground focus:outline-none focus:ring-2 focus:ring-accent resize-none"
+                />
+              </label>
+              <label className="block mb-3">
+                <span className="block text-xs font-medium text-muted mb-1.5">Inject at bottom of page (body code)</span>
+                <textarea
+                  value={page.theme?.bodyCode || ''}
+                  onChange={(e) => updateTheme({ ...(page.theme || {}), bodyCode: e.target.value })}
+                  rows={3}
+                  placeholder="<script>…</script>"
+                  className="w-full px-3 py-2 bg-surface-light rounded-lg text-xs font-mono text-foreground focus:outline-none focus:ring-2 focus:ring-accent resize-none"
+                />
+              </label>
+            </section>
+
+            <section>
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted mb-3">Versions (last 10)</h3>
+              {versions.length === 0 ? (
+                <p className="text-xs text-muted">No snapshots yet — one is saved each time blocks are saved.</p>
+              ) : (
+                <div className="space-y-2">
+                  {versions.map((v) => (
+                    <div key={v.id} className="flex items-center justify-between px-3 py-2 rounded-lg border border-border/50">
+                      <div className="text-xs">
+                        <div className="text-foreground">{new Date(v.createdAt).toLocaleString()}</div>
+                        <div className="text-muted">{v.blockCount} blocks</div>
+                      </div>
+                      <button
+                        onClick={() => handleRestoreVersion(v.id)}
+                        className="text-xs text-accent hover:underline"
+                      >
+                        Restore
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

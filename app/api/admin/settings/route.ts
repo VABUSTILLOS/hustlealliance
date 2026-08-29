@@ -18,6 +18,12 @@ export async function GET() {
       emailSender: await getSetting('emailSender', DEFAULT_EMAIL_SENDER),
       referralReward: await getSetting('referralReward', DEFAULT_REFERRAL_REWARD),
       installmentsEnabled: await getSetting('installmentsEnabled', false),
+      seoDefaults: await getSetting('seoDefaults', { titleSuffix: '', description: '', ogImage: '' }),
+      socialLinks: await getSetting('socialLinks', { twitter: '', instagram: '', youtube: '', tiktok: '', linkedin: '' }),
+      analyticsSnippet: await getSetting('analyticsSnippet', { snippet: '' }),
+      maintenanceMode: await getSetting('maintenanceMode', { enabled: false, message: '' }),
+      globalHeader: await getSetting('globalHeader', []),
+      globalFooter: await getSetting('globalFooter', []),
     };
     return NextResponse.json({ settings });
   } catch (err) {

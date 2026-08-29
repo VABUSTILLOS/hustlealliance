@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
 import { requireAdmin, authErrorResponse } from '@/lib/auth/guard';
+import { logAdminActivity } from '@/lib/activity';
 
 export async function GET() {
   try {
@@ -19,7 +20,7 @@ type StepInput = { order: number; subject: string; html: string; delayMinutes: n
 
 export async function POST(request: NextRequest) {
   try {
-    await requireAdmin();
+    const user = await requireAdmin();
     const body = await request.json();
     const { name, trigger, subject, html, delayMinutes, isActive, steps } = body as {
       name: string;
@@ -63,6 +64,7 @@ export async function POST(request: NextRequest) {
       include: { steps: { orderBy: { order: 'asc' } } },
     });
 
+    await logAdminActivity({ actorId: user.id, action: 'automation.create', entity: 'EmailAutomation', entityId: automation.id, meta: { name: automation.name, trigger: automation.trigger } });
     return NextResponse.json({ automation }, { status: 201 });
   } catch (err) {
     return authErrorResponse(err);

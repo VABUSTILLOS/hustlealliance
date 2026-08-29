@@ -333,6 +333,7 @@ function LogoCloudBlock({ props }: { props: Partial<z.infer<typeof LogoCloudProp
 
 function LeadFormBlock({ props }: { props: Partial<z.infer<typeof LeadFormPropsSchema>> }) {
   const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -347,6 +348,7 @@ function LeadFormBlock({ props }: { props: Partial<z.infer<typeof LeadFormPropsS
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email,
+          name: name.trim() || undefined,
           tag: props.tag || undefined,
           pageSlug,
           sessionId: attribution.sessionId,
@@ -354,6 +356,10 @@ function LeadFormBlock({ props }: { props: Partial<z.infer<typeof LeadFormPropsS
           path: window.location.pathname,
         }),
       });
+      if (res.ok && props.thankYouRedirect) {
+        window.location.href = props.thankYouRedirect;
+        return;
+      }
       setStatus(res.ok ? 'success' : 'error');
     } catch {
       setStatus('error');
@@ -368,6 +374,15 @@ function LeadFormBlock({ props }: { props: Partial<z.infer<typeof LeadFormPropsS
         <p className="text-accent font-medium">{props.successMessage || "You're in! Check your inbox."}</p>
       ) : (
         <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
+          {props.collectName && (
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Your name"
+              className="flex-1 px-4 py-2.5 rounded-xl bg-surface-light text-foreground text-sm placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent"
+            />
+          )}
           <input
             type="email"
             required

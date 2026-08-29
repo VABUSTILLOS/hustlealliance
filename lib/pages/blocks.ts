@@ -175,6 +175,8 @@ export const LeadFormPropsSchema = z.object({
   buttonLabel: z.string().optional().default('Subscribe'),
   successMessage: z.string().optional().default("You're in! Check your inbox."),
   tag: z.string().optional().default(''),
+  collectName: z.boolean().optional().default(false),
+  thankYouRedirect: z.string().optional().default(''),
 });
 
 export const BuyButtonPropsSchema = z.object({
@@ -257,6 +259,8 @@ export const ThemeSchema = z
     background: z.string().optional(),
     accent: z.string().optional(),
     headingFont: z.enum(['inter', 'bebas', 'mono']).optional(),
+    headCode: z.string().max(20000).optional(),
+    bodyCode: z.string().max(20000).optional(),
   })
   .partial()
   .optional()
