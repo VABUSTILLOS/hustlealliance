@@ -24,6 +24,7 @@ export async function GET() {
       maintenanceMode: await getSetting('maintenanceMode', { enabled: false, message: '' }),
       globalHeader: await getSetting('globalHeader', []),
       globalFooter: await getSetting('globalFooter', []),
+      aiDemoMode: await getSetting('aiDemoMode', false),
     };
     return NextResponse.json({ settings });
   } catch (err) {

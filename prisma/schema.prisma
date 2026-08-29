@@ -70,6 +70,7 @@ enum NotificationType {
   BADGE_EARNED
   CERTIFICATE_ISSUED
   COURSE_EXPIRING
+  COURSE_UNLOCKED
   LIVE_CLASS_REMINDER
   QUIZ_PASSED
   XP_MILESTONE
@@ -143,6 +144,11 @@ enum GroupVisibility {
   PUBLIC
   PRIVATE
   HIDDEN
+}
+
+enum GroupKind {
+  SPACE
+  GROUP
 }
 
 enum CommunityGroupRole {
@@ -284,6 +290,8 @@ enum FeedItemType {
   PRODUCT_LISTED
   CHALLENGE_CREATED
   CHALLENGE_COMPLETED
+  LESSON_COMPLETED
+  CERTIFICATE_ISSUED
   BROADCAST
 }
 
@@ -318,6 +326,7 @@ enum OnboardingQuestionType {
 model User {
   id                  String         @id @default(uuid())
   email               String         @unique
+  authId              String?        @unique
   name                String
   avatar              String?
   username            String?        @unique
@@ -420,6 +429,7 @@ model User {
 
   // ── NEW: Notification preferences ──
   notificationPreference NotificationPreference?
+  pushSubscriptions    PushSubscription[]
 
   // ── Skillplate suite (admin) ──
   referralCode       String?             @unique
@@ -484,6 +494,7 @@ model Course {
   entitlements  Entitlement[]
   dripSettings  CourseDripSettings?
   studyGroup    CourseStudyGroup?
+  challenges    Challenge[]
 }
 
 model Module {
@@ -699,6 +710,7 @@ model LiveClass {
   instructor    User                     @relation("LiveClassInstructor", fields: [instructorId], references: [id])
   course        Course?                  @relation(fields: [courseId], references: [id])
   registrations LiveClassRegistration[]
+  recordings    LiveClassRecording[]
 }
 
 model LiveClassRegistration {
@@ -711,6 +723,19 @@ model LiveClassRegistration {
   liveClass LiveClass @relation(fields: [liveClassId], references: [id], onDelete: Cascade)
 
   @@unique([userId, liveClassId])
+}
+
+model LiveClassRecording {
+  id          String   @id @default(uuid())
+  liveClassId String
+  title       String
+  url         String
+  durationSec Int?
+  createdAt   DateTime @default(now())
+
+  liveClass LiveClass @relation(fields: [liveClassId], references: [id], onDelete: Cascade)
+
+  @@index([liveClassId])
 }
 
 model Order {
@@ -770,6 +795,20 @@ model NotificationPreference {
   preferences Json   @default("{}")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PushSubscription {
+  id           String   @id @default(uuid())
+  userId       String
+  endpoint     String   @unique
+  p256dh       String
+  auth         String
+  userAgent    String?
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model CourseDripSettings {
@@ -1230,6 +1269,7 @@ model CommunityGroup {
   name        String
   slug        String         @unique
   description String?
+  kind        GroupKind      @default(GROUP)
   avatar      String?
   coverImage  String?
   visibility  GroupVisibility @default(PUBLIC)
@@ -1238,6 +1278,8 @@ model CommunityGroup {
   inviteToken String         @unique @default(cuid())
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
+
+  @@index([kind])
 
   creator  User                    @relation(fields: [creatorId], references: [id], onDelete: Cascade)
   members  CommunityGroupMember[]
@@ -1795,12 +1837,14 @@ model Challenge {
   currency        String          @default("USD")
   maxParticipants Int?
   productId       String?         @unique // linked Product (type CHALLENGE) for paid challenges
+  courseId        String? // optional linked Course — completing the challenge grants enrollment
   creatorId       String
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 
   creator     User                  @relation("ChallengeCreator", fields: [creatorId], references: [id], onDelete: Cascade)
   product     Product?              @relation(fields: [productId], references: [id], onDelete: SetNull)
+  course      Course?               @relation(fields: [courseId], references: [id], onDelete: SetNull)
   tasks       ChallengeTask[]
   enrollments ChallengeEnrollment[]
 

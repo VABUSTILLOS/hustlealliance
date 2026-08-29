@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCourseById, getCourseBySlug } from '@/lib/db/courses';
+import { getCurrentUser } from '@/lib/auth/user';
+import { checkAccess } from '@/lib/auth/accessControl';
 
 // GET /api/courses/[courseId] — get a single course (by UUID or slug) with modules and lessons
 export async function GET(
@@ -19,11 +21,33 @@ export async function GET(
       return NextResponse.json({ error: 'Course not found' }, { status: 404 });
     }
 
+    // ── Access enforcement: gate lesson content behind entitlements ──
+    const user = await getCurrentUser();
+    const access = await checkAccess({
+      userId: user?.id ?? null,
+      courseId: course.id,
+    });
+    const isAuthorized = access.allowed;
+
+    const redacted = isAuthorized
+      ? course
+      : {
+          ...course,
+          modules: course.modules.map((mod) => ({
+            ...mod,
+            lessons: mod.lessons.map((l) => ({
+              ...l,
+              content: l.isPreview ? l.content : null,
+              videoUrl: l.isPreview ? l.videoUrl : null,
+            })),
+          })),
+        };
+
     return NextResponse.json(
-      { course },
+      { course: redacted },
       {
         headers: {
-          'Cache-Control': 'public, max-age=60, s-maxage=120, stale-while-revalidate=3600',
+          'Cache-Control': 'private, no-cache',
         },
       }
     );

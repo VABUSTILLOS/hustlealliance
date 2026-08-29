@@ -134,10 +134,18 @@ export interface DigestPost {
   excerpt: string;
   likeCount: number;
   commentCount: number;
+  space?: string;
 }
 
-export function weeklyDigestEmail(userName: string, topPosts: DigestPost[], unreadCount: number) {
+export function weeklyDigestEmail(userName: string, topPosts: DigestPost[], unreadCount: number, personalizedPosts: DigestPost[] = []) {
   const items = topPosts.map((p) => `
+    <div style="padding:12px 0;border-bottom:1px solid #1A1A1A">
+      <p style="margin:0 0 4px;color:#fff;font-size:14px"><strong>${escapeHtml(p.authorName)}</strong></p>
+      <p style="margin:0 0 6px;color:#c0c0c0;font-size:13px">${escapeHtml(p.excerpt)}</p>
+      <p style="margin:0;color:#8A8A8A;font-size:12px">❤️ ${p.likeCount} · 💬 ${p.commentCount} · <a href="${SITE_URL}/community/posts/${p.id}" style="color:#FF3B30;text-decoration:none">Read →</a></p>
+    </div>`).join('');
+
+  const personalItems = personalizedPosts.map((p) => `
     <div style="padding:12px 0;border-bottom:1px solid #1A1A1A">
       <p style="margin:0 0 4px;color:#fff;font-size:14px"><strong>${escapeHtml(p.authorName)}</strong></p>
       <p style="margin:0 0 6px;color:#c0c0c0;font-size:13px">${escapeHtml(p.excerpt)}</p>
@@ -150,6 +158,7 @@ export function weeklyDigestEmail(userName: string, topPosts: DigestPost[], unre
       `<p>You have <strong>${unreadCount}</strong> unread notification${unreadCount === 1 ? '' : 's'}.</p>
       <h3 style="margin:16px 0 4px;font-size:15px">🔥 Top posts this week</h3>
       ${items || '<p style="color:#8A8A8A;font-size:13px">Quiet week — be the first to post!</p>'}
+      ${personalItems ? `<h3 style="margin:16px 0 4px;font-size:15px">✨ Picked for you</h3>${personalItems}` : ''}
       ${button('Open community', `${SITE_URL}/community`)}
       <p style="color:#8A8A8A;font-size:12px">Don't want these emails? Update your <a href="${SITE_URL}/settings/notifications" style="color:#8A8A8A">notification settings</a>.</p>`
     ),

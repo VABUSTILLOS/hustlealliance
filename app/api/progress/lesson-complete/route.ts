@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { markLessonComplete, awardXP, updateStreak, checkAndAwardBadges, awardCertificate } from '@/lib/db/progress';
+import { fanoutToFollowers } from '@/lib/db/feed';
 // TODO: IMPLEMENT REAL AUTH - REVERT FOR PRODUCTION
 import { getCurrentUser } from "@/lib/auth/user";
 import { notifyCourseComplete, notifyCertificateEarned, notifyBadgeEarned } from '@/lib/notifications/service';
@@ -10,6 +11,7 @@ import prisma from '@/lib/db/prisma';
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { lessonId } = await request.json();
     if (!lessonId || typeof lessonId !== 'string') {
@@ -17,6 +19,23 @@ export async function POST(request: NextRequest) {
     }
 
     const progress = await markLessonComplete(user.id, lessonId);
+
+    // Flywheel: fan out "completed a lesson" feed items to followers
+    try {
+      const lessonInfo = await prisma.lesson.findUnique({
+        where: { id: lessonId },
+        select: { title: true },
+      });
+      await fanoutToFollowers({
+        actorId: user.id,
+        type: 'LESSON_COMPLETED',
+        entityType: 'Lesson',
+        entityId: lessonId,
+        metadata: { title: lessonInfo?.title ?? lessonId },
+      });
+    } catch (feedErr) {
+      console.error('[POST /api/progress/lesson-complete] Lesson feed fanout failed (non-fatal):', feedErr);
+    }
 
     // Award XP and update streak
     const [newlyEarnedBadges] = await Promise.all([
@@ -56,6 +75,19 @@ export async function POST(request: NextRequest) {
           notifyCertificateEarned(
             user.id, user.email!, userRecord?.name || 'Student', course.title, certUrl
           ).catch(() => {});
+
+          // Flywheel: fan out "completed a course" feed items to followers
+          try {
+            await fanoutToFollowers({
+              actorId: user.id,
+              type: 'CERTIFICATE_ISSUED',
+              entityType: 'Course',
+              entityId: course.id,
+              metadata: { title: course.title, slug: course.slug, certificateId: certificate.id },
+            });
+          } catch (feedErr) {
+            console.error('[POST /api/progress/lesson-complete] Certificate feed fanout failed (non-fatal):', feedErr);
+          }
         }
       }
     }
@@ -66,6 +98,19 @@ export async function POST(request: NextRequest) {
         const badge = await prisma.badge.findUnique({ where: { id: badgeId } });
         if (badge) {
           notifyBadgeEarned(user.id, user.email, badge.name, badge.icon || '🏅').catch(() => {});
+
+          // Flywheel: fan out "earned a badge" feed items to followers
+          try {
+            await fanoutToFollowers({
+              actorId: user.id,
+              type: 'BADGE_EARNED',
+              entityType: 'Badge',
+              entityId: badgeId,
+              metadata: { name: badge.name, icon: badge.icon || '🏅' },
+            });
+          } catch (feedErr) {
+            console.error('[POST /api/progress/lesson-complete] Badge feed fanout failed (non-fatal):', feedErr);
+          }
         }
       }
     }

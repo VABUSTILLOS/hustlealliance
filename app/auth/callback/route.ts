@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
 
-const SUPABASE_URL = 'https://yftgdtdvmvvqyzcdntge.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_sY8NIgcLzNcLUGx2Swl9BA_yqf9NIc8';
-
+/**
+ * OAuth / magic-link callback. Exchanges the `code` for a session using the
+ * `@supabase/ssr` client (writes httpOnly cookies) instead of passing tokens
+ * through the URL query string.
+ */
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
@@ -10,26 +13,15 @@ export async function GET(request: Request) {
 
   if (code) {
     try {
-      const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=authorization_code`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_ANON_KEY,
-        },
-        body: JSON.stringify({ code }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        // Pass token via URL fragment so client can save to localStorage
-        const baseUrl = new URL(next, origin.startsWith('http') ? origin : `https://${origin}`);
-        // Use access_token + refresh_token as query params for client-side storage
-        baseUrl.searchParams.set('access_token', data.access_token);
-        baseUrl.searchParams.set('refresh_token', data.refresh_token);
-        baseUrl.searchParams.set('expires_at', String(Date.now() + (data.expires_in || 3600) * 1000));
-
-        return NextResponse.redirect(baseUrl);
+      const supabase = await createClient();
+      const { error } = await supabase.auth.exchangeCodeForSession(code);
+      if (!error) {
+        const forwardedHost = request.headers.get('x-forwarded-host');
+        const isLocalEnv = process.env.NODE_ENV === 'development';
+        const target = isLocalEnv ? new URL(next, origin) : forwardedHost ? new URL(`https://${forwardedHost}${next}`) : new URL(next, origin);
+        return NextResponse.redirect(target);
       }
+      console.error('[Auth Callback] exchangeCodeForSession error:', error.message);
     } catch (err) {
       console.error('[Auth Callback] Error:', err);
     }

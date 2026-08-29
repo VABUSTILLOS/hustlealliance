@@ -1,15 +1,25 @@
 'use client';
 
+import { useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
 import clsx from 'clsx';
-import { useStore } from '@/lib/store/useStore';
 import { useTranslation } from '@/lib/i18n/useTranslation';
-import type { Space } from '@/lib/data/spaces';
 import type { GetCommunityPostsResult } from '@/lib/db/community';
 import { useCommunityFeed } from '../../community/useCommunityFeed';
 import { PostFeedCard } from './PostFeedCard';
+
+type DetailSpace = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  avatar: string | null;
+  coverImage: string | null;
+  memberCount: number;
+  isJoined: boolean;
+};
 
 export function SpaceDetailClient({
   slug,
@@ -17,12 +27,20 @@ export function SpaceDetailClient({
   feed,
 }: {
   slug: string;
-  space: Space | null;
+  space: DetailSpace | null;
   feed: GetCommunityPostsResult;
 }) {
   const { t } = useTranslation();
-  const isSpaceJoined = useStore((s) => s.isSpaceJoined);
-  const toggleJoinSpace = useStore((s) => s.toggleJoinSpace);
+  const [joined, setJoined] = useState<boolean | null>(null);
+  const [memberCount, setMemberCount] = useState<number | null>(null);
+  const [joining, setJoining] = useState(false);
+
+  useEffect(() => {
+    if (space) {
+      setJoined(space.isJoined);
+      setMemberCount(space.memberCount);
+    }
+  }, [space]);
 
   // Fetch posts from the database via React Query
   const query = useCommunityFeed({
@@ -42,7 +60,27 @@ export function SpaceDetailClient({
     );
   }
 
-  const joined = isSpaceJoined(slug);
+  const toggleJoin = async () => {
+    if (joining) return;
+    setJoining(true);
+    setJoined((prev) => !prev);
+    setMemberCount((prev) => (prev ?? space.memberCount) + (joined ? -1 : 1));
+    try {
+      const res = await fetch(`/api/spaces/${slug}/${joined ? 'leave' : 'join'}`, { method: 'POST' });
+      if (!res.ok) {
+        setJoined((prev) => !prev);
+        setMemberCount((prev) => (prev ?? space.memberCount) + (joined ? 1 : -1));
+      }
+    } catch {
+      setJoined((prev) => !prev);
+      setMemberCount((prev) => (prev ?? space.memberCount) + (joined ? 1 : -1));
+    } finally {
+      setJoining(false);
+    }
+  };
+
+  const isJoined = joined ?? false;
+  const count = memberCount ?? space.memberCount;
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-8 max-w-3xl mx-auto">
@@ -58,24 +96,25 @@ export function SpaceDetailClient({
         animate={{ opacity: 1, y: 0 }}
         className="relative h-48 rounded-2xl overflow-hidden mb-8"
       >
-        <Image src={space.image} alt={space.name} fill className="object-cover" sizes="(max-width: 640px) 100vw, 700px" />
+        <Image src={space.coverImage || space.avatar || ''} alt={space.name} fill className="object-cover" sizes="(max-width: 640px) 100vw, 700px" />
         <div className="absolute inset-0 bg-gradient-to-t from-surface via-surface/50" />
         <div className="absolute bottom-0 left-0 right-0 p-6">
           <h1 className="font-display text-3xl sm:text-4xl text-foreground uppercase leading-none mb-2">
             {space.name}
           </h1>
           <div className="flex items-center gap-3">
-            <span className="text-muted text-sm">{space.memberCount} {t.spaces.members}</span>
+            <span className="text-muted text-sm">{count} {t.spaces.members}</span>
             <button
-              onClick={() => toggleJoinSpace(slug)}
+              onClick={toggleJoin}
+              disabled={joining}
               className={clsx(
-                'px-3 py-1 rounded-lg text-xs font-mono font-bold uppercase transition-all',
-                joined
+                'px-3 py-1 rounded-lg text-xs font-mono font-bold uppercase transition-all disabled:opacity-60',
+                isJoined
                   ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'
                   : 'bg-accent text-foreground hover:bg-accent-glow'
               )}
             >
-              {joined ? t.spaces.joined + ' ✓' : t.spaces.join + ' ' + t.spaces.tag}
+              {isJoined ? t.spaces.joined + ' ✓' : t.spaces.join + ' ' + t.spaces.tag}
             </button>
           </div>
         </div>

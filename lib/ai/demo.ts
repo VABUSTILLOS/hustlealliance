@@ -146,6 +146,10 @@ export function demoOutputForKind<K extends AiGenerationKind>(
       ],
       rationale: 'Demo-mode rationale: tightened language, added a clearer benefit statement, and stronger call to action.',
     },
+    'post-polish': {
+      improved: `${idea}\n\n(Demo-mode polish — connect AI_GATEWAY_API_KEY for a real rewrite.)`,
+      hashtags: ['community', 'hustlealliance'],
+    },
   };
 
   return outputs[kind];

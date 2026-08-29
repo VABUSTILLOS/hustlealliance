@@ -18,6 +18,9 @@ const TYPE_ICONS: Record<string, string> = {
   BADGE_EARNED: '🏆',
   JOB_POSTED: '💼',
   PRODUCT_LISTED: '🛍️',
+  LESSON_COMPLETED: '📚',
+  CERTIFICATE_ISSUED: '🎓',
+  CHALLENGE_COMPLETED: '🏁',
 };
 
 export const FeedItemCard = memo(function FeedItemCard({ item }: { item: FeedItem }) {
@@ -27,7 +30,12 @@ export const FeedItemCard = memo(function FeedItemCard({ item }: { item: FeedIte
   const icon = TYPE_ICONS[item.type] ?? '🔔';
   const message = getTypeMessage(item.type, t);
   const preview = (item.metadata as Record<string, string> | undefined)?.preview;
+  const metaTitle =
+    (item.metadata as Record<string, string> | undefined)?.title ??
+    (item.metadata as Record<string, string> | undefined)?.name;
   const timeAgo = formatRelativeTime(item.createdAt, { style: 'intl', locale });
+  const displayedPreview =
+    preview ?? (metaTitle && (item.type === 'LESSON_COMPLETED' || item.type === 'CERTIFICATE_ISSUED' || item.type === 'BADGE_EARNED' || item.type === 'CHALLENGE_COMPLETED') ? metaTitle : undefined);
 
   return (
     <div className="flex items-start gap-3 p-4 rounded-xl bg-surface border border-white/5 hover:border-accent/20 transition-colors">
@@ -49,9 +57,9 @@ export const FeedItemCard = memo(function FeedItemCard({ item }: { item: FeedIte
           <span className="text-foreground-muted text-sm">{message}</span>
           <span className="text-muted text-xs">· {timeAgo}</span>
         </div>
-        {preview && (
+        {displayedPreview && (
           <p className="mt-1.5 text-sm text-foreground-muted line-clamp-2">
-            {preview}
+            {displayedPreview}
           </p>
         )}
       </div>
@@ -83,6 +91,12 @@ function getTypeMessage(type: string, t: ReturnType<typeof useTranslation>['t'])
       return t.community.feedItem_postedJob;
     case 'PRODUCT_LISTED':
       return t.community.feedItem_listedProduct;
+    case 'LESSON_COMPLETED':
+      return t.community.feedItem_completedLesson;
+    case 'CERTIFICATE_ISSUED':
+      return t.community.feedItem_issuedCertificate;
+    case 'CHALLENGE_COMPLETED':
+      return t.community.feedItem_completedChallenge;
     default:
       return t.community.feedItemDidSomething;
   }

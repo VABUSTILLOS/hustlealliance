@@ -2,6 +2,7 @@ import prisma from "@/lib/db/prisma";
 import { Prisma, ProductType } from "@/lib/generated/prisma/client";
 import type { ChallengeStatus } from "@/lib/generated/prisma/client";
 import { awardXP } from "@/lib/db/progress";
+import { fanoutToFollowers } from "@/lib/db/feed";
 
 const CHALLENGE_COMPLETE_XP = 100;
 
@@ -30,6 +31,7 @@ export async function listChallenges(filters: ChallengeFilters = {}) {
       where,
       include: {
         creator: { select: { id: true, name: true, username: true, avatar: true } },
+        course: { select: { id: true, title: true, slug: true, thumbnail: true } },
         _count: { select: { tasks: true, enrollments: true } },
         ...(filters.userId
           ? { enrollments: { where: { userId: filters.userId }, select: { id: true, completedAt: true } } }
@@ -51,6 +53,7 @@ export async function getChallengeBySlug(slug: string, userId?: string) {
     include: {
       creator: { select: { id: true, name: true, username: true, avatar: true } },
       product: { select: { id: true, slug: true, price: true } },
+      course: { select: { id: true, title: true, slug: true, thumbnail: true } },
       tasks: { orderBy: [{ dayNumber: "asc" }, { sortOrder: "asc" }] },
       _count: { select: { enrollments: true } },
     },
@@ -166,7 +169,7 @@ export async function completeChallengeTask(params: {
   if (totalTasks > 0 && completedTasks >= totalTasks && !enrollment.completedAt) {
     const challenge = await prisma.challenge.findUnique({
       where: { id: params.challengeId },
-      select: { title: true },
+      select: { title: true, courseId: true },
     });
 
     await prisma.challengeEnrollment.update({
@@ -175,6 +178,32 @@ export async function completeChallengeTask(params: {
     });
 
     await awardXP(params.userId, CHALLENGE_COMPLETE_XP, `Completed challenge: ${challenge?.title ?? params.challengeId}`);
+
+    // Flywheel: challenge completion unlocks a linked course → auto-enroll
+    if (challenge?.courseId) {
+      try {
+        const existing = await prisma.enrollment.findUnique({
+          where: { userId_courseId: { userId: params.userId, courseId: challenge.courseId } },
+        });
+        if (!existing) {
+          await prisma.enrollment.create({
+            data: { userId: params.userId, courseId: challenge.courseId },
+          });
+          await prisma.notification.create({
+            data: {
+              userId: params.userId,
+              type: "COURSE_UNLOCKED",
+              title: "Course unlocked 🎉",
+              body: `Finishing this challenge unlocked a new course — check your dashboard!`,
+              sourceId: challenge.courseId,
+              metadata: { courseId: challenge.courseId, challengeId: params.challengeId },
+            },
+          });
+        }
+      } catch (enrollErr) {
+        console.error("[challenges] Course unlock on challenge complete failed (non-fatal):", enrollErr);
+      }
+    }
 
     await prisma.notification.create({
       data: {
@@ -200,6 +229,19 @@ export async function completeChallengeTask(params: {
       });
     } catch {
       // Non-fatal — feed is a nice-to-have
+    }
+
+    // Flywheel: fan out challenge completion to followers' feeds
+    try {
+      await fanoutToFollowers({
+        actorId: params.userId,
+        type: "CHALLENGE_COMPLETED",
+        entityType: "challenge",
+        entityId: params.challengeId,
+        metadata: challenge ? { title: challenge.title } : undefined,
+      });
+    } catch {
+      // Non-fatal — follower feed is a nice-to-have
     }
   }
 
@@ -398,6 +440,7 @@ export interface ChallengeInput {
   price?: number;
   currency?: string;
   maxParticipants?: number | null;
+  courseId?: string | null;
 }
 
 /** Creates or updates the linked CHALLENGE Product for a paid challenge, keeping title/slug/price mirrored. */
@@ -462,6 +505,7 @@ export async function createChallenge(input: ChallengeInput, creatorId: string) 
       price,
       currency,
       maxParticipants: input.maxParticipants ?? null,
+      courseId: input.courseId ?? null,
       creatorId,
     },
   });
@@ -522,6 +566,7 @@ export async function updateChallenge(id: string, input: Partial<ChallengeInput>
       ...(input.price !== undefined ? { price: input.price } : {}),
       ...(input.currency !== undefined ? { currency: input.currency } : {}),
       ...(input.maxParticipants !== undefined ? { maxParticipants: input.maxParticipants } : {}),
+      ...(input.courseId !== undefined ? { courseId: input.courseId } : {}),
       ...(productId !== existing.productId ? { productId } : {}),
     },
     include: { product: true, tasks: true },

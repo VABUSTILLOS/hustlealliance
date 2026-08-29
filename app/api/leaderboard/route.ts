@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
 import { normalizeAvatarUrl } from '@/lib/utils/avatar';
+import { getRankFromXp } from '@/lib/db/ranks';
 
 // GET /api/leaderboard?period=weekly|monthly
 export async function GET(request: NextRequest) {
@@ -30,7 +31,7 @@ export async function GET(request: NextRequest) {
     // Fetch user profiles + streaks in parallel.
     // The DB stores external URLs (DiceBear, Unsplash) — we normalize them to
     // local JPEG portraits below and filter out users with no real photo.
-    const [users, streaks, badges] = await Promise.all([
+    const [users, streaks, badges, xpAllTime] = await Promise.all([
       prisma.user.findMany({
         where: {
           id: { in: userIds },
@@ -50,6 +51,11 @@ export async function GET(request: NextRequest) {
         select: { userId: true, badge: { select: { icon: true, name: true } } },
         orderBy: { earnedAt: 'desc' },
       }),
+      prisma.xPTransaction.groupBy({
+        by: ['userId'],
+        where: { userId: { in: userIds } },
+        _sum: { amount: true },
+      }),
     ]);
 
     // Build a map of userId → normalized avatar URL (local JPEG path).
@@ -67,6 +73,7 @@ export async function GET(request: NextRequest) {
     }
 
     const streakMap = new Map(streaks.map((s) => [s.userId, s.currentStreak]));
+    const allTimeXpMap = new Map(xpAllTime.map((x) => [x.userId, x._sum.amount ?? 0]));
     const badgeMap = new Map<string, { icon: string; name: string }[]>();
     for (const b of badges) {
       if (!badgeMap.has(b.userId)) badgeMap.set(b.userId, []);
@@ -82,11 +89,14 @@ export async function GET(request: NextRequest) {
         const u = userMap.get(x.userId);
         if (!u) return null;
         const userBadges = badgeMap.get(x.userId) || [];
+        const totalXP = allTimeXpMap.get(x.userId) ?? x._sum.amount ?? 0;
         return {
           username: u.username ?? x.userId,
           name: u.name,
           avatar: u.avatar,
           xp: x._sum.amount ?? 0,
+          totalXP,
+          rankInfo: getRankFromXp(totalXP),
           streak: streakMap.get(x.userId) ?? 0,
           badges: userBadges,
         };

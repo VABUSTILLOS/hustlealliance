@@ -12,6 +12,8 @@ import { useTranslation } from '@/lib/i18n/useTranslation';
 
 const UpcomingEventsWidgetLazy = lazy(() => import('@/app/components/UpcomingEventsWidget'));
 const GettingStartedChecklistLazy = lazy(() => import('@/app/(dashboard)/components/getting-started-checklist'));
+const ExpiredMembershipBanner = lazy(() => import('@/app/(dashboard)/components/ExpiredMembershipBanner'));
+const Recommendations = lazy(() => import('@/app/(dashboard)/components/Recommendations'));
 
 // ── Circular Progress ────────────────────────────────────────────────────
 function CircularProgress({ pct, size = 96, stroke = 6, glow = true }: { pct: number; size?: number; stroke?: number; glow?: boolean }) {
@@ -218,6 +220,16 @@ export default function DashboardPage() {
             </div>
           </Widget>
         </motion.div>
+
+        {/* ── Expired membership banner ─────── */}
+        <Suspense fallback={null}>
+          <ExpiredMembershipBanner />
+        </Suspense>
+
+        {/* ── Personalized recommendations ─── */}
+        <Suspense fallback={null}>
+          <Recommendations />
+        </Suspense>
 
         {/* ── Onboarding Checklist ─────── */}
         {!onboardingComplete && !onboardingDismissed && (

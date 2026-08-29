@@ -11,6 +11,8 @@ import {
   loadBrandVoiceSuffix,
   buildPrompt,
   logAiGeneration,
+  isAiDemoForced,
+  hasAiGatewayAuth,
 } from '@/lib/ai/generate';
 
 const bodySchema = z.object({
@@ -49,7 +51,8 @@ export async function POST(request: NextRequest) {
   const { kind, prompt, model: requestedModel, steer } = parsed.data;
   const model = requestedModel || DEFAULT_MODEL;
   const finalPrompt = buildPrompt(prompt, steer);
-  const hasGatewayKey = !!process.env.AI_GATEWAY_API_KEY;
+  const hasGatewayKey = hasAiGatewayAuth();
+  const forceDemo = await isAiDemoForced();
   const encoder = new TextEncoder();
 
   const stream = new ReadableStream<Uint8Array>({
@@ -62,7 +65,7 @@ export async function POST(request: NextRequest) {
       let demo = false;
 
       try {
-        if (!hasGatewayKey) {
+        if (!hasGatewayKey || forceDemo) {
           demo = true;
           const demoOutput = demoOutputForKind(kind, finalPrompt);
           // Simulate progressive streaming so the client's UI code path matches live mode.
@@ -81,6 +84,12 @@ export async function POST(request: NextRequest) {
             system: systemPromptByKind[kind] + brandVoiceSuffix,
             prompt: finalPrompt,
             output: Output.object({ schema }),
+            providerOptions: {
+              gateway: {
+                user: user.id,
+                tags: [`feature:${kind}`, `env:${process.env.VERCEL_ENV || process.env.NODE_ENV || 'development'}`],
+              },
+            },
           });
 
           for await (const partial of result.partialOutputStream) {

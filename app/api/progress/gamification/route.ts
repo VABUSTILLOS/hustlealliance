@@ -7,6 +7,7 @@ import { getCurrentUser } from "@/lib/auth/user";
 export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const [gamification, certificates] = await Promise.all([
       getUserGamification(user.id),

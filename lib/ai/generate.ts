@@ -5,7 +5,34 @@ import { prisma } from '@/lib/db/prisma';
 import { schemaByKind, type AiGenerationKind, type OutputForKind } from './schemas';
 import { demoOutputForKind } from './demo';
 
-export const DEFAULT_MODEL = 'openai/gpt-4o-mini';
+export const DEFAULT_MODEL = process.env.AI_DEFAULT_MODEL || 'openai/gpt-5.4-mini';
+
+/** True when AI Gateway calls are authenticated (API key or Vercel OIDC token). */
+export function hasAiGatewayAuth(): boolean {
+  return !!(process.env.AI_GATEWAY_API_KEY || process.env.VERCEL_OIDC_TOKEN);
+}
+
+let demoModeCache: { value: boolean; expiresAt: number } | null = null;
+
+/**
+ * Returns true when demo output should be forced even though a gateway key is
+ * configured. Sources: `AI_FORCE_DEMO=true` env (local dev without DB) or the
+ * `aiDemoMode` SiteSetting (admin-toggleable, cached for 60s).
+ */
+export async function isAiDemoForced(): Promise<boolean> {
+  if (process.env.AI_FORCE_DEMO === 'true') return true;
+  const now = Date.now();
+  if (demoModeCache && demoModeCache.expiresAt > now) return demoModeCache.value;
+  try {
+    const row = await prisma.siteSetting.findUnique({ where: { key: 'aiDemoMode' } });
+    const value = row?.value === true;
+    demoModeCache = { value, expiresAt: now + 60_000 };
+    return value;
+  } catch (err) {
+    console.error('[ai/generate] Failed to load aiDemoMode setting:', err);
+    return false;
+  }
+}
 
 export const systemPromptByKind: Record<AiGenerationKind, string> = {
   'course-outline':
@@ -30,6 +57,8 @@ export const systemPromptByKind: Record<AiGenerationKind, string> = {
     "You are an expert social media copywriter. Produce platform-appropriate posts (Twitter/X, LinkedIn, Instagram) with relevant hashtags, matching each platform's tone and length conventions.",
   'copy-rewrite':
     'You are an expert copy editor. Improve the persuasiveness and clarity of the pasted copy. Provide an improved version, two alternative rewrites, and a short rationale explaining the changes.',
+  'post-polish':
+    "You are a community post editor. Polish the member's draft post: tighten the writing, keep their voice and meaning, make it engaging and readable. Output an improved version and up to 5 relevant lowercase hashtags (no '#' prefix).",
 };
 
 /** Reads the `brandVoice` SiteSetting (if present) and formats it as a system prompt suffix. */
@@ -117,13 +146,13 @@ export async function generateAiContent<K extends AiGenerationKind>(
   const { kind, prompt, createdBy, steer } = params;
   const model = params.model || DEFAULT_MODEL;
   const schema = schemaByKind[kind] as unknown as import('zod').ZodType<OutputForKind<K>>;
-  const hasGatewayKey = !!process.env.AI_GATEWAY_API_KEY;
+  const hasGatewayKey = hasAiGatewayAuth();
   const finalPrompt = buildPrompt(prompt, steer);
 
   let output: OutputForKind<K>;
   let demo = false;
 
-  if (!hasGatewayKey) {
+  if (!hasGatewayKey || (await isAiDemoForced())) {
     demo = true;
     output = demoOutputForKind(kind, finalPrompt);
   } else {
@@ -134,6 +163,12 @@ export async function generateAiContent<K extends AiGenerationKind>(
         system: systemPromptByKind[kind] + brandVoiceSuffix,
         prompt: finalPrompt,
         output: Output.object({ schema }),
+        providerOptions: {
+          gateway: {
+            user: createdBy,
+            tags: [`feature:${kind}`, `env:${process.env.VERCEL_ENV || process.env.NODE_ENV || 'development'}`],
+          },
+        },
       });
       output = result.output as OutputForKind<K>;
     } catch (err) {

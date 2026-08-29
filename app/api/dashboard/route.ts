@@ -8,6 +8,7 @@ import { getUserAccessSummary } from '@/lib/auth/accessControl';
 export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const dbUser = await prisma.user.findUnique({
       where: { id: user.id },
       select: { id: true, name: true, avatar: true, membershipTier: true },

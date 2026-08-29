@@ -1,13 +1,21 @@
 import { NextResponse } from 'next/server';
 import dns from 'dns';
+import { requireAdmin, authErrorResponse } from '@/lib/auth/guard';
 
-const POOLER_HOST = 'aws-0-us-east-1.pooler.supabase.com';
-const POOLER_PORT = 6543;
-const POOLER_USER = 'app_user.yftgdtdvmvvqyzcdntge';
-const POOLER_PASSWORD = 'HustleAlliance2024!';
-const POOLER_DB = 'postgres';
+// Pooler diagnostic — credentials come from env, never hardcoded.
+const POOLER_HOST = process.env.POOLER_HOST || 'aws-0-us-east-1.pooler.supabase.com';
+const POOLER_PORT = parseInt(process.env.POOLER_PORT || '6543', 10);
+const POOLER_USER = process.env.POOLER_USER || '';
+const POOLER_PASSWORD = process.env.POOLER_PASSWORD || '';
+const POOLER_DB = process.env.POOLER_DB || 'postgres';
 
 export async function GET() {
+  try {
+    await requireAdmin();
+  } catch (err) {
+    return authErrorResponse(err);
+  }
+
   // DNS check on pooler host (should be IPv4 on Vercel)
   let dns4: string | null = null;
   let dns6: string | null = null;
@@ -21,24 +29,28 @@ export async function GET() {
   // pg to pooler (IPv4)
   let pgResult = 'not_tested';
   let tableCount: number | null = null;
-  try {
-    const { Pool } = require('pg');
-    const pool = new Pool({
-      host: POOLER_HOST,
-      port: POOLER_PORT,
-      user: POOLER_USER,
-      password: POOLER_PASSWORD,
-      database: POOLER_DB,
-      ssl: { rejectUnauthorized: false },
-      connectionTimeoutMillis: 8000,
-    });
-    const res = await pool.query('SELECT 1 as val');
-    pgResult = `ok: ${JSON.stringify(res.rows)}`;
-    const tc = await pool.query("SELECT count(*) as c FROM information_schema.tables WHERE table_schema = 'public'");
-    tableCount = parseInt(tc.rows[0].c);
-    await pool.end();
-  } catch (e: any) {
-    pgResult = `error: ${e.message || e.code}`;
+  if (POOLER_USER && POOLER_PASSWORD) {
+    try {
+      const { Pool } = require('pg');
+      const pool = new Pool({
+        host: POOLER_HOST,
+        port: POOLER_PORT,
+        user: POOLER_USER,
+        password: POOLER_PASSWORD,
+        database: POOLER_DB,
+        ssl: { rejectUnauthorized: false },
+        connectionTimeoutMillis: 8000,
+      });
+      const res = await pool.query('SELECT 1 as val');
+      pgResult = `ok: ${JSON.stringify(res.rows)}`;
+      const tc = await pool.query("SELECT count(*) as c FROM information_schema.tables WHERE table_schema = 'public'");
+      tableCount = parseInt(tc.rows[0].c);
+      await pool.end();
+    } catch (e: any) {
+      pgResult = `error: ${e.message || e.code}`;
+    }
+  } else {
+    pgResult = 'skipped (POOLER_USER/POOLER_PASSWORD not set)';
   }
 
   // Check if env DATABASE_URL uses pooler

@@ -30,6 +30,7 @@ const DEMO_MODE = !process.env.STRIPE_SECRET_KEY;
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await request.json();
     const origin = request.nextUrl.origin;

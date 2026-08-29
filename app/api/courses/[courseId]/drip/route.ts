@@ -23,6 +23,7 @@ export async function PUT(
   { params }: { params: Promise<{ courseId: string }> }
 ) {
   const user = await getCurrentUser();
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   // Verify instructor/admin role
   const dbUser = await prisma.user.findUnique({

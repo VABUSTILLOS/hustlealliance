@@ -16,6 +16,7 @@ export async function POST(
 
     // Get the authenticated user from Supabase
     const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     // Check if already enrolled
     const existing = await getEnrollment(user.id, courseId);

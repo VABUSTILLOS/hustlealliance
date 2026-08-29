@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { cookies } from "next/headers";
 import { Inter, Bebas_Neue, JetBrains_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
@@ -6,6 +6,9 @@ import { Providers } from "./providers";
 import ToggleBar from "./components/ToggleBar";
 import CursorGlow from "./components/CursorGlow";
 import { WebVitals } from "./components/WebVitals";
+import { PwaRegister } from "./components/PwaRegister";
+import { PushManager } from "./components/PushManager";
+import { InstallPrompt } from "./components/InstallPrompt";
 import type { Locale } from "@/lib/i18n/translations";
 import translations from "@/lib/i18n/translations";
 import "./globals.css";
@@ -36,8 +39,24 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: meta.title,
     description: meta.description,
+    manifest: "/manifest.webmanifest",
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: "black-translucent",
+      title: "Hustle",
+    },
+    icons: {
+      icon: "/icons/icon-192.png",
+      apple: "/icons/apple-touch-icon.png",
+    },
   };
 }
+
+export const viewport: Viewport = {
+  themeColor: "#FF3B30",
+  width: "device-width",
+  initialScale: 1,
+};
 
 export default async function RootLayout({
   children,
@@ -58,11 +77,15 @@ export default async function RootLayout({
         <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://yftgdtdvmvvqyzcdntge.supabase.co" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://api.dicebear.com" crossOrigin="anonymous" />
+        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
         <Providers>
           <div className="bg-[var(--color-bg)] text-[var(--color-foreground)] min-h-screen font-body">
             <CursorGlow />
             <ToggleBar />
             <WebVitals />
+            <PwaRegister />
+            <PushManager />
+            <InstallPrompt />
             {children}
           </div>
         </Providers>

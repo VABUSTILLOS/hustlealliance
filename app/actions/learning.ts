@@ -20,6 +20,7 @@ import { revalidatePath } from 'next/cache';
 
 export async function completeLessonAction(lessonId: string) {
   const user = await getCurrentUser();
+  if (!user) throw new Error('Unauthorized');
 
   try {
     await markLessonComplete(user.id, lessonId);
@@ -66,6 +67,7 @@ export async function completeLessonAction(lessonId: string) {
 
 export async function saveVideoPositionAction(lessonId: string, positionSeconds: number) {
   const user = await getCurrentUser();
+  if (!user) throw new Error('Unauthorized');
 
   try {
     await updateVideoPosition(user.id, lessonId, positionSeconds);
@@ -79,6 +81,7 @@ export async function saveVideoPositionAction(lessonId: string, positionSeconds:
 
 export async function submitQuizAction(quizId: string, answers: Record<string, string>) {
   const user = await getCurrentUser();
+  if (!user) throw new Error('Unauthorized');
 
   try {
     const { submitQuizAttempt } = await import('@/lib/db/quizzes');
@@ -110,6 +113,7 @@ export async function submitQuizAction(quizId: string, answers: Record<string, s
 
 export async function enrollInCourseAction(courseId: string) {
   const user = await getCurrentUser();
+  if (!user) throw new Error('Unauthorized');
 
   try {
     const { enrollUser } = await import('@/lib/db/courses');
@@ -140,6 +144,7 @@ export async function enrollInCourseAction(courseId: string) {
 
 export async function getGamificationSummaryAction() {
   const user = await getCurrentUser();
+  if (!user) throw new Error('Unauthorized');
 
   try {
     const [gamification, certificates] = await Promise.all([

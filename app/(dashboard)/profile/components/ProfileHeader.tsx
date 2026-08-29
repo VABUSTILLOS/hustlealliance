@@ -113,10 +113,24 @@ export function ProfileHeader({ profile, isOwnProfile }: ProfileHeaderProps) {
             <span className="flex items-center gap-1">
               📅 Joined {joinDate}
             </span>
+            {profile.totalXP > 0 && (
+              <span
+                className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent/10 border border-accent/20 text-accent"
+                title={`Level ${profile.rank.level} · ${profile.totalXP} XP`}
+              >
+                {profile.rank.icon} {profile.rank.title} · Lv {profile.rank.level}
+              </span>
+            )}
           </div>
 
           {/* Stats */}
           <div className="flex items-center gap-6 mt-5">
+            <div>
+              <span className="font-bold text-foreground">
+                {profile.totalXP}
+              </span>{" "}
+              <span className="text-muted text-sm">XP</span>
+            </div>
             <Link
               href={`/profile/${profile.username}/connections?tab=followers`}
               className="group"

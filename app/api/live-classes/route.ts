@@ -3,31 +3,55 @@ import prisma from '@/lib/db/prisma';
 // TODO: IMPLEMENT REAL AUTH - REVERT FOR PRODUCTION
 import { getCurrentUser } from "@/lib/auth/user";
 
-// GET /api/live-classes — list upcoming live classes
+// GET /api/live-classes — list live classes (default: upcoming)
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = request.nextUrl;
     const courseId = searchParams.get('courseId');
+    const scope = searchParams.get('scope') || 'upcoming'; // 'upcoming' | 'past'
+    const registeredOnly = searchParams.get('registered') === 'true';
     const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 100);
+    const user = await getCurrentUser();
 
+    const now = new Date();
     const where: any = {
-      startsAt: { gte: new Date() },
+      ...(scope === 'past' ? { endsAt: { lt: now } } : { startsAt: { gte: now } }),
     };
     if (courseId) where.courseId = courseId;
+    if (registeredOnly) {
+      if (!user) return NextResponse.json({ classes: [] });
+      where.registrations = { some: { userId: user.id } };
+    }
 
     const classes = await prisma.liveClass.findMany({
       where,
       include: {
         instructor: { select: { id: true, name: true, avatar: true } },
         course: { select: { id: true, title: true, slug: true } },
+        recordings: { select: { id: true, title: true, url: true, durationSec: true }, take: 5 },
         _count: { select: { registrations: true } },
       },
-      orderBy: { startsAt: 'asc' },
+      orderBy: scope === 'past' ? { startsAt: 'desc' } : { startsAt: 'asc' },
       take: limit,
     });
 
+    // Attach per-user registration state
+    let registeredIds = new Set<string>();
+    if (user) {
+      const regs = await prisma.liveClassRegistration.findMany({
+        where: { userId: user.id, liveClassId: { in: classes.map((c) => c.id) } },
+        select: { liveClassId: true },
+      });
+      registeredIds = new Set(regs.map((r) => r.liveClassId));
+    }
+
+    const result = classes.map((c) => ({
+      ...c,
+      isRegistered: registeredIds.has(c.id),
+    }));
+
     return NextResponse.json(
-      { classes },
+      { classes: result },
       { headers: { 'Cache-Control': 'public, max-age=30, s-maxage=60' } }
     );
   } catch (error) {
@@ -40,6 +64,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const dbUser = await prisma.user.findUnique({
       where: { id: user.id },

@@ -7,6 +7,7 @@
  */
 
 import { cookies } from 'next/headers';
+import prisma from '@/lib/db/prisma';
 import type { AuthUser } from './user';
 import { allSeedUsers } from '@/lib/seed/users';
 import { MOCK_USER } from './mock';
@@ -27,6 +28,11 @@ export async function isTestMode(): Promise<boolean> {
 /**
  * Resolve the current test user from the cookie.
  * Returns null if the cookie isn't set or the email doesn't match any seed user.
+ *
+ * Prefers the real DB user row (by email) so test-user sessions operate on
+ * real IDs/tiers/entitlements — access checks, drip releases, and likes are
+ * attributed to the actual user. Falls back to a deterministic mock ID when
+ * the seed user hasn't been created in the DB yet.
  */
 export async function resolveTestUser(): Promise<AuthUser | null> {
   try {
@@ -36,6 +42,18 @@ export async function resolveTestUser(): Promise<AuthUser | null> {
 
     const seedUser = allSeedUsers.find((u) => u.email === email);
     if (!seedUser) return null;
+
+    const dbUser = await prisma.user.findUnique({ where: { email } });
+    if (dbUser) {
+      return {
+        id: dbUser.id,
+        email: dbUser.email,
+        name: dbUser.name,
+        role: dbUser.role,
+        membershipTier: dbUser.membershipTier,
+        avatar: dbUser.avatar ?? '',
+      };
+    }
 
     return {
       id: generateMockId(seedUser.email),

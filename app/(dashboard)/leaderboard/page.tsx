@@ -13,6 +13,8 @@ interface LeaderboardEntry {
   name: string;
   avatar: string;
   xp: number;
+  totalXP: number;
+  rankInfo?: { icon: string; title: string; level: number };
   streak: number;
   badges: { icon: string; name: string }[];
 }
@@ -176,6 +178,14 @@ export default function LeaderboardPage() {
                         height={28}
                         className="rounded-full object-cover shrink-0"
                       />
+                      {entry.rankInfo && (
+                        <span
+                          className="text-sm shrink-0"
+                          title={`${entry.rankInfo.title} · Level ${entry.rankInfo.level}`}
+                        >
+                          {entry.rankInfo.icon}
+                        </span>
+                      )}
                       <span className="text-foreground text-sm font-medium truncate">
                         {isMe ? 'You' : entry.name.split(' ')[0]}
                       </span>

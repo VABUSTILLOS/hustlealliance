@@ -18,6 +18,7 @@ export async function GET(
       include: {
         instructor: { select: { id: true, name: true, avatar: true } },
         course: { select: { id: true, title: true, slug: true } },
+        recordings: { select: { id: true, title: true, url: true, durationSec: true }, orderBy: { createdAt: 'asc' } },
         _count: { select: { registrations: true } },
       },
     });

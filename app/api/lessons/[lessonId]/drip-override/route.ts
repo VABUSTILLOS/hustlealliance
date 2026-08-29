@@ -8,6 +8,7 @@ export async function PUT(
   { params }: { params: Promise<{ lessonId: string }> }
 ) {
   const user = await getCurrentUser();
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const dbUser = await prisma.user.findUnique({
     where: { id: user.id },
@@ -45,6 +46,7 @@ export async function DELETE(
   { params }: { params: Promise<{ lessonId: string }> }
 ) {
   const user = await getCurrentUser();
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const dbUser = await prisma.user.findUnique({
     where: { id: user.id },

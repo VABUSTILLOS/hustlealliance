@@ -12,7 +12,7 @@ export type DashboardData = {
     totalLessons: number; completedLessons: number; percentage: number;
     enrolledAt: string; completedAt: string | null;
   }[];
-  access: { tier: string; expiresAt: string | null; entitlementCount: number; enrollmentCount: number; tierBenefits: string[] };
+  access: { tier: string; claimedTier: string; expiresAt: string | null; isExpired: boolean; entitlementCount: number; enrollmentCount: number; tierBenefits: string[] };
   gamification: {
     totalXP: number;
     badges: { id: string; name: string; description: string; icon: string; category: string; earnedAt: string }[];

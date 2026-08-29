@@ -27,6 +27,7 @@ export function PostCreator() {
   const [visibility, setVisibility] = useState<'PUBLIC' | 'CONNECTIONS_ONLY'>('PUBLIC');
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isAiAssisting, setIsAiAssisting] = useState(false);
   const [pollMode, setPollMode] = useState(false);
   const [pollOptions, setPollOptions] = useState<string[]>(['', '']);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -164,6 +165,36 @@ export function PostCreator() {
     }
   };
 
+  const handleAiAssist = async () => {
+    const text = newPostText.trim();
+    if (!text || isAiAssisting) return;
+    setIsAiAssisting(true);
+    try {
+      const res = await fetch('/api/ai/post-assist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        addToast({ message: data.error || 'AI assist failed', type: 'error' });
+        return;
+      }
+      const data = await res.json();
+      const improved: string = data.output?.improved ?? '';
+      if (improved) setNewPostText(improved);
+      if (data.output?.hashtags?.length) {
+        addToast({ message: `✨ Hashtags: ${data.output.hashtags.map((h: string) => '#' + h).join(' ')}`, type: 'success' });
+      } else {
+        addToast({ message: t.community.postSuccess, type: 'success' });
+      }
+    } catch {
+      addToast({ message: 'AI assist failed', type: 'error' });
+    } finally {
+      setIsAiAssisting(false);
+    }
+  };
+
   return (
     <LazyMotionDiv
       initial={{ opacity: 0, y: 12 }}
@@ -297,6 +328,34 @@ export function PostCreator() {
                 className="hidden"
                 onChange={handleImageUpload}
               />
+
+              {/* AI post assist */}
+              <button
+                onClick={handleAiAssist}
+                disabled={!newPostText.trim() || isAiAssisting}
+                className={clsx(
+                  'p-2 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:outline-none',
+                  isAiAssisting
+                    ? 'text-accent opacity-70 cursor-wait'
+                    : newPostText.trim()
+                      ? 'text-accent hover:bg-accent/10'
+                      : 'text-muted cursor-not-allowed hover:text-foreground hover:bg-surface-light',
+                )}
+                title="✨ Polish this post with AI"
+                aria-pressed={isAiAssisting}
+              >
+                {isAiAssisting ? (
+                  <svg className="w-5 h-5 animate-spin" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3z" />
+                    <path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9L19 15z" />
+                  </svg>
+                )}
+              </button>
 
               {/* Poll toggle */}
               <button

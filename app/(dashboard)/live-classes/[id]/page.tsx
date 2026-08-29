@@ -21,6 +21,7 @@ interface LiveClassDetail {
   maxAttendees: number | null;
   instructor: { id: string; name: string; avatar: string | null };
   course: { id: string; title: string; slug: string } | null;
+  recordings: { id: string; title: string; url: string; durationSec: number | null }[];
   _count: { registrations: number };
 }
 
@@ -274,6 +275,39 @@ export default function LiveClassPage({ params }: { params: Promise<{ id: string
           </div>
         </motion.div>
       </div>
+
+      {/* Recordings */}
+      {liveClass.recordings.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="glass-card p-6 rounded-2xl mt-6"
+        >
+          <h2 className="text-lg font-semibold mb-4">📼 {t.liveClassHub.recordings.replace('{count}', String(liveClass.recordings.length)).replace('{s}', liveClass.recordings.length === 1 ? '' : 's')}</h2>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {liveClass.recordings.map((rec) => (
+              <a
+                key={rec.id}
+                href={rec.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-center gap-3 p-4 rounded-xl bg-black/30 hover:bg-black/50 border border-white/10 transition-colors"
+              >
+                <div className="w-11 h-11 rounded-lg bg-primary-600/30 flex items-center justify-center shrink-0">
+                  <svg className="w-5 h-5 text-primary-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3" /></svg>
+                </div>
+                <div className="min-w-0">
+                  <p className="font-medium truncate group-hover:text-primary-300 transition-colors">{rec.title}</p>
+                  <p className="text-xs text-white/50">
+                    {rec.durationSec ? `${Math.floor(rec.durationSec / 60)}:${String(rec.durationSec % 60).padStart(2, '0')}` : t.liveClassHub.watch}
+                  </p>
+                </div>
+              </a>
+            ))}
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 }

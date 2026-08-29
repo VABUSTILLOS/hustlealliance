@@ -6,8 +6,8 @@ import { InstructorShell } from './instructor-shell';
 export default async function InstructorLayout({ children }: { children: React.ReactNode }) {
   const user = await getCurrentUser();
 
-  // if (!user) redirect('/login');
-  // if (user.role !== 'INSTRUCTOR' && user.role !== 'ADMIN') redirect('/dashboard');
+  if (!user) redirect('/login');
+  if (user.role !== 'INSTRUCTOR' && user.role !== 'ADMIN') redirect('/dashboard');
 
   return <InstructorShell user={user}>{children}</InstructorShell>;
 }

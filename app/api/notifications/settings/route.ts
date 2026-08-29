@@ -4,6 +4,7 @@ import prisma from '@/lib/db/prisma';
 import { getCurrentUser } from '@/lib/auth/user';
 
 type NotificationPreferenceKey =
+  | 'push_enabled'
   | 'email_follow'
   | 'email_like'
   | 'email_comment'
@@ -23,6 +24,7 @@ type NotificationPreferenceKey =
   | 'browser_event';
 
 const DEFAULT_PREFS: Record<NotificationPreferenceKey, boolean> = {
+  push_enabled: true,
   email_follow: true, email_like: true, email_comment: true, email_mention: true,
   email_message: true, email_friend_request: true, email_group: true, email_event: true,
   email_digest: true,
@@ -34,6 +36,7 @@ const DEFAULT_PREFS: Record<NotificationPreferenceKey, boolean> = {
 export async function GET() {
   try {
     const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const record = await prisma.notificationPreference.findUnique({
       where: { userId: user.id },
@@ -52,6 +55,7 @@ export async function GET() {
 export async function PUT(request: NextRequest) {
   try {
     const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const body = await request.json();
     const updates: Record<string, boolean> = {};
 
@@ -61,13 +65,22 @@ export async function PUT(request: NextRequest) {
       }
     }
 
+    // Merge with stored prefs so single-key updates don't wipe the rest.
+    const existing = await prisma.notificationPreference.findUnique({
+      where: { userId: user.id },
+    });
+    const merged = {
+      ...((existing?.preferences as Record<string, boolean>) ?? {}),
+      ...updates,
+    };
+
     await prisma.notificationPreference.upsert({
       where: { userId: user.id },
-      create: { userId: user.id, preferences: updates },
-      update: { preferences: updates },
+      create: { userId: user.id, preferences: merged },
+      update: { preferences: merged },
     });
 
-    return NextResponse.json({ success: true, preferences: updates });
+    return NextResponse.json({ success: true, preferences: { ...DEFAULT_PREFS, ...merged } });
   } catch (err) {
     console.error('[PUT /api/notifications/settings]', err);
     return NextResponse.json({ error: 'Failed' }, { status: 500 });

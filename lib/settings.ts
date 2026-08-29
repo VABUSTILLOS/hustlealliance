@@ -27,6 +27,7 @@ export const SETTINGS_KEYS = [
   'maintenanceMode',
   'globalHeader',
   'globalFooter',
+  'aiDemoMode',
 ] as const;
 
 export type SettingKey = (typeof SETTINGS_KEYS)[number];

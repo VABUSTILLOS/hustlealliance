@@ -22,6 +22,7 @@ export default function AdminSettingsPage() {
   const [socialLinks, setSocialLinks] = useState<SocialLinks>({ twitter: '', instagram: '', youtube: '', tiktok: '', linkedin: '' });
   const [analyticsSnippet, setAnalyticsSnippet] = useState('');
   const [maintenanceMode, setMaintenanceMode] = useState<MaintenanceMode>({ enabled: false, message: '' });
+  const [aiDemoMode, setAiDemoMode] = useState(false);
 
   useEffect(() => {
     fetch('/api/admin/settings')
@@ -35,6 +36,7 @@ export default function AdminSettingsPage() {
         if (s.socialLinks) setSocialLinks({ twitter: '', instagram: '', youtube: '', tiktok: '', linkedin: '', ...s.socialLinks });
         if (s.analyticsSnippet?.snippet) setAnalyticsSnippet(s.analyticsSnippet.snippet);
         if (s.maintenanceMode) setMaintenanceMode(s.maintenanceMode);
+        if (typeof s.aiDemoMode === 'boolean') setAiDemoMode(s.aiDemoMode);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -252,6 +254,30 @@ export default function AdminSettingsPage() {
           className="px-4 py-2 bg-accent text-white rounded-xl font-medium text-sm hover:bg-accent/90 transition-colors"
         >
           Save Analytics Snippet
+        </button>
+      </section>
+
+      <section className="glass-card p-6 space-y-4">
+        <div>
+          <h2 className="font-semibold text-foreground">AI Demo Mode</h2>
+          <p className="text-muted text-xs mt-0.5">
+            Force deterministic demo output from AI Studio and member AI even when AI_GATEWAY_API_KEY is
+            configured. Takes effect within a minute; no redeploy needed. Useful for demos and screenshots.
+          </p>
+        </div>
+        <label className="flex items-center gap-2 text-sm text-foreground">
+          <input
+            type="checkbox"
+            checked={aiDemoMode}
+            onChange={(e) => setAiDemoMode(e.target.checked)}
+          />
+          Force demo AI output
+        </label>
+        <button
+          onClick={() => save('aiDemoMode', aiDemoMode, 'AI demo mode')}
+          className="px-4 py-2 bg-accent text-white rounded-xl font-medium text-sm hover:bg-accent/90 transition-colors"
+        >
+          Save AI Demo Mode
         </button>
       </section>
 

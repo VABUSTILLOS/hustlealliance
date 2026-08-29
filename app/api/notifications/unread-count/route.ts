@@ -7,6 +7,7 @@ import { getCurrentUser } from '@/lib/auth/user';
 export async function GET() {
   try {
     const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const count = await prisma.notification.count({
       where: { userId: user.id, read: false },
     });

@@ -145,7 +145,7 @@ export default function Navbar() {
               </div>
             ) : (
               <Link
-                href="/dashboard"
+                href="/signup"
                 className="inline-flex items-center px-4 py-2 bg-accent text-white font-heading font-bold text-sm rounded-xl hover:bg-accent-glow shadow-[0_0_20px_rgba(255,59,48,0.3)] transition-all"
               >
                 {t.nav.joinAlliance}
@@ -239,7 +239,7 @@ export default function Navbar() {
                 </>
               ) : (
                 <Link
-                  href="/dashboard"
+                  href="/signup"
                   onClick={() => setOpen(false)}
                   className="block w-full text-center px-4 py-2 bg-accent text-white font-heading font-bold text-sm rounded-xl hover:bg-accent-glow transition-all"
                 >

@@ -27,23 +27,28 @@ export async function GET(request: NextRequest) {
       select: {
         id: true,
         content: true,
+        space: true,
         author: { select: { name: true, email: true } },
         _count: { select: { likes: true, comments: true } },
       },
-      take: 20,
+      take: 40,
       orderBy: [{ likes: { _count: 'desc' } }, { comments: { _count: 'desc' } }],
     });
 
-    const topPosts: DigestPost[] = topPostsRaw
-      .sort((a, b) => (b._count.likes + b._count.comments) - (a._count.likes + a._count.comments))
-      .slice(0, 5)
-      .map((p) => ({
-        id: p.id,
-        authorName: p.author.name || p.author.email || 'Member',
-        excerpt: p.content.slice(0, 140) + (p.content.length > 140 ? '…' : ''),
-        likeCount: p._count.likes,
-        commentCount: p._count.comments,
-      }));
+    // Candidate pool for both global top posts and per-user picks
+    const candidatePosts: DigestPost[] = topPostsRaw.map((p) => ({
+      id: p.id,
+      authorName: p.author.name || p.author.email || 'Member',
+      excerpt: p.content.slice(0, 140) + (p.content.length > 140 ? '…' : ''),
+      likeCount: p._count.likes,
+      commentCount: p._count.comments,
+      space: p.space ?? undefined,
+    }));
+
+    const topPosts = candidatePosts
+      .slice()
+      .sort((a, b) => (b.likeCount + b.commentCount) - (a.likeCount + a.commentCount))
+      .slice(0, 5);
 
     // Users eligible for the digest: have an email, not opted out
     const optedOut = await prisma.notificationPreference.findMany({
@@ -78,6 +83,48 @@ export async function GET(request: NextRequest) {
       ).map((r) => [r.userId, r._count._all]),
     );
 
+    // Per-user interest tokens (onboarding answers + joined spaces) for the
+    // "Picked for you" section. Batch-fetched so the cron stays fast.
+    const [allAnswers, allMemberships] = await Promise.all([
+      prisma.onboardingAnswer.findMany({
+        where: { userId: { in: users.map((u) => u.id) } },
+        select: { userId: true, answer: true },
+      }),
+      prisma.communityGroupMember.findMany({
+        where: { userId: { in: users.map((u) => u.id) }, status: 'ACTIVE' },
+        select: { userId: true, group: { select: { slug: true, name: true } } },
+      }),
+    ]);
+    const tokensByUser = new Map<string, Set<string>>();
+    for (const a of allAnswers) {
+      let tokens = tokensByUser.get(a.userId);
+      if (!tokens) { tokens = new Set(); tokensByUser.set(a.userId, tokens); }
+      try {
+        const parsed = JSON.parse(a.answer);
+        if (Array.isArray(parsed)) parsed.forEach((v) => typeof v === 'string' && tokens.add(v.toLowerCase()));
+        else if (typeof parsed === 'string') tokens.add(parsed.toLowerCase());
+      } catch {
+        tokens.add(a.answer.toLowerCase());
+      }
+    }
+    for (const m of allMemberships) {
+      let tokens = tokensByUser.get(m.userId);
+      if (!tokens) { tokens = new Set(); tokensByUser.set(m.userId, tokens); }
+      if (m.group.slug) tokens.add(m.group.slug.toLowerCase());
+      if (m.group.name) tokens.add(m.group.name.toLowerCase());
+    }
+
+    // Score a candidate post against a user's interests (words + joined space slug).
+    const scoreForUser = (post: DigestPost, tokens: Set<string>): number => {
+      if (post.space && tokens.has(post.space.toLowerCase())) return 10;
+      const haystack = post.excerpt.toLowerCase();
+      let score = 0;
+      for (const t of tokens) {
+        if (t.length >= 3 && haystack.includes(t)) score += 2;
+      }
+      return score;
+    };
+
     let digestsSent = 0;
 
     const sendToUser = async (user: (typeof users)[number]) => {
@@ -88,10 +135,22 @@ export async function GET(request: NextRequest) {
         // Skip users with nothing new and no community activity to report
         if (unreadCount === 0 && topPosts.length === 0) return;
 
+        // Personalized picks: rank candidates by interest score, exclude global top 5
+        const tokens = tokensByUser.get(user.id) ?? new Set<string>();
+        const topIds = new Set(topPosts.map((p) => p.id));
+        const personalizedPosts = candidatePosts
+          .filter((p) => !topIds.has(p.id))
+          .map((p) => ({ p, score: scoreForUser(p, tokens) }))
+          .filter((x) => x.score > 0)
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 3)
+          .map((x) => x.p);
+
         const { subject, html } = weeklyDigestEmail(
           user.name || 'Hustler',
           topPosts,
           unreadCount,
+          personalizedPosts,
         );
         await sendEmail({ to: user.email, subject, html });
         digestsSent++;

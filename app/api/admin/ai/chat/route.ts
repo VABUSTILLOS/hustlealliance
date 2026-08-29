@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { generateText } from 'ai';
 import { gateway } from '@ai-sdk/gateway';
 import { requireAdmin, authErrorResponse } from '@/lib/auth/guard';
-import { DEFAULT_MODEL, loadBrandVoiceSuffix, logAiGeneration } from '@/lib/ai/generate';
+import { DEFAULT_MODEL, loadBrandVoiceSuffix, logAiGeneration, isAiDemoForced, hasAiGatewayAuth } from '@/lib/ai/generate';
 
 type ChatMessage = { role: 'user' | 'assistant'; content: string };
 
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
 
     const lastPrompt = cleaned[cleaned.length - 1].content;
 
-    if (!process.env.AI_GATEWAY_API_KEY) {
+    if (!hasAiGatewayAuth() || (await isAiDemoForced())) {
       const reply =
         `Demo-mode reply to: "${lastPrompt.slice(0, 120)}". ` +
         'Connect AI_GATEWAY_API_KEY for real conversational generation. In the meantime, the one-shot generators on the left still work.';
@@ -58,6 +58,12 @@ export async function POST(request: NextRequest) {
         model: gateway(DEFAULT_MODEL),
         system: SYSTEM_BASE + brandSuffix,
         messages: cleaned,
+        providerOptions: {
+          gateway: {
+            user: admin.id,
+            tags: ['feature:chat', `env:${process.env.VERCEL_ENV || process.env.NODE_ENV || 'development'}`],
+          },
+        },
       });
       const reply = result.text;
       await logAiGeneration({

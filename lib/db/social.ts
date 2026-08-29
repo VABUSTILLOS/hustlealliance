@@ -2,6 +2,7 @@ import { cache } from "react";
 import prisma from "@/lib/db/prisma";
 import type { FriendshipStatus } from "@/lib/generated/prisma/client";
 import { normalizeAvatarUrl } from "@/lib/utils/avatar";
+import { getRankFromXp, type RankInfo } from "@/lib/db/ranks";
 
 // ── Follow / Unfollow ──────────────────────────────────────────────────
 
@@ -259,6 +260,8 @@ export interface UserProfileData {
   role: string;
   membershipTier: string;
   createdAt: string;
+  totalXP: number;
+  rank: RankInfo;
   profile: {
     displayName: string | null;
     location: string | null;
@@ -336,10 +339,19 @@ export const getUserProfileData = cache(
       },
     });
 
+    // Total XP → rank/level
+    const xpTotal = await prisma.xPTransaction.aggregate({
+      where: { userId: user.id },
+      _sum: { amount: true },
+    });
+    const totalXP = xpTotal._sum.amount ?? 0;
+
     return {
       ...user,
       avatar: normalizeAvatarUrl(user.avatar),
       createdAt: user.createdAt.toISOString(),
+      totalXP,
+      rank: getRankFromXp(totalXP),
       profile: user.profile
         ? {
             ...user.profile,

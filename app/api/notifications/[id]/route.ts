@@ -10,6 +10,7 @@ export async function POST(
 ) {
   try {
     const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const { id } = await params;
 
     const notification = await prisma.notification.findUnique({ where: { id } });
@@ -38,6 +39,7 @@ export async function DELETE(
 ) {
   try {
     const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const { id } = await params;
 
     const notification = await prisma.notification.findUnique({ where: { id } });

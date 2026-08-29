@@ -105,6 +105,13 @@ type FunnelData = {
   steps: { label: string; count: number }[];
 };
 
+type CommunityContentData = {
+  totals: { posts: number; comments: number; likes: number; shares: number; bookmarks: number };
+  topPosts: Array<{ id: string; text: string; author: string; avatar?: string | null; space?: string | null; createdAt: string; likes: number; comments: number; shares: number; bookmarks: number }>;
+  topHashtags: Array<{ name: string; postCount: number }>;
+  referralFunnel: { total: number; pending: number; converted: number; rewarded: number };
+};
+
 const RANGE_OPTIONS = [30, 90, 180] as const;
 
 function useAnalyticsFetch<T>(endpoint: string, days: number) {
@@ -144,6 +151,7 @@ function CommunityAnalyticsSections({ range }: { range: (typeof RANGE_OPTIONS)[n
   const revenue = useAnalyticsFetch<RevenueData>('/api/admin/analytics/revenue', range);
   const [funnel, setFunnel] = useState<FunnelData | null>(null);
   const [funnelError, setFunnelError] = useState(false);
+  const community = useAnalyticsFetch<CommunityContentData>('/api/admin/analytics/community', range);
 
   useEffect(() => {
     let cancelled = false;
@@ -314,6 +322,111 @@ function CommunityAnalyticsSections({ range }: { range: (typeof RANGE_OPTIONS)[n
         {funnelError && <p className="text-sm text-muted">Failed to load funnel data.</p>}
         {!funnel && !funnelError && <p className="text-sm text-muted">Loading funnel data…</p>}
         {funnel && <Funnel steps={funnel.steps} />}
+      </div>
+
+      {/* Community content */}
+      <div className="glass-card p-6">
+        <h2 className="text-xl font-heading font-bold text-foreground mb-4">Community Content</h2>
+        {community.loading && <p className="text-sm text-muted">Loading community analytics…</p>}
+        {community.error && <p className="text-sm text-muted">Failed to load community analytics.</p>}
+        {community.data && (
+          <>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+              <StatCard label="Posts" value={community.data.totals.posts} />
+              <StatCard label="Comments" value={community.data.totals.comments} />
+              <StatCard label="Likes" value={community.data.totals.likes} />
+              <StatCard label="Shares" value={community.data.totals.shares} />
+              <StatCard label="Bookmarks" value={community.data.totals.bookmarks} />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div>
+                <p className="text-sm text-muted mb-3">Top posts by engagement</p>
+                {community.data.topPosts.length === 0 ? (
+                  <p className="text-sm text-muted">No community posts in this window.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {community.data.topPosts.map((p, i) => (
+                      <div key={p.id} className="py-2 border-b border-surface-light/50 last:border-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-muted font-mono text-sm w-6 shrink-0">#{i + 1}</span>
+                          {p.avatar ? (
+                            <img src={p.avatar} alt="" className="w-5 h-5 rounded-full object-cover" />
+                          ) : (
+                            <span className="w-5 h-5 rounded-full bg-surface-light" />
+                          )}
+                          <span className="text-foreground text-sm font-medium">{p.author}</span>
+                          {p.space && <span className="text-xs text-muted bg-surface-light/50 rounded-full px-2 py-0.5">#{p.space}</span>}
+                        </div>
+                        <p className="text-sm text-muted line-clamp-2 pl-8">{p.text}</p>
+                        <p className="text-xs text-muted font-mono pl-8 mt-1">
+                          ♥ {p.likes} · 💬 {p.comments} · ↗ {p.shares} · 🔖 {p.bookmarks}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-6">
+                <div>
+                  <p className="text-sm text-muted mb-3">Top hashtags</p>
+                  {community.data.topHashtags.length === 0 ? (
+                    <p className="text-sm text-muted">No hashtags yet.</p>
+                  ) : (
+                    <div className="flex flex-wrap gap-2">
+                      {community.data.topHashtags.map((h) => (
+                        <span key={h.name} className="text-sm text-foreground bg-surface-light/50 rounded-full px-3 py-1">
+                          #{h.name} <span className="text-muted font-mono">{h.postCount}</span>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <p className="text-sm text-muted mb-3">Referral funnel</p>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-foreground">Total referrals</span>
+                      <span className="text-muted font-mono">{community.data.referralFunnel.total}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-foreground">Pending</span>
+                      <span className="text-muted font-mono">{community.data.referralFunnel.pending}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-foreground">Converted</span>
+                      <span className="text-muted font-mono">{community.data.referralFunnel.converted}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-foreground">Rewarded</span>
+                      <span className="text-muted font-mono">{community.data.referralFunnel.rewarded}</span>
+                    </div>
+                    {community.data.referralFunnel.total > 0 && (
+                      <div className="mt-2 h-2 bg-surface-light rounded-full overflow-hidden flex">
+                        <div
+                          className="h-full bg-yellow-400"
+                          style={{ width: `${(community.data.referralFunnel.pending / community.data.referralFunnel.total) * 100}%` }}
+                          title="Pending"
+                        />
+                        <div
+                          className="h-full bg-green-400"
+                          style={{ width: `${(community.data.referralFunnel.converted / community.data.referralFunnel.total) * 100}%` }}
+                          title="Converted"
+                        />
+                        <div
+                          className="h-full bg-blue-400"
+                          style={{ width: `${(community.data.referralFunnel.rewarded / community.data.referralFunnel.total) * 100}%` }}
+                          title="Rewarded"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

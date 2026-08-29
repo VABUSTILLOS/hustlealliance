@@ -38,6 +38,20 @@ function tierGrantsAccess(userTier: MembershipTier, requiredLevel: ContentAccess
   return userLevel >= required;
 }
 
+/**
+ * Effective tier for a user: an expired paid membership drops the user back
+ * to FREE so access checks never honor a lapsed subscription. Only paid
+ * tiers (BASIC/PRO) are affected by expiry; a FREE membership never expires.
+ */
+export function effectiveTier(tier: MembershipTier, expiresAt: Date | null): MembershipTier {
+  if (tier === MembershipTier.FREE || tier === MembershipTier.BASIC || tier === MembershipTier.PRO) {
+    if (expiresAt && expiresAt.getTime() <= Date.now()) {
+      return MembershipTier.FREE;
+    }
+  }
+  return tier;
+}
+
 // ─── Effective Access Level ──────────────────────────────────────
 
 async function getEffectiveAccessLevel(
@@ -151,7 +165,7 @@ function buildUpgradeOptions(
 // ─── Main Access Check ───────────────────────────────────────────
 
 export async function checkAccess(params: {
-  userId: string;
+  userId: string | null;
   lessonId?: string;
   courseId?: string;
 }): Promise<AccessCheckResult> {
@@ -176,8 +190,9 @@ export async function checkAccess(params: {
     }
   }
 
-  // 2. Drip feed & prerequisites check (lessons only)
-  if (lessonId) {
+  // 2. Drip feed & prerequisites check (lessons only, authenticated users)
+  //    Anonymous visitors have no enrollment, so no drip/prereq applies.
+  if (lessonId && userId) {
     // Find the course for this lesson
     const lessonWithCourse = await prisma.lesson.findUnique({
       where: { id: lessonId },
@@ -201,12 +216,17 @@ export async function checkAccess(params: {
     }
   }
 
-  // 3. Get user tier
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { membershipTier: true },
-  });
-  const userTier = user?.membershipTier ?? MembershipTier.FREE;
+  // 3. Get user tier (expired paid memberships count as FREE)
+  const user = userId
+    ? await prisma.user.findUnique({
+        where: { id: userId },
+        select: { membershipTier: true, membershipExpiresAt: true },
+      })
+    : null;
+  const userTier = effectiveTier(
+    user?.membershipTier ?? MembershipTier.FREE,
+    user?.membershipExpiresAt ?? null
+  );
 
   // 3. Get effective access level
   const effective = await getEffectiveAccessLevel(lessonId, courseId);
@@ -224,8 +244,8 @@ export async function checkAccess(params: {
     };
   }
 
-  // 5. Entitlement check (individual purchase)
-  const hasEntitlement = await userHasEntitlement(userId, lessonId, courseId);
+  // 5. Entitlement check (individual purchase) — anonymous users have none
+  const hasEntitlement = userId ? await userHasEntitlement(userId, lessonId, courseId) : false;
   if (hasEntitlement) {
     return {
       allowed: true,
@@ -264,11 +284,13 @@ export async function getUserAccessSummary(userId: string) {
   ]);
 
   return {
-    tier: user?.membershipTier ?? MembershipTier.FREE,
+    tier: effectiveTier(user?.membershipTier ?? MembershipTier.FREE, user?.membershipExpiresAt ?? null),
+    claimedTier: user?.membershipTier ?? MembershipTier.FREE,
     expiresAt: user?.membershipExpiresAt ?? null,
+    isExpired: !!user?.membershipExpiresAt && user.membershipExpiresAt.getTime() <= Date.now(),
     entitlementCount,
     enrollmentCount,
-    tierBenefits: getTierBenefits(user?.membershipTier ?? MembershipTier.FREE),
+    tierBenefits: getTierBenefits(effectiveTier(user?.membershipTier ?? MembershipTier.FREE, user?.membershipExpiresAt ?? null)),
   };
 }
 

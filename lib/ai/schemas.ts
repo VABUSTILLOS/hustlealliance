@@ -129,6 +129,12 @@ export const copyRewriteSchema = z.object({
   rationale: z.string(),
 });
 
+/** Member-facing "AI assist" for composing a community post. */
+export const postPolishSchema = z.object({
+  improved: z.string().describe('Polished version of the draft post, keeping the author voice'),
+  hashtags: z.array(z.string()).max(5).describe('Relevant lowercase hashtags, no # prefix'),
+});
+
 export const aiGenerationKinds = [
   'course-outline',
   'lesson-content',
@@ -141,6 +147,7 @@ export const aiGenerationKinds = [
   'video-script',
   'social-posts',
   'copy-rewrite',
+  'post-polish',
 ] as const;
 
 export type AiGenerationKind = (typeof aiGenerationKinds)[number];
@@ -157,6 +164,7 @@ export const schemaByKind = {
   'video-script': videoScriptSchema,
   'social-posts': socialPostsSchema,
   'copy-rewrite': copyRewriteSchema,
+  'post-polish': postPolishSchema,
 } satisfies Record<AiGenerationKind, z.ZodTypeAny>;
 
 export type CourseOutline = z.infer<typeof courseOutlineSchema>;
@@ -170,5 +178,6 @@ export type EmailSequence = z.infer<typeof emailSequenceSchema>;
 export type VideoScript = z.infer<typeof videoScriptSchema>;
 export type SocialPosts = z.infer<typeof socialPostsSchema>;
 export type CopyRewrite = z.infer<typeof copyRewriteSchema>;
+export type PostPolish = z.infer<typeof postPolishSchema>;
 
 export type OutputForKind<K extends AiGenerationKind> = z.infer<(typeof schemaByKind)[K]>;

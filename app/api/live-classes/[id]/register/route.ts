@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
+import { fanoutToFollowers } from '@/lib/db/feed';
 // TODO: IMPLEMENT REAL AUTH - REVERT FOR PRODUCTION
 import { getCurrentUser } from "@/lib/auth/user";
 
@@ -10,6 +11,7 @@ export async function POST(
 ) {
   try {
     const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { id } = await params;
 
@@ -35,6 +37,22 @@ export async function POST(
           },
         },
       });
+
+      // Flywheel: fan out an "RSVP'd for live class" feed item to followers
+      try {
+        await fanoutToFollowers({
+          actorId: user.id,
+          type: 'EVENT_RSVP',
+          entityType: 'LiveClass',
+          entityId: id,
+          metadata: {
+            title: registration.liveClass.title,
+            startsAt: registration.liveClass.startsAt.toISOString(),
+          },
+        });
+      } catch (feedErr) {
+        console.error('[POST /api/live-classes/register] Feed fanout failed (non-fatal):', feedErr);
+      }
 
       return NextResponse.json({ registration }, { status: 201 });
     } catch (e: any) {

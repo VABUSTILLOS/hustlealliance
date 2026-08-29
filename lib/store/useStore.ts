@@ -57,6 +57,7 @@ interface AppState {
   currentUser: UserInfo | null;
   isAuthenticated: boolean;
   setCurrentUser: (user: UserInfo | null) => void;
+  setAuthState: (authenticated: boolean) => void;
   signOut: () => Promise<void>;
 
   // Progress tracking
@@ -161,13 +162,20 @@ export const useStore = create<AppState>()(
       isAuthenticated: true,
 
       setCurrentUser: (user) => set({ currentUser: user }),
+      setAuthState: (authenticated) => set({ isAuthenticated: authenticated }),
 
       // TODO: IMPLEMENT REAL AUTH - REVERT FOR PRODUCTION
       signOut: async () => {
-        localStorage.removeItem('sb-yftgdtdvmvvqyzcdntge-auth-token');
+        try {
+          // Clear the Supabase session so the server-side session cookie is
+          // invalidated too. Best-effort: never let a network failure block
+          // the local sign-out.
+          const { createClient } = await import('@/lib/supabase/client');
+          await createClient().auth.signOut();
+        } catch { /* ignore */ }
         localStorage.removeItem('hustle_user_info');
         // Reset to founder profile instead of null so visitors keep seeing the dashboard
-        set({ isAuthenticated: true, currentUser: FOUNDER_PROFILE });
+        set({ isAuthenticated: false, currentUser: FOUNDER_PROFILE });
       },
 
       // Progress

@@ -1,8 +1,15 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { getSupabaseUrl, getSupabaseAnonKey } from '@/lib/supabase/config';
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://yftgdtdvmvvqyzcdntge.supabase.co';
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const PROTECTED_PREFIXES = [
+  '/admin',
+  '/instructor',
+  '/dashboard',
+  '/member',
+  '/community',
+  '/messages',
+];
 
 export async function proxy(request: NextRequest) {
   const host = request.headers.get('host') || '';
@@ -21,19 +28,20 @@ export async function proxy(request: NextRequest) {
 
   const path = request.nextUrl.pathname;
   const isProtected =
-    path.startsWith('/admin') ||
-    path.startsWith('/instructor');
+    !path.startsWith('/api') &&
+    PROTECTED_PREFIXES.some((p) => path === p || path.startsWith(`${p}/`));
 
-  // Only do Supabase SSR session check for protected routes.
-  // Skip when the env holds a placeholder (local dev without Supabase) —
-  // the admin layout enforces auth via getCurrentUser() server-side anyway.
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || SUPABASE_URL;
-  if (isProtected && /^https?:\/\//.test(supabaseUrl)) {
+  // Only do the Supabase SSR session check for protected page routes.
+  // Skip when the env holds a placeholder (local dev without Supabase creds) —
+  // server-side auth (getCurrentUser) falls back to the dev mock in that case.
+  const rawUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseUrl = getSupabaseUrl();
+  if (isProtected && rawUrl && /^https?:\/\//.test(rawUrl)) {
     let response = NextResponse.next({ request });
 
     const supabase = createServerClient(
       supabaseUrl,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || SUPABASE_ANON_KEY,
+      getSupabaseAnonKey(),
       {
         cookies: {
           getAll() {
@@ -63,9 +71,6 @@ export async function proxy(request: NextRequest) {
 
     return response;
   }
-
-  // Non-admin/instructor routes: auth is handled client-side via localStorage + Zustand.
-  // The proxy just passes through — no server-side redirects needed.
 
   // Apply CDN caching headers at the edge
   const response = NextResponse.next();

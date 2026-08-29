@@ -1,11 +1,5 @@
 import { createClient as createSupabaseClient, type SupabaseClient } from '@supabase/supabase-js';
-
-const VALID_URL_REGEX = /^https?:\/\/.+/;
-
-// These are public values — the anon key is the Supabase "publishable" key
-// meant for client-side use. Hardcoded to bypass Vercel env var issues.
-const SUPABASE_URL = 'https://yftgdtdvmvvqyzcdntge.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_sY8NIgcLzNcLUGx2Swl9BA_yqf9NIc8';
+import { getSupabaseUrl, getSupabaseAnonKey, isSupabaseConfigured } from '@/lib/supabase/config';
 
 let _client: SupabaseClient | null = null;
 
@@ -13,10 +7,10 @@ let _client: SupabaseClient | null = null;
 export function createClient(): SupabaseClient {
   if (_client) return _client;
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || SUPABASE_ANON_KEY;
+  const url = getSupabaseUrl();
+  const key = getSupabaseAnonKey();
 
-  if (!url || !key || !VALID_URL_REGEX.test(url)) {
+  if (!isSupabaseConfigured()) {
     console.error('[Supabase] Invalid configuration. URL:', url);
     _client = createSupabaseClient('https://placeholder.supabase.co', 'placeholder-key');
     return _client;
@@ -33,8 +27,4 @@ export function createClient(): SupabaseClient {
 }
 
 /** Check whether Supabase is configured with real credentials. */
-export function isSupabaseConfigured(): boolean {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || SUPABASE_ANON_KEY;
-  return !!(url && key && VALID_URL_REGEX.test(url));
-}
+export { isSupabaseConfigured };

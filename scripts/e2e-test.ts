@@ -219,11 +219,9 @@ async function main() {
     });
   }
 
-  await test('GET /api/drip/check → 401', async () => {
-    try {
-      await fetchJSON('/api/drip/check?lessonId=x');
-      throw new Error('Expected 401');
-    } catch (err: any) { if (!err.message.includes('401')) throw err; }
+  await test('GET /api/drip/check — anonymous not drip-locked', async () => {
+    const { data } = await fetchJSON('/api/drip/check?lessonId=x');
+    if (data.allowed !== true) throw new Error('Expected anonymous to be allowed');
   });
 
   // ── 5. Cron & Scheduled Jobs ─────────────────────────────────

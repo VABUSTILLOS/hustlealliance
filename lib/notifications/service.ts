@@ -1,6 +1,7 @@
 import prisma from '@/lib/db/prisma';
 import { Prisma } from '@/lib/generated/prisma/client';
 import { sendEmail } from '@/lib/email/resend';
+import { sendPushNotification } from '@/lib/push';
 import {
   courseCompletionEmail,
   certificateEarnedEmail,
@@ -100,7 +101,35 @@ export async function createNotification(params: CreateNotificationParams) {
     }).catch((err) => console.error('[Notifications] Email send failed:', err));
   }
 
+  // Fire-and-forget Web Push (no-op when VAPID isn't configured or the user
+  // has disabled push in notification settings).
+  sendPushNotification(userId, { title, body, url: pushUrlFor(type, params.sourceId), type }).catch(
+    (err) => console.error('[Notifications] Push send failed:', err),
+  );
+
   return notification;
+}
+
+/** Best-effort deep link for a notification type — used as the push open URL. */
+function pushUrlFor(type: string, sourceId?: string): string {
+  const base = '/dashboard';
+  if (type === 'NEW_MESSAGE' && sourceId) return `/messages?conversation=${sourceId}`;
+  if (type === 'MENTIONED' || type === 'POST_LIKED' || type === 'COMMENTED') {
+    return sourceId ? `/community?post=${sourceId}` : '/community';
+  }
+  if (type === 'FRIEND_REQUEST' || type === 'FRIEND_ACCEPTED') return '/friends';
+  if (type === 'GROUP_INVITE' && sourceId) return `/groups/${sourceId}`;
+  if (type === 'GROUP_ANNOUNCEMENT' || type === 'GROUP_POST') {
+    return sourceId ? `/community?post=${sourceId}` : '/community';
+  }
+  if (type === 'EVENT_REMINDER' || type === 'EVENT_PROMOTED') return '/events';
+  if (type === 'LIVE_CLASS_REMINDER') return '/live-classes';
+  if (type === 'COURSE_ENROLLED' || type === 'LESSON_COMPLETED' || type === 'CERTIFICATE_ISSUED') {
+    return sourceId ? `/courses/${sourceId}` : '/courses';
+  }
+  if (type === 'QUIZ_PASSED' && sourceId) return `/courses/${sourceId}`;
+  if (type === 'JOB_APPLICATION_UPDATE') return '/jobs';
+  return base;
 }
 
 // ─── Domain-specific notification helpers ──────────────────────────

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
+import { getCurrentUser } from '@/lib/auth/user';
+import { checkAccess } from '@/lib/auth/accessControl';
 
 export async function GET(
   request: NextRequest,
@@ -45,14 +47,44 @@ export async function GET(
     return NextResponse.json({ error: 'Lesson not found' }, { status: 404 });
   }
 
+  // ── Access enforcement: gate lesson content behind entitlements ──
+  const user = await getCurrentUser();
+  const access = await checkAccess({
+    userId: user?.id ?? null,
+    lessonId: lesson.id,
+    courseId: lesson.module.course.id,
+  });
+
+  const isAuthorized = access.allowed;
+
+  // For anonymous/unauthorized users the lesson page renders a paywall,
+  // so metadata is enough — never ship premium content to the client.
+  const authorizedQuiz = lesson.quiz
+    ? {
+        id: lesson.quiz.id,
+        title: lesson.quiz.title,
+        passingScore: lesson.quiz.passingScore,
+        timeLimitMinutes: lesson.quiz.timeLimitMinutes,
+        randomizeOrder: lesson.quiz.randomizeOrder,
+        maxAttempts: lesson.quiz.maxAttempts,
+        questions: isAuthorized
+          ? lesson.quiz.questions
+          : lesson.quiz.questions.map((q) => ({
+              ...q,
+              answers: q.answers.map(() => ({ id: '', answerText: '', sortOrder: 0 })),
+            })),
+        _count: { questions: lesson.quiz.questions.length },
+      }
+    : null;
+
   return NextResponse.json(
     {
       lesson: {
         id: lesson.id,
         title: lesson.title,
         slug: lesson.slug,
-        content: lesson.content,
-        videoUrl: lesson.videoUrl,
+        content: isAuthorized ? lesson.content : null,
+        videoUrl: isAuthorized ? lesson.videoUrl : null,
         durationMinutes: lesson.durationMinutes,
         sortOrder: lesson.sortOrder,
         lessonType: lesson.lessonType,
@@ -62,22 +94,11 @@ export async function GET(
           title: lesson.module.title,
           course: lesson.module.course,
         },
-        quiz: lesson.quiz
-          ? {
-              id: lesson.quiz.id,
-              title: lesson.quiz.title,
-              passingScore: lesson.quiz.passingScore,
-              timeLimitMinutes: lesson.quiz.timeLimitMinutes,
-              randomizeOrder: lesson.quiz.randomizeOrder,
-              maxAttempts: lesson.quiz.maxAttempts,
-              questions: lesson.quiz.questions,
-              _count: { questions: lesson.quiz.questions.length },
-            }
-          : null,
+        quiz: authorizedQuiz,
       },
     },
     {
-      headers: { 'Cache-Control': 'public, max-age=60, stale-while-revalidate=300' },
+      headers: { 'Cache-Control': 'private, no-cache' },
     }
   );
 }
