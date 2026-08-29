@@ -40,6 +40,38 @@ function ComposerInner() {
   const [abTest, setAbTest] = useState<AbTest>(null);
   const [tagsInput, setTagsInput] = useState('');
   const [excludeTagsInput, setExcludeTagsInput] = useState('');
+  const [templates, setTemplates] = useState<{ id: string; name: string; subject: string; html: string }[]>([]);
+
+  useEffect(() => {
+    fetch('/api/admin/email/templates')
+      .then((r) => r.json())
+      .then((data) => setTemplates(data.templates || []))
+      .catch(() => {});
+  }, []);
+
+  const applyTemplate = (templateId: string) => {
+    const t = templates.find((x) => x.id === templateId);
+    if (!t) return;
+    setSubject(t.subject);
+    setHtml(t.html);
+    setMessage(`Template "${t.name}" applied.`);
+  };
+
+  const saveAsTemplate = async () => {
+    if (!subject || !html) return;
+    const templateName = window.prompt('Template name:', name || subject);
+    if (!templateName) return;
+    const res = await fetch('/api/admin/email/templates', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: templateName, subject, html }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      setTemplates((ts) => [data.template, ...ts]);
+      setMessage(`Saved as template "${templateName}".`);
+    }
+  };
 
   useEffect(() => {
     if (!campaignId) return;
