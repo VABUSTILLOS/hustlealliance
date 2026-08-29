@@ -15,6 +15,7 @@ type Contact = {
   orderCount: number;
   tags: string[];
   emailUnsubscribed: boolean;
+  leadScore: number;
 };
 
 export default function ContactsPage() {
@@ -22,17 +23,19 @@ export default function ContactsPage() {
   const [total, setTotal] = useState(0);
   const [tierFilter, setTierFilter] = useState('');
   const [tagFilter, setTagFilter] = useState('');
+  const [minScore, setMinScore] = useState('');
   const [loading, setLoading] = useState(true);
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<{ created: number; updated: number; skipped: number } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const buildFilter = useCallback(() => {
-    const filter: { tiers?: string[]; tags?: string[] } = {};
+    const filter: { tiers?: string[]; tags?: string[]; minLeadScore?: number } = {};
     if (tierFilter) filter.tiers = [tierFilter];
     if (tagFilter.trim()) filter.tags = tagFilter.split(',').map((t) => t.trim()).filter(Boolean);
+    if (minScore.trim() && !Number.isNaN(Number(minScore))) filter.minLeadScore = Number(minScore);
     return filter;
-  }, [tierFilter, tagFilter]);
+  }, [tierFilter, tagFilter, minScore]);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -94,6 +97,13 @@ export default function ContactsPage() {
           placeholder="Filter by tags (comma-separated, must have all)"
           className="px-4 py-2 bg-surface border border-surface-light rounded-xl text-foreground text-sm min-w-[280px]"
         />
+        <input
+          value={minScore}
+          onChange={(e) => setMinScore(e.target.value)}
+          placeholder="Min score"
+          type="number"
+          className="px-4 py-2 bg-surface border border-surface-light rounded-xl text-foreground text-sm w-28"
+        />
         <div className="flex-1" />
         <button onClick={exportCsv} className="px-4 py-2 bg-surface-light rounded-xl text-sm text-foreground hover:opacity-90">
           Export CSV
@@ -130,6 +140,7 @@ export default function ContactsPage() {
                 <th className="p-4">Name</th>
                 <th className="p-4">Tier</th>
                 <th className="p-4">Tags</th>
+                <th className="p-4">Score</th>
                 <th className="p-4">Enrollments</th>
                 <th className="p-4">Orders</th>
                 <th className="p-4">Last active</th>
@@ -158,6 +169,11 @@ export default function ContactsPage() {
                       ))}
                       {c.tags.length > 3 && <span className="text-muted text-xs">+{c.tags.length - 3}</span>}
                     </div>
+                  </td>
+                  <td className="p-4">
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${c.leadScore >= 50 ? 'bg-accent/20 text-accent' : c.leadScore > 0 ? 'bg-surface-light text-foreground' : 'text-muted'}`}>
+                      {c.leadScore}
+                    </span>
                   </td>
                   <td className="p-4 text-foreground">{c.enrollmentCount}</td>
                   <td className="p-4 text-foreground">{c.orderCount}</td>

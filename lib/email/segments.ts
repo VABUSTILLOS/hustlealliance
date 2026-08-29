@@ -22,6 +22,10 @@ export type SegmentFilter = {
   tags?: string[];
   /** Exclude users who have ANY of these tags */
   excludeTags?: string[];
+  /** Only users with leadScore >= this value */
+  minLeadScore?: number;
+  /** Only users with leadScore <= this value */
+  maxLeadScore?: number;
   /** Include users who have unsubscribed from email (default: excluded) */
   includeUnsubscribed?: boolean;
 };
@@ -84,6 +88,13 @@ export function resolveSegmentFilter(filter: SegmentFilter | null | undefined): 
 
   if (filter.excludeTags?.length) {
     and.push({ NOT: { tags: { hasSome: filter.excludeTags } } });
+  }
+
+  if (typeof filter.minLeadScore === 'number' || typeof filter.maxLeadScore === 'number') {
+    where.leadScore = {
+      ...(typeof filter.minLeadScore === 'number' ? { gte: filter.minLeadScore } : {}),
+      ...(typeof filter.maxLeadScore === 'number' ? { lte: filter.maxLeadScore } : {}),
+    };
   }
 
   if (and.length) where.AND = and;

@@ -14,6 +14,14 @@ type Contact = {
   lastActiveAt: string | null;
   tags: string[];
   emailUnsubscribed: boolean;
+  leadScore: number;
+};
+
+type Note = {
+  id: string;
+  body: string;
+  createdAt: string;
+  author: { id: string; name: string; email: string };
 };
 
 type Timeline = {
@@ -31,6 +39,9 @@ export default function ContactDetailPage() {
 
   const [contact, setContact] = useState<Contact | null>(null);
   const [timeline, setTimeline] = useState<Timeline | null>(null);
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [noteInput, setNoteInput] = useState('');
+  const [savingNote, setSavingNote] = useState(false);
   const [loading, setLoading] = useState(true);
   const [tagInput, setTagInput] = useState('');
   const [saving, setSaving] = useState(false);
@@ -42,6 +53,7 @@ export default function ContactDetailPage() {
       .then((data) => {
         setContact(data.contact ?? null);
         setTimeline(data.timeline ?? null);
+        setNotes(data.notes ?? []);
       })
       .finally(() => setLoading(false));
   }, [id]);
@@ -78,6 +90,28 @@ export default function ContactDetailPage() {
     patch({ tags: contact.tags.filter((t) => t !== tag) });
   };
 
+  const addNote = async () => {
+    const body = noteInput.trim();
+    if (!body) return;
+    setSavingNote(true);
+    try {
+      await fetch(`/api/admin/email/contacts/${id}/notes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ body }),
+      });
+      setNoteInput('');
+      load();
+    } finally {
+      setSavingNote(false);
+    }
+  };
+
+  const deleteNote = async (noteId: string) => {
+    await fetch(`/api/admin/email/contacts/${id}/notes?noteId=${noteId}`, { method: 'DELETE' });
+    load();
+  };
+
   if (loading) return <div className="p-4 md:p-8 text-muted text-sm">Loading…</div>;
   if (!contact) return <div className="p-4 md:p-8 text-muted text-sm">Contact not found.</div>;
 
@@ -93,6 +127,9 @@ export default function ContactDetailPage() {
         <div className="flex flex-wrap gap-4 mt-3 text-xs text-muted">
           <span>Role: {contact.role}</span>
           <span>Tier: {contact.membershipTier}</span>
+          <span className={contact.leadScore >= 50 ? 'text-accent font-medium' : ''}>
+            Lead score: {contact.leadScore}
+          </span>
           <span>Joined: {new Date(contact.createdAt).toLocaleDateString()}</span>
           <span>Last active: {contact.lastActiveAt ? new Date(contact.lastActiveAt).toLocaleDateString() : '—'}</span>
         </div>
@@ -137,6 +174,42 @@ export default function ContactDetailPage() {
           </div>
         </div>
       </div>
+
+      <section className="mb-6">
+        <h2 className="text-sm font-medium text-foreground mb-2">Internal notes ({notes.length})</h2>
+        <div className="bg-surface border border-surface-light rounded-xl p-4 mb-3">
+          <textarea
+            value={noteInput}
+            onChange={(e) => setNoteInput(e.target.value)}
+            rows={2}
+            placeholder="Add a private note about this contact…"
+            className="w-full px-3 py-2 bg-surface-light border border-surface-light rounded-lg text-foreground text-sm focus:outline-none"
+          />
+          <button
+            onClick={addNote}
+            disabled={savingNote || !noteInput.trim()}
+            className="mt-2 px-4 py-1.5 bg-accent rounded-lg text-xs text-white font-medium hover:opacity-90 disabled:opacity-50"
+          >
+            {savingNote ? 'Saving…' : 'Add note'}
+          </button>
+        </div>
+        <div className="space-y-2">
+          {notes.map((n) => (
+            <div key={n.id} className="bg-surface border border-surface-light rounded-xl p-3 text-xs">
+              <div className="flex justify-between items-start gap-2">
+                <p className="text-foreground whitespace-pre-wrap">{n.body}</p>
+                <button onClick={() => deleteNote(n.id)} className="text-muted hover:text-red-400 shrink-0">
+                  ×
+                </button>
+              </div>
+              <p className="text-muted mt-1">
+                {n.author.name} · {new Date(n.createdAt).toLocaleString()}
+              </p>
+            </div>
+          ))}
+          {notes.length === 0 && <p className="text-muted text-xs">No notes yet.</p>}
+        </div>
+      </section>
 
       {timeline && (
         <div className="space-y-6">
