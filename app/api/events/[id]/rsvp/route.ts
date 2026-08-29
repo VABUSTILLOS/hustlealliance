@@ -28,8 +28,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const r = await rsvp(id, user.id, rsvpStatus);
     return NextResponse.json(r, { status: 201 });
   } catch (err) {
-    const msg = (err as Error).message;
-    if (msg === "Event is at capacity") return NextResponse.json({ error: msg }, { status: 409 });
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return NextResponse.json({ error: (err as Error).message }, { status: 500 });
   }
 }

@@ -88,6 +88,7 @@ enum NotificationType {
   GROUP_ANNOUNCEMENT
   EVENT_INVITE
   EVENT_REMINDER
+  EVENT_PROMOTED
   NEW_MESSAGE
   JOB_APPLICATION_UPDATE
   // ── NAS.IO-inspired features ──
@@ -175,6 +176,7 @@ enum RSVPStatus {
   GOING
   INTERESTED
   NOT_GOING
+  WAITLIST
 }
 
 enum JobType {
@@ -860,6 +862,7 @@ model CommunityComment {
   authorId  String
   content   String
   parentId  String?
+  editedAt  DateTime?
   createdAt DateTime @default(now())
 
   post    CommunityPost     @relation(fields: [postId], references: [id], onDelete: Cascade)
@@ -1181,6 +1184,7 @@ model ConversationParticipant {
   lastReadAt     DateTime  @default(now())
   lastTypedAt    DateTime?
   isArchived     Boolean   @default(false)
+  mutedAt        DateTime?
 
   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -1231,6 +1235,7 @@ model CommunityGroup {
   visibility  GroupVisibility @default(PUBLIC)
   creatorId   String
   memberCount Int            @default(0)
+  inviteToken String         @unique @default(cuid())
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 

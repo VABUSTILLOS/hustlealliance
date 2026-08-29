@@ -121,6 +121,7 @@ export default function EventDetailPage() {
             eventId={event.id}
             userRSVP={null}
             isPastOrCancelled={isPastOrCancelled}
+            maxAttendees={event.maxAttendees}
           />
           {isPastOrCancelled && (
             <span className="text-xs text-orange-500 font-medium">

@@ -11,6 +11,7 @@ const statusLabel: Record<RSVPStatus, string> = {
   GOING: "Going",
   INTERESTED: "Maybe",
   NOT_GOING: "Not Going",
+  WAITLIST: "Waitlisted",
 };
 
 export default function AttendeeList({

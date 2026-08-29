@@ -10,6 +10,7 @@ import { spaces as allSpaces } from '@/lib/data/spaces';
 import { useStore } from '@/lib/store/useStore';
 import { useCurrentUser } from '@/lib/hooks/useCurrentUser';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { FollowButton } from './FollowButton';
 
 export default function MemberProfilePage({
   params,
@@ -74,21 +75,24 @@ export default function MemberProfilePage({
             <p className="text-foreground text-sm font-medium">{profile.headline}</p>
             <p className="text-muted text-sm mt-1">{profile.bio}</p>
           </div>
-          {!isOwnProfile && (
-            <button
-              onClick={() => setShowMessageModal(true)}
-              className="shrink-0 px-4 py-2 bg-accent/10 border border-accent/30 text-accent font-heading font-bold text-sm rounded-xl hover:bg-accent/20 transition-colors"
-            >
-              {t.profile.message}
-            </button>
-          )}
-          {isOwnProfile && (
-            <button
-              className="shrink-0 px-4 py-2 bg-accent/10 border border-accent/30 text-accent font-heading font-bold text-sm rounded-xl hover:bg-accent/20 transition-colors"
-            >
-              {t.profile.editProfile || 'Edit Profile'}
-            </button>
-          )}
+          <div className="shrink-0 flex flex-col items-end gap-2">
+            <FollowButton username={profile.username} isOwnProfile={isOwnProfile} />
+            {!isOwnProfile && (
+              <button
+                onClick={() => setShowMessageModal(true)}
+                className="px-4 py-2 bg-accent/10 border border-accent/30 text-accent font-heading font-bold text-sm rounded-xl hover:bg-accent/20 transition-colors"
+              >
+                {t.profile.message}
+              </button>
+            )}
+            {isOwnProfile && (
+              <button
+                className="px-4 py-2 bg-accent/10 border border-accent/30 text-accent font-heading font-bold text-sm rounded-xl hover:bg-accent/20 transition-colors"
+              >
+                {t.profile.editProfile || 'Edit Profile'}
+              </button>
+            )}
+          </div>
         </div>
       </motion.div>
 

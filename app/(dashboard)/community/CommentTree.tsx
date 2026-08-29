@@ -2,9 +2,9 @@
 
 import { memo, useState, useCallback } from 'react';
 import Image from 'next/image';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { LazyMotionDiv } from '@/lib/framer/lazy-motion';
-import { getInitialsAvatarUrl, DEFAULT_AVATAR } from '@/lib/utils/avatar';
+import { DEFAULT_AVATAR } from '@/lib/utils/avatar';
 import { useCurrentUser } from '@/lib/hooks/useCurrentUser';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { useAddComment } from './hooks/useAddComment';
@@ -15,6 +15,7 @@ interface CommentData {
   id: string;
   content: string;
   createdAt: string;
+  editedAt?: string | null;
   parentId?: string | null;
   author: {
     id: string;
@@ -38,7 +39,41 @@ const CommentTreeInner = memo(function CommentTreeInner({
   const [commentText, setCommentText] = useState('');
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editText, setEditText] = useState('');
   const addComment = useAddComment(postId);
+  const queryClient = useQueryClient();
+
+  const invalidate = useCallback(
+    () => queryClient.invalidateQueries({ queryKey: ['community-comments', postId] }),
+    [queryClient, postId],
+  );
+
+  const editComment = useMutation({
+    mutationFn: async ({ id, content }: { id: string; content: string }) => {
+      const res = await fetch(`/api/community/comments/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content }),
+      });
+      if (!res.ok) throw new Error('Failed to edit comment');
+      return res.json();
+    },
+    onSuccess: () => {
+      invalidate();
+      setEditingId(null);
+      setEditText('');
+    },
+  });
+
+  const deleteComment = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/community/comments/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to delete comment');
+      return res.json();
+    },
+    onSuccess: invalidate,
+  });
 
   const { data: comments = [], isLoading } = useQuery<CommentData[]>({
     queryKey: ['community-comments', postId],
@@ -97,8 +132,44 @@ const CommentTreeInner = memo(function CommentTreeInner({
       <div className="bg-surface-light rounded-xl px-3 py-2 flex-1">
         <p className="font-heading font-bold text-foreground text-xs">
           {c.author.name}
+          {c.editedAt && (
+            <span className="ml-1.5 font-mono text-[9px] text-muted font-normal">
+              {t.community?.edited ?? 'edited'}
+            </span>
+          )}
         </p>
-        <RichPostContent content={c.content} className="text-foreground-muted text-xs" />
+        {editingId === c.id ? (
+          <div className="flex gap-2 mt-1">
+            <input
+              value={editText}
+              onChange={(e) => setEditText(e.target.value)}
+              onKeyDown={(e) =>
+                e.key === 'Enter' && editText.trim() && editComment.mutate({ id: c.id, content: editText.trim() })
+              }
+              disabled={editComment.isPending}
+              autoFocus
+              className="flex-1 bg-surface rounded-xl px-3 py-1.5 text-foreground text-xs outline-none border border-surface-light disabled:opacity-50"
+            />
+            <button
+              onClick={() => editComment.mutate({ id: c.id, content: editText.trim() })}
+              disabled={!editText.trim() || editComment.isPending}
+              className="text-accent font-mono text-xs font-bold hover:text-accent-glow disabled:opacity-30"
+            >
+              {editComment.isPending ? '...' : t.community.submit}
+            </button>
+            <button
+              onClick={() => {
+                setEditingId(null);
+                setEditText('');
+              }}
+              className="text-muted font-mono text-xs hover:text-foreground"
+            >
+              {t.community?.cancel ?? 'Cancel'}
+            </button>
+          </div>
+        ) : (
+          <RichPostContent content={c.content} className="text-foreground-muted text-xs" />
+        )}
         <div className="mt-1 flex items-center gap-3">
           <ReactionButton
             endpoint={`/api/community/comments/${c.id}/like`}
@@ -116,6 +187,29 @@ const CommentTreeInner = memo(function CommentTreeInner({
             >
               {t.community?.reply ?? 'Reply'}
             </button>
+          )}
+          {user?.id === c.author.id && editingId !== c.id && (
+            <>
+              <button
+                onClick={() => {
+                  setEditingId(c.id);
+                  setEditText(c.content);
+                }}
+                className="font-mono text-[10px] text-muted hover:text-accent transition-colors"
+              >
+                {t.community?.edit ?? 'Edit'}
+              </button>
+              <button
+                onClick={() => {
+                  if (window.confirm(t.community?.deleteCommentConfirm ?? 'Delete this comment?'))
+                    deleteComment.mutate(c.id);
+                }}
+                disabled={deleteComment.isPending}
+                className="font-mono text-[10px] text-muted hover:text-red-400 transition-colors disabled:opacity-50"
+              >
+                {t.community?.delete ?? 'Delete'}
+              </button>
+            </>
           )}
         </div>
         {!isReply && replyingTo === c.id && (

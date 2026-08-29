@@ -61,6 +61,7 @@ type NotificationType =
   | 'GROUP_ANNOUNCEMENT'
   | 'EVENT_INVITE'
   | 'EVENT_REMINDER'
+  | 'EVENT_PROMOTED'
   | 'NEW_MESSAGE'
   | 'JOB_APPLICATION_UPDATE';
 
@@ -408,6 +409,23 @@ export async function notifyEventReminder(
     metadata: { eventTitle, eventId, startDate },
     sendEmailNow: true,
     emailHtml: `<p>Your event <strong>${eventTitle}</strong> is coming up!</p>`,
+  });
+}
+
+export async function notifyEventPromoted(
+  userId: string, userEmail: string,
+  eventTitle: string, eventId: string, eventSlug: string,
+) {
+  const emailAllowed = await shouldSendEmail(userId, 'email_event');
+  return createNotification({
+    userId, userEmail,
+    type: 'EVENT_PROMOTED',
+    title: 'You are off the waitlist!',
+    body: `A spot opened up for "${eventTitle}" — you are now going.`,
+    sourceId: eventId,
+    metadata: { eventTitle, eventId, eventSlug },
+    sendEmailNow: emailAllowed,
+    emailHtml: `<p>Good news! A spot opened up for <strong>${eventTitle}</strong> and you have been moved from the waitlist to going.</p><p><a href="/events/${eventSlug}">View event</a></p>`,
   });
 }
 

@@ -1,4 +1,5 @@
 import prisma from "@/lib/db/prisma";
+import { notifyEventPromoted } from "@/lib/notifications/service";
 import type { EventType, EventStatus, RSVPStatus } from "@/lib/generated/prisma/client";
 
 // ── CRUD ────────────────────────────────────────────────────────────────
@@ -188,21 +189,58 @@ export async function rsvp(eventId: string, userId: string, status: RSVPStatus =
     throw new Error("Cannot RSVP to a cancelled or ended event");
   }
 
+  const existing = await prisma.eventRSVP.findUnique({
+    where: { eventId_userId: { eventId, userId } },
+  });
+
+  // Full event → join the waitlist instead of failing
   if (event.maxAttendees && status === "GOING") {
     const going = event._count.rsvps;
-    const existing = await prisma.eventRSVP.findUnique({
-      where: { eventId_userId: { eventId, userId } },
-    });
     if (existing?.status !== "GOING" && going >= event.maxAttendees) {
-      throw new Error("Event is at capacity");
+      status = "WAITLIST";
     }
   }
 
-  return prisma.eventRSVP.upsert({
+  const result = await prisma.eventRSVP.upsert({
     where: { eventId_userId: { eventId, userId } },
     create: { eventId, userId, status },
     update: { status, updatedAt: new Date() },
   });
+
+  // Vacating a spot → promote the oldest waitlister
+  if (event.maxAttendees && existing?.status === "GOING" && status !== "GOING") {
+    await promoteFromWaitlist(eventId);
+  }
+
+  return result;
+}
+
+// Move the oldest waitlisted RSVP to GOING (fire-and-forget notification handled by caller)
+export async function promoteFromWaitlist(eventId: string) {
+  const event = await prisma.event.findUnique({
+    where: { id: eventId },
+    select: { id: true, title: true, slug: true, maxAttendees: true, status: true, _count: { select: { rsvps: { where: { status: "GOING" } } } } },
+  });
+  if (!event?.maxAttendees || event.status === "CANCELLED" || event.status === "ENDED") return null;
+  if (event._count.rsvps >= event.maxAttendees) return null;
+
+  const oldest = await prisma.eventRSVP.findFirst({
+    where: { eventId, status: "WAITLIST" },
+    orderBy: { createdAt: "asc" },
+    include: { user: { select: { id: true, email: true, name: true } } },
+  });
+  if (!oldest) return null;
+
+  await prisma.eventRSVP.update({
+    where: { id: oldest.id },
+    data: { status: "GOING", updatedAt: new Date() },
+  });
+
+  if (oldest.user.email) {
+    await notifyEventPromoted(oldest.user.id, oldest.user.email, event.title, event.id, event.slug).catch(() => {});
+  }
+
+  return { user: oldest.user, event };
 }
 
 export async function getEventAttendees(

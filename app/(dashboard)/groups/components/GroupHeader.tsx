@@ -3,9 +3,11 @@
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { JoinButton } from './JoinButton';
+import { InviteLinkButton } from './InviteLinkButton';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
 interface GroupHeaderProps {
+  groupId: string;
   name: string;
   description: string | null;
   coverImage: string | null;
@@ -20,6 +22,7 @@ interface GroupHeaderProps {
 }
 
 export function GroupHeader({
+  groupId,
   name,
   description,
   coverImage,
@@ -78,6 +81,7 @@ export function GroupHeader({
         </div>
 
         <div className="flex items-center gap-3">
+          {currentUserMember && <InviteLinkButton groupId={groupId} isAdmin={isAdmin} />}
           <JoinButton
             isMember={currentUserMember}
             isPending={joinPending}

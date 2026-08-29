@@ -57,6 +57,24 @@ export function ChatView({
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
   const prevMessageCountRef = useRef(messages.length);
 
+  const myParticipant = conversation.participants.find((p) => p.user.id === userId);
+  const [muted, setMuted] = useState(!!myParticipant?.mutedAt);
+  const [mutePending, setMutePending] = useState(false);
+
+  const toggleMute = useCallback(async () => {
+    if (mutePending) return;
+    setMutePending(true);
+    try {
+      const res = await fetch(`/api/messages/conversations/${conversation.id}/mute`, { method: "POST" });
+      if (res.ok) {
+        const data = await res.json();
+        setMuted(!!data.muted);
+      }
+    } finally {
+      setMutePending(false);
+    }
+  }, [conversation.id, mutePending]);
+
   // Determine if user is near the bottom
   const handleScroll = useCallback(() => {
     const container = scrollContainerRef.current;
@@ -138,6 +156,15 @@ export function ChatView({
             </p>
           </div>
         </div>
+
+        <button
+          onClick={toggleMute}
+          disabled={mutePending}
+          title={muted ? (t.messages?.unmute ?? "Unmute") : (t.messages?.mute ?? "Mute")}
+          className="ml-auto flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-muted disabled:opacity-50"
+        >
+          {muted ? "🔕" : "🔔"}
+        </button>
       </div>
 
       {/* Messages */}

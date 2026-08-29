@@ -1,5 +1,6 @@
 import "server-only";
 import prisma from "@/lib/db/prisma";
+import { notifyNewMessage } from "@/lib/notifications/service";
 import type { MessageType } from "@/lib/generated/prisma/client";
 
 // ── Types ───────────────────────────────────────────────────────────────
@@ -31,7 +32,7 @@ export interface ConversationItem {
 
 export interface ConversationDetail extends ConversationItem {
   // full data; participants may include lastReadAt info
-  participants: (ConversationItem["participants"][number] & { lastReadAt: string; isArchived: boolean })[];
+  participants: (ConversationItem["participants"][number] & { lastReadAt: string; isArchived: boolean; mutedAt: string | null })[];
 }
 
 export interface MessageItem {
@@ -187,6 +188,7 @@ export async function getConversation(
       user: p.user,
       lastReadAt: p.lastReadAt.toISOString(),
       isArchived: p.isArchived,
+      mutedAt: p.mutedAt ? p.mutedAt.toISOString() : null,
     })),
     lastMessage: null,
     unreadCount: 0,
@@ -414,6 +416,10 @@ export async function sendMessage(params: {
       data: { isArchived: false },
     }),
   ]);
+
+  // Notify other participants, skipping those who muted the conversation
+  notifyParticipants(params.conversationId, params.senderId, message.sender.name, params.content).catch(() => {});
+
   return {
     ...message,
     createdAt: message.createdAt.toISOString(),
@@ -421,8 +427,27 @@ export async function sendMessage(params: {
   };
 }
 
-// ── Read Status ────────────────────────────────────────────────────────
+/**
+ * In-app NEW_MESSAGE notification for every participant except the sender
+ * and those who muted the conversation.
+ */
+async function notifyParticipants(
+  conversationId: string,
+  senderId: string,
+  senderName: string,
+  content: string,
+) {
+  const recipients = await prisma.conversationParticipant.findMany({
+    where: { conversationId, userId: { not: senderId }, mutedAt: null },
+    include: { user: { select: { id: true, email: true } } },
+  });
+  for (const r of recipients) {
+    if (!r.user.email) continue;
+    await notifyNewMessage(r.user.id, r.user.email, senderName, conversationId, content);
+  }
+}
 
+// ── Read Status ────────────────────────────────────────────────────────
 /**
  * Mark all messages up to and including messageId as read for the user.
  */

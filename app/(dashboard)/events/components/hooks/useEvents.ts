@@ -18,6 +18,7 @@ export type EventCard = {
   endDate: string | null;
   coverImage: string | null;
   isFeatured: boolean;
+  maxAttendees?: number | null;
   creator: { id: string; name: string; avatar: string | null; username?: string };
   _count: { rsvps: number };
 };

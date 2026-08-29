@@ -69,6 +69,7 @@ export default function GroupDetailPage({
       </Link>
 
       <GroupHeader
+        groupId={group.id}
         name={group.name}
         description={group.description}
         coverImage={group.coverImage}
