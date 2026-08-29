@@ -279,6 +279,31 @@ function ComposerInner() {
           </div>
         </div>
 
+        {(templates.length > 0 || (subject && html)) && isDraft && (
+          <div className="flex items-center gap-2 flex-wrap">
+            {templates.length > 0 && (
+              <select
+                value=""
+                onChange={(e) => e.target.value && applyTemplate(e.target.value)}
+                className="px-4 py-2 bg-surface border border-surface-light rounded-xl text-foreground text-sm"
+              >
+                <option value="">Start from template…</option>
+                {templates.map((t) => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
+                ))}
+              </select>
+            )}
+            {subject && html && (
+              <button
+                onClick={saveAsTemplate}
+                className="px-4 py-2 bg-surface border border-surface-light rounded-xl text-sm text-foreground hover:border-accent transition"
+              >
+                Save as template
+              </button>
+            )}
+          </div>
+        )}
+
         <div>
           <label className="block text-sm text-muted mb-1">HTML body</label>
           <textarea
