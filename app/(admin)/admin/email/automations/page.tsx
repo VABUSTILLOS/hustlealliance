@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 type Automation = {
   id: string;
   name: string;
-  trigger: 'SIGNUP' | 'ENROLLMENT' | 'PURCHASE' | 'DRIP';
+  trigger: Trigger;
   subject: string;
   html: string;
   delayMinutes: number;
@@ -13,7 +13,24 @@ type Automation = {
   _count: { runs: number };
 };
 
-type Trigger = 'SIGNUP' | 'ENROLLMENT' | 'PURCHASE' | 'DRIP';
+type Trigger =
+  | 'SIGNUP'
+  | 'ENROLLMENT'
+  | 'PURCHASE'
+  | 'DRIP'
+  | 'TAG_ADDED'
+  | 'LEAD_CAPTURED'
+  | 'ABANDONED_CART';
+
+const TRIGGER_OPTIONS: { value: Trigger; label: string }[] = [
+  { value: 'SIGNUP', label: 'Signup' },
+  { value: 'ENROLLMENT', label: 'Enrollment' },
+  { value: 'PURCHASE', label: 'Purchase' },
+  { value: 'DRIP', label: 'Drip' },
+  { value: 'TAG_ADDED', label: 'Tag added' },
+  { value: 'LEAD_CAPTURED', label: 'Lead captured' },
+  { value: 'ABANDONED_CART', label: 'Abandoned cart' },
+];
 const empty: { name: string; trigger: Trigger; subject: string; html: string; delayMinutes: number; isActive: boolean } = {
   name: '',
   trigger: 'SIGNUP',
@@ -97,10 +114,9 @@ export default function AutomationsPage() {
             onChange={(e) => setForm((f) => ({ ...f, trigger: e.target.value as Automation['trigger'] }))}
             className="px-4 py-2 bg-surface-light border border-surface-light rounded-xl text-foreground text-sm"
           >
-            <option value="SIGNUP">Signup</option>
-            <option value="ENROLLMENT">Enrollment</option>
-            <option value="PURCHASE">Purchase</option>
-            <option value="DRIP">Drip</option>
+            {TRIGGER_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
           </select>
         </div>
         <input

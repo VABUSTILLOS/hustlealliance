@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
 import { requireAdmin, authErrorResponse } from '@/lib/auth/guard';
+import { enrollUserInAutomations } from '@/lib/email/automation-triggers';
 
 // GET /api/admin/email/contacts/[id]
 // Full CRM-lite contact detail: profile, tags, and an activity timeline (campaigns received,
@@ -110,6 +111,12 @@ export async function GET(
           ? { id: referralReceived.id, referrer: referralReceived.referrer, status: referralReceived.status }
           : null,
       },
+      notes: notes.map((n) => ({
+        id: n.id,
+        body: n.body,
+        createdAt: n.createdAt,
+        author: n.author,
+      })),
     });
   } catch (err) {
     return authErrorResponse(err);
@@ -128,6 +135,10 @@ export async function PUT(
     const body = await request.json();
     const { tags, emailUnsubscribed } = body as { tags?: string[]; emailUnsubscribed?: boolean };
 
+    const before = tags !== undefined
+      ? await prisma.user.findUnique({ where: { id }, select: { tags: true } })
+      : null;
+
     const user = await prisma.user.update({
       where: { id },
       data: {
@@ -136,6 +147,12 @@ export async function PUT(
       },
       select: { id: true, tags: true, emailUnsubscribed: true },
     });
+
+    // Fire TAG_ADDED automations when tags were newly added.
+    if (before) {
+      const added = tags!.filter((t) => !before.tags.includes(t));
+      if (added.length > 0) await enrollUserInAutomations(id, 'TAG_ADDED');
+    }
 
     return NextResponse.json({ contact: user });
   } catch (err) {

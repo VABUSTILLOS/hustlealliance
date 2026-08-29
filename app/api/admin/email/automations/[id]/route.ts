@@ -12,7 +12,7 @@ export async function PUT(
     const body = await request.json();
     const { name, trigger, subject, html, delayMinutes, isActive, steps } = body as {
       name?: string;
-      trigger?: 'SIGNUP' | 'ENROLLMENT' | 'PURCHASE' | 'DRIP';
+      trigger?: 'SIGNUP' | 'ENROLLMENT' | 'PURCHASE' | 'DRIP' | 'TAG_ADDED' | 'LEAD_CAPTURED' | 'ABANDONED_CART';
       subject?: string;
       html?: string;
       delayMinutes?: number;

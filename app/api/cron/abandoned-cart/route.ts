@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
 import { sendEmail } from '@/lib/email/resend';
+import { enrollUserInAutomations } from '@/lib/email/automation-triggers';
 
 // GET /api/cron/abandoned-cart
 // Finds store orders stuck in PENDING for over an hour (checkout started but never paid)
@@ -49,6 +50,8 @@ export async function GET(request: NextRequest) {
         where: { id: order.id },
         data: { abandonedEmailSentAt: new Date() },
       });
+      // Enroll into any active ABANDONED_CART automations for follow-up sequences.
+      await enrollUserInAutomations(order.userId, 'ABANDONED_CART', order.createdAt);
       sent++;
     }
 
