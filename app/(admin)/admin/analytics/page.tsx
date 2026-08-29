@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import StoreAnalyticsSections from './store-analytics';
+import SourcesSection from './sources-section';
 import LineChart from './components/line-chart';
 import SvgBarChart from './components/bar-chart';
 import StatCard from './components/stat-card';
@@ -421,6 +422,7 @@ export default function AdminAnalyticsPage() {
       </div>
 
       <StoreAnalyticsSections />
+      <SourcesSection />
     </div>
   );
 }

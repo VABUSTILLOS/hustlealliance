@@ -453,6 +453,8 @@ const t = {
       sortMySpaces: 'My Spaces',
       loadMore: 'Load More',
       writeComment: 'Write a comment...',
+      reply: 'Reply',
+      writeReply: 'Write a reply...',
       submit: 'Post',
       noPosts: 'No posts yet. Be the first!',
       noComments: 'No comments yet',

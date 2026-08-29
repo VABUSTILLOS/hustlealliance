@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db/prisma";
 import { getMemberRole } from "@/lib/db/groups";
-import { createPost } from "@/lib/db/posts";
 import { getCurrentUser } from "@/lib/auth/user";
 import { notifyGroupAnnouncement } from "@/lib/notifications/service";
-import { syncPostHashtags } from "@/lib/hashtags/parser";
 
 // POST /api/groups/[id]/announce
 // Group OWNER/ADMIN publishes an announcement: a pinned group post plus a
@@ -37,18 +35,16 @@ export async function POST(
     });
     if (!group) return NextResponse.json({ error: "Group not found" }, { status: 404 });
 
-    const post = await createPost({
-      authorId: user.id,
-      content: content.trim(),
-      groupId: group.id,
-      visibility: "PUBLIC",
+    // Group feed reads CommunityGroupPost — create there so the announcement
+    // actually shows up in the feed (pinned to top).
+    const post = await prisma.communityGroupPost.create({
+      data: {
+        groupId: group.id,
+        authorId: user.id,
+        content: content.trim(),
+        isPinned: true,
+      },
     });
-    await prisma.communityPost.update({
-      where: { id: post.id },
-      data: { isPinned: true },
-    });
-
-    syncPostHashtags(post.id, content).catch(() => {});
 
     // Notify all active members (except the announcer) in chunks
     const members = await prisma.communityGroupMember.findMany({
@@ -75,7 +71,7 @@ export async function POST(
       );
     }
 
-    return NextResponse.json({ post: { ...post, isPinned: true }, notified: members.length, groupUrl }, { status: 201 });
+    return NextResponse.json({ post, notified: members.length, groupUrl }, { status: 201 });
   } catch (err) {
     return NextResponse.json({ error: (err as Error).message }, { status: 500 });
   }

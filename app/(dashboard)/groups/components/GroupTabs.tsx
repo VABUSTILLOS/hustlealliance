@@ -3,7 +3,7 @@
 import clsx from 'clsx';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
-type GroupTab = 'feed' | 'members' | 'about' | 'events' | 'files';
+type GroupTab = 'feed' | 'members' | 'about' | 'events' | 'files' | 'media';
 
 interface GroupTabsProps {
   active: GroupTab;
@@ -19,6 +19,7 @@ export function GroupTabs({ active, onChange }: GroupTabsProps) {
     { id: 'about', label: t.spaceDetail.about },
     { id: 'events', label: 'Events' },
     { id: 'files', label: 'Files' },
+    { id: 'media', label: 'Media' },
   ];
 
   return (

@@ -121,6 +121,12 @@ export default function AdminPagesPage() {
                     >
                       Edit
                     </Link>
+                    <Link
+                      href={`/admin/pages/${page.id}/funnel`}
+                      className="text-muted hover:text-foreground text-xs font-medium"
+                    >
+                      Funnel
+                    </Link>
                     <button
                       onClick={() => handleDuplicate(page.id)}
                       className="text-muted hover:text-foreground text-xs font-medium"

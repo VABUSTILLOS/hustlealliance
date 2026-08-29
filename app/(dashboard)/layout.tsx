@@ -6,6 +6,7 @@ import { DashboardShell } from './dashboard-shell';
 import { ToastContainer } from './toast-container';
 import { PresenceHeartbeat } from './components/PresenceHeartbeat';
 import OnboardingRedirect from './components/OnboardingRedirect';
+import ReferralCapture from './components/ReferralCapture';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -13,6 +14,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <ToastContainer>
         <PresenceHeartbeat />
         <OnboardingRedirect />
+        <ReferralCapture />
         <DashboardShell>{children}</DashboardShell>
       </ToastContainer>
     </LayoutQueryProvider>

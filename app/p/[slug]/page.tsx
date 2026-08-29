@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { prisma } from '@/lib/db/prisma';
 import { safeParsePageDocument, type Seo } from '@/lib/pages/blocks';
 import { PageBody } from '@/lib/pages/components/blocks';
+import PageTracker from '@/app/components/page-tracker';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -41,6 +42,7 @@ export default async function PublicLandingPage({ params }: Props) {
 
   return (
     <main className="min-h-screen bg-background">
+      <PageTracker path={`/p/${slug}`} landingPageId={page.id} />
       <PageBody blocks={blocks} />
     </main>
   );

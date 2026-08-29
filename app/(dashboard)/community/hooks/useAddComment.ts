@@ -7,13 +7,15 @@ export function useAddComment(postId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (content: string) => {
+    mutationFn: async (vars: string | { content: string; parentId?: string }) => {
+      const { content, parentId } =
+        typeof vars === "string" ? { content: vars } : vars;
       const res = await fetch(
         `/api/community/posts/${postId}/comments`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ content }),
+          body: JSON.stringify(parentId ? { content, parentId } : { content }),
         }
       );
       if (!res.ok) {

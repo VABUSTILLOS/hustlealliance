@@ -14,6 +14,7 @@ import MobileBottomNav from '@/app/components/MobileBottomNav';
 import dynamic from 'next/dynamic';
 
 import { NotificationBell } from '@/app/(dashboard)/notifications/components/NotificationBell';
+import { MessagesNavLink } from '@/app/(dashboard)/components/MessagesNavLink';
 
 const GamificationWidgetLazy = dynamic(
   () => import('@/app/components/GamificationWidget'),
@@ -159,6 +160,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               {link.label}
             </Link>
           ))}
+          <MessagesNavLink />
         </nav>
 
         {/* User + Sign Out */}

@@ -9,6 +9,7 @@ import { GroupTabs } from '../components/GroupTabs';
 import { MemberList } from '../components/MemberList';
 import { GroupEventsTab } from '../components/GroupEventsTab';
 import { GroupFilesTab } from '../components/GroupFilesTab';
+import { GroupMediaTab } from '../components/GroupMediaTab';
 import { AnnounceComposer } from '../components/AnnounceComposer';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { getInitialsAvatarUrl } from '@/lib/utils/avatar';
@@ -21,7 +22,7 @@ export default function GroupDetailPage({
 }) {
   const { slug } = use(params);
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<'feed' | 'members' | 'about' | 'events' | 'files'>('feed');
+  const [activeTab, setActiveTab] = useState<'feed' | 'members' | 'about' | 'events' | 'files' | 'media'>('feed');
 
   const { data: group, isLoading, error } = useGroup(slug);
   const { data: members } = useGroupMembers(group?.id ?? '');
@@ -112,7 +113,7 @@ export default function GroupDetailPage({
                     </p>
                   </div>
                   {post.isPinned && (
-                    <span className="ml-auto text-[10px] text-accent font-mono uppercase">📌 Pinned</span>
+                    <span className="ml-auto text-[10px] font-mono uppercase bg-amber-500/15 text-amber-400 border border-amber-500/30 rounded-full px-2 py-0.5">📣 Announcement</span>
                   )}
                 </div>
                 <p className="text-foreground-muted text-sm mb-3">{post.content}</p>
@@ -222,6 +223,11 @@ export default function GroupDetailPage({
           isMember={group.currentUserMember ?? false}
           isAdmin={isAdmin}
         />
+      )}
+
+      {/* Media tab */}
+      {activeTab === 'media' && (
+        <GroupMediaTab groupId={group.id} />
       )}
     </div>
   );
