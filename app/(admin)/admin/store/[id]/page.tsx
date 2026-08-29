@@ -25,6 +25,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
           currency: p.currency,
           images: p.images ?? [],
           stock: p.stock,
+          trackStock: p.trackStock ?? false,
           isPublished: p.isPublished,
           stripePriceId: p.stripePriceId ?? '',
           recurringInterval: p.recurringInterval ?? '',

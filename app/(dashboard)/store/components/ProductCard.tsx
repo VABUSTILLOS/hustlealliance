@@ -31,6 +31,11 @@ export function ProductCard({ product }: { product: ProductWithMeta }) {
             SALE
           </span>
         )}
+        {product.trackStock && product.stock <= 0 && (
+          <span className="absolute top-2 left-2 bg-gray-900/90 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+            SOLD OUT
+          </span>
+        )}
       </div>
 
       <div className="p-4">

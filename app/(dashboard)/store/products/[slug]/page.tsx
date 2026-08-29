@@ -121,6 +121,7 @@ export default function ProductDetailPage() {
             </div>
 
             <button
+              disabled={product.trackStock && product.stock <= 0}
               onClick={() => {
                 // Add to cart logic — store in state/localStorage
                 const cart = JSON.parse(localStorage.getItem("ha-cart") || "[]");
@@ -143,11 +144,16 @@ export default function ProductDetailPage() {
                 window.dispatchEvent(new Event("cart-updated"));
                 alert(t.store.successAddedToCart);
               }}
-              className="w-full flex items-center justify-center gap-2 px-6 py-3 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors"
+              className="w-full flex items-center justify-center gap-2 px-6 py-3 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
             >
               <ShoppingCart className="w-4 h-4" />
-              {t.store.buttonAddToCart} — ${(product.price * quantity).toFixed(2)}
+              {product.trackStock && product.stock <= 0
+                ? "Sold out"
+                : `${t.store.buttonAddToCart} — $${(product.price * quantity).toFixed(2)}`}
             </button>
+            {product.trackStock && product.stock > 0 && product.stock <= 5 && (
+              <p className="text-xs text-amber-600 text-center">Only {product.stock} left in stock</p>
+            )}
           </div>
         </div>
       </div>

@@ -1438,6 +1438,7 @@ model Product {
   currency    String      @default("USD")
   images      String[]    @default([])
   stock       Int         @default(0)
+  trackStock  Boolean     @default(false) // when true, stock is the remaining-inventory count; 0 = sold out
   isPublished Boolean     @default(false)
   metadata    Json?       // Course ID for course products, file URL for digital
   stripePriceId      String?

@@ -134,12 +134,24 @@ async function processStoreCheckout(session: StripeCheckoutSession, userId: stri
   const existing = await prisma.storeOrder.findFirst({ where: { stripePaymentIntentId: session.id } });
   if (existing) { console.log('[Webhook] Store order already processed for session', session.id); return; }
 
+  let trackUtm = null;
+  if (metadata.trackUtm) {
+    try { trackUtm = JSON.parse(metadata.trackUtm); } catch { /* ignore malformed */ }
+  }
+
   const order = await createAndFulfillStoreOrder({
     userId,
     items: productIds.map((productId, idx) => ({ productId, quantity: quantities[idx] || 1 })),
     currency: session.currency || 'usd',
     stripePaymentIntentId: session.id,
     couponCode: metadata.couponCode || null,
+    attribution: {
+      sessionId: metadata.trackSessionId || null,
+      utm: trackUtm,
+      landingPageId: metadata.landingPageId || null,
+      referralCode: metadata.referralCode || null,
+      path: metadata.trackPath || null,
+    },
   });
 
   console.log(`[Webhook] Store order ${order.id} fulfilled for ${userId}`);

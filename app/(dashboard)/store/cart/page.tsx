@@ -7,6 +7,7 @@ import { ArrowLeft, ShoppingCart, CreditCard } from "lucide-react";
 import { CartItem, type CartItemData } from "../components/CartItem";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { getErrorMsg } from "@/lib/i18n/getErrorMsg";
+import { getAttribution } from "@/app/components/page-tracker";
 
 function loadCart(): CartItemData[] {
   if (typeof window === "undefined") return [];
@@ -116,6 +117,15 @@ export default function CartPage() {
           ...(bumpAccepted && bumpProduct ? { bumpProductId: bumpProduct.id } : {}),
           successUrl: `${window.location.origin}/store/orders?checkout=success${!bumpAccepted && bumpProduct ? `&upsell=${bumpProduct.id}` : ""}`,
           cancelUrl: `${window.location.origin}/store/cart?checkout=cancelled`,
+          attribution: (() => {
+            try {
+              const a = getAttribution();
+              const ref = new URLSearchParams(window.location.search).get("ref");
+              return { ...a, path: "/store/cart", ...(ref ? { referralCode: ref } : {}) };
+            } catch {
+              return undefined;
+            }
+          })(),
         }),
       });
       const data = await res.json();

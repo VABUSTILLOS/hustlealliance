@@ -73,6 +73,7 @@ export interface AdminProductInput {
   currency?: string;
   images?: string[];
   stock?: number;
+  trackStock?: boolean;
   isPublished?: boolean;
   metadata?: Record<string, unknown> | null;
   stripePriceId?: string | null;
@@ -96,6 +97,7 @@ export async function createAdminProduct(input: AdminProductInput) {
       currency: data.currency ?? "USD",
       images: data.images ?? [],
       stock: data.stock ?? 0,
+      trackStock: data.trackStock ?? false,
       isPublished: data.isPublished ?? false,
       metadata: (data.metadata ?? Prisma.JsonNull) as Prisma.InputJsonValue,
       stripePriceId: data.stripePriceId ?? null,
@@ -138,6 +140,7 @@ export async function updateAdminProduct(id: string, input: Partial<AdminProduct
       ...(data.currency !== undefined ? { currency: data.currency } : {}),
       ...(data.images !== undefined ? { images: data.images } : {}),
       ...(data.stock !== undefined ? { stock: data.stock } : {}),
+      ...(data.trackStock !== undefined ? { trackStock: data.trackStock } : {}),
       ...(data.isPublished !== undefined ? { isPublished: data.isPublished } : {}),
       ...(data.metadata !== undefined ? { metadata: (data.metadata ?? Prisma.JsonNull) as Prisma.InputJsonValue } : {}),
       ...(data.stripePriceId !== undefined ? { stripePriceId: data.stripePriceId } : {}),

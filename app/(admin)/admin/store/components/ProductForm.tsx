@@ -13,6 +13,7 @@ export type ProductFormValue = {
   currency: string;
   images: string[];
   stock: number;
+  trackStock: boolean;
   isPublished: boolean;
   stripePriceId: string;
   recurringInterval: string;
@@ -34,6 +35,7 @@ const EMPTY_FORM: ProductFormValue = {
   currency: 'USD',
   images: [],
   stock: 0,
+  trackStock: false,
   isPublished: false,
   stripePriceId: '',
   recurringInterval: '',
@@ -129,6 +131,7 @@ export function ProductForm({
       currency: form.currency,
       images: form.images,
       stock: form.stock,
+      trackStock: form.trackStock,
       isPublished: form.isPublished,
       metadata,
       stripePriceId: form.stripePriceId || null,
@@ -261,6 +264,16 @@ export function ProductForm({
           />
         </div>
       </div>
+
+      <label className="flex items-center gap-2 text-sm text-muted cursor-pointer -mt-2">
+        <input
+          type="checkbox"
+          checked={form.trackStock}
+          onChange={(e) => setForm((f) => ({ ...f, trackStock: e.target.checked }))}
+          className="rounded border-surface-light"
+        />
+        Track inventory (stock = units remaining; product shows “sold out” at 0)
+      </label>
 
       <div>
         <label className="block text-sm text-muted mb-1.5">Images (comma-separated URLs)</label>

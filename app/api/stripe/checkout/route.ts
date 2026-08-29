@@ -85,12 +85,31 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'One or more products not found' }, { status: 404 });
       }
 
+      // Sold-out guard: tracked products must have enough remaining stock.
+      for (const item of items) {
+        const product = products.find((p) => p.id === item.productId);
+        if (product?.trackStock && product.stock < item.quantity) {
+          return NextResponse.json({ error: `"${product.title}" is sold out` }, { status: 409 });
+        }
+      }
+
       const productMap = new Map(products.map((p) => [p.id, p]));
       const subscriptionProduct = products.find((p) => p.type === 'MEMBERSHIP' && p.recurringInterval);
 
       metadata.productIds = items.map((i) => i.productId).join(',');
       metadata.quantities = items.map((i) => i.quantity).join(',');
       metadata.type = 'store';
+
+      // First-party attribution: forwarded by the storefront from the tracker.
+      const attribution = body.attribution && typeof body.attribution === 'object' ? body.attribution : {};
+      if (typeof attribution.sessionId === 'string' && attribution.sessionId) metadata.trackSessionId = attribution.sessionId.slice(0, 128);
+      if (attribution.utm && typeof attribution.utm === 'object') {
+        const utmJson = JSON.stringify(attribution.utm);
+        if (utmJson.length <= 450) metadata.trackUtm = utmJson;
+      }
+      if (typeof attribution.landingPageId === 'string' && attribution.landingPageId) metadata.landingPageId = attribution.landingPageId;
+      if (typeof attribution.referralCode === 'string' && attribution.referralCode) metadata.referralCode = attribution.referralCode.slice(0, 64);
+      if (typeof attribution.path === 'string' && attribution.path) metadata.trackPath = attribution.path.slice(0, 200);
 
       if (subscriptionProduct) {
         // Membership products are billed as recurring subscriptions; keep the

@@ -5,13 +5,23 @@
 // user's membership tier for recurring MEMBERSHIP products, records coupon
 // redemptions, and attributes referral conversions.
 import prisma from '@/lib/db/prisma';
-import { MembershipTier } from '@/lib/generated/prisma/client';
+import { MembershipTier, Prisma } from '@/lib/generated/prisma/client';
 import { attributeReferralConversion } from '@/lib/referrals/attribute';
+import { awardLeadScore } from '@/lib/scoring';
+import type { UtmParams } from '@/lib/track';
 
 export interface FulfillOrderItemInput {
   productId: string;
   quantity: number;
   unitPrice?: number;
+}
+
+export interface FulfillAttribution {
+  sessionId?: string | null;
+  utm?: UtmParams | null;
+  landingPageId?: string | null;
+  referralCode?: string | null;
+  path?: string | null;
 }
 
 export interface FulfillStoreOrderInput {
@@ -20,6 +30,7 @@ export interface FulfillStoreOrderInput {
   currency?: string;
   stripePaymentIntentId?: string | null;
   couponCode?: string | null;
+  attribution?: FulfillAttribution;
 }
 
 /**
@@ -65,7 +76,7 @@ export async function fulfillProduct(
  * provided — callers that may retry should always pass one.
  */
 export async function createAndFulfillStoreOrder(input: FulfillStoreOrderInput) {
-  const { userId, items, currency = 'USD', stripePaymentIntentId, couponCode } = input;
+  const { userId, items, currency = 'USD', stripePaymentIntentId, couponCode, attribution } = input;
   if (items.length === 0) throw new Error('Cannot fulfill an empty cart');
 
   if (stripePaymentIntentId) {
@@ -78,6 +89,13 @@ export async function createAndFulfillStoreOrder(input: FulfillStoreOrderInput) 
     include: { bundleItems: { include: { product: true } } },
   });
   const productMap = new Map(products.map((p) => [p.id, p]));
+
+  // Resolve affiliate referral code to a Referral row (best-effort).
+  let referralId: string | null = null;
+  if (attribution?.referralCode) {
+    const referral = await prisma.referral.findFirst({ where: { code: attribution.referralCode } });
+    referralId = referral?.id ?? null;
+  }
 
   const totalAmount = items.reduce((sum, item) => {
     const product = productMap.get(item.productId);
@@ -93,6 +111,9 @@ export async function createAndFulfillStoreOrder(input: FulfillStoreOrderInput) 
       currency: currency.toUpperCase(),
       stripePaymentIntentId: stripePaymentIntentId ?? null,
       paidAt: new Date(),
+      landingPageId: attribution?.landingPageId ?? null,
+      referralId,
+      utm: attribution?.utm ? (attribution.utm as unknown as Prisma.InputJsonValue) : undefined,
       items: {
         create: items.map((item) => {
           const product = productMap.get(item.productId);
@@ -143,6 +164,35 @@ export async function createAndFulfillStoreOrder(input: FulfillStoreOrderInput) 
     await attributeReferralConversion(userId, order.id);
   } catch (e) {
     console.error('[fulfill-order] Referral attribution failed (non-fatal)', e);
+  }
+
+  // Decrement tracked inventory (never below zero; untracked products are unlimited).
+  for (const item of items) {
+    const product = productMap.get(item.productId);
+    if (!product?.trackStock) continue;
+    try {
+      await prisma.product.update({
+        where: { id: product.id },
+        data: { stock: Math.max(0, product.stock - item.quantity) },
+      });
+    } catch (e) {
+      console.error('[fulfill-order] Stock decrement failed (non-fatal)', e);
+    }
+  }
+
+  // SALE page event + lead score — attribution must never break fulfillment.
+  try {
+    const { recordPageEvent } = await import('@/lib/track');
+    await recordPageEvent({
+      type: 'SALE',
+      path: attribution?.path || (attribution?.landingPageId ? `/pay` : '/store'),
+      sessionId: attribution?.sessionId || `order-${order.id}`,
+      landingPageId: attribution?.landingPageId ?? null,
+      utm: attribution?.utm ?? null,
+    });
+    await awardLeadScore(userId, 50); // purchase
+  } catch (e) {
+    console.error('[fulfill-order] Sale tracking failed (non-fatal)', e);
   }
 
   return order;
