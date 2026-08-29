@@ -7,7 +7,7 @@
     "build": "bash scripts/migrate-deploy.sh && next build",
     "build:full": "npx prisma generate && next build",
     "db:migrate": "npx prisma migrate deploy",
-    "db:seed": "npx tsx prisma/seed.ts && npx tsx prisma/seed-community.ts && npx tsx prisma/seed-blog-posts.ts && npx tsx prisma/seed-expand-all.ts && npx tsx prisma/seed-nas-io.ts",
+    "db:seed": "npx tsx prisma/seed.ts && npx tsx prisma/seed-community.ts && npx tsx prisma/seed-blog-posts.ts && npx tsx prisma/seed-expand-all.ts && npx tsx prisma/seed-nas-io.ts && npx tsx prisma/seed-challenges.ts",
     "db:setup": "npx prisma generate && npx prisma migrate deploy && npx tsx prisma/seed.ts && npx tsx prisma/seed-community.ts",
     "postinstall": "npx prisma generate",
     "start": "next start",
