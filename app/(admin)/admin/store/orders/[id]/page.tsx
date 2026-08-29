@@ -9,6 +9,7 @@ type OrderDetail = {
   totalAmount: number;
   currency: string;
   stripePaymentIntentId: string | null;
+  notes: string | null;
   createdAt: string;
   paidAt: string | null;
   updatedAt: string;
@@ -38,12 +39,20 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
   const [loading, setLoading] = useState(true);
   const [refunding, setRefunding] = useState(false);
   const [error, setError] = useState('');
+  const [notes, setNotes] = useState('');
+  const [savingNotes, setSavingNotes] = useState(false);
+  const [fulfilling, setFulfilling] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [notice, setNotice] = useState('');
 
   const load = () => {
     setLoading(true);
     fetch(`/api/admin/store/orders/${id}`)
       .then((r) => r.json())
-      .then((data) => setOrder(data.order ?? null))
+      .then((data) => {
+        setOrder(data.order ?? null);
+        setNotes(data.order?.notes ?? '');
+      })
       .catch(console.error)
       .finally(() => setLoading(false));
   };
@@ -67,6 +76,59 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
     }
   };
 
+  const saveNotes = async () => {
+    setSavingNotes(true);
+    setError('');
+    setNotice('');
+    try {
+      const res = await fetch(`/api/admin/store/orders/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notes }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error || 'Save failed');
+      setNotice('Notes saved.');
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setSavingNotes(false);
+    }
+  };
+
+  const handleFulfill = async () => {
+    setFulfilling(true);
+    setError('');
+    try {
+      const res = await fetch(`/api/admin/store/orders/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ markFulfilled: true }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error || 'Failed');
+      load();
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setFulfilling(false);
+    }
+  };
+
+  const handleResendReceipt = async () => {
+    setResending(true);
+    setError('');
+    setNotice('');
+    try {
+      const res = await fetch(`/api/admin/store/orders/${id}/resend-receipt`, { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed');
+      setNotice(data.demo ? 'Receipt logged (demo mode — no RESEND_API_KEY).' : 'Receipt sent.');
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setResending(false);
+    }
+  };
+
   if (loading) return <div className="p-4 md:p-8 text-muted">Loading…</div>;
   if (!order) return <div className="p-4 md:p-8 text-muted">Order not found.</div>;
 
@@ -87,6 +149,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
       </div>
 
       {error && <div className="p-3 mb-4 bg-red-400/10 text-red-400 rounded-xl text-sm">{error}</div>}
+      {notice && <div className="p-3 mb-4 bg-green-400/10 text-green-400 rounded-xl text-sm">{notice}</div>}
 
       <div className="glass-card p-6 mb-6">
         <h2 className="text-sm font-semibold text-muted mb-3">Customer</h2>
@@ -155,15 +218,53 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
         </dl>
       </div>
 
-      {order.status !== 'REFUNDED' && order.status !== 'CANCELLED' && (
+      <div className="glass-card p-6 mb-6">
+        <h2 className="text-sm font-semibold text-muted mb-3">Internal notes</h2>
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          rows={3}
+          placeholder="Only visible to admins…"
+          className="w-full px-4 py-2 bg-surface border border-surface-light rounded-xl text-foreground text-sm focus:outline-none focus:border-accent"
+        />
         <button
-          onClick={handleRefund}
-          disabled={refunding}
-          className="px-6 py-2.5 bg-red-500 text-white rounded-xl font-medium text-sm hover:bg-red-600 transition-colors disabled:opacity-50"
+          onClick={saveNotes}
+          disabled={savingNotes}
+          className="mt-3 px-4 py-2 bg-surface-light text-foreground rounded-xl text-sm font-medium hover:bg-surface-light/70 transition-colors disabled:opacity-50"
         >
-          {refunding ? 'Refunding…' : 'Refund order'}
+          {savingNotes ? 'Saving…' : 'Save notes'}
         </button>
-      )}
+      </div>
+
+      <div className="flex flex-wrap gap-3">
+        {order.status === 'PAID' && (
+          <button
+            onClick={handleFulfill}
+            disabled={fulfilling}
+            className="px-6 py-2.5 bg-blue-500 text-white rounded-xl font-medium text-sm hover:bg-blue-600 transition-colors disabled:opacity-50"
+          >
+            {fulfilling ? 'Updating…' : 'Mark fulfilled'}
+          </button>
+        )}
+        {(order.status === 'PAID' || order.status === 'FULFILLED') && (
+          <button
+            onClick={handleResendReceipt}
+            disabled={resending}
+            className="px-6 py-2.5 bg-surface-light text-foreground rounded-xl font-medium text-sm hover:bg-surface-light/70 transition-colors disabled:opacity-50"
+          >
+            {resending ? 'Sending…' : 'Resend receipt'}
+          </button>
+        )}
+        {order.status !== 'REFUNDED' && order.status !== 'CANCELLED' && (
+          <button
+            onClick={handleRefund}
+            disabled={refunding}
+            className="px-6 py-2.5 bg-red-500 text-white rounded-xl font-medium text-sm hover:bg-red-600 transition-colors disabled:opacity-50"
+          >
+            {refunding ? 'Refunding…' : 'Refund order'}
+          </button>
+        )}
+      </div>
     </div>
   );
 }
