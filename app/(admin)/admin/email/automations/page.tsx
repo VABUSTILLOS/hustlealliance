@@ -95,10 +95,26 @@ export default function AutomationsPage() {
     load();
   };
 
+  const [testSending, setTestSending] = useState<string | null>(null);
+  const [testNotice, setTestNotice] = useState('');
+
+  const testSend = async (a: Automation) => {
+    setTestSending(a.id);
+    setTestNotice('');
+    try {
+      const res = await fetch(`/api/admin/email/automations/${a.id}/test-send`, { method: 'POST' });
+      const data = await res.json();
+      setTestNotice(res.ok ? `Test email sent to ${data.to}.` : data.error || 'Test send failed.');
+    } finally {
+      setTestSending(null);
+    }
+  };
+
   return (
     <div className="p-4 md:p-8 max-w-4xl">
       <h1 className="text-2xl font-heading font-bold text-foreground mb-2">Email Automations</h1>
       <p className="text-muted text-sm mb-8">Trigger-based drip emails. Evaluated every 15 minutes.</p>
+      {testNotice && <p className="text-xs text-accent mb-4">{testNotice}</p>}
 
       <div className="bg-surface border border-surface-light rounded-2xl p-4 mb-8 space-y-4">
         <h3 className="text-sm font-medium text-foreground">{editingId ? 'Edit automation' : 'New automation'}</h3>
@@ -182,6 +198,13 @@ export default function AutomationsPage() {
                   className={`px-3 py-1 rounded-lg text-xs font-medium ${a.isActive ? 'bg-green-500/20 text-green-400' : 'bg-surface-light text-muted'}`}
                 >
                   {a.isActive ? 'Active' : 'Paused'}
+                </button>
+                <button
+                  onClick={() => testSend(a)}
+                  disabled={testSending === a.id}
+                  className="text-xs text-muted hover:text-foreground disabled:opacity-50"
+                >
+                  {testSending === a.id ? 'Sending…' : 'Test send'}
                 </button>
                 <button onClick={() => edit(a)} className="text-xs text-accent hover:underline">
                   Edit
