@@ -152,6 +152,72 @@ export default function AiStudioPage() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [history, setHistory] = useState<GenerationRecord[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+
+  // Round 3: chat mode + prompt presets
+  const [mode, setMode] = useState<'generate' | 'chat'>('generate');
+  const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([]);
+  const [chatInput, setChatInput] = useState('');
+  const [chatLoading, setChatLoading] = useState(false);
+  const [presets, setPresets] = useState<{ id: string; name: string; kind: string; prompt: string }[]>([]);
+
+  useEffect(() => {
+    fetch('/api/admin/ai/presets')
+      .then((r) => r.json())
+      .then((data) => setPresets(data.presets || []))
+      .catch(() => {});
+  }, []);
+
+  const applyPreset = (presetId: string) => {
+    const p = presets.find((x) => x.id === presetId);
+    if (!p) return;
+    if (KIND_OPTIONS.some((k) => k.value === p.kind)) setKind(p.kind as Kind);
+    setIdea(p.prompt);
+  };
+
+  const savePreset = async () => {
+    if (!idea.trim()) return;
+    const name = window.prompt('Preset name:', idea.trim().slice(0, 60));
+    if (!name) return;
+    const res = await fetch('/api/admin/ai/presets', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, kind, prompt: idea }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      setPresets((ps) => [data.preset, ...ps]);
+    }
+  };
+
+  const deletePreset = async (presetId: string) => {
+    await fetch(`/api/admin/ai/presets/${presetId}`, { method: 'DELETE' });
+    setPresets((ps) => ps.filter((p) => p.id !== presetId));
+  };
+
+  const sendChat = async () => {
+    const content = chatInput.trim();
+    if (!content || chatLoading) return;
+    const next = [...chatMessages, { role: 'user' as const, content }];
+    setChatMessages(next);
+    setChatInput('');
+    setChatLoading(true);
+    try {
+      const res = await fetch('/api/admin/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: next }),
+      });
+      const data = await res.json();
+      setChatMessages([
+        ...next,
+        { role: 'assistant', content: res.ok ? data.reply : data.error || 'AI chat is unavailable right now.' },
+      ]);
+    } catch {
+      setChatMessages([...next, { role: 'assistant', content: 'AI chat is unavailable right now.' }]);
+    } finally {
+      setChatLoading(false);
+    }
+  };
   const historyLoadedRef = useRef(false);
 
   const activeKind = KIND_OPTIONS.find((k) => k.value === kind)!;
