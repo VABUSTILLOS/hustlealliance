@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { getAttribution } from '@/app/components/page-tracker';
 import type {
   Block,
   HeroPropsSchema,
@@ -340,10 +341,18 @@ function LeadFormBlock({ props }: { props: Partial<z.infer<typeof LeadFormPropsS
     setStatus('loading');
     try {
       const pageSlug = typeof window !== 'undefined' ? window.location.pathname.split('/').pop() : undefined;
+      const attribution = getAttribution();
       const res = await fetch('/api/leads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, tag: props.tag || undefined, pageSlug }),
+        body: JSON.stringify({
+          email,
+          tag: props.tag || undefined,
+          pageSlug,
+          sessionId: attribution.sessionId,
+          utm: attribution.utm ?? undefined,
+          path: window.location.pathname,
+        }),
       });
       setStatus(res.ok ? 'success' : 'error');
     } catch {

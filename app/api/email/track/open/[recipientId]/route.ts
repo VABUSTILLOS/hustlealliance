@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
+import { awardLeadScore, LEAD_SCORE_RULES } from '@/lib/scoring';
 
 const PIXEL_GIF = Buffer.from(
   'R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBTAA7',
@@ -16,10 +17,17 @@ export async function GET(
 
   if (recipientId !== 'test') {
     try {
-      await prisma.campaignRecipient.updateMany({
+      const updated = await prisma.campaignRecipient.updateMany({
         where: { id: recipientId, status: { in: ['SENT'] } },
         data: { status: 'OPENED', openedAt: new Date() },
       });
+      if (updated.count > 0) {
+        const recipient = await prisma.campaignRecipient.findUnique({
+          where: { id: recipientId },
+          select: { userId: true },
+        });
+        if (recipient) await awardLeadScore(recipient.userId, LEAD_SCORE_RULES.emailOpen);
+      }
     } catch (err) {
       console.error('[Email track/open] Failed to record open:', err);
     }

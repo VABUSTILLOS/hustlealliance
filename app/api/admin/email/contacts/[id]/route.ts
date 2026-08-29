@@ -25,12 +25,13 @@ export async function GET(
         lastSeenAt: true,
         tags: true,
         emailUnsubscribed: true,
+        leadScore: true,
         streak: { select: { lastActiveDate: true } },
       },
     });
     if (!user) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-    const [campaignRecipients, orders, enrollments, referralsMade, referralReceived] = await Promise.all([
+    const [campaignRecipients, orders, enrollments, referralsMade, referralReceived, notes] = await Promise.all([
       prisma.campaignRecipient.findMany({
         where: { userId: id },
         include: { campaign: { select: { id: true, name: true, subject: true, sentAt: true } } },
@@ -58,6 +59,12 @@ export async function GET(
       prisma.referral.findFirst({
         where: { refereeId: id },
         include: { referrer: { select: { id: true, name: true, email: true } } },
+      }),
+      prisma.contactNote.findMany({
+        where: { userId: id },
+        include: { author: { select: { id: true, name: true, email: true } } },
+        orderBy: { createdAt: 'desc' },
+        take: 100,
       }),
     ]);
 

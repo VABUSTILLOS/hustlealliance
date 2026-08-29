@@ -103,18 +103,28 @@ export default function OnboardingPage() {
 
   async function handleFinish() {
     setSubmitting(true);
+    setFinishError(null);
     try {
       const payload = Object.entries(answers).map(([questionId, answer]) => ({
         questionId,
         answer,
       }));
+      // Best-effort: answers are nice to have, but only completion gates the dashboard.
       await fetch("/api/onboarding/answers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ answers: payload }),
-      });
-      await fetch("/api/onboarding/complete", { method: "POST" });
+      }).catch(() => {});
+      const completeRes = await fetch("/api/onboarding/complete", { method: "POST" });
+      if (!completeRes.ok) {
+        const data = await completeRes.json().catch(() => null);
+        throw new Error(data?.error ?? "Failed to complete onboarding");
+      }
       router.replace("/dashboard");
+    } catch {
+      // Don't redirect on failure — OnboardingRedirect would bounce the user
+      // straight back here, causing a redirect loop.
+      setFinishError("Something went wrong finishing setup. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -124,6 +134,29 @@ export default function OnboardingPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-surface">
         <p className="text-muted text-sm">Loading…</p>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-surface px-4">
+        <div className="w-full max-w-lg bg-surface-light/40 border border-surface-light rounded-2xl p-8 text-center">
+          <h1 className="text-xl font-heading font-semibold text-foreground mb-3">
+            Something went wrong
+          </h1>
+          <p className="text-muted text-sm mb-8">{loadError}</p>
+          <button
+            onClick={() => {
+              setLoading(true);
+              setLoadError(null);
+              setReloadKey((k) => k + 1);
+            }}
+            className="w-full px-4 py-3 bg-accent rounded-xl text-white font-medium hover:opacity-90 transition"
+          >
+            Try again
+          </button>
+        </div>
       </div>
     );
   }
@@ -254,6 +287,9 @@ export default function OnboardingPage() {
             >
               {submitting ? "Finishing…" : "Go to dashboard"}
             </button>
+            {finishError && (
+              <p className="text-red-400 text-sm mt-4">{finishError}</p>
+            )}
           </div>
         )}
       </div>
