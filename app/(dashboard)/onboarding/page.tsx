@@ -22,46 +22,60 @@ export default function OnboardingPage() {
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
   const [step, setStep] = useState(0); // 0 = welcome, 1..N = questions, N+1 = done
   const [submitting, setSubmitting] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [finishError, setFinishError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
     async function load() {
-      const statusRes = await fetch("/api/onboarding/status");
-      const status = await statusRes.json();
-      if (status.completed) {
-        router.replace("/dashboard");
-        return;
-      }
-
-      const res = await fetch("/api/onboarding/questions");
-      const data = await res.json();
-      if (cancelled) return;
-
-      const qs: OnboardingQuestion[] = data.questions ?? [];
-      const existing: ExistingAnswer[] = data.answers ?? [];
-      const initial: Record<string, string | string[]> = {};
-      for (const a of existing) {
-        const q = qs.find((q) => q.id === a.questionId);
-        if (q?.type === "MULTI_SELECT") {
-          try {
-            initial[a.questionId] = JSON.parse(a.answer);
-          } catch {
-            initial[a.questionId] = [];
+      try {
+        const statusRes = await fetch("/api/onboarding/status");
+        if (statusRes.ok) {
+          const status = await statusRes.json();
+          if (status.completed) {
+            router.replace("/dashboard");
+            return;
           }
-        } else {
-          initial[a.questionId] = a.answer;
         }
-      }
 
-      setQuestions(qs);
-      setAnswers(initial);
-      setLoading(false);
+        const res = await fetch("/api/onboarding/questions");
+        if (!res.ok) throw new Error("Failed to load onboarding questions");
+        const data = await res.json();
+        if (cancelled) return;
+
+        const qs: OnboardingQuestion[] = data.questions ?? [];
+        const existing: ExistingAnswer[] = data.answers ?? [];
+        const initial: Record<string, string | string[]> = {};
+        for (const a of existing) {
+          const q = qs.find((q) => q.id === a.questionId);
+          if (q?.type === "MULTI_SELECT") {
+            try {
+              initial[a.questionId] = JSON.parse(a.answer);
+            } catch {
+              initial[a.questionId] = [];
+            }
+          } else {
+            initial[a.questionId] = a.answer;
+          }
+        }
+
+        setQuestions(qs);
+        setAnswers(initial);
+        setLoadError(null);
+      } catch {
+        if (!cancelled) {
+          setLoadError("We couldn't load your onboarding. Check your connection and try again.");
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     }
     load();
     return () => {
       cancelled = true;
     };
-  }, [router]);
+  }, [router, reloadKey]);
 
   const totalSteps = questions.length + 2; // welcome + questions + done
   const isWelcome = step === 0;
