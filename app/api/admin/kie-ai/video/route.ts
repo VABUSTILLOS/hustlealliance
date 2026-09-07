@@ -5,11 +5,13 @@ import { createVideoTask, isKieAiConfigured, kieAiErrorResponse } from '@/lib/ai
 
 const bodySchema = z.object({
   prompt: z.string().min(1, 'prompt is required').max(4000),
-  model: z.string().optional(),
+  // Required by the Veo API — always sent, defaulted when the caller omits it.
+  model: z.string().min(1).default('veo3_fast'),
+  aspect_ratio: z.string().min(1).default('16:9'),
 });
 
 // POST /api/admin/kie-ai/video
-// Starts an async Kie.ai video generation task. Body: { prompt, model? }.
+// Starts an async Kie.ai Veo video generation task. Body: { prompt, model?, aspect_ratio? }.
 // Returns { taskId }; poll GET /api/admin/kie-ai/status?taskId=... for the result.
 export async function POST(request: NextRequest) {
   try {

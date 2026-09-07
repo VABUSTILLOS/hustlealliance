@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin, authErrorResponse } from '@/lib/auth/guard';
-import { getTaskStatus, isKieAiConfigured, kieAiErrorResponse } from '@/lib/ai/kie-ai';
+import { getTaskStatus, isKieAiConfigured, kieAiErrorResponse, extractResultUrls } from '@/lib/ai/kie-ai';
 
 // GET /api/admin/kie-ai/status?taskId=...
 // One-shot status check for an async Kie.ai task (image/video/music), shared
@@ -27,7 +27,9 @@ export async function GET(request: NextRequest) {
 
   try {
     const record = await getTaskStatus(taskId);
-    return NextResponse.json(record);
+    // Surface generated asset URLs alongside the raw record, whether the API
+    // returned them at the top level or nested inside `resultJson`.
+    return NextResponse.json({ ...record, resultUrls: extractResultUrls(record) });
   } catch (err) {
     try {
       return kieAiErrorResponse(err);
