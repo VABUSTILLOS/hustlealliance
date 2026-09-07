@@ -81,20 +81,9 @@ async function kieFetch<T>(path: string, init?: RequestInit): Promise<T> {
   return json as T;
 }
 
-// ─── Models ──────────────────────────────────────────────────────────────
-
-export interface KieAiModel {
-  id: string;
-  name?: string;
-  type?: string;
-  [key: string]: unknown;
-}
-
-/** GET /api/v1/models — list available models across image/video/music/LLM. */
-export async function listModels(): Promise<KieAiModel[]> {
-  const data = await kieFetch<{ data?: KieAiModel[]; models?: KieAiModel[] }>('/api/v1/models');
-  return data.data ?? data.models ?? [];
-}
+// NOTE: Kie.ai does not expose a public model-listing endpoint
+// (`GET /api/v1/models` returns 404). Model identifiers are documented
+// per-endpoint at https://docs.kie.ai/ and passed in the request body.
 
 // ─── Async generation tasks (image / video / music) ───────────────────────
 
@@ -123,26 +112,57 @@ export async function createGenerationTask(
   return { ...data.data, taskId };
 }
 
-/** Starts an image generation task. `modelPath` defaults to the general image generation endpoint. */
+/** Aspect ratios accepted by the 4o Image endpoint. */
+export type KieAiImageSize = '1:1' | '3:2' | '2:3';
+
+/**
+ * Starts a 4o Image generation task.
+ * `size` is REQUIRED by the API alongside `prompt`; there is no `model` field
+ * in this endpoint's schema.
+ */
 export function createImageTask(
-  input: { prompt: string; model?: string; [key: string]: unknown },
+  input: { prompt: string; size: KieAiImageSize; [key: string]: unknown },
   modelPath = '/api/v1/gpt4o-image/generate'
 ) {
   return createGenerationTask(modelPath, input);
 }
 
-/** Starts a video generation task. `modelPath` defaults to the general video generation endpoint. */
+/**
+ * Starts a Veo video generation task.
+ * `model` is REQUIRED by the API (e.g. `veo3_fast`, `veo3`).
+ */
 export function createVideoTask(
-  input: { prompt: string; model?: string; [key: string]: unknown },
+  input: { prompt: string; model: string; [key: string]: unknown },
   modelPath = '/api/v1/veo/generate'
 ) {
   return createGenerationTask(modelPath, input);
 }
 
-/** Starts a music generation task. `modelPath` defaults to the general music generation endpoint. */
+/** Music model identifiers accepted by the Kie.ai music endpoint. */
+export type KieAiMusicModel =
+  | 'V3_5'
+  | 'V4'
+  | 'V4_5'
+  | 'V4_5PLUS'
+  | 'V4_5ALL'
+  | 'V5'
+  | 'V5_5';
+
+/**
+ * Starts a music generation task on `POST /api/v1/generate`.
+ * The API rejects (422) requests missing `customMode`, `instrumental`,
+ * `model`, or `callBackUrl`.
+ */
 export function createMusicTask(
-  input: { prompt: string; model?: string; [key: string]: unknown },
-  modelPath = '/api/v1/suno/generate'
+  input: {
+    prompt: string;
+    customMode: boolean;
+    instrumental: boolean;
+    model: KieAiMusicModel;
+    callBackUrl: string;
+    [key: string]: unknown;
+  },
+  modelPath = '/api/v1/generate'
 ) {
   return createGenerationTask(modelPath, input);
 }
@@ -152,9 +172,30 @@ export type KieAiTaskState = 'waiting' | 'queuing' | 'generating' | 'success' | 
 export interface KieAiTaskRecord {
   taskId: string;
   state: KieAiTaskState;
+  /** JSON string containing the result payload (e.g. `{"resultUrls":[...]}`). */
   resultJson?: string;
+  /** Some endpoints return the URLs directly instead of inside `resultJson`. */
+  resultUrls?: string[];
   failMsg?: string;
   [key: string]: unknown;
+}
+
+/**
+ * Extracts generated asset URLs from a completed task record, handling both
+ * the top-level `resultUrls` field and URLs nested inside the `resultJson`
+ * string. Returns an empty array when the task has no (parseable) result.
+ */
+export function extractResultUrls(record: KieAiTaskRecord): string[] {
+  if (Array.isArray(record.resultUrls)) return record.resultUrls;
+  if (!record.resultJson) return [];
+  try {
+    const parsed = JSON.parse(record.resultJson) as { resultUrls?: unknown };
+    return Array.isArray(parsed.resultUrls)
+      ? parsed.resultUrls.filter((url): url is string => typeof url === 'string')
+      : [];
+  } catch {
+    return [];
+  }
 }
 
 /** GET /api/v1/jobs/recordInfo?taskId=... — fetch current status/result of an async task. */
@@ -203,7 +244,10 @@ export interface KieAiChatResult {
   raw: unknown;
 }
 
-/** POST /api/v1/chat/completions — synchronous, OpenAI chat-completions-compatible call. */
+/**
+ * POST /v1/chat/completions — synchronous, OpenAI chat-completions-compatible.
+ * NOTE: this endpoint lives at `/v1/...`, NOT `/api/v1/...` (the latter 404s).
+ */
 export async function chatCompletion(params: {
   model: string;
   messages: KieAiChatMessage[];
@@ -211,7 +255,7 @@ export async function chatCompletion(params: {
 }): Promise<KieAiChatResult> {
   const data = await kieFetch<{
     choices?: { message?: { content?: string } }[];
-  }>('/api/v1/chat/completions', {
+  }>('/v1/chat/completions', {
     method: 'POST',
     body: JSON.stringify(params),
   });
